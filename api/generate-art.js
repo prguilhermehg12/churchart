@@ -35,23 +35,146 @@ function inputContent(data,text){
   return c;
 }
 
-async function gen(data,label,instruction){
+async function callImageModel({data,label,instruction,model,inputFidelity}) {
   const size=data.format==='wide'?'1536x1024':'1024x1536';
+
+  const imageTool={
+    type:'image_generation',
+    model,
+    action:'edit',
+    quality:'medium',
+    size,
+    output_format:'png'
+  };
+
+  // input_fidelity is currently supported by gpt-image-1, but not by gpt-image-2.
+  if(inputFidelity){
+    imageTool.input_fidelity=inputFidelity;
+  }
+
   const r=await fetch(RESPONSES_URL,{
     method:'POST',
-    headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,'Content-Type':'application/json'},
+    headers:{
+      Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type':'application/json'
+    },
     body:JSON.stringify({
       model:'gpt-5-mini',
-      input:[{role:'user',content:inputContent(data,prompt(data,label,instruction))}],
-      tools:[{type:'image_generation',model:'gpt-image-2',action:'edit',input_fidelity:'high',quality:'medium',size,output_format:'png'}],
+      input:[{
+        role:'user',
+        content:inputContent(data,prompt(data,label,instruction))
+      }],
+      tools:[imageTool],
       tool_choice:'required'
     })
   });
+
   const d=await r.json();
-  if(!r.ok)throw new Error(d?.error?.message||`Erro OpenAI ${r.status}`);
-  const call=(d.output||[]).find(x=>x.type==='image_generation_call'&&x.result);
-  if(!call?.result)throw new Error('A OpenAI não retornou a base visual.');
-  return{label,dataUrl:`data:image/png;base64,${call.result}`};
+
+  if(!r.ok){
+    const message=d?.error?.message||`Erro OpenAI ${r.status}`;
+    const err=new Error(message);
+    err.status=r.status;
+    err.openaiBody=d;
+    throw err;
+  }
+
+  const call=(d.output||[]).find(
+    x=>x.type==='image_generation_call'&&x.result
+  );
+
+  if(!call?.result){
+    throw new Error(`O modelo ${model} não retornou a base visual.`);
+  }
+
+  return{
+    label,
+    dataUrl:`data:image/png;base64,${call.result}`,
+    modelUsed:model
+  };
+}
+
+function isRetryableModelError(error){
+  const msg=String(error?.message||'').toLowerCase();
+
+  return (
+    msg.includes('does not support') ||
+    msg.includes('unsupported') ||
+    msg.includes('unknown parameter') ||
+    msg.includes('invalid parameter') ||
+    msg.includes('model') ||
+    msg.includes('temporarily unavailable') ||
+    msg.includes('overloaded') ||
+    error?.status===404 ||
+    error?.status===400 ||
+    error?.status===429 ||
+    (error?.status>=500 && error?.status<=599)
+  );
+}
+
+async function gen(data,label,instruction){
+  const attempts=[
+    {
+      model:'gpt-image-2',
+      inputFidelity:null,
+      description:'GPT Image 2'
+    },
+    {
+      model:'gpt-image-1',
+      inputFidelity:'high',
+      description:'GPT Image 1 com alta fidelidade'
+    },
+    {
+      model:'gpt-image-1',
+      inputFidelity:null,
+      description:'GPT Image 1 compatibilidade'
+    }
+  ];
+
+  const failures=[];
+
+  for(let i=0;i<attempts.length;i++){
+    const attempt=attempts[i];
+
+    try{
+      const result=await callImageModel({
+        data,
+        label,
+        instruction,
+        model:attempt.model,
+        inputFidelity:attempt.inputFidelity
+      });
+
+      return{
+        ...result,
+        fallbackUsed:i>0,
+        attempt:i+1
+      };
+
+    }catch(error){
+      failures.push({
+        model:attempt.model,
+        message:error?.message||'Erro desconhecido'
+      });
+
+      console.warn(
+        `[ChurchDesign] Falha em ${attempt.description}:`,
+        error?.message
+      );
+
+      if(i===attempts.length-1 || !isRetryableModelError(error)){
+        const summary=failures
+          .map(f=>`${f.model}: ${f.message}`)
+          .join(' | ');
+
+        throw new Error(
+          `Todos os modelos de geração falharam. ${summary}`
+        );
+      }
+    }
+  }
+
+  throw new Error('Nenhum modelo de geração ficou disponível.');
 }
 
 module.exports=async function handler(req,res){
