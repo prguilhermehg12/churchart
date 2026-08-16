@@ -162,7 +162,8 @@ module.exports = async function handler(req, res) {
           {
             id: "default",
             name: body.name || "",
-            address: body.address || ""
+            address: body.address || "",
+            screen_config: body.screenConfig || {preset:"16:9",width:1920,height:1080}
           }
         ])
       });
