@@ -5,7 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ChurchArt — Design inteligente para igrejas</title>
   <meta name="description" content="Crie artes profissionais para cultos a partir de referências visuais, camadas e direção criativa." />
-  <link rel="stylesheet" href="./styles.css" />
+  <style>
+:root{--bg:#0b0c0f;--panel:#111318;--panel2:#171a20;--line:#272b34;--text:#f4f6fb;--muted:#969dac;--accent:#ff4f72;--accent2:#7d6cff;--good:#59d69a;--warn:#ffbd59;--shadow:0 20px 60px rgba(0,0,0,.28)}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.app-shell{min-height:100vh;display:grid;grid-template-columns:270px 1fr}.sidebar{position:sticky;top:0;height:100vh;border-right:1px solid var(--line);background:#0e1014;padding:24px 18px;display:flex;flex-direction:column}.brand{display:flex;gap:12px;align-items:center;padding:0 8px 24px}.brand-mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-weight:900}.brand strong,.brand span{display:block}.brand span{font-size:11px;color:var(--muted);margin-top:2px}.project-mini{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:13px;margin-bottom:18px}.project-mini span{display:block;color:var(--muted);font-size:10px;letter-spacing:.12em}.project-mini strong{font-size:13px;margin-top:5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}nav{display:grid;gap:5px}.nav-step{display:flex;align-items:center;gap:10px;padding:10px;border-radius:11px;color:var(--muted);font-size:13px}.nav-step b{width:24px;height:24px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;font-size:11px}.nav-step.active{background:var(--panel2);color:white}.nav-step.active b{background:var(--accent);border-color:var(--accent)}.nav-step.done{color:#cdd2dc}.nav-step.done b{background:#1d3529;border-color:#28513c;color:var(--good)}.sidebar-foot{margin-top:auto;color:var(--muted);padding:10px 8px}.sidebar-foot span,.sidebar-foot small{display:block}.sidebar-foot span{font-size:11px;font-weight:700}.sidebar-foot small{font-size:10px;line-height:1.45;margin-top:4px}.main{min-width:0;display:grid;grid-template-rows:auto 1fr auto;min-height:100vh}.topbar{padding:26px 34px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:24px;align-items:end}.eyebrow{margin:0 0 6px;color:var(--accent);font-size:11px;letter-spacing:.16em;font-weight:800}.topbar h1{margin:0;font-size:26px}.progress{width:180px;color:var(--muted);font-size:11px;text-align:right}.progress>div{height:5px;background:#20242b;border-radius:99px;margin-top:7px;overflow:hidden}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:14%}.content{padding:32px 34px 120px;max-width:1260px;width:100%;margin:0 auto}.footer{position:fixed;bottom:0;right:0;left:270px;background:rgba(11,12,15,.9);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:16px 34px;display:flex;justify-content:space-between;z-index:30}.btn{border:0;border-radius:11px;padding:12px 18px;font-weight:800;cursor:pointer}.btn.primary{background:var(--text);color:#111}.btn.ghost{background:#171a20;color:var(--text);border:1px solid var(--line)}.btn:disabled{opacity:.35;cursor:not-allowed}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow)}.card h3{margin:0 0 7px;font-size:16px}.card p{color:var(--muted);font-size:13px;line-height:1.5;margin:0}.field{display:grid;gap:7px;margin-bottom:16px}.field label{font-size:12px;font-weight:700;color:#cfd4df}.field input,.field textarea,.field select{width:100%;background:#0d0f13;color:white;border:1px solid var(--line);border-radius:11px;padding:12px 13px;outline:none}.field textarea{min-height:104px;resize:vertical}.upload{border:1px dashed #3b414e;border-radius:14px;padding:22px;text-align:center;background:#0d0f13;cursor:pointer}.upload input{display:none}.upload strong,.upload span{display:block}.upload span{font-size:12px;color:var(--muted);margin-top:5px}.preview-logo{width:76px;height:76px;object-fit:contain;border-radius:14px;background:white;padding:8px;margin:0 auto 10px;display:none}.format-card,.choice-card{border:1px solid var(--line);border-radius:15px;padding:18px;background:var(--panel);cursor:pointer;transition:.18s}.format-card:hover,.choice-card:hover{transform:translateY(-2px);border-color:#4a5263}.format-card.selected,.choice-card.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}.format-icon{aspect-ratio:4/5;width:58px;border:1px solid #4a5263;border-radius:7px;margin-bottom:12px;background:linear-gradient(150deg,#1f2430,#101218)}.format-icon.story{aspect-ratio:9/16}.format-icon.wide{aspect-ratio:16/9;width:90px}.format-card strong,.format-card span{display:block}.format-card span{font-size:11px;color:var(--muted);margin-top:4px}.reference-area{display:grid;grid-template-columns:minmax(320px,1.15fr) minmax(280px,.85fr);gap:22px}.canvas-wrap{background:#090a0c;border:1px solid var(--line);border-radius:18px;padding:14px}.canvas-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:var(--muted);font-size:11px}.art-canvas{position:relative;min-height:520px;border-radius:12px;overflow:hidden;background:radial-gradient(circle at 30% 30%,#252a36,#101216 60%);user-select:none}.art-canvas img{width:100%;height:100%;position:absolute;inset:0;object-fit:contain}.empty-ref{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:50px;color:var(--muted)}.annotation{position:absolute;border:2px solid var(--boxColor);background:color-mix(in srgb,var(--boxColor) 10%,transparent);pointer-events:none}.annotation span{position:absolute;left:-2px;top:-24px;background:var(--boxColor);color:#111;padding:3px 7px;font-size:10px;border-radius:5px 5px 5px 0;font-weight:900;white-space:nowrap}.layers{display:grid;gap:9px}.layer{border:1px solid var(--line);border-radius:12px;padding:11px;background:#0d0f13;display:flex;gap:10px;align-items:center}.layer-dot{width:11px;height:11px;border-radius:99px;background:var(--dot)}.layer-info{min-width:0;flex:1}.layer-info strong,.layer-info small{display:block}.layer-info strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.layer-info small{color:var(--muted);font-size:10px;margin-top:2px}.tag{display:inline-flex;border:1px solid var(--line);background:#101319;color:#bec5d3;border-radius:99px;font-size:10px;padding:5px 8px}.help{border-left:3px solid var(--accent2);padding:12px 14px;background:#131520;border-radius:0 10px 10px 0;color:#c7cddd;font-size:12px;line-height:1.55;margin-bottom:16px}.replacement{display:grid;grid-template-columns:58px 1fr auto;gap:13px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:10px;background:#0d0f13}.thumb{width:58px;height:58px;border-radius:10px;background:#1b1f27;display:grid;place-items:center;color:var(--muted);font-size:20px;overflow:hidden}.thumb img{width:100%;height:100%;object-fit:cover}.replacement strong,.replacement small{display:block}.replacement small{font-size:10px;color:var(--muted);margin-top:4px}.mini-btn{border:1px solid var(--line);background:#171a20;color:white;border-radius:9px;padding:8px 10px;font-size:10px;cursor:pointer}.result-card{overflow:hidden;padding:0}.result-art{aspect-ratio:4/5;position:relative;background:linear-gradient(145deg,#242a38,#101216);display:flex;align-items:end;padding:24px}.result-art:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 70% 25%,rgba(255,79,114,.35),transparent 38%),linear-gradient(180deg,transparent 35%,rgba(0,0,0,.68))}.result-art.variant2:before{background:radial-gradient(circle at 30% 38%,rgba(125,108,255,.35),transparent 40%),linear-gradient(180deg,transparent 25%,rgba(0,0,0,.72))}.result-art.variant3:before{background:linear-gradient(135deg,rgba(255,189,89,.2),transparent 45%),linear-gradient(180deg,transparent 30%,rgba(0,0,0,.75))}.mock-pastor{position:absolute;right:5%;bottom:0;width:48%;height:78%;border-radius:48% 48% 5% 5%;background:linear-gradient(160deg,#576074,#1b1f27);filter:grayscale(1);opacity:.85}.variant2 .mock-pastor{right:auto;left:4%;width:42%}.variant3 .mock-pastor{right:22%;width:54%;opacity:.55}.result-copy{position:relative;z-index:2;max-width:80%}.result-copy small{letter-spacing:.12em;color:#d7dbe4}.result-copy h2{font-size:34px;line-height:.94;margin:8px 0 12px;text-transform:uppercase}.result-copy p{font-size:12px;color:#d1d5de;margin:0}.result-meta{padding:14px 16px;display:flex;justify-content:space-between;align-items:center}.result-meta strong{font-size:12px}.empty-state{text-align:center;padding:46px 24px;border:1px dashed var(--line);border-radius:16px;color:var(--muted)}@media(max-width:900px){.app-shell{grid-template-columns:1fr}.sidebar{display:none}.footer{left:0}.topbar,.content,.footer{padding-left:18px;padding-right:18px}.grid2,.grid3,.reference-area{grid-template-columns:1fr}.progress{display:none}.art-canvas{min-height:420px}}
+
+/* V0.1 — seleção de contornos */
+.canvas-toolbar select{background:#151820;color:white;border:1px solid #303642;border-radius:8px;padding:8px 10px;outline:none}.art-canvas.is-drawable{cursor:crosshair;touch-action:none;-webkit-user-select:none;user-select:none}.art-canvas.is-drawable *{-webkit-user-drag:none}.art-canvas.is-drawable img{pointer-events:none;user-select:none;-webkit-user-drag:none}.art-canvas.drawing-now{cursor:crosshair}.annotation.drawing{z-index:50;border-style:dashed;background:color-mix(in srgb,var(--boxColor) 16%,transparent);box-shadow:0 0 0 1px rgba(255,255,255,.12) inset}.annotation.saved{z-index:10;border-width:2px;box-shadow:0 0 0 1px color-mix(in srgb,var(--boxColor) 35%,transparent),0 0 20px color-mix(in srgb,var(--boxColor) 16%,transparent)}.annotation.saved.just-saved{animation:savedPulse .75s ease-out}.annotation .handle{display:none}.annotation.saved .handle{display:block;position:absolute;width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid var(--boxColor);box-shadow:0 1px 4px rgba(0,0,0,.4)}.annotation .h1{left:-5px;top:-5px}.annotation .h2{right:-5px;top:-5px}.annotation .h3{left:-5px;bottom:-5px}.annotation .h4{right:-5px;bottom:-5px}@keyframes savedPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--boxColor) 65%,transparent)}70%{box-shadow:0 0 0 12px color-mix(in srgb,var(--boxColor) 0%,transparent)}100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--boxColor) 35%,transparent)}}.map-success{display:grid;grid-template-columns:38px 1fr auto;gap:12px;align-items:center;margin-bottom:16px;padding:13px 14px;border:1px solid #24553f;background:linear-gradient(90deg,#10291e,#111820);border-radius:13px;animation:successIn .25s ease-out}.success-icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#153b2a;color:var(--good);border:1px solid #2f815b;font-weight:900}.map-success strong,.map-success span{display:block}.map-success strong{font-size:13px;color:#dff8eb}.map-success span{font-size:11px;color:#94bfa8;margin-top:3px}.success-close{border:0;background:transparent;color:#7f9d8d;font-size:20px;cursor:pointer}.canvas-status{display:flex;gap:10px;align-items:center;padding:12px 4px 0;color:var(--muted)}.canvas-status .status-check{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#171a20;border:1px solid var(--line);font-weight:900}.canvas-status strong,.canvas-status span{display:block}.canvas-status strong{font-size:11px;color:#d6dbe5}.canvas-status span{font-size:10px;margin-top:2px}.canvas-status.has-layers .status-check{background:#143123;border-color:#276b4a;color:var(--good)}.canvas-status.has-layers strong{color:#bff1d3}.layers-heading{display:flex;justify-content:space-between;gap:12px;align-items:start;margin-bottom:15px}.layers-heading p{margin-top:4px}.layer-count{min-width:28px;height:28px;padding:0 8px;border-radius:99px;display:grid;place-items:center;background:#20242d;border:1px solid #333947;color:#dce1eb;font-size:11px;font-weight:800}.layer.layer-new{border-color:#2a6c4c;background:#0e1d17}.saved-badge{font-size:9px;color:var(--good);background:#112b1f;border:1px solid #235c40;border-radius:99px;padding:4px 7px;white-space:nowrap}@keyframes successIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+
+/* V0.2 — cancelamento e feedback da seleção */
+.toolbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.cancel-draw-btn{border-color:#6b3840;color:#ff9eac;background:#211217}.cancel-draw-btn:not(:disabled):hover{background:#321820;border-color:#a54a5b}.cancel-draw-btn:disabled{opacity:.35;cursor:not-allowed}.undo-last-btn:hover{border-color:#596175;background:#20242d}.success-actions{display:flex;align-items:center;gap:8px}.success-undo{color:#bff1d3;border-color:#2a6c4c;background:#10251a}.success-undo:hover{background:#173824}.floating-map-notice{position:fixed;right:28px;bottom:92px;z-index:1000;min-width:290px;max-width:380px;padding:13px 15px;border-radius:12px;background:#171a20;border:1px solid #343a46;box-shadow:0 18px 50px rgba(0,0,0,.45);opacity:0;transform:translateY(10px);transition:.2s ease}.floating-map-notice.show{opacity:1;transform:none}.floating-map-notice strong,.floating-map-notice span{display:block}.floating-map-notice strong{font-size:12px;color:#eef1f6}.floating-map-notice span{font-size:10px;color:#a7aebb;margin-top:4px}.floating-map-notice.neutral{border-color:#4b5362}.art-canvas.drawing-now:after{content:'Arraste para ajustar • solte para salvar • Esc para cancelar';position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:80;padding:8px 11px;border-radius:99px;background:rgba(10,12,16,.88);border:1px solid rgba(255,255,255,.16);color:#e7eaf0;font-size:10px;font-weight:700;white-space:nowrap;pointer-events:none}
+
+</style>
 </head>
 <body>
   <div class="app-shell">
@@ -22,6 +31,141 @@
       <footer class="footer"><button id="backBtn" class="btn ghost">← Voltar</button><button id="nextBtn" class="btn primary">Continuar →</button></footer>
     </main>
   </div>
-  <script src="./app.js"></script>
+  <script>
+const state={step:0,church:{name:'',address:'',logo:null},format:'feed',reference:null,layers:[],instruction:'',projectTitle:'Nova arte',lastMarked:null};
+const steps=[['CONFIGURAÇÃO','Identidade da igreja'],['FORMATO','Tipo de arte'],['REFERÊNCIA','Escolha a referência'],['MAPA SEMÂNTICO','Identifique os elementos'],['CONTEÚDO','Substitua as informações'],['DIREÇÃO DE ARTE','Ajustes finais'],['RESULTADO','3 propostas de arte']];
+const layerTypes=[['logo','Logo da igreja'],['pastor','Foto do pregador'],['title','Título / texto'],['titlepart','Composto do título'],['background','Imagem de fundo'],['effect','Efeito de fundo'],['design','Elemento de design'],['other','Outro']];
+const colors=['#ff4f72','#7d6cff','#59d69a','#ffbd59','#54b8ff','#f08cff','#8be0d0','#ff8b5e'];
+const content=document.querySelector('#content'),next=document.querySelector('#nextBtn'),back=document.querySelector('#backBtn');
+function esc(s=''){return String(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
+function nav(){document.querySelector('#stepNav').innerHTML=steps.map((s,i)=>`<div class="nav-step ${i===state.step?'active':''} ${i<state.step?'done':''}"><b>${i<state.step?'✓':i+1}</b><span>${s[1]}</span></div>`).join('')}
+function chrome(){document.querySelector('#eyebrow').textContent=steps[state.step][0];document.querySelector('#pageTitle').textContent=steps[state.step][1];document.querySelector('#progressText').textContent=`${state.step+1} de ${steps.length}`;document.querySelector('#progressBar').style.width=`${((state.step+1)/steps.length)*100}%`;document.querySelector('#projectName').textContent=state.projectTitle;back.disabled=state.step===0;next.textContent=state.step===steps.length-1?'Nova arte ↻':'Continuar →';nav()}
+function render(){chrome();([screenChurch,screenFormat,screenReference,screenMap,screenReplace,screenAdjust,screenResults][state.step])();}
+function screenChurch(){content.innerHTML=`<div class="grid2"><div class="card"><h3>Dados básicos</h3><p style="margin-bottom:18px">Essas informações ficam salvas no perfil da igreja e poderão ser reutilizadas em todas as artes.</p><div class="field"><label>Nome da igreja</label><input id="churchName" value="${esc(state.church.name)}" placeholder="Ex.: Igreja Batista Filadélfia" /></div><div class="field"><label>Endereço</label><input id="churchAddress" value="${esc(state.church.address)}" placeholder="Rua, número, bairro, cidade" /></div></div><div class="card"><h3>Logo principal</h3><p style="margin-bottom:18px">PNG transparente funciona melhor. Na versão futura, teremos variações clara, escura e monocromática.</p><label class="upload"><img class="preview-logo" id="logoPreview"><strong>Enviar logo da igreja</strong><span>PNG, JPG ou WEBP</span><input id="logoFile" type="file" accept="image/*"></label></div></div>`;
+const n=document.querySelector('#churchName'),a=document.querySelector('#churchAddress'),f=document.querySelector('#logoFile'),p=document.querySelector('#logoPreview');if(state.church.logo){p.src=state.church.logo;p.style.display='block'}n.oninput=e=>{state.church.name=e.target.value;state.projectTitle=e.target.value||'Nova arte';chrome()};a.oninput=e=>state.church.address=e.target.value;f.onchange=e=>fileToUrl(e.target.files[0],url=>{state.church.logo=url;p.src=url;p.style.display='block'});}
+function screenFormat(){content.innerHTML=`<div class="help">Começaremos pelos formatos mais usados em igrejas. A mesma campanha poderá ser adaptada para outros tamanhos depois.</div><div class="grid3">${[['feed','Feed Instagram','1080 × 1350',''],['story','Story / Reels','1080 × 1920','story'],['wide','Telão / YouTube','1920 × 1080','wide']].map(x=>`<div class="format-card ${state.format===x[0]?'selected':''}" data-format="${x[0]}"><div class="format-icon ${x[3]}"></div><strong>${x[1]}</strong><span>${x[2]}</span></div>`).join('')}</div>`;document.querySelectorAll('[data-format]').forEach(el=>el.onclick=()=>{state.format=el.dataset.format;screenFormat()})}
+function screenReference(){content.innerHTML=`<div class="grid2"><div class="card"><h3>Referências já salvas</h3><p style="margin-bottom:18px">Quando houver uma biblioteca, você verá aqui os estilos já aprovados pela sua equipe.</p><div class="empty-state">Nenhuma referência salva ainda.<br><small>Esta será criada nas próximas versões.</small></div></div><div class="card"><h3>Subir nova referência</h3><p style="margin-bottom:18px">Escolha uma arte que represente a estrutura ou o estilo que deseja usar.</p><label class="upload"><strong>${state.reference?'Trocar imagem de referência':'Enviar arte de referência'}</strong><span>Você poderá identificar cada elemento na próxima etapa.</span><input id="refFile" type="file" accept="image/*"></label>${state.reference?`<img src="${state.reference}" style="width:100%;margin-top:16px;border-radius:14px;max-height:420px;object-fit:contain;background:#090a0c">`:''}</div></div>`;document.querySelector('#refFile').onchange=e=>fileToUrl(e.target.files[0],url=>{state.reference=url;state.layers=[];screenReference()})}
+function screenMap(){
+  const last=state.lastMarked?state.layers.find(l=>l.id===state.lastMarked):null;
+  content.innerHTML=`
+    <div class="help"><strong>Como usar:</strong> escolha o tipo de elemento, clique e arraste sobre ele e solte para salvar. O contorno ficará permanente quando a marcação for concluída.</div>
+    ${last?`<div class="map-success" id="mapSuccess"><div class="success-icon">✓</div><div><strong>${esc(last.name)} marcado com sucesso</strong><span>O contorno foi salvo como uma camada. Se ficou errado, você pode desfazer agora.</span></div><div class="success-actions"><button class="mini-btn success-undo" id="successUndo" type="button">↶ Desfazer esta seleção</button><button class="success-close" id="successClose" type="button">×</button></div></div>`:''}
+    <div class="reference-area">
+      <div class="canvas-wrap">
+        <div class="canvas-toolbar">
+          <span>DESENHE SOBRE A REFERÊNCIA</span>
+          <div class="toolbar-actions">
+            <select id="layerType">${layerTypes.map(t=>`<option value="${t[0]}">${t[1]}</option>`).join('')}</select>
+            <button class="mini-btn cancel-draw-btn" id="cancelDrawBtn" type="button" disabled>Cancelar seleção</button>
+            ${state.layers.length?`<button class="mini-btn undo-last-btn" id="undoLastBtn" type="button">↶ Desfazer última</button>`:''}
+          </div>
+        </div>
+        <div class="art-canvas is-drawable" id="canvas">
+          ${state.reference?`<img src="${state.reference}" draggable="false" alt="Arte de referência">`:`<div class="empty-ref"><div><strong>Você ainda não enviou uma referência.</strong><br><small>Volte uma etapa e envie uma imagem.</small></div></div>`}
+          ${state.layers.map(layerHtml).join('')}
+        </div>
+        <div class="canvas-status ${state.layers.length?'has-layers':''}">
+          <div class="status-check">${state.layers.length?'✓':'i'}</div>
+          <div><strong>${state.layers.length?`${state.layers.length} ${state.layers.length===1?'elemento marcado':'elementos marcados'}`:'Nenhum elemento marcado ainda'}</strong><span>${state.layers.length?'Os contornos acima já estão salvos.':'Clique e arraste sobre o primeiro elemento.'}</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="layers-heading"><div><h3>Camadas identificadas</h3><p>A ordem abaixo representa a pilha visual da arte.</p></div><span class="layer-count">${state.layers.length}</span></div>
+          <div class="layers" id="layers">${state.layers.length?state.layers.slice().reverse().map((l,i)=>layerRow(l,state.layers.length-i)).join(''):'<div class="empty-state">Nenhuma camada identificada.</div>'}</div>
+        </div>
+      </div>
+    </div>`;
+  if(last){
+    const close=document.querySelector('#successClose');
+    const undo=document.querySelector('#successUndo');
+    if(close) close.onclick=()=>{state.lastMarked=null; const el=document.querySelector('#mapSuccess'); if(el) el.remove();};
+    if(undo) undo.onclick=()=>removeLayer(last.id);
+  }
+  const undoLast=document.querySelector('#undoLastBtn');
+  if(undoLast) undoLast.onclick=()=>{const lastLayer=state.layers[state.layers.length-1];if(lastLayer)removeLayer(lastLayer.id)};
+  if(state.reference)enableDraw();
+}
+function layerHtml(l){return `<div class="annotation saved ${state.lastMarked===l.id?'just-saved':''}" style="--boxColor:${l.color};left:${l.x}%;top:${l.y}%;width:${l.w}%;height:${l.h}%"><span>${esc(l.name)}</span><i class="handle h1"></i><i class="handle h2"></i><i class="handle h3"></i><i class="handle h4"></i></div>`}
+function layerRow(l,z){return `<div class="layer ${state.lastMarked===l.id?'layer-new':''}"><i class="layer-dot" style="--dot:${l.color}"></i><div class="layer-info"><strong>${esc(l.name)}</strong><small>Camada ${z} • ${esc(l.typeLabel)}</small></div><span class="saved-badge">✓ Salvo</span><button class="mini-btn" onclick="removeLayer('${l.id}')">Remover</button></div>`}
+function enableDraw(){
+  const c=document.querySelector('#canvas');
+  const img=c.querySelector('img');
+  const cancelBtn=document.querySelector('#cancelDrawBtn');
+  if(img){img.draggable=false;img.ondragstart=e=>{e.preventDefault();return false;};}
+  c.oncontextmenu=e=>e.preventDefault();
+  let start=null,temp=null,pointerId=null;
+  const point=(e,r)=>({x:Math.max(0,Math.min(r.width,e.clientX-r.left)),y:Math.max(0,Math.min(r.height,e.clientY-r.top))});
+  const update=(p)=>{
+    if(!start||!temp)return;
+    const left=Math.min(start.x,p.x),top=Math.min(start.y,p.y),w=Math.abs(p.x-start.x),h=Math.abs(p.y-start.y);
+    Object.assign(temp.style,{left:left+'px',top:top+'px',width:w+'px',height:h+'px'});
+  };
+  const cleanup=()=>{
+    if(temp)temp.remove();
+    if(pointerId!==null){try{c.releasePointerCapture(pointerId)}catch(_){}}
+    c.classList.remove('drawing-now');
+    if(cancelBtn)cancelBtn.disabled=true;
+    start=temp=pointerId=null;
+  };
+  const cancelSelection=()=>{
+    if(!start)return;
+    cleanup();
+    showMapNotice('Seleção cancelada','Nenhuma camada foi criada. Você pode tentar novamente.','neutral');
+  };
+  if(cancelBtn)cancelBtn.onclick=cancelSelection;
+  const keyHandler=e=>{if(e.key==='Escape'&&start){e.preventDefault();cancelSelection();}};
+  document.addEventListener('keydown',keyHandler,{once:false});
+  c.onpointerdown=e=>{
+    if(e.button!==0)return;
+    e.preventDefault();
+    e.stopPropagation();
+    const r=c.getBoundingClientRect(),p=point(e,r);
+    pointerId=e.pointerId;
+    start={...p,r};
+    temp=document.createElement('div');
+    temp.className='annotation drawing';
+    temp.style.setProperty('--boxColor',colors[state.layers.length%colors.length]);
+    temp.innerHTML='<span>Selecionando… · Esc para cancelar</span>';
+    c.appendChild(temp);
+    c.classList.add('drawing-now');
+    if(cancelBtn)cancelBtn.disabled=false;
+    try{c.setPointerCapture(pointerId)}catch(_){ }
+    update(p);
+  };
+  c.onpointermove=e=>{
+    if(!start||e.pointerId!==pointerId)return;
+    e.preventDefault();
+    update(point(e,start.r));
+  };
+  c.onpointerup=e=>{
+    if(!start||e.pointerId!==pointerId)return;
+    e.preventDefault();
+    const p=point(e,start.r),left=Math.min(start.x,p.x),top=Math.min(start.y,p.y),w=Math.abs(p.x-start.x),h=Math.abs(p.y-start.y);
+    const r=start.r;
+    if(w<=18||h<=18){cleanup();showMapNotice('Seleção pequena demais','Arraste um contorno um pouco maior para registrar o elemento.','neutral');return;}
+    const type=document.querySelector('#layerType').value,t=layerTypes.find(x=>x[0]===type);
+    const layer={id:crypto.randomUUID(),type,typeLabel:t[1],name:guessName(type),color:colors[state.layers.length%colors.length],x:left/r.width*100,y:top/r.height*100,w:w/r.width*100,h:h/r.height*100,description:'',replacement:''};
+    state.layers.push(layer);
+    state.lastMarked=layer.id;
+    cleanup();
+    document.removeEventListener('keydown',keyHandler);
+    screenMap();
+  };
+  c.onpointercancel=()=>{if(start)cancelSelection();};
+}
+function showMapNotice(title,text,tone='neutral'){
+  const old=document.querySelector('.floating-map-notice');if(old)old.remove();
+  const el=document.createElement('div');el.className=`floating-map-notice ${tone}`;el.innerHTML=`<strong>${esc(title)}</strong><span>${esc(text)}</span>`;document.body.appendChild(el);setTimeout(()=>el.classList.add('show'),10);setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),220)},2200);
+}
+function guessName(type){const count=state.layers.filter(l=>l.type===type).length+1;const base={logo:'Logo',pastor:'Pregador',title:'Título',titlepart:'Composto do título',background:'Fundo',effect:'Efeito',design:'Elemento de design',other:'Outro'}[type];return `${base} ${count}`}
+window.removeLayer=id=>{state.layers=state.layers.filter(l=>l.id!==id);if(state.lastMarked===id)state.lastMarked=null;screenMap()}
+function screenReplace(){content.innerHTML=`<div class="help">Agora diga <strong>o que cada elemento deve virar</strong>. Fotos terão upload/galeria; textos terão substituição direta. A busca “mais adequada” será feita pela IA quando conectarmos a galeria.</div>${state.layers.length?state.layers.slice().reverse().map(l=>`<div class="replacement"><div class="thumb" id="thumb-${l.id}">${l.type==='pastor'?'👤':l.type.includes('title')?'T':l.type==='logo'?'◈':'✦'}</div><div><strong>${esc(l.name)}</strong><small>${esc(l.typeLabel)}</small><input data-repl="${l.id}" value="${esc(l.replacement)}" placeholder="${l.type==='pastor'?'Descreva como usar esta foto…':'Digite a nova informação / descrição…'}" style="margin-top:8px;width:100%;background:#11141a;color:white;border:1px solid #292e38;border-radius:8px;padding:8px"></div><div style="display:grid;gap:6px">${l.type==='pastor'?`<label class="mini-btn" style="text-align:center">Upload<input data-photo="${l.id}" type="file" accept="image/*" hidden></label><button class="mini-btn">Galeria</button><button class="mini-btn">IA escolhe</button>`:`<span class="tag">${l.color}</span>`}</div></div>`).join(''):'<div class="empty-state">Você ainda não identificou elementos na referência.</div>'}`;document.querySelectorAll('[data-repl]').forEach(i=>i.oninput=e=>{const l=state.layers.find(x=>x.id===i.dataset.repl);l.replacement=e.target.value});document.querySelectorAll('[data-photo]').forEach(i=>i.onchange=e=>fileToUrl(e.target.files[0],url=>{const l=state.layers.find(x=>x.id===i.dataset.photo);l.photo=url;const t=document.querySelector('#thumb-'+l.id);t.innerHTML=`<img src="${url}">`}));state.layers.forEach(l=>{if(l.photo){const t=document.querySelector('#thumb-'+l.id);if(t)t.innerHTML=`<img src="${l.photo}">`}})}
+function screenAdjust(){content.innerHTML=`<div class="grid2"><div class="card"><h3>Direção em linguagem natural</h3><p style="margin-bottom:16px">Aqui você pode pedir mudanças que não cabem bem em campos estruturados.</p><div class="field"><label>O que deseja alterar antes da renderização?</label><textarea id="instruction" placeholder="Ex.: Inverta o pregador para o lado esquerdo, deixe-o em preto e branco, reduza a saturação do amarelo e preserve as linhas do fundo.">${esc(state.instruction)}</textarea></div></div><div class="card"><h3>Liberdade criativa</h3><p style="margin-bottom:16px">As 3 propostas finais terão níveis diferentes de fidelidade.</p>${[['Fiel à referência','Mantém estrutura, posições e hierarquia.'],['Reinterpretação equilibrada','Preserva o DNA, mas melhora composição e proporções.'],['Mais criativa','Mantém conteúdo e linguagem, com maior liberdade visual.']].map((x,i)=>`<div class="layer"><b style="width:28px;height:28px;border-radius:8px;background:#1b1f27;display:grid;place-items:center">${String.fromCharCode(65+i)}</b><div class="layer-info"><strong>${x[0]}</strong><small>${x[1]}</small></div></div>`).join('')}</div></div>`;document.querySelector('#instruction').oninput=e=>state.instruction=e.target.value}
+function screenResults(){const title=state.layers.find(l=>l.type==='title'||l.type==='titlepart')?.replacement||'O MAPA DA VOZ DE DEUS';const church=state.church.name||'SUA IGREJA';content.innerHTML=`<div class="help">Estas três artes são <strong>simulações de composição</strong> da V0. Na próxima fase, substituiremos os fundos e pessoas simuladas pela geração/edição de imagem via IA.</div><div class="grid3">${[['Fiel à referência',''],['Equilibrada','variant2'],['Mais criativa','variant3']].map((x,i)=>`<div class="card result-card"><div class="result-art ${x[1]}"><div class="mock-pastor"></div><div class="result-copy"><small>${esc(church.toUpperCase())}</small><h2>${esc(title)}</h2><p>DOMINGO • 19H</p></div></div><div class="result-meta"><strong>${x[0]}</strong><button class="mini-btn">Selecionar</button></div></div>`).join('')}</div>`}
+function fileToUrl(file,cb){if(!file)return;const r=new FileReader();r.onload=()=>cb(r.result);r.readAsDataURL(file)}
+next.onclick=()=>{if(state.step===steps.length-1){state.step=0;state.reference=null;state.layers=[];state.instruction='';render();return}state.step++;render()};back.onclick=()=>{if(state.step>0){state.step--;render()}};render();
+
+</script>
 </body>
 </html>
