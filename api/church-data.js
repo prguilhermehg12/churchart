@@ -135,16 +135,18 @@ module.exports = async function handler(req, res) {
     cfg();
 
     if (action === "bootstrap") {
-      const [profile, assets, generations] = await Promise.all([
+      const [profile, assets, generations, drafts] = await Promise.all([
         rest("church_profile?id=eq.default&select=*"),
         rest("church_assets?church_id=eq.default&select=*&order=created_at.desc"),
-        rest("church_generations?church_id=eq.default&select=*&order=created_at.desc&limit=12")
+        rest("church_generations?church_id=eq.default&select=*&order=created_at.desc&limit=12"),
+        rest("church_drafts?church_id=eq.default&select=*&order=updated_at.desc&limit=30")
       ]);
 
       return res.json({
         profile: profile?.[0] || null,
         assets: assets || [],
-        generations: generations || []
+        generations: generations || [],
+        drafts: drafts || []
       });
     }
 
@@ -271,6 +273,31 @@ module.exports = async function handler(req, res) {
       return res.json({
         generation: data?.[0]
       });
+    }
+
+
+    if (action === "save-draft" && req.method === "POST") {
+      const body = req.body || {};
+      const id = body.id || crypto.randomUUID();
+      const data = await rest("church_drafts?on_conflict=id", {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify([{
+          id,
+          church_id: "default",
+          title: body.title || "Esboço",
+          data: body.data || {},
+          updated_at: new Date().toISOString()
+        }])
+      });
+      return res.json({ draft: data?.[0] });
+    }
+
+    if (action === "delete-draft" && req.method === "DELETE") {
+      const id = req.body?.id;
+      if (!id) throw new Error("ID do esboço ausente.");
+      await rest(`church_drafts?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+      return res.json({ ok: true });
     }
 
     return res.status(400).json({
