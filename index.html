@@ -22,6 +22,35 @@
 .annotation.drawing{z-index:70}
 .build-stamp{position:fixed;left:282px;bottom:12px;z-index:1200;padding:6px 9px;border-radius:8px;border:1px solid #38404d;background:rgba(12,14,18,.94);color:#9fa8b8;font-size:10px;font-weight:800;letter-spacing:.04em;box-shadow:0 8px 24px rgba(0,0,0,.28);pointer-events:none}
 @media(max-width:900px){.build-stamp{left:12px;bottom:76px}}
+
+/* V0.6 */
+.art-canvas.format-feed{aspect-ratio:4/5;min-height:0}
+.art-canvas.format-story{aspect-ratio:9/16;min-height:0;max-height:720px;margin:auto}
+.art-canvas.format-wide{aspect-ratio:16/9;min-height:0}
+.result-card.selected-result{border-color:var(--good);box-shadow:0 0 0 2px rgba(89,214,154,.25),var(--shadow)}
+.result-actions{display:flex;gap:7px;align-items:center}
+.download-btn{border-color:#315f49;color:#c6f5d9;background:#102419}
+.selected-bar{display:none;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;margin:0 0 18px;border:1px solid #2c6e4d;background:#10241a;border-radius:14px}
+.selected-bar.show{display:flex}
+.selected-bar strong,.selected-bar span{display:block}
+.selected-bar strong{font-size:13px;color:#c9f5da}
+.selected-bar span{font-size:10px;color:#8db7a0;margin-top:3px}
+.gallery-section{margin-top:30px}
+.gallery-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
+.gallery-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.gallery-item{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#0d0f13}
+.gallery-item img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;background:#090a0c}
+.gallery-item.wide img{aspect-ratio:16/9}
+.gallery-item.story img{aspect-ratio:9/16}
+.gallery-meta{padding:9px 10px}
+.gallery-meta strong,.gallery-meta small{display:block}
+.gallery-meta strong{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gallery-meta small{font-size:9px;color:var(--muted);margin-top:3px}
+.gallery-empty{border:1px dashed var(--line);border-radius:13px;padding:25px;text-align:center;color:var(--muted);font-size:11px}
+.generation-note{margin-top:10px;color:#aab1bf;font-size:10px;line-height:1.5}
+@media(max-width:1050px){.gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.gallery-grid{grid-template-columns:1fr}.selected-bar{align-items:flex-start;flex-direction:column}}
+
 </style>
 </head>
 <body>
@@ -30,7 +59,7 @@
       <div class="brand"><div class="brand-mark">C</div><div><strong>ChurchArt</strong><span>AI Design Studio</span></div></div>
       <div class="project-mini"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></div>
       <nav id="stepNav"></nav>
-      <div class="sidebar-foot"><span>V0.5 • Geração real</span><small>IA visual será conectada após validar o fluxo.</small></div>
+      <div class="sidebar-foot"><span>V0.6 • Inputs visuais + galeria</span><small>IA visual será conectada após validar o fluxo.</small></div>
     </aside>
 
     <main class="main">
@@ -39,7 +68,7 @@
       <footer class="footer"><button id="backBtn" class="btn ghost">← Voltar</button><button id="nextBtn" class="btn primary">Continuar →</button></footer>
     </main>
   </div>
-  <div class="build-stamp">CHURCHART BUILD V0.5 • GERAÇÃO REAL • 16/08/2026</div>
+  <div class="build-stamp">CHURCHART BUILD V0.6 • INPUTS VISUAIS + GALERIA • 16/08/2026</div>
   <script>
 const state={step:0,church:{name:'',address:'',logo:null},format:'feed',reference:null,layers:[],instruction:'',projectTitle:'Nova arte',lastMarked:null};
 const steps=[['CONFIGURAÇÃO','Identidade da igreja'],['FORMATO','Tipo de arte'],['REFERÊNCIA','Escolha a referência'],['MAPA SEMÂNTICO','Identifique os elementos'],['CONTEÚDO','Substitua as informações'],['DIREÇÃO DE ARTE','Ajustes finais'],['RESULTADO','3 propostas de arte']];
@@ -53,7 +82,7 @@ function render(){chrome();([screenChurch,screenFormat,screenReference,screenMap
 function screenChurch(){content.innerHTML=`<div class="grid2"><div class="card"><h3>Dados básicos</h3><p style="margin-bottom:18px">Essas informações ficam salvas no perfil da igreja e poderão ser reutilizadas em todas as artes.</p><div class="field"><label>Nome da igreja</label><input id="churchName" value="${esc(state.church.name)}" placeholder="Ex.: Igreja Batista Filadélfia" /></div><div class="field"><label>Endereço</label><input id="churchAddress" value="${esc(state.church.address)}" placeholder="Rua, número, bairro, cidade" /></div></div><div class="card"><h3>Logo principal</h3><p style="margin-bottom:18px">PNG transparente funciona melhor. Na versão futura, teremos variações clara, escura e monocromática.</p><label class="upload"><img class="preview-logo" id="logoPreview"><strong>Enviar logo da igreja</strong><span>PNG, JPG ou WEBP</span><input id="logoFile" type="file" accept="image/*"></label></div></div>`;
 const n=document.querySelector('#churchName'),a=document.querySelector('#churchAddress'),f=document.querySelector('#logoFile'),p=document.querySelector('#logoPreview');if(state.church.logo){p.src=state.church.logo;p.style.display='block'}n.oninput=e=>{state.church.name=e.target.value;state.projectTitle=e.target.value||'Nova arte';chrome()};a.oninput=e=>state.church.address=e.target.value;f.onchange=e=>fileToUrl(e.target.files[0],url=>{state.church.logo=url;p.src=url;p.style.display='block'});}
 function screenFormat(){content.innerHTML=`<div class="help">Começaremos pelos formatos mais usados em igrejas. A mesma campanha poderá ser adaptada para outros tamanhos depois.</div><div class="grid3">${[['feed','Feed Instagram','1080 × 1350',''],['story','Story / Reels','1080 × 1920','story'],['wide','Telão / YouTube','1920 × 1080','wide']].map(x=>`<div class="format-card ${state.format===x[0]?'selected':''}" data-format="${x[0]}"><div class="format-icon ${x[3]}"></div><strong>${x[1]}</strong><span>${x[2]}</span></div>`).join('')}</div>`;document.querySelectorAll('[data-format]').forEach(el=>el.onclick=()=>{state.format=el.dataset.format;screenFormat()})}
-function screenReference(){content.innerHTML=`<div class="grid2"><div class="card"><h3>Referências já salvas</h3><p style="margin-bottom:18px">Quando houver uma biblioteca, você verá aqui os estilos já aprovados pela sua equipe.</p><div class="empty-state">Nenhuma referência salva ainda.<br><small>Esta será criada nas próximas versões.</small></div></div><div class="card"><h3>Subir nova referência</h3><p style="margin-bottom:18px">Escolha uma arte que represente a estrutura ou o estilo que deseja usar.</p><label class="upload"><strong>${state.reference?'Trocar imagem de referência':'Enviar arte de referência'}</strong><span>Você poderá identificar cada elemento na próxima etapa.</span><input id="refFile" type="file" accept="image/*"></label>${state.reference?`<img src="${state.reference}" style="width:100%;margin-top:16px;border-radius:14px;max-height:420px;object-fit:contain;background:#090a0c">`:''}</div></div>`;document.querySelector('#refFile').onchange=e=>fileToUrl(e.target.files[0],url=>{state.reference=url;state.layers=[];screenReference()})}
+function screenReference(){content.innerHTML=`<div class="grid2"><div class="card"><h3>Referências já salvas</h3><p style="margin-bottom:18px">Quando houver uma biblioteca, você verá aqui os estilos já aprovados pela sua equipe.</p><div class="empty-state">Nenhuma referência salva ainda.<br><small>Esta será criada nas próximas versões.</small></div></div><div class="card"><h3>Subir nova referência</h3><p style="margin-bottom:18px">Escolha uma arte que represente a estrutura ou o estilo que deseja usar.</p><label class="upload"><strong>${state.reference?'Trocar imagem de referência':'Enviar arte de referência'}</strong><span>Você poderá identificar cada elemento na próxima etapa.</span><input id="refFile" type="file" accept="image/*"></label>${state.reference?`<img src="${state.reference}" style="width:100%;margin-top:16px;border-radius:14px;max-height:420px;object-fit:contain;background:#090a0c">`:''}</div></div>`;document.querySelector('#refFile').onchange=e=>optimizeImageFile(e.target.files[0],1600,.88).then(url=>{if(!url)return;state.reference=url;state.layers=[];state.lastMarked=null;screenReference()})}
 function screenMap(){
   const last=state.lastMarked?state.layers.find(l=>l.id===state.lastMarked):null;
   content.innerHTML=`
@@ -69,7 +98,7 @@ function screenMap(){
             ${state.layers.length?`<button class="mini-btn undo-last-btn" id="undoLastBtn" type="button">↶ Desfazer última</button>`:''}
           </div>
         </div>
-        <div class="art-canvas is-drawable" id="canvas">
+        <div class="art-canvas is-drawable format-${state.format}" id="canvas">
           ${state.reference?`<img src="${state.reference}" draggable="false" alt="Arte de referência">`:`<div class="empty-ref"><div><strong>Você ainda não enviou uma referência.</strong><br><small>Volte uma etapa e envie uma imagem.</small></div></div>`}
           ${state.layers.map(layerHtml).join('')}
           <div class="interaction-layer" id="interactionLayer" aria-label="Área de marcação"></div>
@@ -239,149 +268,136 @@ function showMapNotice(title,text,tone='neutral'){
 }
 function guessName(type){const count=state.layers.filter(l=>l.type===type).length+1;const base={logo:'Logo',pastor:'Pregador',title:'Título',titlepart:'Composto do título',background:'Fundo',effect:'Efeito',design:'Elemento de design',other:'Outro'}[type];return `${base} ${count}`}
 window.removeLayer=id=>{state.layers=state.layers.filter(l=>l.id!==id);if(state.lastMarked===id)state.lastMarked=null;screenMap()}
-function screenReplace(){content.innerHTML=`<div class="help">Agora diga <strong>o que cada elemento deve virar</strong>. Fotos terão upload/galeria; textos terão substituição direta. A busca “mais adequada” será feita pela IA quando conectarmos a galeria.</div>${state.layers.length?state.layers.slice().reverse().map(l=>`<div class="replacement"><div class="thumb" id="thumb-${l.id}">${l.type==='pastor'?'👤':l.type.includes('title')?'T':l.type==='logo'?'◈':'✦'}</div><div><strong>${esc(l.name)}</strong><small>${esc(l.typeLabel)}</small><input data-repl="${l.id}" value="${esc(l.replacement)}" placeholder="${l.type==='pastor'?'Descreva como usar esta foto…':'Digite a nova informação / descrição…'}" style="margin-top:8px;width:100%;background:#11141a;color:white;border:1px solid #292e38;border-radius:8px;padding:8px"></div><div style="display:grid;gap:6px">${l.type==='pastor'?`<label class="mini-btn" style="text-align:center">Upload<input data-photo="${l.id}" type="file" accept="image/*" hidden></label><button class="mini-btn">Galeria</button><button class="mini-btn">IA escolhe</button>`:`<span class="tag">${l.color}</span>`}</div></div>`).join(''):'<div class="empty-state">Você ainda não identificou elementos na referência.</div>'}`;document.querySelectorAll('[data-repl]').forEach(i=>i.oninput=e=>{const l=state.layers.find(x=>x.id===i.dataset.repl);l.replacement=e.target.value});document.querySelectorAll('[data-photo]').forEach(i=>i.onchange=e=>fileToUrl(e.target.files[0],url=>{const l=state.layers.find(x=>x.id===i.dataset.photo);l.photo=url;const t=document.querySelector('#thumb-'+l.id);t.innerHTML=`<img src="${url}">`}));state.layers.forEach(l=>{if(l.photo){const t=document.querySelector('#thumb-'+l.id);if(t)t.innerHTML=`<img src="${l.photo}">`}})}
+function screenReplace(){content.innerHTML=`<div class="help">Agora diga <strong>o que cada elemento deve virar</strong>. Fotos terão upload/galeria; textos terão substituição direta. A busca “mais adequada” será feita pela IA quando conectarmos a galeria.</div>${state.layers.length?state.layers.slice().reverse().map(l=>`<div class="replacement"><div class="thumb" id="thumb-${l.id}">${l.type==='pastor'?'👤':l.type.includes('title')?'T':l.type==='logo'?'◈':'✦'}</div><div><strong>${esc(l.name)}</strong><small>${esc(l.typeLabel)}</small><input data-repl="${l.id}" value="${esc(l.replacement)}" placeholder="${l.type==='pastor'?'Descreva como usar esta foto…':'Digite a nova informação / descrição…'}" style="margin-top:8px;width:100%;background:#11141a;color:white;border:1px solid #292e38;border-radius:8px;padding:8px"></div><div style="display:grid;gap:6px">${l.type==='pastor'?`<label class="mini-btn" style="text-align:center">Upload<input data-photo="${l.id}" type="file" accept="image/*" hidden></label><button class="mini-btn">Galeria</button><button class="mini-btn">IA escolhe</button>`:`<span class="tag">${l.color}</span>`}</div></div>`).join(''):'<div class="empty-state">Você ainda não identificou elementos na referência.</div>'}`;document.querySelectorAll('[data-repl]').forEach(i=>i.oninput=e=>{const l=state.layers.find(x=>x.id===i.dataset.repl);l.replacement=e.target.value});document.querySelectorAll('[data-photo]').forEach(i=>i.onchange=e=>optimizeImageFile(e.target.files[0],1600,.9).then(url=>{if(!url)return;const l=state.layers.find(x=>x.id===i.dataset.photo);l.photo=url;const t=document.querySelector('#thumb-'+l.id);t.innerHTML=`<img src="${url}">`}));state.layers.forEach(l=>{if(l.photo){const t=document.querySelector('#thumb-'+l.id);if(t)t.innerHTML=`<img src="${l.photo}">`}})}
 function screenAdjust(){content.innerHTML=`<div class="grid2"><div class="card"><h3>Direção em linguagem natural</h3><p style="margin-bottom:16px">Aqui você pode pedir mudanças que não cabem bem em campos estruturados.</p><div class="field"><label>O que deseja alterar antes da renderização?</label><textarea id="instruction" placeholder="Ex.: Inverta o pregador para o lado esquerdo, deixe-o em preto e branco, reduza a saturação do amarelo e preserve as linhas do fundo.">${esc(state.instruction)}</textarea></div></div><div class="card"><h3>Liberdade criativa</h3><p style="margin-bottom:16px">As 3 propostas finais terão níveis diferentes de fidelidade.</p>${[['Fiel à referência','Mantém estrutura, posições e hierarquia.'],['Reinterpretação equilibrada','Preserva o DNA, mas melhora composição e proporções.'],['Mais criativa','Mantém conteúdo e linguagem, com maior liberdade visual.']].map((x,i)=>`<div class="layer"><b style="width:28px;height:28px;border-radius:8px;background:#1b1f27;display:grid;place-items:center">${String.fromCharCode(65+i)}</b><div class="layer-info"><strong>${x[0]}</strong><small>${x[1]}</small></div></div>`).join('')}</div></div>`;document.querySelector('#instruction').oninput=e=>state.instruction=e.target.value}
 function screenResults(){
   content.innerHTML=`
-    <div class="help">
-      <strong>Geração real com IA.</strong>
-      O ChurchArt enviará as informações do projeto para gerar três propostas diferentes.
-    </div>
-
+    <div class="help"><strong>Geração real com inputs visuais.</strong> A referência e as fotos de pregadores serão usadas como imagens de entrada. A logo oficial será aplicada depois da geração para permanecer idêntica ao arquivo enviado.</div>
     <div class="card" style="margin-bottom:18px">
       <h3>Pronto para gerar</h3>
-
-      <p style="margin-bottom:18px">
-        Serão criadas três propostas:
-        <strong>Fiel à referência</strong>,
-        <strong>Equilibrada</strong> e
-        <strong>Mais criativa</strong>.
-      </p>
-
-      <button
-        id="generateRealBtn"
-        class="btn primary"
-        style="width:100%;font-size:15px;padding:15px"
-      >
-        ✦ GERAR 3 ARTES COM IA
-      </button>
-
-      <div
-        id="generationStatus"
-        style="
-          margin-top:15px;
-          color:var(--muted);
-          font-size:12px;
-          line-height:1.6
-        "
-      ></div>
+      <p style="margin-bottom:18px">Serão criadas três propostas: <strong>Fiel à referência</strong>, <strong>Equilibrada</strong> e <strong>Mais criativa</strong>.</p>
+      <button id="generateRealBtn" class="btn primary" style="width:100%;font-size:15px;padding:15px">✦ GERAR 3 ARTES COM IA</button>
+      <div id="generationStatus" style="margin-top:15px;color:var(--muted);font-size:12px;line-height:1.6"></div>
+      <div class="generation-note">A pessoa é preservada por imagem de entrada e alta fidelidade, mas a IA ainda pode fazer pequenas alterações. A logo é sobreposta como arquivo original e não é redesenhada.</div>
     </div>
-
+    <div id="selectedBar" class="selected-bar"><div><strong>✓ Proposta selecionada</strong><span id="selectedLabel">Escolha uma das artes abaixo.</span></div><div class="result-actions"><button id="downloadSelectedBtn" class="mini-btn download-btn" type="button">↓ Baixar selecionada</button></div></div>
     <div id="realResults" class="grid3"></div>
-  `;
+    <div class="gallery-section">
+      <div class="gallery-head"><div><h3 style="margin:0;font-size:16px">Últimas artes geradas</h3><p style="margin:4px 0 0;color:var(--muted);font-size:11px">Salvas neste navegador.</p></div><button id="clearGalleryBtn" class="mini-btn" type="button">Limpar galeria</button></div>
+      <div id="historyGallery"></div>
+    </div>`;
 
   const btn=document.querySelector('#generateRealBtn');
   const status=document.querySelector('#generationStatus');
   const results=document.querySelector('#realResults');
+  const selectedBar=document.querySelector('#selectedBar');
+  const selectedLabel=document.querySelector('#selectedLabel');
+  const downloadSelectedBtn=document.querySelector('#downloadSelectedBtn');
+  const gallery=document.querySelector('#historyGallery');
+  const clearGalleryBtn=document.querySelector('#clearGalleryBtn');
+  let selectedImage=null;
+
+  const renderGallery=async()=>{
+    const rows=await getRecentGenerationSets(6);
+    if(!rows.length){gallery.innerHTML='<div class="gallery-empty">Ainda não há artes salvas na galeria.</div>';return;}
+    const items=[];
+    rows.forEach(row=>(row.images||[]).forEach(img=>items.push({...img,createdAt:row.createdAt,church:row.church||'',format:row.format||'feed'})));
+    gallery.innerHTML=`<div class="gallery-grid">${items.slice(0,12).map(img=>`
+      <div class="gallery-item ${img.format==='wide'?'wide':img.format==='story'?'story':''}">
+        <img src="${img.dataUrl}" alt="${esc(img.label||'Arte anterior')}">
+        <div class="gallery-meta"><strong>${esc(img.label||'Arte gerada')}</strong><small>${esc(img.church||'ChurchArt')} • ${formatDateTime(img.createdAt)}</small></div>
+      </div>`).join('')}</div>`;
+  };
+
+  clearGalleryBtn.onclick=async()=>{await clearGenerationHistory();renderGallery();};
+  downloadSelectedBtn.onclick=()=>{if(selectedImage)downloadDataUrl(selectedImage.dataUrl,buildDownloadName(selectedImage.label));};
+
+  const selectResult=(image,index)=>{
+    selectedImage=image;selectedBar.classList.add('show');selectedLabel.textContent=image.label||`Proposta ${index+1}`;
+    document.querySelectorAll('.result-card').forEach((card,i)=>card.classList.toggle('selected-result',i===index));
+  };
+
+  const renderResults=(images)=>{
+    results.innerHTML=images.map((image,index)=>`
+      <div class="card result-card">
+        <img src="${image.dataUrl}" alt="${esc(image.label||'Arte gerada')}" style="display:block;width:100%;${state.format==='wide'?'aspect-ratio:16/9':state.format==='story'?'aspect-ratio:9/16':'aspect-ratio:4/5'};object-fit:cover;background:#090a0c">
+        <div class="result-meta"><strong>${esc(image.label||`Proposta ${index+1}`)}</strong><div class="result-actions"><button class="mini-btn select-result-btn" data-i="${index}" type="button">Selecionar</button><button class="mini-btn download-btn download-result-btn" data-i="${index}" type="button">↓ Baixar</button></div></div>
+      </div>`).join('');
+    document.querySelectorAll('.select-result-btn').forEach(el=>el.onclick=()=>selectResult(images[Number(el.dataset.i)],Number(el.dataset.i)));
+    document.querySelectorAll('.download-result-btn').forEach(el=>el.onclick=()=>{const image=images[Number(el.dataset.i)];downloadDataUrl(image.dataUrl,buildDownloadName(image.label));});
+  };
 
   btn.onclick=async()=>{
-    btn.disabled=true;
-    btn.textContent='Gerando artes...';
+    btn.disabled=true;btn.textContent='Gerando artes...';
+    status.innerHTML='<strong style="color:#dfe3ec">A IA está criando as propostas usando suas imagens.</strong><br>Isso pode levar algum tempo.';
+    results.innerHTML='';selectedImage=null;selectedBar.classList.remove('show');
 
-    status.innerHTML=`
-      <strong style="color:#dfe3ec">
-        A IA está criando as propostas.
-      </strong><br>
-      Isso pode levar alguns segundos.
-    `;
-
-    results.innerHTML='';
-
+    const pastorLayers=state.layers.filter(l=>l.type==='pastor'&&l.photo);
+    const logoLayer=state.layers.find(l=>l.type==='logo');
+    const logoData=state.church.logo||null;
     const payload={
-      church:{
-        name:state.church.name,
-        address:state.church.address
-      },
+      church:{name:state.church.name,address:state.church.address},
       format:state.format,
       reference:state.reference,
       instruction:state.instruction,
-      layers:state.layers.map(layer=>({
-        type:layer.type,
-        typeLabel:layer.typeLabel,
-        name:layer.name,
-        replacement:layer.replacement||'',
-        x:layer.x,
-        y:layer.y,
-        w:layer.w,
-        h:layer.h
-      }))
+      pastorImages:pastorLayers.map((l,i)=>({name:l.name||`Pregador ${i+1}`,dataUrl:l.photo,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),
+      logoPlacement:logoLayer?{x:logoLayer.x,y:logoLayer.y,w:logoLayer.w,h:logoLayer.h}:null,
+      layers:state.layers.map(layer=>({type:layer.type,typeLabel:layer.typeLabel,name:layer.name,replacement:layer.replacement||'',x:layer.x,y:layer.y,w:layer.w,h:layer.h,hasPhoto:!!layer.photo}))
     };
 
     try{
-      const response=await fetch('/api/generate-art',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(payload)
-      });
-
+      const response=await fetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
       const data=await response.json();
+      if(!response.ok)throw new Error(data.error||`Erro ${response.status}`);
+      if(!Array.isArray(data.images)||!data.images.length)throw new Error('Nenhuma imagem foi retornada.');
 
-      if(!response.ok){
-        throw new Error(data.error||`Erro ${response.status}`);
+      let finalImages=data.images;
+      if(logoData&&logoLayer){
+        status.innerHTML='<strong style="color:#dfe3ec">Aplicando a logo oficial sem redesenhar...</strong>';
+        finalImages=await Promise.all(data.images.map(async image=>({...image,dataUrl:await overlayLogoOnImage(image.dataUrl,logoData,logoLayer)})));
       }
 
-      if(!data.images||!Array.isArray(data.images)||data.images.length===0){
-        throw new Error('Nenhuma imagem foi retornada.');
-      }
-
-      status.innerHTML=`
-        <strong style="color:var(--good)">
-          ✓ 3 propostas geradas.
-        </strong>
-      `;
-
-      results.innerHTML=data.images.map((image,index)=>`
-        <div class="card result-card">
-          <img
-            src="${image.dataUrl}"
-            alt="${esc(image.label||'Arte gerada')}"
-            style="
-              display:block;
-              width:100%;
-              ${
-                state.format==='wide'
-                ?'aspect-ratio:16/9'
-                :state.format==='story'
-                ?'aspect-ratio:9/16'
-                :'aspect-ratio:4/5'
-              };
-              object-fit:cover;
-              background:#090a0c
-            "
-          >
-          <div class="result-meta">
-            <strong>${esc(image.label||`Proposta ${index+1}`)}</strong>
-            <button class="mini-btn" type="button">Selecionar</button>
-          </div>
-        </div>
-      `).join('');
-
+      renderResults(finalImages);
+      status.innerHTML=`<strong style="color:var(--good)">✓ ${finalImages.length} propostas geradas.</strong>`;
+      await saveGenerationSet({createdAt:Date.now(),church:state.church.name||'ChurchArt',format:state.format,images:finalImages});
+      await renderGallery();
     }catch(error){
-      console.error(error);
-
-      status.innerHTML=`
-        <strong style="color:#ff9eac">
-          Não foi possível gerar.
-        </strong><br>
-        ${esc(error.message)}
-      `;
+      console.error(error);status.innerHTML=`<strong style="color:#ff9eac">Não foi possível gerar.</strong><br>${esc(error.message)}`;
     }finally{
-      btn.disabled=false;
-      btn.textContent='✦ GERAR NOVAMENTE';
+      btn.disabled=false;btn.textContent='✦ GERAR NOVAMENTE';
     }
   };
+
+  renderGallery();
 }
 function fileToUrl(file,cb){if(!file)return;const r=new FileReader();r.onload=()=>cb(r.result);r.readAsDataURL(file)}
+
+async function optimizeImageFile(file,maxDim=1600,quality=.88){
+  if(!file)return null;
+  const raw=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file);});
+  if(file.type==='image/png'&&file.size<900000)return raw;
+  const img=await loadImage(raw);
+  const scale=Math.min(1,maxDim/Math.max(img.naturalWidth,img.naturalHeight));
+  const w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));
+  const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+  return c.toDataURL('image/jpeg',quality);
+}
+function loadImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src;});}
+async function overlayLogoOnImage(baseDataUrl,logoDataUrl,layer){
+  const [base,logo]=await Promise.all([loadImage(baseDataUrl),loadImage(logoDataUrl)]);
+  const c=document.createElement('canvas');c.width=base.naturalWidth;c.height=base.naturalHeight;const ctx=c.getContext('2d');ctx.drawImage(base,0,0,c.width,c.height);
+  const box={x:(Number(layer.x)||0)/100*c.width,y:(Number(layer.y)||0)/100*c.height,w:(Number(layer.w)||20)/100*c.width,h:(Number(layer.h)||10)/100*c.height};
+  const ratio=Math.min(box.w/logo.naturalWidth,box.h/logo.naturalHeight);const dw=logo.naturalWidth*ratio,dh=logo.naturalHeight*ratio;
+  ctx.drawImage(logo,box.x+(box.w-dw)/2,box.y+(box.h-dh)/2,dw,dh);return c.toDataURL('image/png');
+}
+function downloadDataUrl(dataUrl,filename){const a=document.createElement('a');a.href=dataUrl;a.download=filename;a.style.display='none';document.body.appendChild(a);a.click();a.remove();}
+function buildDownloadName(label='arte'){const clean=s=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');return `${clean(state.church.name||'churchart')}-${clean(label)}.png`;}
+function formatDateTime(ts){try{return new Date(ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}catch{return '';}}
+function openChurchArtDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('churchart-db',1);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('generations'))db.createObjectStore('generations',{keyPath:'id'});};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+async function saveGenerationSet(record){try{const db=await openChurchArtDB();const tx=db.transaction('generations','readwrite');tx.objectStore('generations').put({id:`gen-${record.createdAt}-${Math.random().toString(36).slice(2)}`,...record});await new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close();}catch(e){console.warn(e);}}
+async function getRecentGenerationSets(limit=6){try{const db=await openChurchArtDB();const tx=db.transaction('generations','readonly');const req=tx.objectStore('generations').getAll();const rows=await new Promise((resolve,reject)=>{req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error);});db.close();return rows.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,limit);}catch(e){console.warn(e);return [];}}
+async function clearGenerationHistory(){try{const db=await openChurchArtDB();const tx=db.transaction('generations','readwrite');tx.objectStore('generations').clear();await new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close();}catch(e){console.warn(e);}}
+
 next.onclick=()=>{if(state.step===steps.length-1){state.step=0;state.reference=null;state.layers=[];state.instruction='';render();return}state.step++;render()};back.onclick=()=>{if(state.step>0){state.step--;render()}};render();
 
 </script>
