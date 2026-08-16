@@ -21,6 +21,8 @@ ${map}
 
 ELEMENTOS VISUAIS DESEJADOS: ${(data.visualElements||[]).join(', ')||'nenhum específico'}
 DIREÇÃO GERAL: ${data.instruction||'nenhuma'}
+INSTRUÇÕES FINAIS: ${data.finalInstruction||'nenhuma'}
+EFEITOS SOLICITADOS: ${(data.effects||[]).map(e=>`${e.id} em ${e.target}`).join(', ')||'nenhum'}
 VARIAÇÃO ${label}: ${instruction}
 
 A saída deve ser somente a base gráfica final, sem textos, sem pessoas, sem logos e sem rótulos de configuração.`;
@@ -112,6 +114,22 @@ function isRetryableModelError(error){
   );
 }
 
+
+async function directImagesFallback(data,label,instruction){
+  const size=data.format==='wide'?'1536x1024':'1024x1536';
+  const text=prompt(data,label,instruction);
+  const r=await fetch('https://api.openai.com/v1/images/generations',{
+    method:'POST',
+    headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,'Content-Type':'application/json'},
+    body:JSON.stringify({model:'gpt-image-1',prompt:text,size,quality:'medium',output_format:'png'})
+  });
+  const d=await r.json();
+  if(!r.ok)throw new Error(d?.error?.message||`Fallback direto ${r.status}`);
+  const image=d?.data?.[0]?.b64_json;
+  if(!image)throw new Error('Fallback direto não retornou imagem.');
+  return{label,dataUrl:`data:image/png;base64,${image}`,modelUsed:'gpt-image-1-direct',fallbackUsed:true,attempt:99};
+}
+
 async function gen(data,label,instruction){
   const attempts=[
     {
@@ -163,13 +181,12 @@ async function gen(data,label,instruction){
       );
 
       if(i===attempts.length-1 || !isRetryableModelError(error)){
-        const summary=failures
-          .map(f=>`${f.model}: ${f.message}`)
-          .join(' | ');
-
-        throw new Error(
-          `Todos os modelos de geração falharam. ${summary}`
-        );
+        try{
+          return await directImagesFallback(data,label,instruction);
+        }catch(directError){
+          const summary=failures.map(f=>`${f.model}: ${f.message}`).join(' | ');
+          throw new Error(`Todos os modelos de geração falharam. ${summary} | fallback direto: ${directError.message}`);
+        }
       }
     }
   }
