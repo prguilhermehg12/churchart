@@ -14,6 +14,14 @@
 /* V0.2 — cancelamento e feedback da seleção */
 .toolbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.cancel-draw-btn{border-color:#6b3840;color:#ff9eac;background:#211217}.cancel-draw-btn:not(:disabled):hover{background:#321820;border-color:#a54a5b}.cancel-draw-btn:disabled{opacity:.35;cursor:not-allowed}.undo-last-btn:hover{border-color:#596175;background:#20242d}.success-actions{display:flex;align-items:center;gap:8px}.success-undo{color:#bff1d3;border-color:#2a6c4c;background:#10251a}.success-undo:hover{background:#173824}.floating-map-notice{position:fixed;right:28px;bottom:92px;z-index:1000;min-width:290px;max-width:380px;padding:13px 15px;border-radius:12px;background:#171a20;border:1px solid #343a46;box-shadow:0 18px 50px rgba(0,0,0,.45);opacity:0;transform:translateY(10px);transition:.2s ease}.floating-map-notice.show{opacity:1;transform:none}.floating-map-notice strong,.floating-map-notice span{display:block}.floating-map-notice strong{font-size:12px;color:#eef1f6}.floating-map-notice span{font-size:10px;color:#a7aebb;margin-top:4px}.floating-map-notice.neutral{border-color:#4b5362}.art-canvas.drawing-now:after{content:'Arraste para ajustar • solte para salvar • Esc para cancelar';position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:80;padding:8px 11px;border-radius:99px;background:rgba(10,12,16,.88);border:1px solid rgba(255,255,255,.16);color:#e7eaf0;font-size:10px;font-weight:700;white-space:nowrap;pointer-events:none}
 
+
+/* BUILD V0.4 — interaction overlay */
+.interaction-layer{position:absolute;inset:0;z-index:60;cursor:crosshair;touch-action:none;user-select:none;-webkit-user-select:none;background:transparent}
+.interaction-layer.is-drawing{cursor:crosshair}
+.annotation.saved{z-index:40}
+.annotation.drawing{z-index:70}
+.build-stamp{position:fixed;left:282px;bottom:12px;z-index:1200;padding:6px 9px;border-radius:8px;border:1px solid #38404d;background:rgba(12,14,18,.94);color:#9fa8b8;font-size:10px;font-weight:800;letter-spacing:.04em;box-shadow:0 8px 24px rgba(0,0,0,.28);pointer-events:none}
+@media(max-width:900px){.build-stamp{left:12px;bottom:76px}}
 </style>
 </head>
 <body>
@@ -22,7 +30,7 @@
       <div class="brand"><div class="brand-mark">C</div><div><strong>ChurchArt</strong><span>AI Design Studio</span></div></div>
       <div class="project-mini"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></div>
       <nav id="stepNav"></nav>
-      <div class="sidebar-foot"><span>V0 • Protótipo funcional</span><small>IA visual será conectada após validar o fluxo.</small></div>
+      <div class="sidebar-foot"><span>V0.4 • Protótipo funcional</span><small>IA visual será conectada após validar o fluxo.</small></div>
     </aside>
 
     <main class="main">
@@ -31,6 +39,7 @@
       <footer class="footer"><button id="backBtn" class="btn ghost">← Voltar</button><button id="nextBtn" class="btn primary">Continuar →</button></footer>
     </main>
   </div>
+  <div class="build-stamp">CHURCHART BUILD V0.4 • 16/08/2026 03:48 BRT</div>
   <script>
 const state={step:0,church:{name:'',address:'',logo:null},format:'feed',reference:null,layers:[],instruction:'',projectTitle:'Nova arte',lastMarked:null};
 const steps=[['CONFIGURAÇÃO','Identidade da igreja'],['FORMATO','Tipo de arte'],['REFERÊNCIA','Escolha a referência'],['MAPA SEMÂNTICO','Identifique os elementos'],['CONTEÚDO','Substitua as informações'],['DIREÇÃO DE ARTE','Ajustes finais'],['RESULTADO','3 propostas de arte']];
@@ -63,6 +72,7 @@ function screenMap(){
         <div class="art-canvas is-drawable" id="canvas">
           ${state.reference?`<img src="${state.reference}" draggable="false" alt="Arte de referência">`:`<div class="empty-ref"><div><strong>Você ainda não enviou uma referência.</strong><br><small>Volte uma etapa e envie uma imagem.</small></div></div>`}
           ${state.layers.map(layerHtml).join('')}
+          <div class="interaction-layer" id="interactionLayer" aria-label="Área de marcação"></div>
         </div>
         <div class="canvas-status ${state.layers.length?'has-layers':''}">
           <div class="status-check">${state.layers.length?'✓':'i'}</div>
@@ -90,14 +100,17 @@ function layerHtml(l){return `<div class="annotation saved ${state.lastMarked===
 function layerRow(l,z){return `<div class="layer ${state.lastMarked===l.id?'layer-new':''}"><i class="layer-dot" style="--dot:${l.color}"></i><div class="layer-info"><strong>${esc(l.name)}</strong><small>Camada ${z} • ${esc(l.typeLabel)}</small></div><span class="saved-badge">✓ Salvo</span><button class="mini-btn" onclick="removeLayer('${l.id}')">Remover</button></div>`}
 function enableDraw(){
   const canvas=document.querySelector('#canvas');
+  const overlay=document.querySelector('#interactionLayer');
   const img=canvas ? canvas.querySelector('img') : null;
   const cancelBtn=document.querySelector('#cancelDrawBtn');
-  if(!canvas)return;
+  if(!canvas||!overlay)return;
 
   if(img){
     img.draggable=false;
     img.style.pointerEvents='none';
-    img.addEventListener('dragstart',e=>e.preventDefault());
+    img.style.userSelect='none';
+    img.style.webkitUserDrag='none';
+    img.ondragstart=()=>false;
   }
 
   let drawing=false;
@@ -122,19 +135,13 @@ function enableDraw(){
     Object.assign(draft.style,{left:left+'px',top:top+'px',width:width+'px',height:height+'px'});
   };
 
-  const removeGlobal=()=>{
-    document.removeEventListener('mousemove',onMove,true);
-    document.removeEventListener('mouseup',onUp,true);
-    document.removeEventListener('keydown',onKey,true);
-  };
-
   const cleanup=()=>{
     if(draft){draft.remove();draft=null;}
     drawing=false;
     origin=null;
+    overlay.classList.remove('is-drawing');
     canvas.classList.remove('drawing-now');
     if(cancelBtn)cancelBtn.disabled=true;
-    removeGlobal();
   };
 
   const cancelSelection=()=>{
@@ -143,22 +150,10 @@ function enableDraw(){
     showMapNotice('Seleção cancelada','Nenhuma camada foi criada. Você pode tentar novamente.','neutral');
   };
 
-  const onKey=e=>{
-    if(e.key==='Escape'&&drawing){
-      e.preventDefault();
-      cancelSelection();
-    }
-  };
-
-  const onMove=e=>{
+  const finish=e=>{
     if(!drawing)return;
     e.preventDefault();
-    updateDraft(point(e));
-  };
-
-  const onUp=e=>{
-    if(!drawing)return;
-    e.preventDefault();
+    e.stopPropagation();
     const p=point(e);
     const r=origin.r;
     const left=Math.min(origin.x,p.x);
@@ -195,12 +190,10 @@ function enableDraw(){
     screenMap();
   };
 
-  const onDown=e=>{
+  overlay.addEventListener('mousedown',e=>{
     if(e.button!==0||drawing)return;
-    if(e.target.closest('button,select,input,label'))return;
     e.preventDefault();
     e.stopPropagation();
-
     const p=point(e);
     origin={x:p.x,y:p.y,r:p.r};
     drawing=true;
@@ -208,23 +201,37 @@ function enableDraw(){
     draft=document.createElement('div');
     draft.className='annotation drawing';
     draft.style.setProperty('--boxColor',colors[state.layers.length%colors.length]);
-    draft.style.left=p.x+'px';
-    draft.style.top=p.y+'px';
-    draft.style.width='0px';
-    draft.style.height='0px';
-    draft.innerHTML='<span>Selecionando… • solte para salvar • Esc para cancelar</span>';
+    Object.assign(draft.style,{left:p.x+'px',top:p.y+'px',width:'0px',height:'0px'});
+    draft.innerHTML='<span>Selecionando…</span>';
     canvas.appendChild(draft);
+    overlay.classList.add('is-drawing');
     canvas.classList.add('drawing-now');
     if(cancelBtn)cancelBtn.disabled=false;
+  });
 
-    document.addEventListener('mousemove',onMove,true);
-    document.addEventListener('mouseup',onUp,true);
-    document.addEventListener('keydown',onKey,true);
-  };
+  overlay.addEventListener('mousemove',e=>{
+    if(!drawing)return;
+    e.preventDefault();
+    updateDraft(point(e));
+  });
+
+  overlay.addEventListener('mouseup',finish);
+  overlay.addEventListener('mouseleave',e=>{
+    if(drawing) updateDraft(point(e));
+  });
+
+  window.addEventListener('mouseup',e=>{
+    if(drawing) finish(e);
+  });
+
+  window.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&drawing){
+      e.preventDefault();
+      cancelSelection();
+    }
+  });
 
   if(cancelBtn)cancelBtn.onclick=cancelSelection;
-  canvas.addEventListener('mousedown',onDown);
-  canvas.addEventListener('dragstart',e=>e.preventDefault());
 }
 function showMapNotice(title,text,tone='neutral'){
   const old=document.querySelector('.floating-map-notice');if(old)old.remove();
