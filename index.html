@@ -30,7 +30,7 @@
       <div class="brand"><div class="brand-mark">C</div><div><strong>ChurchArt</strong><span>AI Design Studio</span></div></div>
       <div class="project-mini"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></div>
       <nav id="stepNav"></nav>
-      <div class="sidebar-foot"><span>V0.4 • Protótipo funcional</span><small>IA visual será conectada após validar o fluxo.</small></div>
+      <div class="sidebar-foot"><span>V0.5 • Geração real</span><small>IA visual será conectada após validar o fluxo.</small></div>
     </aside>
 
     <main class="main">
@@ -39,7 +39,7 @@
       <footer class="footer"><button id="backBtn" class="btn ghost">← Voltar</button><button id="nextBtn" class="btn primary">Continuar →</button></footer>
     </main>
   </div>
-  <div class="build-stamp">CHURCHART BUILD V0.4 • 16/08/2026 03:48 BRT</div>
+  <div class="build-stamp">CHURCHART BUILD V0.5 • GERAÇÃO REAL • 16/08/2026</div>
   <script>
 const state={step:0,church:{name:'',address:'',logo:null},format:'feed',reference:null,layers:[],instruction:'',projectTitle:'Nova arte',lastMarked:null};
 const steps=[['CONFIGURAÇÃO','Identidade da igreja'],['FORMATO','Tipo de arte'],['REFERÊNCIA','Escolha a referência'],['MAPA SEMÂNTICO','Identifique os elementos'],['CONTEÚDO','Substitua as informações'],['DIREÇÃO DE ARTE','Ajustes finais'],['RESULTADO','3 propostas de arte']];
@@ -241,7 +241,146 @@ function guessName(type){const count=state.layers.filter(l=>l.type===type).lengt
 window.removeLayer=id=>{state.layers=state.layers.filter(l=>l.id!==id);if(state.lastMarked===id)state.lastMarked=null;screenMap()}
 function screenReplace(){content.innerHTML=`<div class="help">Agora diga <strong>o que cada elemento deve virar</strong>. Fotos terão upload/galeria; textos terão substituição direta. A busca “mais adequada” será feita pela IA quando conectarmos a galeria.</div>${state.layers.length?state.layers.slice().reverse().map(l=>`<div class="replacement"><div class="thumb" id="thumb-${l.id}">${l.type==='pastor'?'👤':l.type.includes('title')?'T':l.type==='logo'?'◈':'✦'}</div><div><strong>${esc(l.name)}</strong><small>${esc(l.typeLabel)}</small><input data-repl="${l.id}" value="${esc(l.replacement)}" placeholder="${l.type==='pastor'?'Descreva como usar esta foto…':'Digite a nova informação / descrição…'}" style="margin-top:8px;width:100%;background:#11141a;color:white;border:1px solid #292e38;border-radius:8px;padding:8px"></div><div style="display:grid;gap:6px">${l.type==='pastor'?`<label class="mini-btn" style="text-align:center">Upload<input data-photo="${l.id}" type="file" accept="image/*" hidden></label><button class="mini-btn">Galeria</button><button class="mini-btn">IA escolhe</button>`:`<span class="tag">${l.color}</span>`}</div></div>`).join(''):'<div class="empty-state">Você ainda não identificou elementos na referência.</div>'}`;document.querySelectorAll('[data-repl]').forEach(i=>i.oninput=e=>{const l=state.layers.find(x=>x.id===i.dataset.repl);l.replacement=e.target.value});document.querySelectorAll('[data-photo]').forEach(i=>i.onchange=e=>fileToUrl(e.target.files[0],url=>{const l=state.layers.find(x=>x.id===i.dataset.photo);l.photo=url;const t=document.querySelector('#thumb-'+l.id);t.innerHTML=`<img src="${url}">`}));state.layers.forEach(l=>{if(l.photo){const t=document.querySelector('#thumb-'+l.id);if(t)t.innerHTML=`<img src="${l.photo}">`}})}
 function screenAdjust(){content.innerHTML=`<div class="grid2"><div class="card"><h3>Direção em linguagem natural</h3><p style="margin-bottom:16px">Aqui você pode pedir mudanças que não cabem bem em campos estruturados.</p><div class="field"><label>O que deseja alterar antes da renderização?</label><textarea id="instruction" placeholder="Ex.: Inverta o pregador para o lado esquerdo, deixe-o em preto e branco, reduza a saturação do amarelo e preserve as linhas do fundo.">${esc(state.instruction)}</textarea></div></div><div class="card"><h3>Liberdade criativa</h3><p style="margin-bottom:16px">As 3 propostas finais terão níveis diferentes de fidelidade.</p>${[['Fiel à referência','Mantém estrutura, posições e hierarquia.'],['Reinterpretação equilibrada','Preserva o DNA, mas melhora composição e proporções.'],['Mais criativa','Mantém conteúdo e linguagem, com maior liberdade visual.']].map((x,i)=>`<div class="layer"><b style="width:28px;height:28px;border-radius:8px;background:#1b1f27;display:grid;place-items:center">${String.fromCharCode(65+i)}</b><div class="layer-info"><strong>${x[0]}</strong><small>${x[1]}</small></div></div>`).join('')}</div></div>`;document.querySelector('#instruction').oninput=e=>state.instruction=e.target.value}
-function screenResults(){const title=state.layers.find(l=>l.type==='title'||l.type==='titlepart')?.replacement||'O MAPA DA VOZ DE DEUS';const church=state.church.name||'SUA IGREJA';content.innerHTML=`<div class="help">Estas três artes são <strong>simulações de composição</strong> da V0. Na próxima fase, substituiremos os fundos e pessoas simuladas pela geração/edição de imagem via IA.</div><div class="grid3">${[['Fiel à referência',''],['Equilibrada','variant2'],['Mais criativa','variant3']].map((x,i)=>`<div class="card result-card"><div class="result-art ${x[1]}"><div class="mock-pastor"></div><div class="result-copy"><small>${esc(church.toUpperCase())}</small><h2>${esc(title)}</h2><p>DOMINGO • 19H</p></div></div><div class="result-meta"><strong>${x[0]}</strong><button class="mini-btn">Selecionar</button></div></div>`).join('')}</div>`}
+function screenResults(){
+  content.innerHTML=`
+    <div class="help">
+      <strong>Geração real com IA.</strong>
+      O ChurchArt enviará as informações do projeto para gerar três propostas diferentes.
+    </div>
+
+    <div class="card" style="margin-bottom:18px">
+      <h3>Pronto para gerar</h3>
+
+      <p style="margin-bottom:18px">
+        Serão criadas três propostas:
+        <strong>Fiel à referência</strong>,
+        <strong>Equilibrada</strong> e
+        <strong>Mais criativa</strong>.
+      </p>
+
+      <button
+        id="generateRealBtn"
+        class="btn primary"
+        style="width:100%;font-size:15px;padding:15px"
+      >
+        ✦ GERAR 3 ARTES COM IA
+      </button>
+
+      <div
+        id="generationStatus"
+        style="
+          margin-top:15px;
+          color:var(--muted);
+          font-size:12px;
+          line-height:1.6
+        "
+      ></div>
+    </div>
+
+    <div id="realResults" class="grid3"></div>
+  `;
+
+  const btn=document.querySelector('#generateRealBtn');
+  const status=document.querySelector('#generationStatus');
+  const results=document.querySelector('#realResults');
+
+  btn.onclick=async()=>{
+    btn.disabled=true;
+    btn.textContent='Gerando artes...';
+
+    status.innerHTML=`
+      <strong style="color:#dfe3ec">
+        A IA está criando as propostas.
+      </strong><br>
+      Isso pode levar alguns segundos.
+    `;
+
+    results.innerHTML='';
+
+    const payload={
+      church:{
+        name:state.church.name,
+        address:state.church.address
+      },
+      format:state.format,
+      reference:state.reference,
+      instruction:state.instruction,
+      layers:state.layers.map(layer=>({
+        type:layer.type,
+        typeLabel:layer.typeLabel,
+        name:layer.name,
+        replacement:layer.replacement||'',
+        x:layer.x,
+        y:layer.y,
+        w:layer.w,
+        h:layer.h
+      }))
+    };
+
+    try{
+      const response=await fetch('/api/generate-art',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+
+      const data=await response.json();
+
+      if(!response.ok){
+        throw new Error(data.error||`Erro ${response.status}`);
+      }
+
+      if(!data.images||!Array.isArray(data.images)||data.images.length===0){
+        throw new Error('Nenhuma imagem foi retornada.');
+      }
+
+      status.innerHTML=`
+        <strong style="color:var(--good)">
+          ✓ 3 propostas geradas.
+        </strong>
+      `;
+
+      results.innerHTML=data.images.map((image,index)=>`
+        <div class="card result-card">
+          <img
+            src="${image.dataUrl}"
+            alt="${esc(image.label||'Arte gerada')}"
+            style="
+              display:block;
+              width:100%;
+              ${
+                state.format==='wide'
+                ?'aspect-ratio:16/9'
+                :state.format==='story'
+                ?'aspect-ratio:9/16'
+                :'aspect-ratio:4/5'
+              };
+              object-fit:cover;
+              background:#090a0c
+            "
+          >
+          <div class="result-meta">
+            <strong>${esc(image.label||`Proposta ${index+1}`)}</strong>
+            <button class="mini-btn" type="button">Selecionar</button>
+          </div>
+        </div>
+      `).join('');
+
+    }catch(error){
+      console.error(error);
+
+      status.innerHTML=`
+        <strong style="color:#ff9eac">
+          Não foi possível gerar.
+        </strong><br>
+        ${esc(error.message)}
+      `;
+    }finally{
+      btn.disabled=false;
+      btn.textContent='✦ GERAR NOVAMENTE';
+    }
+  };
+}
 function fileToUrl(file,cb){if(!file)return;const r=new FileReader();r.onload=()=>cb(r.result);r.readAsDataURL(file)}
 next.onclick=()=>{if(state.step===steps.length-1){state.step=0;state.reference=null;state.layers=[];state.instruction='';render();return}state.step++;render()};back.onclick=()=>{if(state.step>0){state.step--;render()}};render();
 
