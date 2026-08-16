@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ChurchArt — Design inteligente para igrejas</title>
+  <meta name="description" content="Crie artes profissionais para cultos a partir de referências visuais, camadas e direção criativa." />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">C</div><div><strong>ChurchArt</strong><span>AI Design Studio</span></div></div>
+      <div class="project-mini"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></div>
+      <nav id="stepNav"></nav>
+      <div class="sidebar-foot"><span>V0 • Protótipo funcional</span><small>IA visual será conectada após validar o fluxo.</small></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar"><div><p class="eyebrow" id="eyebrow">CONFIGURAÇÃO</p><h1 id="pageTitle">Identidade da igreja</h1></div><div class="progress"><span id="progressText">1 de 7</span><div><i id="progressBar"></i></div></div></header>
+      <section id="content" class="content"></section>
+      <footer class="footer"><button id="backBtn" class="btn ghost">← Voltar</button><button id="nextBtn" class="btn primary">Continuar →</button></footer>
+    </main>
+  </div>
+  <script src="./app.js"></script>
+</body>
+</html>
