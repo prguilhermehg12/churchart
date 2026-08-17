@@ -228,6 +228,17 @@
 .admin-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:99px;background:#241d10;border:1px solid #6e5828;color:#f5d77b;font-size:9px;font-weight:800}
 .auto-select-note{padding:10px;border:1px dashed #465064;border-radius:10px;color:#9da6b8;font-size:10px;background:#0d1016;margin-bottom:10px}
 
+
+/* V0.12 — Diretor de Arte */
+.art-director-panel{display:none;margin-top:14px;padding:14px;border:1px solid #3b4360;border-radius:13px;background:linear-gradient(135deg,#111520,#12131b)}
+.art-director-panel.show{display:block}
+.art-director-head{display:flex;align-items:center;gap:11px}
+.art-director-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent2),var(--accent));font-weight:900}
+.art-director-head strong,.art-director-head small{display:block}.art-director-head strong{font-size:12px}.art-director-head small{font-size:9px;color:var(--muted);margin-top:3px}
+.art-director-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.art-director-tag{border:1px solid #454d61;border-radius:99px;padding:4px 7px;font-size:9px;color:#c7cede;background:#151923}
+.art-director-summary{font-size:10px;line-height:1.55;color:#adb5c5;margin-top:9px}
+
 </style>
 </head>
 <body>
@@ -237,7 +248,7 @@
       <div class="project-mini"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></div>
       <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
       <nav id="stepNav"></nav>
-      <div class="sidebar-foot"><span>V0.11 • Streaming visual + Admin + Fidelidade</span><small>IA visual será conectada após validar o fluxo.</small></div>
+      <div class="sidebar-foot"><span>V0.12 • Diretor de Arte + Fidelidade</span><small>IA visual será conectada após validar o fluxo.</small></div>
     </aside>
 
     <main class="main">
@@ -247,7 +258,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="build-stamp">CHURCHDESIGN BUILD V0.11 • STREAMING VISUAL + ADMIN + FIDELIDADE • 16/08/2026</div>
+  <div class="build-stamp">CHURCHDESIGN BUILD V0.12 • DIRETOR DE ARTE + FIDELIDADE • 17/08/2026</div>
   <script>
 const state={
 step:0,
@@ -261,6 +272,7 @@ finalInstruction:'',
 projectTitle:'Nova arte',
 lastMarked:null,
 currentDraftId:null,
+artDirection:null,
 library:{assets:[],generations:[],drafts:[],dbReady:false},
 user:{email:'pr.guilhermehg12@gmail.com',plan:'studio',credits:null,isAdmin:true},
 finalConfig:{
@@ -699,9 +711,9 @@ function screenAdjust(){
   if(!pastors.length)setTimeout(showNoPastorPopup,100);
 }
 function screenResults(){
-  content.innerHTML=`<div class="help"><strong>Geração sequencial resiliente.</strong> Cada proposta aparece assim que fica pronta. Se gostar de uma, clique em <strong>“Gostei dessa, pode parar”</strong> e as próximas não serão iniciadas.</div><div class="card" style="margin-bottom:18px"><h3>Pronto para gerar</h3><p style="margin-bottom:14px">Cada proposta é uma requisição independente. Uma falha posterior não apaga as imagens já concluídas.</p><div class="card final-instruction-card" style="margin:16px 0"><h3>Instruções finais antes de gerar</h3><textarea id="finalInstructionInput" style="width:100%;min-height:110px;background:#0d0f13;color:white;border:1px solid var(--line);border-radius:11px;padding:12px" placeholder="Digite aqui as instruções finais...">${esc(state.finalInstruction||'')}</textarea></div><button id="generateRealBtn" class="btn primary" style="width:100%;font-size:15px;padding:15px">✦ GERAR 3 ARTES COM IA</button><button id="stopGenerationBtn" class="btn stop-generation-btn" type="button" style="display:none">✓ Gostei dessa, pode parar</button><div id="generationStatus" style="margin-top:15px;color:var(--muted);font-size:12px;line-height:1.6"></div><div id="generationLoader" class="generation-loader"><div class="loader-top"><div class="loader-orb"></div><div><strong>Processando sua arte</strong><div style="font-size:10px;color:var(--muted);margin-top:3px">A próxima proposta só começa depois da atual.</div></div></div><div class="loader-bar"><i></i></div><div id="seqProgress" class="seq-progress"></div></div></div><div id="realResults" class="grid3"></div><div class="gallery-section"><div class="gallery-head"><div><h3 style="margin:0;font-size:16px">Últimas artes geradas</h3><p style="margin:4px 0 0;color:var(--muted);font-size:11px">Persistidas no banco.</p></div></div><div id="historyGallery"></div></div>`;
+  content.innerHTML=`<div class="help"><strong>Geração sequencial resiliente.</strong> Cada proposta aparece assim que fica pronta. Se gostar de uma, clique em <strong>“Gostei dessa, pode parar”</strong> e as próximas não serão iniciadas.</div><div class="card" style="margin-bottom:18px"><h3>Pronto para gerar</h3><p style="margin-bottom:14px">Cada proposta é uma requisição independente. Uma falha posterior não apaga as imagens já concluídas.</p><div class="card final-instruction-card" style="margin:16px 0"><h3>Instruções finais antes de gerar</h3><textarea id="finalInstructionInput" style="width:100%;min-height:110px;background:#0d0f13;color:white;border:1px solid var(--line);border-radius:11px;padding:12px" placeholder="Digite aqui as instruções finais...">${esc(state.finalInstruction||'')}</textarea></div><button id="generateRealBtn" class="btn primary" style="width:100%;font-size:15px;padding:15px">✦ GERAR 3 ARTES COM IA</button><button id="stopGenerationBtn" class="btn stop-generation-btn" type="button" style="display:none">✓ Gostei dessa, pode parar</button><div id="generationStatus" style="margin-top:15px;color:var(--muted);font-size:12px;line-height:1.6"></div><div id="artDirectorPanel" class="art-director-panel"><div class="art-director-head"><div class="art-director-icon">AD</div><div><strong>Diretor de Arte</strong><small id="artDirectorStatus">Aguardando análise visual.</small></div></div><div id="artDirectorTags" class="art-director-tags"></div><div id="artDirectorSummary" class="art-director-summary"></div></div><div id="generationLoader" class="generation-loader"><div class="loader-top"><div class="loader-orb"></div><div><strong>Processando sua arte</strong><div style="font-size:10px;color:var(--muted);margin-top:3px">A próxima proposta só começa depois da atual.</div></div></div><div class="loader-bar"><i></i></div><div id="seqProgress" class="seq-progress"></div></div></div><div id="realResults" class="grid3"></div><div class="gallery-section"><div class="gallery-head"><div><h3 style="margin:0;font-size:16px">Últimas artes geradas</h3><p style="margin:4px 0 0;color:var(--muted);font-size:11px">Persistidas no banco.</p></div></div><div id="historyGallery"></div></div>`;
   const finalInstructionInput=document.querySelector('#finalInstructionInput');if(finalInstructionInput)finalInstructionInput.oninput=e=>state.finalInstruction=e.target.value;
-  const btn=document.querySelector('#generateRealBtn'),stopBtn=document.querySelector('#stopGenerationBtn'),status=document.querySelector('#generationStatus'),loader=document.querySelector('#generationLoader'),seq=document.querySelector('#seqProgress'),results=document.querySelector('#realResults'),gallery=document.querySelector('#historyGallery');
+  const btn=document.querySelector('#generateRealBtn'),stopBtn=document.querySelector('#stopGenerationBtn'),status=document.querySelector('#generationStatus'),loader=document.querySelector('#generationLoader'),seq=document.querySelector('#seqProgress'),results=document.querySelector('#realResults'),gallery=document.querySelector('#historyGallery'),artDirectorPanel=document.querySelector('#artDirectorPanel'),artDirectorStatus=document.querySelector('#artDirectorStatus'),artDirectorTags=document.querySelector('#artDirectorTags'),artDirectorSummary=document.querySelector('#artDirectorSummary');
   const variantSpecs=[{id:'faithful',label:'Fiel à referência'},{id:'balanced',label:'Equilibrada'},{id:'creative',label:'Mais criativa'}];let currentImages=[],stopRequested=false,currentController=null;
   const renderGallery=()=>{const sets=state.library.generations||[];const items=[];sets.forEach(g=>(g.images||[]).forEach(im=>items.push({...im,createdAt:g.created_at||g.createdAt,format:g.format||'feed'})));gallery.innerHTML=items.length?`<div class="gallery-grid">${items.slice(0,12).map(im=>`<div class="gallery-item ${im.format==='wide'?'wide':im.format==='story'?'story':''}"><img src="${im.url||im.dataUrl}"><div class="gallery-meta"><strong>${esc(im.label||'Arte')}</strong><small>${formatDateTime(im.createdAt)}</small></div></div>`).join('')}</div>`:'<div class="gallery-empty">Ainda não há gerações salvas.</div>'};
   function keepOptionsHTML(i,f){const options=[['all','Tudo'],['title','Título principal'],['subtitle','Subtítulo'],['pastor','Foto do pregador'],['date','Data'],['time','Hora'],['address','Endereço'],['logo','Logo'],['background','Elementos de fundo']];return `<div class="keep-box" data-keep-box="${i}-${f}"><strong>O que deve permanecer nesta versão?</strong><div class="keep-chips">${options.map((o,j)=>`<button class="keep-chip ${j===0?'active':''}" type="button" data-keep="${o[0]}">${o[1]}</button>`).join('')}</div></div>`;}
@@ -710,13 +722,24 @@ function screenResults(){
   function bindCard(i){const dl=document.querySelector(`[data-download-primary="${i}"]`);if(dl)dl.onclick=()=>{const im=currentImages[i];if(im)downloadDataUrl(im.dataUrl,buildDownloadName(im.label));};document.querySelectorAll(`[data-adapt-toggle^="${i}-"]`).forEach(el=>el.onclick=()=>{const [idx,f]=el.dataset.adaptToggle.split('-');el.classList.toggle('active');const box=document.querySelector(`[data-adapt-options="${idx}-${f}"]`);if(box)box.style.display=el.classList.contains('active')?'block':'none';});document.querySelectorAll(`#resultCard-${i} .keep-box`).forEach(box=>box.querySelectorAll('[data-keep]').forEach(ch=>ch.onclick=()=>{const all=box.querySelector('[data-keep="all"]');if(ch.dataset.keep==='all'){box.querySelectorAll('[data-keep]').forEach(x=>x.classList.toggle('active',x===ch));}else{all?.classList.remove('active');ch.classList.toggle('active');if(!box.querySelector('[data-keep].active'))all?.classList.add('active');}}));const ga=document.querySelector(`[data-generate-adapt="${i}"]`);if(ga)ga.onclick=()=>generateAdaptationsFor(i);}
   function appendResult(im){const i=currentImages.length;currentImages.push(im);results.insertAdjacentHTML('beforeend',resultCard(im,i));bindCard(i);stopBtn.style.display='block';}
   async function refsPayload(){return Promise.all((state.referenceSelections.length?state.referenceSelections:[state.reference?{url:state.reference,note:''}:null].filter(Boolean)).slice(0,3).map(async r=>({image:await prepareImageForAI(r.url),note:r.note||''})));}
-  async function basePayload(){const refs=await refsPayload();const selectedBuiltin=state.finalConfig.selectedElements.filter(x=>!x.startsWith('asset:')).map(id=>builtinElements.find(e=>e.id===id)?.name).filter(Boolean);return {church:{name:state.church.name,address:state.church.address,hasLogo:!!getSelectedLogo()},format:state.format,reference:refs[0]?.image||null,references:refs,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),visualElements:selectedBuiltin};}
+  async function basePayload(){const refs=await refsPayload();const selectedBuiltin=state.finalConfig.selectedElements.filter(x=>!x.startsWith('asset:')).map(id=>builtinElements.find(e=>e.id===id)?.name).filter(Boolean);return {church:{name:state.church.name,address:state.church.address,hasLogo:!!getSelectedLogo()},format:state.format,reference:refs[0]?.image||null,references:refs,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),visualElements:selectedBuiltin};}
   async function callGenerate(payload,signal){const r=await fetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,220)||`Resposta inválida (${r.status})`);}if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);return data;}
   async function persistOne(im){try{const galleryCopy=await prepareImageForAI(im.dataUrl,1400,.82);const d=await apiJSON('upload-generation',{method:'POST',body:{label:im.label,format:state.format,dataUrl:galleryCopy}});return {label:im.label,url:d.url};}catch(e){console.warn(e);return null;}}
-  async function generatePrimary(){stopRequested=false;stopBtn.disabled=false;stopBtn.textContent='✓ Gostei dessa, pode parar';currentImages=[];results.innerHTML='';btn.disabled=true;stopBtn.style.display='none';if(loader)loader.classList.add('show');seq.innerHTML=variantSpecs.map((v,i)=>`<div class="seq-row" data-seq="${i}"><i class="seq-dot"></i><span>${i+1}/3 — ${v.label}</span></div>`).join('');const saved=[];try{const base=await basePayload();await loadLibraryFonts();for(let i=0;i<variantSpecs.length;i++){if(stopRequested)break;const v=variantSpecs[i],row=seq.querySelector(`[data-seq="${i}"]`);row.classList.add('active');status.textContent=`${i+1}/3 — Gerando ${v.label}...`;currentController=new AbortController();try{const d=await callGenerate({...base,mode:'primary',variantId:v.id,variantLabel:v.label,variantInstruction:state.finalConfig.variants[v.id],target:primaryTargetSpec()},currentController.signal);const finalData=await composeProtectedFinal(d.image.url,i,primaryTargetSpec(),['all']);const im={label:v.label,dataUrl:finalData,baseUrl:d.image.url,modelUsed:d.image.modelUsed};appendResult(im);const persisted=await persistOne(im);if(persisted)saved.push(persisted);row.classList.remove('active');row.classList.add('done');}catch(e){row.classList.remove('active');if(stopRequested||e.name==='AbortError')break;row.classList.add('fail');throw e;}finally{currentController=null;}}if(saved.length){const g=await apiJSON('save-generation',{method:'POST',body:{format:state.format,images:saved}});state.library.generations=[g.generation,...state.library.generations];renderGallery();}status.innerHTML=stopRequested?'<strong style="color:var(--good)">✓ Processo interrompido por você. As propostas prontas foram mantidas.</strong>':`<strong style="color:var(--good)">✓ ${currentImages.length} proposta(s) finalizada(s).</strong>`;}catch(e){status.innerHTML=`<strong style="color:#ff9eac">A geração foi interrompida.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">As propostas que já apareceram continuam disponíveis.</span>`;}finally{if(loader)loader.classList.remove('show');btn.disabled=false;btn.textContent='✦ GERAR NOVAMENTE';currentController=null;}}
+  function renderArtDirection(ad){
+    if(!ad)return;artDirectorPanel?.classList.add('show');
+    if(artDirectorStatus)artDirectorStatus.textContent='Blueprint visual concluído e aplicado às propostas.';
+    if(artDirectorTags)artDirectorTags.innerHTML=(ad.style_tags||[]).slice(0,8).map(t=>`<span class="art-director-tag">${esc(t)}</span>`).join('');
+    if(artDirectorSummary)artDirectorSummary.textContent=ad.visual_summary||'Direção visual analisada.';
+  }
+  async function generatePrimary(){stopRequested=false;stopBtn.disabled=false;stopBtn.textContent='✓ Gostei dessa, pode parar';currentImages=[];results.innerHTML='';btn.disabled=true;stopBtn.style.display='none';if(loader)loader.classList.add('show');seq.innerHTML=variantSpecs.map((v,i)=>`<div class="seq-row" data-seq="${i}"><i class="seq-dot"></i><span>${i+1}/3 — ${v.label}</span></div>`).join('');const saved=[];try{const base=await basePayload();await loadLibraryFonts();
+artDirectorPanel?.classList.add('show');
+if(artDirectorStatus)artDirectorStatus.textContent='Analisando tipografia, recortes, hierarquia, paleta e linguagem gráfica...';
+if(artDirectorSummary)artDirectorSummary.textContent='Transformando as referências em um blueprint de direção de arte.';
+const artDirection=await requestArtDirection(base);renderArtDirection(artDirection);base.artDirection=artDirection;
+for(let i=0;i<variantSpecs.length;i++){if(stopRequested)break;const v=variantSpecs[i],row=seq.querySelector(`[data-seq="${i}"]`);row.classList.add('active');status.textContent=`${i+1}/3 — Gerando ${v.label}...`;currentController=new AbortController();try{const d=await callGenerate({...base,mode:'primary',variantId:v.id,variantLabel:v.label,variantInstruction:state.finalConfig.variants[v.id],target:primaryTargetSpec()},currentController.signal);const finalData=await composeProtectedFinal(d.image.url,i,primaryTargetSpec(),['all']);const im={label:v.label,dataUrl:finalData,baseUrl:d.image.url,modelUsed:d.image.modelUsed};appendResult(im);const persisted=await persistOne(im);if(persisted)saved.push(persisted);row.classList.remove('active');row.classList.add('done');}catch(e){row.classList.remove('active');if(stopRequested||e.name==='AbortError')break;row.classList.add('fail');throw e;}finally{currentController=null;}}if(saved.length){const g=await apiJSON('save-generation',{method:'POST',body:{format:state.format,images:saved}});state.library.generations=[g.generation,...state.library.generations];renderGallery();}status.innerHTML=stopRequested?'<strong style="color:var(--good)">✓ Processo interrompido por você. As propostas prontas foram mantidas.</strong>':`<strong style="color:var(--good)">✓ ${currentImages.length} proposta(s) finalizada(s).</strong>`;}catch(e){status.innerHTML=`<strong style="color:#ff9eac">A geração foi interrompida.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">As propostas que já apareceram continuam disponíveis.</span>`;}finally{if(loader)loader.classList.remove('show');btn.disabled=false;btn.textContent='✦ GERAR NOVAMENTE';currentController=null;}}
   stopBtn.onclick=()=>{stopRequested=true;stopBtn.disabled=true;stopBtn.textContent='Parando...';if(currentController)currentController.abort();};
   function selectedKeep(i,f){const box=document.querySelector(`[data-keep-box="${i}-${f}"]`);if(!box)return ['all'];const vals=[...box.querySelectorAll('[data-keep].active')].map(x=>x.dataset.keep);return vals.length?vals:['all'];}
-  async function generateOneAdaptation(i,format,redesign=false){const source=currentImages[i];if(!source)return;const target=targetSpec(format),keep=selectedKeep(i,format),list=document.querySelector(`#adaptList-${i}`);const tempId=`adapt-${i}-${format}-${Date.now()}`;list.insertAdjacentHTML('beforeend',`<div class="adaptation-card" id="${tempId}"><div style="width:68px;height:45px;border-radius:7px;background:#171a20;display:grid;place-items:center"><div class="loader-orb" style="width:22px;height:22px"></div></div><div class="adaptation-info"><strong>${target.label}</strong><small>Gerando ${target.width} × ${target.height}...</small></div></div>`);try{const ref=await prepareImageForAI(source.baseUrl||source.dataUrl,1280,.78);const d=await callGenerate({mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''}))});const finalData=await composeProtectedFinal(d.image.url,i,target,keep);const card=document.getElementById(tempId);card.className=`adaptation-card ${format==='story'?'story':''}`;card.innerHTML=`<img src="${finalData}"><div class="adaptation-info"><strong>${target.label} • ${target.width} × ${target.height}</strong><small>${redesign?'Layout redesenhado':'Adaptação concluída'} • ${keep.includes('all')?'Tudo mantido':keep.join(', ')}</small></div><div class="adaptation-actions"><button class="mini-btn download-btn" type="button" data-adapt-download>↓ Baixar</button><button class="mini-btn" type="button" data-adapt-redraw>↻ Redesenhar</button></div>`;card.querySelector('[data-adapt-download]').onclick=()=>downloadDataUrl(finalData,`${buildDownloadName(source.label).replace('.png','')}-${format}.png`);card.querySelector('[data-adapt-redraw]').onclick=()=>generateOneAdaptation(i,format,true);}catch(e){const card=document.getElementById(tempId);if(card)card.innerHTML=`<div></div><div class="adaptation-info"><strong style="color:#ff9eac">${target.label}: falhou</strong><small>${esc(e.message)}</small></div><div class="adaptation-actions"><button class="mini-btn" type="button" data-retry>Repetir</button></div>`;card?.querySelector('[data-retry]')?.addEventListener('click',()=>generateOneAdaptation(i,format,redesign));}}
+  async function generateOneAdaptation(i,format,redesign=false){const source=currentImages[i];if(!source)return;const target=targetSpec(format),keep=selectedKeep(i,format),list=document.querySelector(`#adaptList-${i}`);const tempId=`adapt-${i}-${format}-${Date.now()}`;list.insertAdjacentHTML('beforeend',`<div class="adaptation-card" id="${tempId}"><div style="width:68px;height:45px;border-radius:7px;background:#171a20;display:grid;place-items:center"><div class="loader-orb" style="width:22px;height:22px"></div></div><div class="adaptation-info"><strong>${target.label}</strong><small>Gerando ${target.width} × ${target.height}...</small></div></div>`);try{const ref=await prepareImageForAI(source.baseUrl||source.dataUrl,1280,.78);const d=await callGenerate({mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''}))});const finalData=await composeProtectedFinal(d.image.url,i,target,keep);const card=document.getElementById(tempId);card.className=`adaptation-card ${format==='story'?'story':''}`;card.innerHTML=`<img src="${finalData}"><div class="adaptation-info"><strong>${target.label} • ${target.width} × ${target.height}</strong><small>${redesign?'Layout redesenhado':'Adaptação concluída'} • ${keep.includes('all')?'Tudo mantido':keep.join(', ')}</small></div><div class="adaptation-actions"><button class="mini-btn download-btn" type="button" data-adapt-download>↓ Baixar</button><button class="mini-btn" type="button" data-adapt-redraw>↻ Redesenhar</button></div>`;card.querySelector('[data-adapt-download]').onclick=()=>downloadDataUrl(finalData,`${buildDownloadName(source.label).replace('.png','')}-${format}.png`);card.querySelector('[data-adapt-redraw]').onclick=()=>generateOneAdaptation(i,format,true);}catch(e){const card=document.getElementById(tempId);if(card)card.innerHTML=`<div></div><div class="adaptation-info"><strong style="color:#ff9eac">${target.label}: falhou</strong><small>${esc(e.message)}</small></div><div class="adaptation-actions"><button class="mini-btn" type="button" data-retry>Repetir</button></div>`;card?.querySelector('[data-retry]')?.addEventListener('click',()=>generateOneAdaptation(i,format,redesign));}}
   async function generateAdaptationsFor(i){const formats=['screen','youtube','story'].filter(f=>document.querySelector(`[data-adapt-toggle="${i}-${f}"]`)?.classList.contains('active'));if(!formats.length)return showMapNotice('Selecione um formato','Marque Telão, YouTube e/ou Stories.');for(const f of formats)await generateOneAdaptation(i,f,false);}
   btn.onclick=generatePrimary;renderGallery();
 }
@@ -755,7 +778,7 @@ function snapshotDraft(){
     church:state.church,format:state.format,reference:state.reference,
     referenceSelections:state.referenceSelections,layers:state.layers,
     instruction:state.instruction,finalInstruction:state.finalInstruction,
-    projectTitle:state.projectTitle,finalConfig:state.finalConfig,step:state.step
+    projectTitle:state.projectTitle,finalConfig:state.finalConfig,artDirection:state.artDirection,step:state.step
   }));
 }
 async function saveCurrentDraft(){
@@ -777,7 +800,7 @@ window.loadDraftById=function(id){
   state.church=s.church||state.church;state.format=s.format||'feed';state.reference=s.reference||null;
   state.referenceSelections=s.referenceSelections||[];state.layers=s.layers||[];
   state.instruction=s.instruction||'';state.finalInstruction=s.finalInstruction||'';
-  state.projectTitle=s.projectTitle||d.title||'Esboço';state.finalConfig={...state.finalConfig,...(s.finalConfig||{})};
+  state.projectTitle=s.projectTitle||d.title||'Esboço';state.finalConfig={...state.finalConfig,...(s.finalConfig||{})};state.artDirection=s.artDirection||null;
   state.step=Math.min(Number(s.step||0),steps.length-1);state.currentDraftId=id;closeModal();render();
 }
 async function deleteDraftById(id){
@@ -876,6 +899,30 @@ async function prepareImageForAI(src,maxDim=1280,quality=.8){
 }
 
 async function populateLayerCrops(){if(!state.reference)return;try{const img=await loadImageSafe(state.reference);document.querySelectorAll('[data-crop]').forEach(c=>{const l=state.layers.find(x=>x.id===c.dataset.crop);if(!l)return;const ctx=c.getContext('2d'),sx=Math.max(0,l.x/100*img.naturalWidth),sy=Math.max(0,l.y/100*img.naturalHeight),sw=Math.max(1,l.w/100*img.naturalWidth),sh=Math.max(1,l.h/100*img.naturalHeight);ctx.clearRect(0,0,c.width,c.height);ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);});}catch(e){}}
+
+async function requestArtDirection(base){
+  const r=await fetch('/api/design-director',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      references:base.references||[],semanticMap:base.semanticMap||[],church:base.church||{},
+      instruction:base.instruction||'',finalInstruction:base.finalInstruction||'',
+      effects:base.effects||[],format:base.format,target:primaryTargetSpec()
+    })
+  });
+  const text=await r.text();let data;
+  try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,220)||`Diretor de arte: resposta inválida (${r.status})`);}
+  if(!r.ok)throw new Error(data.error||`Diretor de arte: erro ${r.status}`);
+  state.artDirection=data.artDirection||null;return state.artDirection;
+}
+function titleDirection(){return state.artDirection?.typography?.title||null;}
+function normalizeHex(v,fallback='#ffffff'){return /^#[0-9a-f]{6}$/i.test(String(v||''))?v:fallback;}
+function drawTrackedText(ctx,text,x,y,tracking){
+  if(!tracking){ctx.fillText(text,x,y);return;}
+  const chars=[...text],widths=chars.map(ch=>ctx.measureText(ch).width);
+  const total=widths.reduce((a,b)=>a+b,0)+tracking*(chars.length-1);let cursor=x-total/2;
+  chars.forEach((ch,i)=>{ctx.fillText(ch,cursor+widths[i]/2,y);cursor+=widths[i]+tracking;});
+}
+
 function shouldKeepType(type,keep){
   if(!keep||keep.includes('all'))return true;
   if(type==='titlepart')type='title';
@@ -906,7 +953,21 @@ async function composeProtectedFinal(bgDataUrl,variantIndex,target=primaryTarget
 }
 function variantBox(l,i){if(state.finalConfig.positionMode!=='vary')return l;const shifts=[0,-6,6],scales=[1,1.08,.94];const s=scales[i]||1;return {...l,x:Math.max(0,Math.min(100-l.w*s,l.x+(shifts[i]||0))),w:l.w*s,h:l.h*s};}
 async function drawAssetInBox(ctx,c,url,l,filter='original',cover=false){const img=await loadImageSafe(url);const x=l.x/100*c.width,y=l.y/100*c.height,w=l.w/100*c.width,h=l.h/100*c.height;const r=cover?Math.max(w/img.naturalWidth,h/img.naturalHeight):Math.min(w/img.naturalWidth,h/img.naturalHeight);const dw=img.naturalWidth*r,dh=img.naturalHeight*r,dx=x+(w-dw)/2,dy=y+(h-dh)/2;ctx.save();ctx.filter=canvasFilter(filter);ctx.drawImage(img,dx,dy,dw,dh);ctx.restore();}
-async function drawTextLayer(ctx,c,l,text,fontFamily){const x=l.x/100*c.width,y=l.y/100*c.height,w=l.w/100*c.width,h=l.h/100*c.height;let size=Math.max(12,Math.floor(h*.7));ctx.save();ctx.fillStyle='#ffffff';ctx.textBaseline='middle';ctx.textAlign='center';ctx.font=`900 ${size}px ${fontFamily}`;while(size>10&&ctx.measureText(text).width>w*.96){size-=2;ctx.font=`900 ${size}px ${fontFamily}`;}ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=Math.max(2,size*.08);ctx.fillText(text,x+w/2,y+h/2,w*.98);ctx.restore();}
+async function drawTextLayer(ctx,c,l,text,fontFamily){
+  const x=l.x/100*c.width,y=l.y/100*c.height,w=l.w/100*c.width,h=l.h/100*c.height;
+  const role=l.type==='titlepart'?'title':l.type,td=role==='title'?titleDirection():null;
+  let value=String(text||'');if(td?.uppercase)value=value.toUpperCase();
+  let size=Math.max(12,Math.floor(h*(role==='title'?(Number(td?.scale)||.82):.7)));
+  ctx.save();ctx.translate(x+w/2,y+h/2);if(role==='title'&&td?.rotation)ctx.rotate(Number(td.rotation)*Math.PI/180);
+  ctx.textBaseline='middle';ctx.textAlign='center';ctx.font=`900 ${size}px ${fontFamily}`;
+  while(size>10&&ctx.measureText(value).width>w*(role==='title'?1.12:.96)){size-=2;ctx.font=`900 ${size}px ${fontFamily}`;}
+  const palette=state.artDirection?.palette||{};
+  ctx.fillStyle=role==='title'?normalizeHex(td?.fill||palette.accent||palette.foreground,'#ffffff'):normalizeHex(palette.foreground,'#ffffff');
+  const shadowStrength=Number(td?.shadow)||.55;ctx.shadowColor=`rgba(0,0,0,${Math.max(0,Math.min(.9,shadowStrength))})`;
+  ctx.shadowBlur=Math.max(2,size*(role==='title'?.12:.08));ctx.shadowOffsetX=role==='title'?Math.round(size*.04):0;ctx.shadowOffsetY=role==='title'?Math.round(size*.05):0;
+  if(role==='title'&&td?.outline){ctx.lineWidth=Math.max(1,size*(Number(td.outlineWidth)||.035));ctx.strokeStyle=normalizeHex(td.outlineColor||palette.background,'#111111');ctx.strokeText(value,0,0,w*1.18);}
+  const tracking=role==='title'?Math.round(size*(Number(td?.tracking)||0)):0;drawTrackedText(ctx,value,0,0,tracking);ctx.restore();
+}
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
 next.onclick=()=>{if(state.step===steps.length-1){state.step=0;state.reference=null;state.layers=[];state.instruction='';render();return}state.step++;render()};back.onclick=()=>{if(state.step>0){state.step--;render()}};render();bootstrapLibrary();
