@@ -37,7 +37,7 @@ if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KE
 try{
 const data=req.body||{};if(!(data.references||[]).length)return res.status(400).json({error:"Envie pelo menos uma referência."});
 const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
-model:"gpt-5.6",store:false,input:[{role:"user",content:buildContent(data)}],
+model:"gpt-5.6-terra",store:false,input:[{role:"user",content:buildContent(data)}],
 text:{format:{type:"json_schema",name:"churchdesign_art_direction",strict:true,schema},verbosity:"low"}
 })});
 const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
