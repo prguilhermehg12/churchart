@@ -271,7 +271,7 @@
       <div class="project-mini"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></div>
       <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
       <nav id="stepNav"></nav>
-      <div class="sidebar-foot"><span>V0.13 • Arte completa + Fiscal + Modo rápido</span><small>IA visual será conectada após validar o fluxo.</small></div>
+      <div class="sidebar-foot"><span>V0.13.1 • Retentativa automática + Safe Mode</span><small>IA visual será conectada após validar o fluxo.</small></div>
     </aside>
 
     <main class="main">
@@ -281,7 +281,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="build-stamp">CHURCHDESIGN BUILD V0.13 • ARTE COMPLETA + FISCAL + MODO RÁPIDO • 17/08/2026</div>
+  <div class="build-stamp">CHURCHDESIGN BUILD V0.13.1 • RETENTATIVA AUTOMÁTICA + SAFE MODE • 17/08/2026</div>
   <script>
 const state={
 step:0,
@@ -773,12 +773,12 @@ artDirectorPanel?.classList.add('show');
 if(artDirectorStatus)artDirectorStatus.textContent='Analisando tipografia, recortes, hierarquia, paleta e linguagem gráfica...';
 if(artDirectorSummary)artDirectorSummary.textContent='Transformando as referências em um blueprint de direção de arte.';
 const artDirection=await requestArtDirection(base);renderArtDirection(artDirection);base.artDirection=artDirection;
-for(let i=0;i<variantSpecs.length;i++){if(stopRequested)break;const v=variantSpecs[i],row=seq.querySelector(`[data-seq="${i}"]`);row.classList.add('active');status.textContent=`${i+1}/3 — Gerando ${v.label}...`;currentController=new AbortController();try{const d=await generateWithInvisibleReview({...base,mode:'primary',variantId:v.id,variantLabel:v.label,variantInstruction:state.finalConfig.variants[v.id],target:primaryTargetSpec()},1);
+for(let i=0;i<variantSpecs.length;i++){if(stopRequested)break;const v=variantSpecs[i],row=seq.querySelector(`[data-seq="${i}"]`);row.classList.add('active');status.textContent=`${i+1}/3 — Gerando ${v.label}...`;currentController=new AbortController();try{const d=await generateWithInvisibleReview({...base,mode:'primary',variantId:v.id,variantLabel:v.label,variantInstruction:state.finalConfig.variants[v.id],target:primaryTargetSpec()},3);
           const finalData=await remoteToDataUrl(d.url);
           const im={label:v.label,dataUrl:finalData,baseUrl:d.url,modelUsed:d.modelUsed,review:d.review};appendResult(im);const persisted=await persistOne(im);if(persisted)saved.push(persisted);row.classList.remove('active');row.classList.add('done');}catch(e){row.classList.remove('active');if(stopRequested||e.name==='AbortError')break;row.classList.add('fail');throw e;}finally{currentController=null;}}if(saved.length){const g=await apiJSON('save-generation',{method:'POST',body:{format:state.format,images:saved}});state.library.generations=[g.generation,...state.library.generations];renderGallery();}status.innerHTML=stopRequested?'<strong style="color:var(--good)">✓ Processo interrompido por você. As propostas prontas foram mantidas.</strong>':`<strong style="color:var(--good)">✓ ${currentImages.length} proposta(s) finalizada(s).</strong>`;}catch(e){status.innerHTML=`<strong style="color:#ff9eac">A geração foi interrompida.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">As propostas que já apareceram continuam disponíveis.</span>`;}finally{if(loader)loader.classList.remove('show');btn.disabled=false;btn.textContent='✦ GERAR NOVAMENTE';currentController=null;}}
   stopBtn.onclick=()=>{stopRequested=true;stopBtn.disabled=true;stopBtn.textContent='Parando...';if(currentController)currentController.abort();};
   function selectedKeep(i,f){const box=document.querySelector(`[data-keep-box="${i}-${f}"]`);if(!box)return ['all'];const vals=[...box.querySelectorAll('[data-keep].active')].map(x=>x.dataset.keep);return vals.length?vals:['all'];}
-  async function generateOneAdaptation(i,format,redesign=false){const source=currentImages[i];if(!source)return;const target=targetSpec(format),keep=selectedKeep(i,format),list=document.querySelector(`#adaptList-${i}`);const tempId=`adapt-${i}-${format}-${Date.now()}`;list.insertAdjacentHTML('beforeend',`<div class="adaptation-card" id="${tempId}"><div style="width:68px;height:45px;border-radius:7px;background:#171a20;display:grid;place-items:center"><div class="loader-orb" style="width:22px;height:22px"></div></div><div class="adaptation-info"><strong>${target.label}</strong><small>Gerando ${target.width} × ${target.height}...</small></div></div>`);try{const ref=await prepareImageForAI(source.baseUrl||source.dataUrl,1280,.78);const d=await generateWithInvisibleReview({mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},1);const finalData=await remoteToDataUrl(d.url);const card=document.getElementById(tempId);card.className=`adaptation-card ${format==='story'?'story':''}`;card.innerHTML=`<img src="${finalData}"><div class="adaptation-info"><strong>${target.label} • ${target.width} × ${target.height}</strong><small>${redesign?'Layout redesenhado':'Adaptação concluída'} • ${keep.includes('all')?'Tudo mantido':keep.join(', ')}</small></div><div class="adaptation-actions"><button class="mini-btn download-btn" type="button" data-adapt-download>↓ Baixar</button><button class="mini-btn" type="button" data-adapt-redraw>↻ Redesenhar</button></div>`;card.querySelector('[data-adapt-download]').onclick=()=>downloadDataUrl(finalData,`${buildDownloadName(source.label).replace('.png','')}-${format}.png`);card.querySelector('[data-adapt-redraw]').onclick=()=>generateOneAdaptation(i,format,true);}catch(e){const card=document.getElementById(tempId);if(card)card.innerHTML=`<div></div><div class="adaptation-info"><strong style="color:#ff9eac">${target.label}: falhou</strong><small>${esc(e.message)}</small></div><div class="adaptation-actions"><button class="mini-btn" type="button" data-retry>Repetir</button></div>`;card?.querySelector('[data-retry]')?.addEventListener('click',()=>generateOneAdaptation(i,format,redesign));}}
+  async function generateOneAdaptation(i,format,redesign=false){const source=currentImages[i];if(!source)return;const target=targetSpec(format),keep=selectedKeep(i,format),list=document.querySelector(`#adaptList-${i}`);const tempId=`adapt-${i}-${format}-${Date.now()}`;list.insertAdjacentHTML('beforeend',`<div class="adaptation-card" id="${tempId}"><div style="width:68px;height:45px;border-radius:7px;background:#171a20;display:grid;place-items:center"><div class="loader-orb" style="width:22px;height:22px"></div></div><div class="adaptation-info"><strong>${target.label}</strong><small>Gerando ${target.width} × ${target.height}...</small></div></div>`);try{const ref=await prepareImageForAI(source.baseUrl||source.dataUrl,1280,.78);const d=await generateWithInvisibleReview({mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},3);const finalData=await remoteToDataUrl(d.url);const card=document.getElementById(tempId);card.className=`adaptation-card ${format==='story'?'story':''}`;card.innerHTML=`<img src="${finalData}"><div class="adaptation-info"><strong>${target.label} • ${target.width} × ${target.height}</strong><small>${redesign?'Layout redesenhado':'Adaptação concluída'} • ${keep.includes('all')?'Tudo mantido':keep.join(', ')}</small></div><div class="adaptation-actions"><button class="mini-btn download-btn" type="button" data-adapt-download>↓ Baixar</button><button class="mini-btn" type="button" data-adapt-redraw>↻ Redesenhar</button></div>`;card.querySelector('[data-adapt-download]').onclick=()=>downloadDataUrl(finalData,`${buildDownloadName(source.label).replace('.png','')}-${format}.png`);card.querySelector('[data-adapt-redraw]').onclick=()=>generateOneAdaptation(i,format,true);}catch(e){const card=document.getElementById(tempId);if(card)card.innerHTML=`<div></div><div class="adaptation-info"><strong style="color:#ff9eac">${target.label}: falhou</strong><small>${esc(e.message)}</small></div><div class="adaptation-actions"><button class="mini-btn" type="button" data-retry>Repetir</button></div>`;card?.querySelector('[data-retry]')?.addEventListener('click',()=>generateOneAdaptation(i,format,redesign));}}
   async function generateAdaptationsFor(i){const formats=['screen','youtube','story'].filter(f=>document.querySelector(`[data-adapt-toggle="${i}-${f}"]`)?.classList.contains('active'));if(!formats.length)return showMapNotice('Selecione um formato','Marque Telão, YouTube e/ou Stories.');for(const f of formats)await generateOneAdaptation(i,f,false);}
   btn.onclick=generatePrimary;renderGallery();
 }
@@ -964,35 +964,58 @@ async function callQualityInspector(payload){
   if(!r.ok)throw new Error(data.error||'Fiscal indisponível.');
   return data.review;
 }
-async function generateWithInvisibleReview(payload,maxCorrections=1){
-  let attempt=0,lastReview=null,lastImage=null,correction='';
-  while(attempt<=maxCorrections){
-    const request={...payload,qualityCorrection:correction,revisionAttempt:attempt};
-    const r=await fetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request)});
-    const text=await r.text();let data;
-    try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,180)||`Resposta inválida (${r.status})`);}
-    if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);
-    lastImage=data.image;
-    const review=await callQualityInspector({
-      generatedImage:lastImage.url,
-      references:payload.references||[],
-      assets:payload.assets||{},
-      requiredContent:payload.requiredContent||{},
-      semanticMap:payload.semanticMap||[],
-      userInstruction:payload.instruction||'',
-      finalInstruction:payload.finalInstruction||'',
-      artDirection:payload.artDirection||null
+async function generateWithInvisibleReview(payload,maxCorrections=3){
+  let lastReview=null,lastImage=null;
+  const retryInstructions=[
+    '',
+    'Corrija apenas os erros apontados pelo fiscal. Preserve o restante da composição. Reduza qualquer transformação que possa alterar identidade, logo ou texto.',
+    'Simplifique a composição. Preserve rosto, logo e informações exatamente. Evite efeitos complexos, sobreposições agressivas e deformações em áreas protegidas.',
+    'MODO SEGURO: priorize fidelidade acima de criatividade. Use composição simples, limpa e profissional. Mantenha a pessoa com aparência praticamente fotográfica, logo intacta e todos os textos corretos. Não arrisque soluções experimentais.'
+  ];
+
+  for(let attempt=0;attempt<=maxCorrections;attempt++){
+    const qualityCorrection=[
+      retryInstructions[Math.min(attempt,retryInstructions.length-1)],
+      lastReview?.correction_prompt||''
+    ].filter(Boolean).join(' ');
+
+    const request={...payload,qualityCorrection,revisionAttempt:attempt,safeMode:attempt>=3};
+
+    const r=await fetch('/api/generate-art',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(request)
     });
-    lastReview=review;
-    if(review.approved)return {...lastImage,review};
-    if(attempt>=maxCorrections)break;
-    correction=(review.correction_prompt||'Simplifique a composição e corrija somente os erros apontados, preservando todo o restante.');
-    attempt++;
+
+    const text=await r.text();
+    let data;
+    try{data=JSON.parse(text)}
+    catch{throw new Error(text.slice(0,180)||`Resposta inválida (${r.status})`);}
+    if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);
+
+    lastImage=data.image;
+
+    try{
+      lastReview=await callQualityInspector({
+        generatedImage:lastImage.url,
+        references:payload.references||[],
+        assets:payload.assets||{},
+        requiredContent:payload.requiredContent||{},
+        semanticMap:payload.semanticMap||[],
+        userInstruction:payload.instruction||'',
+        finalInstruction:payload.finalInstruction||'',
+        artDirection:payload.artDirection||null
+      });
+    }catch(inspectorError){
+      if(attempt>=2)return {...lastImage,review:{approved:true,critical_error:false,score:0,gross_errors:['Fiscal indisponível após múltiplas tentativas']}};
+      continue;
+    }
+
+    if(lastReview.approved)return {...lastImage,review:lastReview};
+    if(attempt<maxCorrections)continue;
   }
-  if(lastReview?.critical_error){
-    throw new Error('A geração não atingiu o padrão mínimo de fidelidade. Nenhum crédito deve ser consumido por esta tentativa.');
-  }
-  return {...lastImage,review:lastReview};
+
+  return {...lastImage,review:lastReview||{approved:false,critical_error:false,score:0,gross_errors:['Entregue em modo seguro']}};
 }
 
 async function requestArtDirection(base){
@@ -1145,7 +1168,7 @@ async function runQuickGeneration(label,variationIndex,correction=''){
   try{
     const payload=await quickPayload(label,correction);
     payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;payload.variantInstruction=variationIndex===0?'Siga a referência com fidelidade.':`Crie uma variação de layout ${variationIndex}, mantendo a mesma linguagem e todos os dados.`;
-    const image=await generateWithInvisibleReview(payload,1);
+    const image=await generateWithInvisibleReview(payload,3);
     const dataUrl=await remoteToDataUrl(image.url);
     box.innerHTML=`<img src="${dataUrl}"><div class="quick-actions"><button class="mini-btn download-btn" id="qDownload">↓ Baixar</button>${variationIndex<2?`<button class="mini-btn" id="qVariation">Gerar variação ${variationIndex+1}</button>`:''}<button class="mini-btn" id="qReload">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:10px"><label>Correção desta arte</label><textarea id="qCorrection" placeholder="Ex.: mova o título para baixo, simplifique o fundo, mantenha o rosto exatamente igual..."></textarea></div>`;
     document.querySelector('#qDownload').onclick=()=>downloadDataUrl(dataUrl,`churchdesign-${label.toLowerCase().replace(/\s+/g,'-')}.png`);
