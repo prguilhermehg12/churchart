@@ -20,6 +20,12 @@ ERROS CRÍTICOS que reprovam:
 
 Erros criativos menores NÃO devem reprovar.
 
+COMPOSIÇÃO ADAPTATIVA:
+- Verifique se a arte usa apenas as pessoas realmente fornecidas.
+- Se a referência tinha mais pessoas que os assets fornecidos, a arte deve ter sido recomposta para a quantidade real.
+- Reprove silhuetas, sombras humanas, espaços reservados ou pessoas inventadas usados apenas para imitar posições de pessoas ausentes na referência.
+- A referência deve ser preservada como linguagem visual, não como molde rígido.
+
 Conteúdo obrigatório: ${JSON.stringify(data.requiredContent||{})}
 Mapa/posições: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.userInstruction||""}
@@ -38,7 +44,7 @@ module.exports=async function handler(req,res){
   try{
     const data=req.body||{};
     const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
-      model:"gpt-5.6",store:false,input:[{role:"user",content:content(data)}],
+      model:"gpt-5.6-sol",reasoning:{effort:"high"},store:false,input:[{role:"user",content:content(data)}],
       text:{format:{type:"json_schema",name:"churchdesign_quality_review",strict:true,schema},verbosity:"low"}
     })});
     const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
