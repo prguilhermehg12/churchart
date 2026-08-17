@@ -1,0 +1,48 @@
+module.exports.config={maxDuration:60};
+const RESPONSES_URL="https://api.openai.com/v1/responses";
+
+const schema={
+type:"object",additionalProperties:false,
+required:["visual_summary","style_tags","palette","composition","typography","imagery","textures","graphic_elements","preserve_rules","avoid_rules","generation_prompt"],
+properties:{
+visual_summary:{type:"string"},
+style_tags:{type:"array",items:{type:"string"}},
+palette:{type:"object",additionalProperties:false,required:["background","foreground","dominant","secondary","accent","contrast"],properties:{background:{type:"string"},foreground:{type:"string"},dominant:{type:"string"},secondary:{type:"string"},accent:{type:"string"},contrast:{type:"string"}}},
+composition:{type:"object",additionalProperties:false,required:["strategy","focal_point","depth","energy","whitespace","layering"],properties:{strategy:{type:"string"},focal_point:{type:"string"},depth:{type:"string"},energy:{type:"string"},whitespace:{type:"string"},layering:{type:"string"}}},
+typography:{type:"object",additionalProperties:false,required:["title","subtitle","supporting"],properties:{
+title:{type:"object",additionalProperties:false,required:["style","treatment","uppercase","rotation","scale","tracking","outline","outlineWidth","outlineColor","shadow","fill"],properties:{style:{type:"string"},treatment:{type:"string"},uppercase:{type:"boolean"},rotation:{type:"number"},scale:{type:"number"},tracking:{type:"number"},outline:{type:"boolean"},outlineWidth:{type:"number"},outlineColor:{type:"string"},shadow:{type:"number"},fill:{type:"string"}}},
+subtitle:{type:"string"},supporting:{type:"string"}}},
+imagery:{type:"object",additionalProperties:false,required:["pastor_treatment","cutout_required","background_strategy","illustration_mode","overlap_strategy"],properties:{pastor_treatment:{type:"string"},cutout_required:{type:"boolean"},background_strategy:{type:"string"},illustration_mode:{type:"string"},overlap_strategy:{type:"string"}}},
+textures:{type:"array",items:{type:"string"}},graphic_elements:{type:"array",items:{type:"string"}},preserve_rules:{type:"array",items:{type:"string"}},avoid_rules:{type:"array",items:{type:"string"}},generation_prompt:{type:"string"}
+}};
+
+function buildContent(data){
+const c=[{type:"input_text",text:`Você é um DIRETOR DE ARTE SÊNIOR especializado em cartazes contemporâneos de igreja, conferências, música e social media.
+Analise tecnicamente as referências e devolva um blueprint de produção. Foque em composição, hierarquia, recortes, collage, sobreposição, profundidade, fotografia, tipografia display, escala, rotação, contornos, sombras, paleta, textura, grão, halftone, papel, chrome, blur, gradientes, shapes, ritmo e espaço negativo.
+Não use adjetivos genéricos. Use linguagem concreta de direção de arte.
+Se houver pessoas visualmente recortadas, cutout_required=true.
+Se o título dominar a peça, especifique escala, rotação, outline, sombra e tracking.
+Mapa semântico: ${JSON.stringify(data.semanticMap||[])}
+Instrução: ${data.instruction||"nenhuma"}
+Instrução final: ${data.finalInstruction||"nenhuma"}
+Efeitos: ${JSON.stringify(data.effects||[])}`}];
+for(const r of (data.references||[]).slice(0,3)){if(r?.image&&String(r.image).startsWith("data:image/")){c.push({type:"input_image",image_url:r.image,detail:"high"});if(r.note)c.push({type:"input_text",text:`Orientação desta referência: ${r.note}`});}}
+return c;
+}
+function outputText(d){if(typeof d.output_text==="string")return d.output_text;for(const item of d.output||[])if(item.type==="message")for(const part of item.content||[])if(part.type==="output_text"&&part.text)return part.text;return"";}
+
+module.exports=async function handler(req,res){
+if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
+if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY não configurada."});
+try{
+const data=req.body||{};if(!(data.references||[]).length)return res.status(400).json({error:"Envie pelo menos uma referência."});
+const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
+model:"gpt-5.6",store:false,input:[{role:"user",content:buildContent(data)}],
+text:{format:{type:"json_schema",name:"churchdesign_art_direction",strict:true,schema},verbosity:"low"}
+})});
+const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
+const text=outputText(d);if(!text)throw new Error("Diretor de Arte não devolveu blueprint.");
+let artDirection;try{artDirection=JSON.parse(text)}catch{throw new Error("Blueprint inválido.");}
+return res.status(200).json({success:true,artDirection});
+}catch(e){console.error("ChurchDesign Design Director",e);return res.status(500).json({error:e.message||"Erro no Diretor de Arte."});}
+};
