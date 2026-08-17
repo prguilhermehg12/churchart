@@ -25,7 +25,7 @@ Se o título dominar a peça, especifique escala, rotação, outline, sombra e t
 Mapa semântico: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.instruction||"nenhuma"}
 Instrução final: ${data.finalInstruction||"nenhuma"}
-Efeitos: ${JSON.stringify(data.effects||[])}`}];
+Efeitos: ${JSON.stringify(data.effects||[])}\nDireção de inspiração sem referência: ${data.inspirationStyle?JSON.stringify(data.inspirationStyle):'não utilizada'}`}];
 for(const r of (data.references||[]).slice(0,3)){if(r?.image&&String(r.image).startsWith("data:image/")){c.push({type:"input_image",image_url:r.image,detail:"high"});if(r.note)c.push({type:"input_text",text:`Orientação desta referência: ${r.note}`});}}
 return c;
 }
@@ -35,7 +35,7 @@ module.exports=async function handler(req,res){
 if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
 if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY não configurada."});
 try{
-const data=req.body||{};if(!(data.references||[]).length)return res.status(400).json({error:"Envie pelo menos uma referência."});
+const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle)return res.status(400).json({error:"Envie uma referência ou escolha uma direção de inspiração."});
 const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
 model:"gpt-5.6-terra",store:false,input:[{role:"user",content:buildContent(data)}],
 text:{format:{type:"json_schema",name:"churchdesign_art_direction",strict:true,schema},verbosity:"low"}
