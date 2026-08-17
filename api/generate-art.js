@@ -77,6 +77,17 @@ INSTRUÇÃO DO USUÁRIO: ${data.instruction||""}
 INSTRUÇÃO FINAL: ${data.finalInstruction||""}
 CORREÇÃO DO FISCAL, se houver: ${data.qualityCorrection||"nenhuma"}
 
+${data.safeMode?`MODO SEGURO OBRIGATÓRIO:
+- reduza a complexidade;
+- não deforme o rosto;
+- não estilize a pessoa de forma que altere sua identidade;
+- trate a foto do pregador como fotografia real recortada/encaixada;
+- preserve logo sem redesenhar;
+- use tipografia forte porém simples;
+- não use distorções em textos obrigatórios;
+- todos os dados precisam estar legíveis e corretos;
+- prefira fundo gráfico simples e profissional a uma composição arriscada.`:""}
+
 Entregue a arte final, não um mockup.`;
 }
 async function generate(data){
