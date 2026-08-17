@@ -34,54 +34,45 @@ function refsContent(data,prompt){
 function semantic(data){
   return(data.semanticMap||[]).map((l,i)=>`${i+1}. ${l.type}: x ${Math.round(l.x||0)}%, y ${Math.round(l.y||0)}%, w ${Math.round(l.w||0)}%, h ${Math.round(l.h||0)}%`).join("\n");
 }
-function buildPrompt(data){
-  const target=data.target||{};
-  const refNotes=(data.references||[]).map((r,i)=>`Referência ${i+1}: ${r.note||"Use como inspiração visual."}`).join("\n");
-  const effectText=(data.effects||[]).map(e=>`${e.id} em ${e.target}`).join(", ")||"nenhum";
-  if(data.mode==="adaptation"){
-    return`Você é diretor de arte. Recrie a BASE VISUAL da arte de referência para um NOVO FORMATO.
-Formato alvo: ${target.label||data.format}; dimensões finais do aplicativo: ${target.width}x${target.height}; proporção ${target.ratio||""}.
-A imagem enviada é a proposta aprovada. Preserve claramente paleta, estilo, atmosfera, texturas e linguagem visual.
-${data.redesign?"REDESENHO: mantenha a mesma identidade visual, mas faça um layout perceptivelmente diferente e igualmente profissional.":"ADAPTAÇÃO: reorganize o layout para encaixar naturalmente na nova proporção."}
-NÃO escreva textos. NÃO desenhe pessoas. NÃO desenhe logos. NÃO escreva rótulos internos.
-Itens que o aplicativo pretende manter depois: ${(data.keep||["all"]).join(", ")}.
-Mapa semântico original:
-${semantic(data)}
-Direção: ${data.instruction||"nenhuma"}.
-Instruções finais: ${data.finalInstruction||"nenhuma"}.
-Efeitos: ${effectText}.
-Entregue apenas a base gráfica profissional, sem pessoas, textos ou logos.`;
-  }
-  return`Você é diretor de arte. Crie SOMENTE A BASE VISUAL de um cartaz profissional de igreja.
-NÃO DESENHE PESSOAS. NÃO ESCREVA TEXTO. NÃO DESENHE LOGOS.
-NÃO escreva "Logo 1", "reserva", "pregador", "título", nomes de camadas ou qualquer marca de configuração.
-O aplicativo aplicará depois pregador, logo, textos, fontes e PNGs protegidos.
-Alvo final: ${target.width}x${target.height}, proporção ${target.ratio||""}.
-VARIAÇÃO: ${data.variantLabel||data.variantId||"proposta"}.
-Diretriz desta variação: ${data.variantInstruction||""}.
-Referências:
-${refNotes||"Use a referência principal."}
-Mapa de áreas reservadas:
-${semantic(data)}
-Elementos visuais: ${(data.visualElements||[]).join(", ")||"nenhum específico"}.
-Direção geral: ${data.instruction||"nenhuma"}.
-Instruções finais: ${data.finalInstruction||"nenhuma"}.
-Efeitos: ${effectText}.
-Crie fundos, texturas, luz, profundidade, grafismos e espaços adequados. Saída sem textos, pessoas ou logos.`;
+function artBlueprint(data){
+const a=data.artDirection||{};
+return `BLUEPRINT DO DIRETOR DE ARTE:
+Resumo: ${a.visual_summary||""}
+Tags: ${(a.style_tags||[]).join(", ")}
+Paleta: ${JSON.stringify(a.palette||{})}
+Composição: ${JSON.stringify(a.composition||{})}
+Tipografia: ${JSON.stringify(a.typography||{})}
+Imagem: ${JSON.stringify(a.imagery||{})}
+Texturas: ${(a.textures||[]).join(", ")}
+Elementos: ${(a.graphic_elements||[]).join(", ")}
+Preservar: ${(a.preserve_rules||[]).join(" | ")}
+Evitar: ${(a.avoid_rules||[]).join(" | ")}
+Prompt especialista: ${a.generation_prompt||""}`;
 }
-async function responsesAttempt(data,model,inputFidelity){
-  const tool={type:"image_generation",model,action:"edit",quality:"medium",size:modelSize(data.target),output_format:"png"};
-  if(inputFidelity)tool.input_fidelity=inputFidelity;
-  const r=await fetch(RESPONSES_URL,{
-    method:"POST",
-    headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},
-    body:JSON.stringify({model:"gpt-5-mini",input:[{role:"user",content:refsContent(data,buildPrompt(data))}],tools:[tool],tool_choice:"required"})
-  });
-  const d=await r.json();
-  if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.status=r.status;throw e;}
-  const call=(d.output||[]).find(x=>x.type==="image_generation_call"&&x.result);
-  if(!call?.result)throw new Error(`${model} não retornou imagem.`);
-  return{base64:call.result,modelUsed:model};
+function buildPrompt(data){
+const target=data.target||{},effectText=(data.effects||[]).map(e=>`${e.id} em ${e.target}`).join(", ")||"nenhum",blueprint=artBlueprint(data);
+if(data.mode==="adaptation")return `Você é um designer gráfico executando um blueprint de Diretor de Arte sênior.
+Adapte a BASE VISUAL para ${target.label||data.format}, ${target.width}x${target.height}, proporção ${target.ratio||""}.
+${data.redesign?"Crie layout perceptivelmente diferente mantendo a mesma identidade visual.":"Reorganize com inteligência para a nova proporção."}
+${blueprint}
+REGRAS: preserve riqueza gráfica, recortes, camadas, textura e energia; não simplifique em caixas genéricas; não escreva texto legível; não gere pessoas finais; não desenhe logos nem rótulos internos. Integre áreas reservadas naturalmente.
+Mapa: ${semantic(data)}
+Direção: ${data.instruction||"nenhuma"}. Final: ${data.finalInstruction||"nenhuma"}. Efeitos: ${effectText}.`;
+return `Você é um designer gráfico executando um blueprint de Diretor de Arte sênior.
+Crie uma BASE VISUAL que pertença à MESMA FAMÍLIA VISUAL das referências.
+Alvo ${target.width}x${target.height}, proporção ${target.ratio||""}. Variação ${data.variantLabel||data.variantId||"proposta"}: ${data.variantInstruction||""}.
+${blueprint}
+REGRAS: siga o blueprint com prioridade; reproduza composição, profundidade, collage, recortes, textura, ritmo, cor e gestos gráficos; não reduza a arte a caixas/cartões genéricos; não escreva texto legível; não gere o pregador final; não desenhe logo nem rótulos internos; não deixe vazios brancos artificiais — crie suporte gráfico real para os futuros textos e pessoa.
+Mapa: ${semantic(data)}
+Direção geral: ${data.instruction||"nenhuma"}. Instruções finais: ${data.finalInstruction||"nenhuma"}. Efeitos: ${effectText}.`;
+}
+async function responsesAttempt(data,inputFidelity){
+const tool={type:"image_generation",model:"gpt-image-1",action:"edit",quality:"medium",size:modelSize(data.target),output_format:"png"};
+if(inputFidelity)tool.input_fidelity=inputFidelity;
+const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({model:"gpt-5-mini",store:false,input:[{role:"user",content:refsContent(data,buildPrompt(data))}],tools:[tool],tool_choice:"required"})});
+const d=await r.json();if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.status=r.status;throw e;}
+const call=(d.output||[]).find(x=>x.type==="image_generation_call"&&x.result);if(!call?.result)throw new Error("gpt-image-1 não retornou imagem.");
+return{base64:call.result,modelUsed:`gpt-image-1${inputFidelity?`-${inputFidelity}`:""}`};
 }
 async function directFallback(data){
   const r=await fetch(IMAGE_URL,{
@@ -98,27 +89,22 @@ function retryable(e){
   return e?.status===400||e?.status===404||e?.status===429||e?.status>=500||m.includes("support")||m.includes("model")||m.includes("parameter")||m.includes("overload");
 }
 async function generateOne(data){
-  const attempts=[["gpt-image-2",null],["gpt-image-1","high"],["gpt-image-1",null]];
-  const failures=[];
-  for(const [model,fidelity] of attempts){
-    try{return await responsesAttempt(data,model,fidelity);}
-    catch(e){failures.push(`${model}: ${e.message}`);if(!retryable(e))break;}
-  }
-  try{return await directFallback(data);}
-  catch(e){throw new Error(`Falha em todos os modelos. ${failures.join(" | ")} | direto: ${e.message}`);}
+const failures=[];
+for(const fidelity of ["high",null]){try{return await responsesAttempt(data,fidelity);}catch(e){failures.push(`${fidelity||"compat"}: ${e.message}`);}}
+try{return await directFallback(data);}catch(e){throw new Error(`Falha no gerador. ${failures.join(" | ")} | direto: ${e.message}`);}
 }
 module.exports=async function handler(req,res){
   if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
   if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY não configurada."});
   try{
     const data=req.body||{};
-    if(!data.reference&&!(data.references||[]).length)return res.status(400).json({error:"Envie pelo menos uma referência."});
+    if(!data.reference&&!(data.references||[]).length)return res.status(400).json({error:"Envie pelo menos uma referência."});if(!data.artDirection)return res.status(400).json({error:"Blueprint do Diretor de Arte ausente. Refaça a geração."});
     const generated=await generateOne(data);
     const label=data.mode==="adaptation"?(data.target?.label||data.format||"adaptação"):(data.variantLabel||"proposta");
     const url=await saveBase64ToStorage(generated.base64,label);
     return res.status(200).json({success:true,image:{label,url,modelUsed:generated.modelUsed}});
   }catch(e){
-    console.error("ChurchDesign V0.11",e);
+    console.error("ChurchDesign V0.12",e);
     return res.status(500).json({error:e.message||"Erro ao gerar."});
   }
 };
