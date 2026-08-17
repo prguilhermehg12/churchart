@@ -262,6 +262,20 @@
 .quick-color{height:42px;padding:4px!important}
 @media(max-width:900px){.mode-grid,.quick-grid{grid-template-columns:1fr}.mode-panel h1{font-size:26px}.quick-logo-grid,.quick-pastor-grid,.quick-ref-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+
+/* V0.15 */
+.quick-format-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.quick-format-card{border:1px solid var(--line);border-radius:11px;background:#0d0f13;padding:9px;cursor:pointer}.quick-format-card.selected{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2) inset}
+.quick-format-sketch{height:52px;border-radius:8px;background:#090a0c;display:grid;place-items:center;margin-bottom:6px}.quick-format-sketch i{display:block;border:2px solid #737d91;background:linear-gradient(145deg,#252b37,#11151b)}
+.quick-format-card strong,.quick-format-card small{display:block}.quick-format-card strong{font-size:9px}.quick-format-card small{font-size:8px;color:var(--muted);margin-top:2px}
+.inspiration-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:9px}.inspiration-card{border:1px solid var(--line);background:#0d0f13;border-radius:11px;padding:10px;cursor:pointer;min-height:76px}.inspiration-card.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}.inspiration-card strong{font-size:10px;display:block}.inspiration-card small{font-size:8px;color:var(--muted);display:block;margin-top:4px;line-height:1.35}
+.quick-progress{display:none;margin-top:12px}.quick-progress.show{display:block}.quick-progress-track{height:8px;border-radius:99px;background:#20242c;overflow:hidden}.quick-progress-track i{display:block;height:100%;width:10%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .35s ease}.quick-progress-row{display:flex;justify-content:space-between;gap:10px;font-size:9px;color:var(--muted);margin-top:6px}
+.quick-cancel{margin-top:8px;width:100%;border-color:#733644!important;color:#ff9dac!important;background:#211217!important}
+.quick-results-row{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 12px;scroll-snap-type:x mandatory}.quick-result-card{flex:0 0 min(360px,88vw);scroll-snap-align:start;border:1px solid var(--line);border-radius:14px;background:#101318;overflow:hidden}.quick-result-card>img{width:100%;display:block;background:#090a0c}.quick-result-body{padding:11px}.quick-result-body h4{margin:0 0 8px;font-size:11px}
+.quick-adapt-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:9px}.quick-adapt-btn{font-size:8px;padding:7px 5px;border:1px solid var(--line);border-radius:8px;background:#151820;color:#c3cad6;cursor:pointer}.quick-adaptations{display:grid;gap:7px;margin-top:9px}.quick-adapt-item{display:flex;gap:7px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:6px;background:#0d1015}.quick-adapt-item img{width:62px;height:45px;object-fit:cover;border-radius:6px}.quick-adapt-item.story img{width:32px;height:58px}
+.quick-mode-toggle{display:flex;gap:6px;margin-bottom:9px}.quick-mode-toggle button{flex:1}
+@media(max-width:900px){.quick-format-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.inspiration-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-adapt-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 </style>
 </head>
 <body>
@@ -271,7 +285,7 @@
       <div class="project-mini"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></div>
       <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
       <nav id="stepNav"></nav>
-      <div class="sidebar-foot"><span>V0.14 • GPT Image 2 + Fiscal Sol + Composição adaptativa</span><small>IA visual será conectada após validar o fluxo.</small></div>
+      <div class="sidebar-foot"><span>V0.15 • Rápido 2.0 + Formatos + Criar do zero</span><small>IA visual será conectada após validar o fluxo.</small></div>
     </aside>
 
     <main class="main">
@@ -281,7 +295,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="build-stamp">CHURCHDESIGN BUILD V0.14 • GPT IMAGE 2 + FISCAL SOL + COMPOSIÇÃO ADAPTATIVA • 17/08/2026</div>
+  <div class="build-stamp">CHURCHDESIGN BUILD V0.15 • RÁPIDO 2.0 + FORMATOS + CRIAR DO ZERO • 17/08/2026</div>
   <script>
 const state={
 step:0,
@@ -297,7 +311,8 @@ lastMarked:null,
 currentDraftId:null,
 artDirection:null,
 mode:null,
-quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',illustrateTitle:true,reference:null,logoAssetId:null,pastorAssetId:null,correction:''},
+quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',logoAssetId:null,pastorAssetId:null,correction:''},
+quickResults:[],
 library:{assets:[],generations:[],drafts:[],dbReady:false},
 user:{email:'pr.guilhermehg12@gmail.com',plan:'studio',credits:null,isAdmin:true},
 finalConfig:{
@@ -343,6 +358,42 @@ const effectCatalog=[
 const planRank={free:0,pro:1,studio:2};
 function canUseFeature(requiredPlan='free'){return (planRank[state.user.plan]??0)>=(planRank[requiredPlan]??0);}
 
+
+const quickFormats=[
+{id:'feed',label:'Feed 4:5',width:2160,height:2700,ratio:'4:5',note:'Instagram feed'},
+{id:'story',label:'Stories 9:16',width:1080,height:1920,ratio:'9:16',note:'Stories / Reels'},
+{id:'square',label:'Quadrado 1:1',width:2048,height:2048,ratio:'1:1',note:'Feed quadrado'},
+{id:'youtube',label:'Capa YouTube',width:3840,height:2160,ratio:'16:9',note:'YouTube'},
+{id:'wide16',label:'16:9',width:2560,height:1440,ratio:'16:9',note:'Widescreen'},
+{id:'fourthree',label:'4:3',width:2048,height:1536,ratio:'4:3',note:'Projetores'},
+{id:'threetwo',label:'3:2',width:2400,height:1600,ratio:'3:2',note:'Paisagem'},
+{id:'screen',label:'Telão da Igreja',width:null,height:null,ratio:'config',note:'Minha Igreja'}
+];
+const inspirationCatalog=[
+{id:'editorial-collage',name:'Collage Editorial',prompt:'editorial collage, recortes orgânicos, paper cut, tipografia display dominante, profundidade por sobreposição, textura impressa'},
+{id:'bold-church',name:'Church Bold',prompt:'church social poster contemporâneo, tipografia condensada gigante, alto contraste, fotografia recortada, textura e energia'},
+{id:'minimal-impact',name:'Minimal Impact',prompt:'minimalismo editorial de alto impacto, espaço negativo, tipografia forte, poucos elementos, composição sofisticada'},
+{id:'retro-modern',name:'Retromoderno',prompt:'retromodernismo, formas geométricas, grão de impressão, tipografia expressiva, cores quentes'},
+{id:'urban-grunge',name:'Urban Grunge',prompt:'urban grunge poster, halftone, rasgos, xerox texture, tipografia agressiva, camadas imperfeitas'},
+{id:'liquid-gradient',name:'Liquid Gradient',prompt:'liquid gradients, luz suave, shapes fluidos, tipografia clean, atmosfera contemporânea'},
+{id:'neo-brutal',name:'Neobrutalismo',prompt:'neobrutalismo gráfico, contraste duro, outlines, blocos assimétricos, tipografia pesada'},
+{id:'cinematic',name:'Cinemático',prompt:'cinematic event poster, dramatic lighting, profundidade, fotografia hero, atmosfera épica'},
+{id:'architectural',name:'Arquitetônico',prompt:'linhas arquitetônicas, blueprint overlays, composição editorial, perspectiva, estrutura e elegância'},
+{id:'worship-atmosphere',name:'Worship Atmosférico',prompt:'worship atmosphere, luz volumétrica, textura suave, fotografia emotiva, profundidade'}
+];
+function quickTargetSpec(id){
+  if(id==='screen')return targetSpec('screen');
+  const f=quickFormats.find(x=>x.id===id)||quickFormats[0];
+  return {id:f.id,label:f.label,width:f.width,height:f.height,ratio:f.ratio};
+}
+function formatSketchStyle(w,h){
+  const maxW=76,maxH=54,r=(w||16)/(h||9);let sw=maxW,sh=maxW/r;if(sh>maxH){sh=maxH;sw=maxH*r;}
+  return `width:${Math.max(18,sw)}px;height:${Math.max(18,sh)}px`;
+}
+let activeProcessController=null;
+function beginProcess(){if(activeProcessController)activeProcessController.abort();activeProcessController=new AbortController();return activeProcessController.signal;}
+function cancelActiveProcess(){if(activeProcessController){activeProcessController.abort();activeProcessController=null;}}
+
 const content=document.querySelector('#content'),next=document.querySelector('#nextBtn'),back=document.querySelector('#backBtn');
 function esc(s=''){return String(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 function nav(){
@@ -369,6 +420,10 @@ function targetSpec(type){
     return {id:'screen',label:'Telão',width:Number(c.width)||1920,height:Number(c.height)||1080,ratio:c.preset||'personalizado'};
   }
   if(type==='feed')return {id:'feed',label:'Feed',width:2160,height:2700,ratio:'4:5'};
+  if(type==='square')return {id:'square',label:'Quadrado',width:2048,height:2048,ratio:'1:1'};
+  if(type==='wide16')return {id:'wide16',label:'16:9',width:2560,height:1440,ratio:'16:9'};
+  if(type==='fourthree')return {id:'fourthree',label:'4:3',width:2048,height:1536,ratio:'4:3'};
+  if(type==='threetwo')return {id:'threetwo',label:'3:2',width:2400,height:1600,ratio:'3:2'};
   if(type==='wide')return targetSpec('screen');
   return {id:'story',label:'Stories',width:1080,height:1920,ratio:'9:16'};
 }
@@ -393,7 +448,7 @@ function screenReference(){
   const refs=state.library.assets.filter(a=>a.type==='reference').slice(0,20);
   const selectedIds=state.referenceSelections.map(r=>r.id).filter(Boolean);
   content.innerHTML=`
-  <div class="help"><strong>Até 3 referências por arte.</strong> Escolha imagens da biblioteca da igreja ou envie novas. Em cada uma, diga exatamente o que a IA deve aproveitar.</div>
+  <div class="help"><strong>Até 3 referências por arte.</strong> <button class="mini-btn" id="switchQuickNoRef" type="button">Criar do zero</button> Escolha imagens da biblioteca da igreja ou envie novas. Em cada uma, diga exatamente o que a IA deve aproveitar.</div>
   <div class="card" style="margin-bottom:18px">
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px"><div><h3>Referências da igreja</h3><p>Máximo de 20 imagens salvas.</p></div><span class="tag">${refs.length}/20</span></div>
     <div class="reference-library-grid">
@@ -428,6 +483,7 @@ function screenReference(){
   });
   document.querySelectorAll('[data-ref-note]').forEach(t=>t.oninput=()=>{state.referenceSelections[Number(t.dataset.refNote)].note=t.value});
   document.querySelectorAll('[data-ref-remove]').forEach(b=>b.onclick=()=>{state.referenceSelections.splice(Number(b.dataset.refRemove),1);state.reference=state.referenceSelections[0]?.url||null;state.layers=[];screenReference()});
+  const noRef=document.querySelector('#switchQuickNoRef');if(noRef)noRef.onclick=()=>{state.mode='quick';state.quick.referenceMode='inspiration';state.quick.reference=null;screenQuickMode();};
   const up=document.querySelector('#referenceUpload');if(up)up.onchange=async e=>{
     if(refs.length>=20)return showMapNotice('Biblioteca cheia','Remova uma referência antes de adicionar outra.');
     const asset=await uploadLibraryAsset(e.target.files[0],'reference');
@@ -736,9 +792,9 @@ function screenAdjust(){
   if(!pastors.length)setTimeout(showNoPastorPopup,100);
 }
 function screenResults(){
-  content.innerHTML=`<div class="help"><strong>Geração sequencial resiliente.</strong> Cada proposta aparece assim que fica pronta. Se gostar de uma, clique em <strong>“Gostei dessa, pode parar”</strong> e as próximas não serão iniciadas.</div><div class="card" style="margin-bottom:18px"><h3>Pronto para gerar</h3><p style="margin-bottom:14px">Cada proposta é uma requisição independente. Uma falha posterior não apaga as imagens já concluídas.</p><div class="card final-instruction-card" style="margin:16px 0"><h3>Instruções finais antes de gerar</h3><textarea id="finalInstructionInput" style="width:100%;min-height:110px;background:#0d0f13;color:white;border:1px solid var(--line);border-radius:11px;padding:12px" placeholder="Digite aqui as instruções finais...">${esc(state.finalInstruction||'')}</textarea></div><button id="generateRealBtn" class="btn primary" style="width:100%;font-size:15px;padding:15px">✦ GERAR 3 ARTES COM IA</button><button id="stopGenerationBtn" class="btn stop-generation-btn" type="button" style="display:none">✓ Gostei dessa, pode parar</button><div id="generationStatus" style="margin-top:15px;color:var(--muted);font-size:12px;line-height:1.6"></div><div id="artDirectorPanel" class="art-director-panel"><div class="art-director-head"><div class="art-director-icon">AD</div><div><strong>Diretor de Arte</strong><small id="artDirectorStatus">Aguardando análise visual.</small></div></div><div id="artDirectorTags" class="art-director-tags"></div><div id="artDirectorSummary" class="art-director-summary"></div></div><div id="generationLoader" class="generation-loader"><div class="loader-top"><div class="loader-orb"></div><div><strong>Processando sua arte</strong><div style="font-size:10px;color:var(--muted);margin-top:3px">A próxima proposta só começa depois da atual.</div></div></div><div class="loader-bar"><i></i></div><div id="seqProgress" class="seq-progress"></div></div></div><div id="realResults" class="grid3"></div><div class="gallery-section"><div class="gallery-head"><div><h3 style="margin:0;font-size:16px">Últimas artes geradas</h3><p style="margin:4px 0 0;color:var(--muted);font-size:11px">Persistidas no banco.</p></div></div><div id="historyGallery"></div></div>`;
+  content.innerHTML=`<div class="help"><strong>Geração sequencial resiliente.</strong> Cada proposta aparece assim que fica pronta. Se gostar de uma, clique em <strong>“Gostei dessa, pode parar”</strong> e as próximas não serão iniciadas.</div><div class="card" style="margin-bottom:18px"><h3>Pronto para gerar</h3><p style="margin-bottom:14px">Cada proposta é uma requisição independente. Uma falha posterior não apaga as imagens já concluídas.</p><div class="card final-instruction-card" style="margin:16px 0"><h3>Instruções finais antes de gerar</h3><textarea id="finalInstructionInput" style="width:100%;min-height:110px;background:#0d0f13;color:white;border:1px solid var(--line);border-radius:11px;padding:12px" placeholder="Digite aqui as instruções finais...">${esc(state.finalInstruction||'')}</textarea></div><button id="generateRealBtn" class="btn primary" style="width:100%;font-size:15px;padding:15px">✦ GERAR 3 ARTES COM IA</button><button id="stopGenerationBtn" class="btn stop-generation-btn" type="button" style="display:none">✓ Gostei dessa, pode parar</button><button id="cancelGenerationBtn" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="generationStatus" style="margin-top:15px;color:var(--muted);font-size:12px;line-height:1.6"></div><div id="artDirectorPanel" class="art-director-panel"><div class="art-director-head"><div class="art-director-icon">AD</div><div><strong>Diretor de Arte</strong><small id="artDirectorStatus">Aguardando análise visual.</small></div></div><div id="artDirectorTags" class="art-director-tags"></div><div id="artDirectorSummary" class="art-director-summary"></div></div><div id="generationLoader" class="generation-loader"><div class="loader-top"><div class="loader-orb"></div><div><strong>Processando sua arte</strong><div style="font-size:10px;color:var(--muted);margin-top:3px">A próxima proposta só começa depois da atual.</div></div></div><div class="loader-bar"><i></i></div><div id="seqProgress" class="seq-progress"></div></div></div><div id="realResults" class="grid3"></div><div class="gallery-section"><div class="gallery-head"><div><h3 style="margin:0;font-size:16px">Últimas artes geradas</h3><p style="margin:4px 0 0;color:var(--muted);font-size:11px">Persistidas no banco.</p></div></div><div id="historyGallery"></div></div>`;
   const finalInstructionInput=document.querySelector('#finalInstructionInput');if(finalInstructionInput)finalInstructionInput.oninput=e=>state.finalInstruction=e.target.value;
-  const btn=document.querySelector('#generateRealBtn'),stopBtn=document.querySelector('#stopGenerationBtn'),status=document.querySelector('#generationStatus'),loader=document.querySelector('#generationLoader'),seq=document.querySelector('#seqProgress'),results=document.querySelector('#realResults'),gallery=document.querySelector('#historyGallery'),artDirectorPanel=document.querySelector('#artDirectorPanel'),artDirectorStatus=document.querySelector('#artDirectorStatus'),artDirectorTags=document.querySelector('#artDirectorTags'),artDirectorSummary=document.querySelector('#artDirectorSummary');
+  const btn=document.querySelector('#generateRealBtn'),stopBtn=document.querySelector('#stopGenerationBtn'),cancelBtn=document.querySelector('#cancelGenerationBtn'),status=document.querySelector('#generationStatus'),loader=document.querySelector('#generationLoader'),seq=document.querySelector('#seqProgress'),results=document.querySelector('#realResults'),gallery=document.querySelector('#historyGallery'),artDirectorPanel=document.querySelector('#artDirectorPanel'),artDirectorStatus=document.querySelector('#artDirectorStatus'),artDirectorTags=document.querySelector('#artDirectorTags'),artDirectorSummary=document.querySelector('#artDirectorSummary');
   const variantSpecs=[{id:'faithful',label:'Fiel à referência'},{id:'balanced',label:'Equilibrada'},{id:'creative',label:'Mais criativa'}];let currentImages=[],stopRequested=false,currentController=null;
   const renderGallery=()=>{const sets=state.library.generations||[];const items=[];sets.forEach(g=>(g.images||[]).forEach(im=>items.push({...im,createdAt:g.created_at||g.createdAt,format:g.format||'feed'})));gallery.innerHTML=items.length?`<div class="gallery-grid">${items.slice(0,12).map(im=>`<div class="gallery-item ${im.format==='wide'?'wide':im.format==='story'?'story':''}"><img src="${im.url||im.dataUrl}"><div class="gallery-meta"><strong>${esc(im.label||'Arte')}</strong><small>${formatDateTime(im.createdAt)}</small></div></div>`).join('')}</div>`:'<div class="gallery-empty">Ainda não há gerações salvas.</div>'};
   function keepOptionsHTML(i,f){const options=[['all','Tudo'],['title','Título principal'],['subtitle','Subtítulo'],['pastor','Foto do pregador'],['date','Data'],['time','Hora'],['address','Endereço'],['logo','Logo'],['background','Elementos de fundo']];return `<div class="keep-box" data-keep-box="${i}-${f}"><strong>O que deve permanecer nesta versão?</strong><div class="keep-chips">${options.map((o,j)=>`<button class="keep-chip ${j===0?'active':''}" type="button" data-keep="${o[0]}">${o[1]}</button>`).join('')}</div></div>`;}
@@ -772,10 +828,11 @@ function screenResults(){
 artDirectorPanel?.classList.add('show');
 if(artDirectorStatus)artDirectorStatus.textContent='Analisando tipografia, recortes, hierarquia, paleta e linguagem gráfica...';
 if(artDirectorSummary)artDirectorSummary.textContent='Transformando as referências em um blueprint de direção de arte.';
-const artDirection=await requestArtDirection(base);renderArtDirection(artDirection);base.artDirection=artDirection;
-for(let i=0;i<variantSpecs.length;i++){if(stopRequested)break;const v=variantSpecs[i],row=seq.querySelector(`[data-seq="${i}"]`);row.classList.add('active');status.textContent=`${i+1}/3 — Gerando ${v.label}...`;currentController=new AbortController();try{const d=await generateWithInvisibleReview({...base,mode:'primary',variantId:v.id,variantLabel:v.label,variantInstruction:state.finalConfig.variants[v.id],target:primaryTargetSpec()},1);
+const artDirection=await requestArtDirection(base,globalSignal);renderArtDirection(artDirection);base.artDirection=artDirection;
+for(let i=0;i<variantSpecs.length;i++){if(stopRequested)break;const v=variantSpecs[i],row=seq.querySelector(`[data-seq="${i}"]`);row.classList.add('active');status.textContent=`${i+1}/3 — Gerando ${v.label}...`;currentController=new AbortController();try{const d=await generateWithInvisibleReview({...base,mode:'primary',variantId:v.id,variantLabel:v.label,variantInstruction:state.finalConfig.variants[v.id],target:primaryTargetSpec()},1,globalSignal);
           const finalData=await remoteToDataUrl(d.url);
-          const im={label:v.label,dataUrl:finalData,baseUrl:d.url,modelUsed:d.modelUsed,review:d.review};appendResult(im);const persisted=await persistOne(im);if(persisted)saved.push(persisted);row.classList.remove('active');row.classList.add('done');}catch(e){row.classList.remove('active');if(stopRequested||e.name==='AbortError')break;row.classList.add('fail');throw e;}finally{currentController=null;}}if(saved.length){const g=await apiJSON('save-generation',{method:'POST',body:{format:state.format,images:saved}});state.library.generations=[g.generation,...state.library.generations];renderGallery();}status.innerHTML=stopRequested?'<strong style="color:var(--good)">✓ Processo interrompido por você. As propostas prontas foram mantidas.</strong>':`<strong style="color:var(--good)">✓ ${currentImages.length} proposta(s) finalizada(s).</strong>`;}catch(e){status.innerHTML=`<strong style="color:#ff9eac">A geração foi interrompida.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">As propostas que já apareceram continuam disponíveis.</span>`;}finally{if(loader)loader.classList.remove('show');btn.disabled=false;btn.textContent='✦ GERAR NOVAMENTE';currentController=null;}}
+          const im={label:v.label,dataUrl:finalData,baseUrl:d.url,modelUsed:d.modelUsed,review:d.review};appendResult(im);const persisted=await persistOne(im);if(persisted)saved.push(persisted);row.classList.remove('active');row.classList.add('done');}catch(e){row.classList.remove('active');if(stopRequested||e.name==='AbortError')break;row.classList.add('fail');throw e;}finally{currentController=null;}}if(saved.length){const g=await apiJSON('save-generation',{method:'POST',body:{format:state.format,images:saved}});state.library.generations=[g.generation,...state.library.generations];renderGallery();}status.innerHTML=stopRequested?'<strong style="color:var(--good)">✓ Processo interrompido por você. As propostas prontas foram mantidas.</strong>':`<strong style="color:var(--good)">✓ ${currentImages.length} proposta(s) finalizada(s).</strong>`;}catch(e){status.innerHTML=`<strong style="color:#ff9eac">A geração foi interrompida.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">As propostas que já apareceram continuam disponíveis.</span>`;}finally{if(loader)loader.classList.remove('show');btn.disabled=false;btn.textContent='✦ GERAR NOVAMENTE';currentController=null;activeProcessController=null;if(cancelBtn)cancelBtn.style.display='none';}}
+  if(cancelBtn)cancelBtn.onclick=()=>{stopRequested=true;cancelActiveProcess();status.textContent='Processamento cancelado.';};
   stopBtn.onclick=()=>{stopRequested=true;stopBtn.disabled=true;stopBtn.textContent='Parando...';if(currentController)currentController.abort();};
   function selectedKeep(i,f){const box=document.querySelector(`[data-keep-box="${i}-${f}"]`);if(!box)return ['all'];const vals=[...box.querySelectorAll('[data-keep].active')].map(x=>x.dataset.keep);return vals.length?vals:['all'];}
   async function generateOneAdaptation(i,format,redesign=false){const source=currentImages[i];if(!source)return;const target=targetSpec(format),keep=selectedKeep(i,format),list=document.querySelector(`#adaptList-${i}`);const tempId=`adapt-${i}-${format}-${Date.now()}`;list.insertAdjacentHTML('beforeend',`<div class="adaptation-card" id="${tempId}"><div style="width:68px;height:45px;border-radius:7px;background:#171a20;display:grid;place-items:center"><div class="loader-orb" style="width:22px;height:22px"></div></div><div class="adaptation-info"><strong>${target.label}</strong><small>Gerando ${target.width} × ${target.height}...</small></div></div>`);try{const ref=await prepareImageForAI(source.baseUrl||source.dataUrl,1280,.78);const d=await generateWithInvisibleReview({mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},1);const finalData=await remoteToDataUrl(d.url);const card=document.getElementById(tempId);card.className=`adaptation-card ${format==='story'?'story':''}`;card.innerHTML=`<img src="${finalData}"><div class="adaptation-info"><strong>${target.label} • ${target.width} × ${target.height}</strong><small>${redesign?'Layout redesenhado':'Adaptação concluída'} • ${keep.includes('all')?'Tudo mantido':keep.join(', ')}</small></div><div class="adaptation-actions"><button class="mini-btn download-btn" type="button" data-adapt-download>↓ Baixar</button><button class="mini-btn" type="button" data-adapt-redraw>↻ Redesenhar</button></div>`;card.querySelector('[data-adapt-download]').onclick=()=>downloadDataUrl(finalData,`${buildDownloadName(source.label).replace('.png','')}-${format}.png`);card.querySelector('[data-adapt-redraw]').onclick=()=>generateOneAdaptation(i,format,true);}catch(e){const card=document.getElementById(tempId);if(card)card.innerHTML=`<div></div><div class="adaptation-info"><strong style="color:#ff9eac">${target.label}: falhou</strong><small>${esc(e.message)}</small></div><div class="adaptation-actions"><button class="mini-btn" type="button" data-retry>Repetir</button></div>`;card?.querySelector('[data-retry]')?.addEventListener('click',()=>generateOneAdaptation(i,format,redesign));}}
@@ -957,14 +1014,14 @@ function exactContentFromLayers(){
   if(!out.address)out.address=state.church.address||'';
   return out;
 }
-async function callQualityInspector(payload){
-  const r=await fetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+async function callQualityInspector(payload,signal=null){
+  const r=await fetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});
   const text=await r.text();let data;
   try{data=JSON.parse(text)}catch{throw new Error('Fiscal: resposta inválida.');}
   if(!r.ok)throw new Error(data.error||'Fiscal indisponível.');
   return data.review;
 }
-async function generateWithInvisibleReview(payload,maxCorrections=1){
+async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null){
   let lastReview=null,lastImage=null;
   const retryInstructions=[
     '',
@@ -984,7 +1041,7 @@ async function generateWithInvisibleReview(payload,maxCorrections=1){
     const r=await fetch('/api/generate-art',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(request)
+      body:JSON.stringify(request),signal
     });
 
     const text=await r.text();
@@ -1005,7 +1062,7 @@ async function generateWithInvisibleReview(payload,maxCorrections=1){
         userInstruction:payload.instruction||'',
         finalInstruction:payload.finalInstruction||'',
         artDirection:payload.artDirection||null
-      });
+      },signal);
     }catch(inspectorError){
       if(attempt>=2)return {...lastImage,review:{approved:true,critical_error:false,score:0,gross_errors:['Fiscal indisponível após múltiplas tentativas']}};
       continue;
@@ -1018,14 +1075,14 @@ async function generateWithInvisibleReview(payload,maxCorrections=1){
   return {...lastImage,review:lastReview||{approved:false,critical_error:false,score:0,gross_errors:['Entregue em modo seguro']}};
 }
 
-async function requestArtDirection(base){
+async function requestArtDirection(base,signal=null){
   const r=await fetch('/api/design-director',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
       references:base.references||[],semanticMap:base.semanticMap||[],church:base.church||{},
       instruction:base.instruction||'',finalInstruction:base.finalInstruction||'',
-      effects:base.effects||[],format:base.format,target:primaryTargetSpec()
-    })
+      effects:base.effects||[],format:base.format,target:base.target||primaryTargetSpec(),inspirationStyle:base.inspirationStyle||null
+    }),signal
   });
   const text=await r.text();let data;
   try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,220)||`Diretor de arte: resposta inválida (${r.status})`);}
@@ -1107,77 +1164,50 @@ function quickDefaultPastor(){
   const pastors=state.library.assets.filter(a=>a.type==='pastor');
   if(!state.quick.pastorAssetId&&pastors.length)state.quick.pastorAssetId=pastors[0].id;
 }
-async function quickPayload(variantLabel='Principal',correction=''){
+async function quickPayload(variantLabel='Principal',correction='',signal=null){
   const ref=state.quick.reference?await prepareImageForAI(state.quick.reference,1400,.88):null;
-  const logo=state.library.assets.find(a=>a.id===state.quick.logoAssetId);
-  const pastor=state.library.assets.find(a=>a.id===state.quick.pastorAssetId);
-  const assets={
-    logo:logo?{name:logo.name,image:await prepareImageForAI(logo.url,1200,.95)}:null,
-    pastor:pastor?{name:pastor.name,image:await prepareImageForAI(pastor.url,1400,.9)}:null
-  };
+  const logo=state.library.assets.find(a=>a.id===state.quick.logoAssetId),pastor=state.library.assets.find(a=>a.id===state.quick.pastorAssetId);
+  const assets={logo:logo?{name:logo.name,image:await prepareImageForAI(logo.url,1200,.95)}:null,pastor:pastor?{name:pastor.name,image:await prepareImageForAI(pastor.url,1400,.9)}:null};
+  const inspiration=inspirationCatalog.find(x=>x.id===state.quick.inspirationStyle)||inspirationCatalog[0];
   const refs=ref?[{image:ref,note:'Use esta arte como referência principal de composição, tipografia, paleta, recortes, textura e linguagem visual.'}]:[];
-  const base={
-    church:{name:state.church.name,address:state.quick.address||state.church.address,hasLogo:!!assets.logo},
-    format:'feed',reference:ref,references:refs,assets,
+  const target=quickTargetSpec(state.quick.format);
+  const base={church:{name:state.church.name,address:state.quick.address||state.church.address,hasLogo:!!assets.logo},format:state.quick.format,reference:ref,references:refs,assets,target,
+    inspirationStyle:ref?null:{id:inspiration.id,name:inspiration.name,prompt:inspiration.prompt},
     requiredContent:{title:state.quick.title,subtitle:state.quick.subtitle,date:state.quick.date,time:state.quick.time,address:state.quick.address||state.church.address,churchName:state.church.name},
-    instruction:`Modo rápido. Cor predominante ${state.quick.dominantColor}. Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${correction||state.quick.correction||''}`,
-    finalInstruction:'Preserve coerência e simplicidade. Complexidade somente quando houver segurança visual.',
-    semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[],target:targetSpec('feed')
-  };
-  base.artDirection=await requestArtDirection(base);
-  return base;
+    instruction:`Modo rápido. Cor predominante ${state.quick.dominantColor}. Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${ref?'':'Criação sem referência: use a direção visual '+inspiration.name+' — '+inspiration.prompt+'.'} ${correction||state.quick.correction||''}`,
+    finalInstruction:'Preserve coerência e simplicidade. Complexidade somente quando houver segurança visual.',semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[]};
+  base.artDirection=await requestArtDirection(base,signal);return base;
 }
 function screenQuickMode(){
   quickDefaultLogo();quickDefaultPastor();
   const logos=state.library.assets.filter(a=>a.type==='logo'),pastors=state.library.assets.filter(a=>a.type==='pastor'),refs=state.library.assets.filter(a=>a.type==='reference').slice(0,20);
-  document.querySelector('.footer').style.display='none';
-  document.querySelector('#mobileStepbar').style.display='none';
+  document.querySelector('.footer').style.display='none';document.querySelector('#mobileStepbar').style.display='none';
   document.querySelector('#eyebrow').textContent='MODO RÁPIDO';document.querySelector('#pageTitle').textContent='Crie em poucos campos';
-  content.innerHTML=`<div class="quick-shell">
-  <div class="help">Preencha o essencial. O processamento inclui direção visual e verificação de qualidade automaticamente.</div>
-  <div class="quick-grid">
-    <div class="card">
-      <div class="field"><label>Título principal</label><input id="qTitle" value="${esc(state.quick.title)}" placeholder="Ex.: O PREÇO DO PALÁCIO"></div>
-      <div class="field"><label>Subtítulo</label><input id="qSubtitle" value="${esc(state.quick.subtitle)}" placeholder="Opcional"></div>
-      <div class="grid2"><div class="field"><label>Data</label><input id="qDate" value="${esc(state.quick.date)}" placeholder="QUARTA - 18/06"></div><div class="field"><label>Horário</label><input id="qTime" value="${esc(state.quick.time)}" placeholder="19:30H"></div></div>
-      <div class="field"><label>Endereço</label><input id="qAddress" value="${esc(state.quick.address||state.church.address)}"></div>
-      <div class="grid2"><div class="field"><label>Cor predominante</label><input id="qColor" class="quick-color" type="color" value="${esc(state.quick.dominantColor)}"></div><div class="field"><label>Efeito</label><select id="qEffect">${effectCatalog.map(e=>`<option value="${e.id}" ${state.quick.effect===e.id?'selected':''}>${e.name}</option>`).join('')}<option value="none" ${state.quick.effect==='none'?'selected':''}>Nenhum</option></select></div></div>
-      <label class="layer" style="cursor:pointer"><input id="qIllustrate" type="checkbox" ${state.quick.illustrateTitle?'checked':''}><div class="layer-info"><strong>Ilustrar pelo título</strong><small>A IA adiciona elementos visuais ligados ao conceito do título.</small></div></label>
-    </div>
-    <div class="card"><h3>Referência</h3><p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p>
-      <div class="quick-ref-grid">${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div>
-      <label class="upload" style="margin-top:10px"><strong>Subir referência</strong><span>JPG, PNG ou WEBP</span><input id="qRefUpload" type="file" accept="image/*"></label>
-      <h3 style="margin-top:18px">Logo</h3><div class="quick-logo-grid">${logos.map(a=>`<div class="quick-asset ${state.quick.logoAssetId===a.id?'selected':''}" data-qlogo="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div>
-      <h3 style="margin-top:18px">Pregador (opcional)</h3><div class="quick-pastor-grid">${pastors.map(a=>`<div class="quick-asset ${state.quick.pastorAssetId===a.id?'selected':''}" data-qpastor="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div>
-    </div>
-  </div>
-  <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div><div id="quickResult" class="quick-result"></div></div>
-  </div>`;
-  const bind=(id,key)=>document.querySelector('#'+id).oninput=e=>state.quick[key]=e.target.value;
-  bind('qTitle','title');bind('qSubtitle','subtitle');bind('qDate','date');bind('qTime','time');bind('qAddress','address');bind('qColor','dominantColor');
+  const selectedFormat=quickTargetSpec(state.quick.format);
+  content.innerHTML=`<div class="quick-shell"><div class="help">Preencha o essencial. Você pode usar uma referência ou criar do zero a partir do Banco de Inspiração.</div><div class="quick-grid">
+  <div class="card"><div class="field"><label>Título principal</label><input id="qTitle" value="${esc(state.quick.title)}" placeholder="Ex.: O PREÇO DO PALÁCIO"></div><div class="field"><label>Subtítulo</label><input id="qSubtitle" value="${esc(state.quick.subtitle)}" placeholder="Opcional"></div><div class="grid2"><div class="field"><label>Data</label><input id="qDate" value="${esc(state.quick.date)}" placeholder="QUARTA - 18/06"></div><div class="field"><label>Horário</label><input id="qTime" value="${esc(state.quick.time)}" placeholder="19:30H"></div></div><div class="field"><label>Endereço</label><input id="qAddress" value="${esc(state.quick.address||state.church.address)}"></div><div class="grid2"><div class="field"><label>Cor predominante</label><input id="qColor" class="quick-color" type="color" value="${esc(state.quick.dominantColor)}"></div><div class="field"><label>Efeito</label><select id="qEffect"><option value="none" ${state.quick.effect==='none'?'selected':''}>Nenhum</option>${effectCatalog.map(e=>`<option value="${e.id}" ${state.quick.effect===e.id?'selected':''}>${e.name}</option>`).join('')}</select></div></div><label class="layer" style="cursor:pointer"><input id="qIllustrate" type="checkbox" ${state.quick.illustrateTitle?'checked':''}><div class="layer-info"><strong>Ilustrar pelo título</strong><small>A IA adiciona elementos visuais ligados ao conceito do título.</small></div></label>
+  <h3 style="margin-top:18px">Tamanho da arte</h3><p style="margin-bottom:9px">Telão usa a configuração salva em Minha Igreja.</p><div class="quick-format-grid">${quickFormats.map(f=>{const t=f.id==='screen'?targetSpec('screen'):f;return `<div class="quick-format-card ${state.quick.format===f.id?'selected':''}" data-qformat="${f.id}"><div class="quick-format-sketch"><i style="${formatSketchStyle(t.width,t.height)}"></i></div><strong>${f.label}</strong><small>${f.id==='screen'?`${t.width}×${t.height}`:`${f.width}×${f.height}`}</small></div>`}).join('')}</div></div>
+  <div class="card"><h3>Direção visual</h3><div class="quick-mode-toggle"><button class="mini-btn ${state.quick.referenceMode==='upload'?'selected-result':''}" id="qUseReference" type="button">Usar referência</button><button class="mini-btn ${state.quick.referenceMode==='inspiration'?'selected-result':''}" id="qUseInspiration" type="button">Criar do zero</button></div>
+  ${state.quick.referenceMode==='upload'?`<p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p><div class="quick-ref-grid">${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><label class="upload" style="margin-top:10px"><strong>Subir referência</strong><span>JPG, PNG ou WEBP</span><input id="qRefUpload" type="file" accept="image/*"></label>`:`<p>Banco de Inspiração interno. A IA usa a linguagem escolhida sem copiar uma peça específica.</p><div class="inspiration-grid">${inspirationCatalog.map(x=>`<div class="inspiration-card ${state.quick.inspirationStyle===x.id?'selected':''}" data-inspiration="${x.id}"><strong>${x.name}</strong><small>${x.prompt}</small></div>`).join('')}</div>`}
+  <h3 style="margin-top:18px">Logo</h3><div class="quick-logo-grid">${logos.map(a=>`<div class="quick-asset ${state.quick.logoAssetId===a.id?'selected':''}" data-qlogo="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><h3 style="margin-top:18px">Pregador (opcional)</h3><div class="quick-pastor-grid">${pastors.map(a=>`<div class="quick-asset ${state.quick.pastorAssetId===a.id?'selected':''}" data-qpastor="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div></div></div>
+  <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE • ${selectedFormat.label}</button><div id="quickProgress" class="quick-progress"><div class="quick-progress-track"><i id="quickProgressBar"></i></div><div class="quick-progress-row"><span id="quickProgressText">Processando sua arte...</span><span id="quickProgressPct">0%</span></div></div><button id="quickCancel" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div></div><div id="quickResultsWrap" style="margin-top:18px">${renderQuickResultsHTML()}</div></div>`;
+  const bind=(id,key)=>document.querySelector('#'+id).oninput=e=>state.quick[key]=e.target.value;bind('qTitle','title');bind('qSubtitle','subtitle');bind('qDate','date');bind('qTime','time');bind('qAddress','address');bind('qColor','dominantColor');
   document.querySelector('#qEffect').onchange=e=>state.quick.effect=e.target.value;document.querySelector('#qIllustrate').onchange=e=>state.quick.illustrateTitle=e.target.checked;
-  document.querySelectorAll('[data-qref]').forEach(el=>el.onclick=()=>{const a=refs.find(x=>x.id===el.dataset.qref);state.quick.reference=a?.url||null;screenQuickMode()});
-  document.querySelectorAll('[data-qlogo]').forEach(el=>el.onclick=()=>{state.quick.logoAssetId=el.dataset.qlogo;screenQuickMode()});
-  document.querySelectorAll('[data-qpastor]').forEach(el=>el.onclick=()=>{state.quick.pastorAssetId=el.dataset.qpastor;screenQuickMode()});
-  document.querySelector('#qRefUpload').onchange=async e=>{const a=await uploadLibraryAsset(e.target.files[0],'reference');if(a){state.quick.reference=a.url;screenQuickMode();}};
-  document.querySelector('#quickGenerate').onclick=()=>runQuickGeneration('Principal',0);
+  document.querySelector('#qUseReference').onclick=()=>{state.quick.referenceMode='upload';screenQuickMode()};document.querySelector('#qUseInspiration').onclick=()=>{state.quick.referenceMode='inspiration';state.quick.reference=null;screenQuickMode()};
+  document.querySelectorAll('[data-qformat]').forEach(el=>el.onclick=()=>{state.quick.format=el.dataset.qformat;screenQuickMode()});document.querySelectorAll('[data-inspiration]').forEach(el=>el.onclick=()=>{state.quick.inspirationStyle=el.dataset.inspiration;screenQuickMode()});
+  document.querySelectorAll('[data-qref]').forEach(el=>el.onclick=()=>{const a=refs.find(x=>x.id===el.dataset.qref);state.quick.reference=a?.url||null;state.quick.referenceMode='upload';screenQuickMode()});document.querySelectorAll('[data-qlogo]').forEach(el=>el.onclick=()=>{state.quick.logoAssetId=el.dataset.qlogo;screenQuickMode()});document.querySelectorAll('[data-qpastor]').forEach(el=>el.onclick=()=>{state.quick.pastorAssetId=el.dataset.qpastor;screenQuickMode()});
+  const up=document.querySelector('#qRefUpload');if(up)up.onchange=async e=>{const a=await uploadLibraryAsset(e.target.files[0],'reference');if(a){state.quick.reference=a.url;state.quick.referenceMode='upload';screenQuickMode();}};
+  document.querySelector('#quickGenerate').onclick=()=>runQuickGeneration('Principal',0);document.querySelector('#quickCancel').onclick=()=>{cancelActiveProcess();document.querySelector('#quickStatus').textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');};bindQuickResultEvents();
 }
-async function runQuickGeneration(label,variationIndex,correction=''){
-  const status=document.querySelector('#quickStatus'),box=document.querySelector('#quickResult'),btn=document.querySelector('#quickGenerate');
-  btn.disabled=true;status.textContent='Processando sua arte...';
-  try{
-    const payload=await quickPayload(label,correction);
-    payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;payload.variantInstruction=variationIndex===0?'Siga a referência com fidelidade.':`Crie uma variação de layout ${variationIndex}, mantendo a mesma linguagem e todos os dados.`;
-    const image=await generateWithInvisibleReview(payload,1);
-    const dataUrl=await remoteToDataUrl(image.url);
-    box.innerHTML=`<img src="${dataUrl}"><div class="quick-actions"><button class="mini-btn download-btn" id="qDownload">↓ Baixar</button>${variationIndex<2?`<button class="mini-btn" id="qVariation">Gerar variação ${variationIndex+1}</button>`:''}<button class="mini-btn" id="qReload">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:10px"><label>Correção desta arte</label><textarea id="qCorrection" placeholder="Ex.: mova o título para baixo, simplifique o fundo, mantenha o rosto exatamente igual..."></textarea></div>`;
-    document.querySelector('#qDownload').onclick=()=>downloadDataUrl(dataUrl,`churchdesign-${label.toLowerCase().replace(/\s+/g,'-')}.png`);
-    const v=document.querySelector('#qVariation');if(v)v.onclick=()=>runQuickGeneration(`Variação ${variationIndex+1}`,variationIndex+1);
-    document.querySelector('#qReload').onclick=()=>runQuickGeneration(label,variationIndex,document.querySelector('#qCorrection').value);
-    status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>';
-  }catch(e){status.innerHTML=`<strong style="color:#ff9eac">Não foi possível concluir.</strong><br>${esc(e.message)}`;}
-  finally{btn.disabled=false;}
-}
+function renderQuickResultsHTML(){if(!state.quickResults.length)return '';return `<div class="card"><h3>Artes desta criação</h3><p style="margin-bottom:10px">As variações ficam lado a lado.</p><div class="quick-results-row">${state.quickResults.map((r,i)=>quickResultCardHTML(r,i)).join('')}</div></div>`;}
+function quickResultCardHTML(r,i){const adaptButtons=['story','youtube','screen','square','wide16','fourthree','threetwo'].map(f=>{const t=quickTargetSpec(f);return `<button class="quick-adapt-btn" data-qadapt="${i}-${f}" type="button">${t.label}</button>`}).join('');return `<div class="quick-result-card" id="quickResultCard-${i}"><img src="${r.dataUrl}"><div class="quick-result-body"><h4>${esc(r.label)} • ${esc(r.target.label)}</h4><div class="quick-actions"><button class="mini-btn download-btn" data-qdownload="${i}">↓ Baixar</button>${i===state.quickResults.length-1&&i<2?`<button class="mini-btn" data-qvariation="${i+1}">Gerar variação ${i+1}</button>`:''}<button class="mini-btn" data-qreload="${i}">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:8px"><label>Correção desta arte</label><textarea data-qcorrection="${i}">${esc(r.correction||'')}</textarea></div><strong style="font-size:9px">Criar outro tamanho</strong><div class="quick-adapt-grid">${adaptButtons}</div><div class="quick-adaptations" id="quickAdaptations-${i}">${(r.adaptations||[]).map(a=>quickAdaptationHTML(a,i)).join('')}</div></div></div>`;}
+function quickAdaptationHTML(a,parentIndex){return `<div class="quick-adapt-item ${a.format==='story'?'story':''}"><img src="${a.dataUrl}"><div style="min-width:0;flex:1"><strong style="font-size:9px">${esc(a.target.label)}</strong><small style="display:block;font-size:8px;color:var(--muted)">${a.target.width}×${a.target.height}</small></div><button class="mini-btn download-btn" data-qadapt-download="${parentIndex}-${a.id}">↓</button></div>`;}
+function bindQuickResultEvents(){document.querySelectorAll('[data-qdownload]').forEach(b=>b.onclick=()=>{const r=state.quickResults[+b.dataset.qdownload];downloadDataUrl(r.dataUrl,`churchdesign-${r.label.toLowerCase().replace(/\s+/g,'-')}.png`)});document.querySelectorAll('[data-qvariation]').forEach(b=>b.onclick=()=>runQuickGeneration(`Variação ${b.dataset.qvariation}`,Number(b.dataset.qvariation)));document.querySelectorAll('[data-qreload]').forEach(b=>b.onclick=()=>{const i=+b.dataset.qreload,t=document.querySelector(`[data-qcorrection="${i}"]`);runQuickGeneration(state.quickResults[i].label,i,t?.value||'',i)});document.querySelectorAll('[data-qadapt]').forEach(b=>b.onclick=()=>{const [i,f]=b.dataset.qadapt.split('-');runQuickAdaptation(Number(i),f)});document.querySelectorAll('[data-qadapt-download]').forEach(b=>b.onclick=()=>{const [i,id]=b.dataset.qadaptDownload.split('-'),a=state.quickResults[+i]?.adaptations?.find(x=>x.id===id);if(a)downloadDataUrl(a.dataUrl,`churchdesign-${a.target.id}.png`)});}
+function setQuickProgress(pct,text){const wrap=document.querySelector('#quickProgress'),bar=document.querySelector('#quickProgressBar'),label=document.querySelector('#quickProgressText'),num=document.querySelector('#quickProgressPct');if(!wrap)return;wrap.classList.toggle('show',pct>0&&pct<100);if(bar)bar.style.width=`${pct}%`;if(label)label.textContent=text||'Processando sua arte...';if(num)num.textContent=`${pct}%`;}
+async function resizeToTarget(dataUrl,target){const img=await loadImageSafe(dataUrl);if(img.naturalWidth===target.width&&img.naturalHeight===target.height)return dataUrl;const c=document.createElement('canvas');c.width=target.width;c.height=target.height;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';drawImageCover(ctx,img,c.width,c.height);return c.toDataURL('image/png');}
+async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null){const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent='Processando sua arte...';try{const payload=await quickPayload(label,correction,signal);setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual.`;setQuickProgress(48,'Criando sua arte...');const image=await generateWithInvisibleReview(payload,1,signal);setQuickProgress(88,'Finalizando...');let dataUrl=await remoteToDataUrl(image.url);dataUrl=await resizeToTarget(dataUrl,payload.target);const result={id:crypto.randomUUID(),label,dataUrl,sourceUrl:image.url,target:payload.target,artDirection:payload.artDirection,requiredContent:payload.requiredContent,assets:payload.assets,instruction:payload.instruction,adaptations:[],correction:''};if(replaceIndex===null)state.quickResults.push(result);else state.quickResults[replaceIndex]=result;setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>';const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML();bindQuickResultEvents();}catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível concluir.</strong><br>${esc(e.message)}`;}finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}}
+async function runQuickAdaptation(sourceIndex,formatId){const source=state.quickResults[sourceIndex];if(!source)return;const signal=beginProcess(),target=quickTargetSpec(formatId),status=document.querySelector('#quickStatus'),cancel=document.querySelector('#quickCancel');if(cancel)cancel.style.display='block';setQuickProgress(18,`Adaptando para ${target.label}...`);if(status)status.textContent='Processando sua arte...';try{const sourceRef=await prepareImageForAI(source.sourceUrl||source.dataUrl,1400,.86);const payload={mode:'adaptation',format:formatId,reference:sourceRef,references:[{image:sourceRef,note:'Preserve a identidade visual desta arte e adapte naturalmente para a nova proporção.'}],target,assets:source.assets,requiredContent:source.requiredContent,instruction:source.instruction,finalInstruction:'Adapte o layout; não estique nem apenas recorte. Reorganize tipografia, pessoa e elementos para a nova proporção.',semanticMap:[],effects:[],artDirection:source.artDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`};setQuickProgress(48,'Recompondo para o novo formato...');const image=await generateWithInvisibleReview(payload,1,signal);setQuickProgress(88,'Finalizando...');let dataUrl=await remoteToDataUrl(image.url);dataUrl=await resizeToTarget(dataUrl,target);source.adaptations=source.adaptations||[];source.adaptations.push({id:crypto.randomUUID(),format:formatId,target,dataUrl,sourceUrl:image.url});setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Nova versão pronta.</strong>';const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML();bindQuickResultEvents();}catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;}finally{activeProcessController=null;if(cancel)cancel.style.display='none';}}
+
 
 next.onclick=()=>{if(state.step===steps.length-1){state.step=0;state.reference=null;state.layers=[];state.instruction='';render();return}state.step++;render()};back.onclick=()=>{if(state.step>0){state.step--;render()}};render();bootstrapLibrary().finally(()=>setTimeout(showModeChooser,150));
 
