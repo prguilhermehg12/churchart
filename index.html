@@ -239,6 +239,29 @@
 .art-director-tag{border:1px solid #454d61;border-radius:99px;padding:4px 7px;font-size:9px;color:#c7cede;background:#151923}
 .art-director-summary{font-size:10px;line-height:1.55;color:#adb5c5;margin-top:9px}
 
+
+/* V0.13 */
+.mode-gate{position:fixed;inset:0;z-index:5000;background:rgba(8,9,12,.96);backdrop-filter:blur(18px);display:grid;place-items:center;padding:20px}
+.mode-panel{width:min(900px,96vw)}
+.mode-panel h1{font-size:34px;margin:0 0 8px}.mode-panel>p{color:var(--muted);margin:0 0 22px}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mode-card{border:1px solid var(--line);background:var(--panel);border-radius:18px;padding:22px;cursor:pointer;transition:.18s}
+.mode-card:hover{transform:translateY(-2px);border-color:#596477}
+.mode-card strong{display:block;font-size:18px;margin-bottom:7px}.mode-card p{font-size:12px;line-height:1.5;color:var(--muted)}
+.mode-card .mode-icon{font-size:32px;margin-bottom:12px}
+.quick-shell{max-width:1060px;margin:0 auto}
+.quick-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+.quick-logo-grid,.quick-pastor-grid,.quick-ref-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.quick-asset{border:1px solid var(--line);border-radius:12px;padding:7px;background:#0d0f13;cursor:pointer}
+.quick-asset.selected{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2) inset}
+.quick-asset img{width:100%;aspect-ratio:1/1;object-fit:contain;border-radius:8px;background:#090a0c}
+.quick-asset strong{display:block;font-size:9px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quick-result{margin-top:18px}.quick-result img{display:block;width:100%;border-radius:14px;background:#090a0c}
+.quick-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.hidden-fiscal-note{font-size:9px;color:var(--muted);margin-top:8px}
+.quick-color{height:42px;padding:4px!important}
+@media(max-width:900px){.mode-grid,.quick-grid{grid-template-columns:1fr}.mode-panel h1{font-size:26px}.quick-logo-grid,.quick-pastor-grid,.quick-ref-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 </style>
 </head>
 <body>
@@ -248,7 +271,7 @@
       <div class="project-mini"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></div>
       <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
       <nav id="stepNav"></nav>
-      <div class="sidebar-foot"><span>V0.12 • Diretor de Arte + Fidelidade</span><small>IA visual será conectada após validar o fluxo.</small></div>
+      <div class="sidebar-foot"><span>V0.13 • Arte completa + Fiscal + Modo rápido</span><small>IA visual será conectada após validar o fluxo.</small></div>
     </aside>
 
     <main class="main">
@@ -258,7 +281,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="build-stamp">CHURCHDESIGN BUILD V0.12 • DIRETOR DE ARTE + FIDELIDADE • 17/08/2026</div>
+  <div class="build-stamp">CHURCHDESIGN BUILD V0.13 • ARTE COMPLETA + FISCAL + MODO RÁPIDO • 17/08/2026</div>
   <script>
 const state={
 step:0,
@@ -273,6 +296,8 @@ projectTitle:'Nova arte',
 lastMarked:null,
 currentDraftId:null,
 artDirection:null,
+mode:null,
+quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',illustrateTitle:true,reference:null,logoAssetId:null,pastorAssetId:null,correction:''},
 library:{assets:[],generations:[],drafts:[],dbReady:false},
 user:{email:'pr.guilhermehg12@gmail.com',plan:'studio',credits:null,isAdmin:true},
 finalConfig:{
@@ -722,7 +747,19 @@ function screenResults(){
   function bindCard(i){const dl=document.querySelector(`[data-download-primary="${i}"]`);if(dl)dl.onclick=()=>{const im=currentImages[i];if(im)downloadDataUrl(im.dataUrl,buildDownloadName(im.label));};document.querySelectorAll(`[data-adapt-toggle^="${i}-"]`).forEach(el=>el.onclick=()=>{const [idx,f]=el.dataset.adaptToggle.split('-');el.classList.toggle('active');const box=document.querySelector(`[data-adapt-options="${idx}-${f}"]`);if(box)box.style.display=el.classList.contains('active')?'block':'none';});document.querySelectorAll(`#resultCard-${i} .keep-box`).forEach(box=>box.querySelectorAll('[data-keep]').forEach(ch=>ch.onclick=()=>{const all=box.querySelector('[data-keep="all"]');if(ch.dataset.keep==='all'){box.querySelectorAll('[data-keep]').forEach(x=>x.classList.toggle('active',x===ch));}else{all?.classList.remove('active');ch.classList.toggle('active');if(!box.querySelector('[data-keep].active'))all?.classList.add('active');}}));const ga=document.querySelector(`[data-generate-adapt="${i}"]`);if(ga)ga.onclick=()=>generateAdaptationsFor(i);}
   function appendResult(im){const i=currentImages.length;currentImages.push(im);results.insertAdjacentHTML('beforeend',resultCard(im,i));bindCard(i);stopBtn.style.display='block';}
   async function refsPayload(){return Promise.all((state.referenceSelections.length?state.referenceSelections:[state.reference?{url:state.reference,note:''}:null].filter(Boolean)).slice(0,3).map(async r=>({image:await prepareImageForAI(r.url),note:r.note||''})));}
-  async function basePayload(){const refs=await refsPayload();const selectedBuiltin=state.finalConfig.selectedElements.filter(x=>!x.startsWith('asset:')).map(id=>builtinElements.find(e=>e.id===id)?.name).filter(Boolean);return {church:{name:state.church.name,address:state.church.address,hasLogo:!!getSelectedLogo()},format:state.format,reference:refs[0]?.image||null,references:refs,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),visualElements:selectedBuiltin};}
+  async function basePayload(){
+    const refs=await refsPayload();
+    const selectedBuiltin=state.finalConfig.selectedElements.filter(x=>!x.startsWith('asset:')).map(id=>builtinElements.find(e=>e.id===id)?.name).filter(Boolean);
+    const assets=await selectedAssetPayload();
+    return {
+      church:{name:state.church.name,address:state.church.address,hasLogo:!!assets.logo},
+      format:state.format,reference:refs[0]?.image||null,references:refs,
+      instruction:state.instruction,finalInstruction:state.finalInstruction,
+      effects:state.finalConfig.effects,artDirection:state.artDirection,
+      semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),
+      visualElements:selectedBuiltin,assets,requiredContent:exactContentFromLayers()
+    };
+  }
   async function callGenerate(payload,signal){const r=await fetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,220)||`Resposta inválida (${r.status})`);}if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);return data;}
   async function persistOne(im){try{const galleryCopy=await prepareImageForAI(im.dataUrl,1400,.82);const d=await apiJSON('upload-generation',{method:'POST',body:{label:im.label,format:state.format,dataUrl:galleryCopy}});return {label:im.label,url:d.url};}catch(e){console.warn(e);return null;}}
   function renderArtDirection(ad){
@@ -736,10 +773,12 @@ artDirectorPanel?.classList.add('show');
 if(artDirectorStatus)artDirectorStatus.textContent='Analisando tipografia, recortes, hierarquia, paleta e linguagem gráfica...';
 if(artDirectorSummary)artDirectorSummary.textContent='Transformando as referências em um blueprint de direção de arte.';
 const artDirection=await requestArtDirection(base);renderArtDirection(artDirection);base.artDirection=artDirection;
-for(let i=0;i<variantSpecs.length;i++){if(stopRequested)break;const v=variantSpecs[i],row=seq.querySelector(`[data-seq="${i}"]`);row.classList.add('active');status.textContent=`${i+1}/3 — Gerando ${v.label}...`;currentController=new AbortController();try{const d=await callGenerate({...base,mode:'primary',variantId:v.id,variantLabel:v.label,variantInstruction:state.finalConfig.variants[v.id],target:primaryTargetSpec()},currentController.signal);const finalData=await composeProtectedFinal(d.image.url,i,primaryTargetSpec(),['all']);const im={label:v.label,dataUrl:finalData,baseUrl:d.image.url,modelUsed:d.image.modelUsed};appendResult(im);const persisted=await persistOne(im);if(persisted)saved.push(persisted);row.classList.remove('active');row.classList.add('done');}catch(e){row.classList.remove('active');if(stopRequested||e.name==='AbortError')break;row.classList.add('fail');throw e;}finally{currentController=null;}}if(saved.length){const g=await apiJSON('save-generation',{method:'POST',body:{format:state.format,images:saved}});state.library.generations=[g.generation,...state.library.generations];renderGallery();}status.innerHTML=stopRequested?'<strong style="color:var(--good)">✓ Processo interrompido por você. As propostas prontas foram mantidas.</strong>':`<strong style="color:var(--good)">✓ ${currentImages.length} proposta(s) finalizada(s).</strong>`;}catch(e){status.innerHTML=`<strong style="color:#ff9eac">A geração foi interrompida.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">As propostas que já apareceram continuam disponíveis.</span>`;}finally{if(loader)loader.classList.remove('show');btn.disabled=false;btn.textContent='✦ GERAR NOVAMENTE';currentController=null;}}
+for(let i=0;i<variantSpecs.length;i++){if(stopRequested)break;const v=variantSpecs[i],row=seq.querySelector(`[data-seq="${i}"]`);row.classList.add('active');status.textContent=`${i+1}/3 — Gerando ${v.label}...`;currentController=new AbortController();try{const d=await generateWithInvisibleReview({...base,mode:'primary',variantId:v.id,variantLabel:v.label,variantInstruction:state.finalConfig.variants[v.id],target:primaryTargetSpec()},1);
+          const finalData=await remoteToDataUrl(d.url);
+          const im={label:v.label,dataUrl:finalData,baseUrl:d.url,modelUsed:d.modelUsed,review:d.review};appendResult(im);const persisted=await persistOne(im);if(persisted)saved.push(persisted);row.classList.remove('active');row.classList.add('done');}catch(e){row.classList.remove('active');if(stopRequested||e.name==='AbortError')break;row.classList.add('fail');throw e;}finally{currentController=null;}}if(saved.length){const g=await apiJSON('save-generation',{method:'POST',body:{format:state.format,images:saved}});state.library.generations=[g.generation,...state.library.generations];renderGallery();}status.innerHTML=stopRequested?'<strong style="color:var(--good)">✓ Processo interrompido por você. As propostas prontas foram mantidas.</strong>':`<strong style="color:var(--good)">✓ ${currentImages.length} proposta(s) finalizada(s).</strong>`;}catch(e){status.innerHTML=`<strong style="color:#ff9eac">A geração foi interrompida.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">As propostas que já apareceram continuam disponíveis.</span>`;}finally{if(loader)loader.classList.remove('show');btn.disabled=false;btn.textContent='✦ GERAR NOVAMENTE';currentController=null;}}
   stopBtn.onclick=()=>{stopRequested=true;stopBtn.disabled=true;stopBtn.textContent='Parando...';if(currentController)currentController.abort();};
   function selectedKeep(i,f){const box=document.querySelector(`[data-keep-box="${i}-${f}"]`);if(!box)return ['all'];const vals=[...box.querySelectorAll('[data-keep].active')].map(x=>x.dataset.keep);return vals.length?vals:['all'];}
-  async function generateOneAdaptation(i,format,redesign=false){const source=currentImages[i];if(!source)return;const target=targetSpec(format),keep=selectedKeep(i,format),list=document.querySelector(`#adaptList-${i}`);const tempId=`adapt-${i}-${format}-${Date.now()}`;list.insertAdjacentHTML('beforeend',`<div class="adaptation-card" id="${tempId}"><div style="width:68px;height:45px;border-radius:7px;background:#171a20;display:grid;place-items:center"><div class="loader-orb" style="width:22px;height:22px"></div></div><div class="adaptation-info"><strong>${target.label}</strong><small>Gerando ${target.width} × ${target.height}...</small></div></div>`);try{const ref=await prepareImageForAI(source.baseUrl||source.dataUrl,1280,.78);const d=await callGenerate({mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''}))});const finalData=await composeProtectedFinal(d.image.url,i,target,keep);const card=document.getElementById(tempId);card.className=`adaptation-card ${format==='story'?'story':''}`;card.innerHTML=`<img src="${finalData}"><div class="adaptation-info"><strong>${target.label} • ${target.width} × ${target.height}</strong><small>${redesign?'Layout redesenhado':'Adaptação concluída'} • ${keep.includes('all')?'Tudo mantido':keep.join(', ')}</small></div><div class="adaptation-actions"><button class="mini-btn download-btn" type="button" data-adapt-download>↓ Baixar</button><button class="mini-btn" type="button" data-adapt-redraw>↻ Redesenhar</button></div>`;card.querySelector('[data-adapt-download]').onclick=()=>downloadDataUrl(finalData,`${buildDownloadName(source.label).replace('.png','')}-${format}.png`);card.querySelector('[data-adapt-redraw]').onclick=()=>generateOneAdaptation(i,format,true);}catch(e){const card=document.getElementById(tempId);if(card)card.innerHTML=`<div></div><div class="adaptation-info"><strong style="color:#ff9eac">${target.label}: falhou</strong><small>${esc(e.message)}</small></div><div class="adaptation-actions"><button class="mini-btn" type="button" data-retry>Repetir</button></div>`;card?.querySelector('[data-retry]')?.addEventListener('click',()=>generateOneAdaptation(i,format,redesign));}}
+  async function generateOneAdaptation(i,format,redesign=false){const source=currentImages[i];if(!source)return;const target=targetSpec(format),keep=selectedKeep(i,format),list=document.querySelector(`#adaptList-${i}`);const tempId=`adapt-${i}-${format}-${Date.now()}`;list.insertAdjacentHTML('beforeend',`<div class="adaptation-card" id="${tempId}"><div style="width:68px;height:45px;border-radius:7px;background:#171a20;display:grid;place-items:center"><div class="loader-orb" style="width:22px;height:22px"></div></div><div class="adaptation-info"><strong>${target.label}</strong><small>Gerando ${target.width} × ${target.height}...</small></div></div>`);try{const ref=await prepareImageForAI(source.baseUrl||source.dataUrl,1280,.78);const d=await generateWithInvisibleReview({mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},1);const finalData=await remoteToDataUrl(d.url);const card=document.getElementById(tempId);card.className=`adaptation-card ${format==='story'?'story':''}`;card.innerHTML=`<img src="${finalData}"><div class="adaptation-info"><strong>${target.label} • ${target.width} × ${target.height}</strong><small>${redesign?'Layout redesenhado':'Adaptação concluída'} • ${keep.includes('all')?'Tudo mantido':keep.join(', ')}</small></div><div class="adaptation-actions"><button class="mini-btn download-btn" type="button" data-adapt-download>↓ Baixar</button><button class="mini-btn" type="button" data-adapt-redraw>↻ Redesenhar</button></div>`;card.querySelector('[data-adapt-download]').onclick=()=>downloadDataUrl(finalData,`${buildDownloadName(source.label).replace('.png','')}-${format}.png`);card.querySelector('[data-adapt-redraw]').onclick=()=>generateOneAdaptation(i,format,true);}catch(e){const card=document.getElementById(tempId);if(card)card.innerHTML=`<div></div><div class="adaptation-info"><strong style="color:#ff9eac">${target.label}: falhou</strong><small>${esc(e.message)}</small></div><div class="adaptation-actions"><button class="mini-btn" type="button" data-retry>Repetir</button></div>`;card?.querySelector('[data-retry]')?.addEventListener('click',()=>generateOneAdaptation(i,format,redesign));}}
   async function generateAdaptationsFor(i){const formats=['screen','youtube','story'].filter(f=>document.querySelector(`[data-adapt-toggle="${i}-${f}"]`)?.classList.contains('active'));if(!formats.length)return showMapNotice('Selecione um formato','Marque Telão, YouTube e/ou Stories.');for(const f of formats)await generateOneAdaptation(i,f,false);}
   btn.onclick=generatePrimary;renderGallery();
 }
@@ -778,7 +817,7 @@ function snapshotDraft(){
     church:state.church,format:state.format,reference:state.reference,
     referenceSelections:state.referenceSelections,layers:state.layers,
     instruction:state.instruction,finalInstruction:state.finalInstruction,
-    projectTitle:state.projectTitle,finalConfig:state.finalConfig,artDirection:state.artDirection,step:state.step
+    projectTitle:state.projectTitle,finalConfig:state.finalConfig,artDirection:state.artDirection,mode:state.mode,quick:state.quick,step:state.step
   }));
 }
 async function saveCurrentDraft(){
@@ -800,7 +839,7 @@ window.loadDraftById=function(id){
   state.church=s.church||state.church;state.format=s.format||'feed';state.reference=s.reference||null;
   state.referenceSelections=s.referenceSelections||[];state.layers=s.layers||[];
   state.instruction=s.instruction||'';state.finalInstruction=s.finalInstruction||'';
-  state.projectTitle=s.projectTitle||d.title||'Esboço';state.finalConfig={...state.finalConfig,...(s.finalConfig||{})};state.artDirection=s.artDirection||null;
+  state.projectTitle=s.projectTitle||d.title||'Esboço';state.finalConfig={...state.finalConfig,...(s.finalConfig||{})};state.artDirection=s.artDirection||null;state.mode=s.mode||state.mode;state.quick={...state.quick,...(s.quick||{})};
   state.step=Math.min(Number(s.step||0),steps.length-1);state.currentDraftId=id;closeModal();render();
 }
 async function deleteDraftById(id){
@@ -900,6 +939,62 @@ async function prepareImageForAI(src,maxDim=1280,quality=.8){
 
 async function populateLayerCrops(){if(!state.reference)return;try{const img=await loadImageSafe(state.reference);document.querySelectorAll('[data-crop]').forEach(c=>{const l=state.layers.find(x=>x.id===c.dataset.crop);if(!l)return;const ctx=c.getContext('2d'),sx=Math.max(0,l.x/100*img.naturalWidth),sy=Math.max(0,l.y/100*img.naturalHeight),sw=Math.max(1,l.w/100*img.naturalWidth),sh=Math.max(1,l.h/100*img.naturalHeight);ctx.clearRect(0,0,c.width,c.height);ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);});}catch(e){}}
 
+
+async function selectedAssetPayload(){
+  const pastor=getSelectedPastor();
+  const logo=getSelectedLogo();
+  return {
+    pastor:pastor?{name:pastor.name,image:await prepareImageForAI(pastor.url,1400,.9)}:null,
+    logo:logo?{name:logo.name,image:await prepareImageForAI(logo.url,1200,.95)}:null
+  };
+}
+function exactContentFromLayers(){
+  const out={title:'',subtitle:'',date:'',time:'',address:'',churchName:state.church.name||''};
+  for(const l of state.layers){
+    const role=l.type==='titlepart'?'title':l.type;
+    if(['title','subtitle','date','time','address'].includes(role)&&l.replacement&&!out[role])out[role]=l.replacement;
+  }
+  if(!out.address)out.address=state.church.address||'';
+  return out;
+}
+async function callQualityInspector(payload){
+  const r=await fetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const text=await r.text();let data;
+  try{data=JSON.parse(text)}catch{throw new Error('Fiscal: resposta inválida.');}
+  if(!r.ok)throw new Error(data.error||'Fiscal indisponível.');
+  return data.review;
+}
+async function generateWithInvisibleReview(payload,maxCorrections=1){
+  let attempt=0,lastReview=null,lastImage=null,correction='';
+  while(attempt<=maxCorrections){
+    const request={...payload,qualityCorrection:correction,revisionAttempt:attempt};
+    const r=await fetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request)});
+    const text=await r.text();let data;
+    try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,180)||`Resposta inválida (${r.status})`);}
+    if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);
+    lastImage=data.image;
+    const review=await callQualityInspector({
+      generatedImage:lastImage.url,
+      references:payload.references||[],
+      assets:payload.assets||{},
+      requiredContent:payload.requiredContent||{},
+      semanticMap:payload.semanticMap||[],
+      userInstruction:payload.instruction||'',
+      finalInstruction:payload.finalInstruction||'',
+      artDirection:payload.artDirection||null
+    });
+    lastReview=review;
+    if(review.approved)return {...lastImage,review};
+    if(attempt>=maxCorrections)break;
+    correction=(review.correction_prompt||'Simplifique a composição e corrija somente os erros apontados, preservando todo o restante.');
+    attempt++;
+  }
+  if(lastReview?.critical_error){
+    throw new Error('A geração não atingiu o padrão mínimo de fidelidade. Nenhum crédito deve ser consumido por esta tentativa.');
+  }
+  return {...lastImage,review:lastReview};
+}
+
 async function requestArtDirection(base){
   const r=await fetch('/api/design-director',{
     method:'POST',headers:{'Content-Type':'application/json'},
@@ -970,7 +1065,98 @@ async function drawTextLayer(ctx,c,l,text,fontFamily){
 }
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
-next.onclick=()=>{if(state.step===steps.length-1){state.step=0;state.reference=null;state.layers=[];state.instruction='';render();return}state.step++;render()};back.onclick=()=>{if(state.step>0){state.step--;render()}};render();bootstrapLibrary();
+
+function showModeChooser(){
+  if(state.mode)return;
+  const el=document.createElement('div');el.className='mode-gate';el.id='modeGate';
+  el.innerHTML=`<div class="mode-panel"><h1>Como você quer criar?</h1><p>Você pode ser rápido ou controlar cada detalhe.</p><div class="mode-grid">
+    <div class="mode-card" data-mode="quick"><div class="mode-icon">⚡</div><strong>Modo Rápido</strong><p>Um formulário. Referência, conteúdo e direção básica. O ChurchDesign resolve o restante e entrega uma arte fiscalizada.</p></div>
+    <div class="mode-card" data-mode="detailed"><div class="mode-icon">◫</div><strong>Modo Detalhado</strong><p>Fluxo completo com identificação de elementos, fotos, fontes, efeitos, posições e variações.</p></div>
+  </div></div>`;
+  document.body.appendChild(el);
+  el.querySelectorAll('[data-mode]').forEach(card=>card.onclick=()=>{state.mode=card.dataset.mode;el.remove();if(state.mode==='quick')screenQuickMode();else{document.querySelector('.footer').style.display='flex';render();}});
+}
+function quickDefaultLogo(){
+  const logos=state.library.assets.filter(a=>a.type==='logo');
+  if(!state.quick.logoAssetId&&logos.length)state.quick.logoAssetId=(logos.find(a=>a.is_primary)||logos[0]).id;
+}
+function quickDefaultPastor(){
+  const pastors=state.library.assets.filter(a=>a.type==='pastor');
+  if(!state.quick.pastorAssetId&&pastors.length)state.quick.pastorAssetId=pastors[0].id;
+}
+async function quickPayload(variantLabel='Principal',correction=''){
+  const ref=state.quick.reference?await prepareImageForAI(state.quick.reference,1400,.88):null;
+  const logo=state.library.assets.find(a=>a.id===state.quick.logoAssetId);
+  const pastor=state.library.assets.find(a=>a.id===state.quick.pastorAssetId);
+  const assets={
+    logo:logo?{name:logo.name,image:await prepareImageForAI(logo.url,1200,.95)}:null,
+    pastor:pastor?{name:pastor.name,image:await prepareImageForAI(pastor.url,1400,.9)}:null
+  };
+  const refs=ref?[{image:ref,note:'Use esta arte como referência principal de composição, tipografia, paleta, recortes, textura e linguagem visual.'}]:[];
+  const base={
+    church:{name:state.church.name,address:state.quick.address||state.church.address,hasLogo:!!assets.logo},
+    format:'feed',reference:ref,references:refs,assets,
+    requiredContent:{title:state.quick.title,subtitle:state.quick.subtitle,date:state.quick.date,time:state.quick.time,address:state.quick.address||state.church.address,churchName:state.church.name},
+    instruction:`Modo rápido. Cor predominante ${state.quick.dominantColor}. Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${correction||state.quick.correction||''}`,
+    finalInstruction:'Preserve coerência e simplicidade. Complexidade somente quando houver segurança visual.',
+    semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[],target:targetSpec('feed')
+  };
+  base.artDirection=await requestArtDirection(base);
+  return base;
+}
+function screenQuickMode(){
+  quickDefaultLogo();quickDefaultPastor();
+  const logos=state.library.assets.filter(a=>a.type==='logo'),pastors=state.library.assets.filter(a=>a.type==='pastor'),refs=state.library.assets.filter(a=>a.type==='reference').slice(0,20);
+  document.querySelector('.footer').style.display='none';
+  document.querySelector('#mobileStepbar').style.display='none';
+  document.querySelector('#eyebrow').textContent='MODO RÁPIDO';document.querySelector('#pageTitle').textContent='Crie em poucos campos';
+  content.innerHTML=`<div class="quick-shell">
+  <div class="help">Preencha o essencial. O processamento inclui direção visual e verificação de qualidade automaticamente.</div>
+  <div class="quick-grid">
+    <div class="card">
+      <div class="field"><label>Título principal</label><input id="qTitle" value="${esc(state.quick.title)}" placeholder="Ex.: O PREÇO DO PALÁCIO"></div>
+      <div class="field"><label>Subtítulo</label><input id="qSubtitle" value="${esc(state.quick.subtitle)}" placeholder="Opcional"></div>
+      <div class="grid2"><div class="field"><label>Data</label><input id="qDate" value="${esc(state.quick.date)}" placeholder="QUARTA - 18/06"></div><div class="field"><label>Horário</label><input id="qTime" value="${esc(state.quick.time)}" placeholder="19:30H"></div></div>
+      <div class="field"><label>Endereço</label><input id="qAddress" value="${esc(state.quick.address||state.church.address)}"></div>
+      <div class="grid2"><div class="field"><label>Cor predominante</label><input id="qColor" class="quick-color" type="color" value="${esc(state.quick.dominantColor)}"></div><div class="field"><label>Efeito</label><select id="qEffect">${effectCatalog.map(e=>`<option value="${e.id}" ${state.quick.effect===e.id?'selected':''}>${e.name}</option>`).join('')}<option value="none" ${state.quick.effect==='none'?'selected':''}>Nenhum</option></select></div></div>
+      <label class="layer" style="cursor:pointer"><input id="qIllustrate" type="checkbox" ${state.quick.illustrateTitle?'checked':''}><div class="layer-info"><strong>Ilustrar pelo título</strong><small>A IA adiciona elementos visuais ligados ao conceito do título.</small></div></label>
+    </div>
+    <div class="card"><h3>Referência</h3><p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p>
+      <div class="quick-ref-grid">${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div>
+      <label class="upload" style="margin-top:10px"><strong>Subir referência</strong><span>JPG, PNG ou WEBP</span><input id="qRefUpload" type="file" accept="image/*"></label>
+      <h3 style="margin-top:18px">Logo</h3><div class="quick-logo-grid">${logos.map(a=>`<div class="quick-asset ${state.quick.logoAssetId===a.id?'selected':''}" data-qlogo="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div>
+      <h3 style="margin-top:18px">Pregador (opcional)</h3><div class="quick-pastor-grid">${pastors.map(a=>`<div class="quick-asset ${state.quick.pastorAssetId===a.id?'selected':''}" data-qpastor="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div><div id="quickResult" class="quick-result"></div></div>
+  </div>`;
+  const bind=(id,key)=>document.querySelector('#'+id).oninput=e=>state.quick[key]=e.target.value;
+  bind('qTitle','title');bind('qSubtitle','subtitle');bind('qDate','date');bind('qTime','time');bind('qAddress','address');bind('qColor','dominantColor');
+  document.querySelector('#qEffect').onchange=e=>state.quick.effect=e.target.value;document.querySelector('#qIllustrate').onchange=e=>state.quick.illustrateTitle=e.target.checked;
+  document.querySelectorAll('[data-qref]').forEach(el=>el.onclick=()=>{const a=refs.find(x=>x.id===el.dataset.qref);state.quick.reference=a?.url||null;screenQuickMode()});
+  document.querySelectorAll('[data-qlogo]').forEach(el=>el.onclick=()=>{state.quick.logoAssetId=el.dataset.qlogo;screenQuickMode()});
+  document.querySelectorAll('[data-qpastor]').forEach(el=>el.onclick=()=>{state.quick.pastorAssetId=el.dataset.qpastor;screenQuickMode()});
+  document.querySelector('#qRefUpload').onchange=async e=>{const a=await uploadLibraryAsset(e.target.files[0],'reference');if(a){state.quick.reference=a.url;screenQuickMode();}};
+  document.querySelector('#quickGenerate').onclick=()=>runQuickGeneration('Principal',0);
+}
+async function runQuickGeneration(label,variationIndex,correction=''){
+  const status=document.querySelector('#quickStatus'),box=document.querySelector('#quickResult'),btn=document.querySelector('#quickGenerate');
+  btn.disabled=true;status.textContent='Processando sua arte...';
+  try{
+    const payload=await quickPayload(label,correction);
+    payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;payload.variantInstruction=variationIndex===0?'Siga a referência com fidelidade.':`Crie uma variação de layout ${variationIndex}, mantendo a mesma linguagem e todos os dados.`;
+    const image=await generateWithInvisibleReview(payload,1);
+    const dataUrl=await remoteToDataUrl(image.url);
+    box.innerHTML=`<img src="${dataUrl}"><div class="quick-actions"><button class="mini-btn download-btn" id="qDownload">↓ Baixar</button>${variationIndex<2?`<button class="mini-btn" id="qVariation">Gerar variação ${variationIndex+1}</button>`:''}<button class="mini-btn" id="qReload">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:10px"><label>Correção desta arte</label><textarea id="qCorrection" placeholder="Ex.: mova o título para baixo, simplifique o fundo, mantenha o rosto exatamente igual..."></textarea></div>`;
+    document.querySelector('#qDownload').onclick=()=>downloadDataUrl(dataUrl,`churchdesign-${label.toLowerCase().replace(/\s+/g,'-')}.png`);
+    const v=document.querySelector('#qVariation');if(v)v.onclick=()=>runQuickGeneration(`Variação ${variationIndex+1}`,variationIndex+1);
+    document.querySelector('#qReload').onclick=()=>runQuickGeneration(label,variationIndex,document.querySelector('#qCorrection').value);
+    status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>';
+  }catch(e){status.innerHTML=`<strong style="color:#ff9eac">Não foi possível concluir.</strong><br>${esc(e.message)}`;}
+  finally{btn.disabled=false;}
+}
+
+next.onclick=()=>{if(state.step===steps.length-1){state.step=0;state.reference=null;state.layers=[];state.instruction='';render();return}state.step++;render()};back.onclick=()=>{if(state.step>0){state.step--;render()}};render();bootstrapLibrary().finally(()=>setTimeout(showModeChooser,150));
 
 </script>
 </body>
