@@ -1,3 +1,4 @@
+module.exports.config={maxDuration:180};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
 const IMAGE_URL="https://api.openai.com/v1/images/generations";
 const BUCKET="churchart-assets";
@@ -69,7 +70,7 @@ Efeitos: ${effectText}.
 Crie fundos, texturas, luz, profundidade, grafismos e espaços adequados. Saída sem textos, pessoas ou logos.`;
 }
 async function responsesAttempt(data,model,inputFidelity){
-  const tool={type:"image_generation",model,action:"edit",quality:"high",size:modelSize(data.target),output_format:"png"};
+  const tool={type:"image_generation",model,action:"edit",quality:"medium",size:modelSize(data.target),output_format:"png"};
   if(inputFidelity)tool.input_fidelity=inputFidelity;
   const r=await fetch(RESPONSES_URL,{
     method:"POST",
@@ -86,7 +87,7 @@ async function directFallback(data){
   const r=await fetch(IMAGE_URL,{
     method:"POST",
     headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},
-    body:JSON.stringify({model:"gpt-image-1",prompt:buildPrompt(data),size:modelSize(data.target),quality:"high",output_format:"png"})
+    body:JSON.stringify({model:"gpt-image-1",prompt:buildPrompt(data),size:modelSize(data.target),quality:"medium",output_format:"png"})
   });
   const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`Fallback ${r.status}`);
   const b=d?.data?.[0]?.b64_json;if(!b)throw new Error("Fallback não retornou imagem.");
@@ -117,7 +118,7 @@ module.exports=async function handler(req,res){
     const url=await saveBase64ToStorage(generated.base64,label);
     return res.status(200).json({success:true,image:{label,url,modelUsed:generated.modelUsed}});
   }catch(e){
-    console.error("ChurchDesign V0.10",e);
+    console.error("ChurchDesign V0.11",e);
     return res.status(500).json({error:e.message||"Erro ao gerar."});
   }
 };
