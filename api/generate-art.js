@@ -61,6 +61,16 @@ ${texts||"Sem textos obrigatórios."}
 IGREJA: ${data.church?.name||""}
 Se uma LOGO oficial foi fornecida, use a logo e NÃO repita o nome da igreja em texto separado.
 
+REGRA DE COMPOSIÇÃO ADAPTATIVA:
+- A referência é uma linguagem visual, NÃO um molde rígido.
+- Conte quantas pessoas existem nas fotos realmente fornecidas. Use SOMENTE essas pessoas.
+- Se a referência tiver mais pessoas do que foram fornecidas, NÃO crie silhuetas, sombras, manequins, espaços vazios ou pessoas inventadas para preencher posições.
+- Refaça a composição de forma coesa para a quantidade real de pessoas.
+- Uma pessoa deve receber uma composição intencional de protagonista; duas devem ser equilibradas; três podem usar composição de trio.
+- Preserve a sensação, hierarquia, energia, paleta, tipografia, recortes e texturas da referência, mas adapte geometria, escala e espaços.
+- Nunca interprete ausência de uma foto como pedido para reservar um espaço para ela.
+- Se houver apenas um pregador, faça a arte parecer desenhada originalmente para UM pregador.
+
 REGRAS DE FIDELIDADE:
 - A foto do pregador fornecida é uma identidade protegida. Preserve a pessoa; não invente outro rosto.
 - Se não conseguir uma transformação sofisticada sem alterar a identidade, use um recorte/tratamento mais simples e fiel.
@@ -91,9 +101,9 @@ ${data.safeMode?`MODO SEGURO OBRIGATÓRIO:
 Entregue a arte final, não um mockup.`;
 }
 async function generate(data){
-  const tool={type:"image_generation",model:"gpt-image-1",action:"edit",quality:"medium",size:modelSize(data.target),output_format:"png",input_fidelity:"high"};
+  const tool={type:"image_generation",model:"gpt-image-2",action:"edit",quality:"medium",size:modelSize(data.target),output_format:"png"};
   const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
-    model:"gpt-5-mini",store:false,input:[{role:"user",content:inputContent(data,prompt(data))}],tools:[tool],tool_choice:"required"
+    model:"gpt-5.6-sol",reasoning:{effort:"medium"},store:false,input:[{role:"user",content:inputContent(data,prompt(data))}],tools:[tool],tool_choice:"required"
   })});
   const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
   const call=(d.output||[]).find(x=>x.type==="image_generation_call"&&x.result);if(!call?.result)throw new Error("O gerador não retornou imagem.");
@@ -106,6 +116,6 @@ module.exports=async function handler(req,res){
     const data=req.body||{};if(!(data.references||[]).length)return res.status(400).json({error:"Envie pelo menos uma referência."});
     const base64=await generate(data),label=data.variantLabel||data.target?.label||"arte";
     const url=await saveBase64ToStorage(base64,label);
-    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-1-high-fidelity"}});
+    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2-high"}});
   }catch(e){console.error("ChurchDesign V0.13 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
 };
