@@ -18,8 +18,33 @@ async function saveBase64ToStorage(base64,label="art"){
   return`${c.url}/storage/v1/object/public/${encodeURIComponent(BUCKET)}/${encodePath(path)}`;
 }
 function modelSize(target={}){
-  const w=Number(target.width)||1080,h=Number(target.height)||1350,r=w/h;
-  if(r>1.18)return"1536x1024";if(r<.84)return"1024x1536";return"1024x1024";
+  // GPT Image 2 aceita WIDTHxHEIGHT arbitrário, desde que:
+  // - ambos sejam múltiplos de 16
+  // - aspect ratio fique entre 1:3 e 3:1
+  // Mantemos a proporção EXATA pedida pelo ChurchDesign e usamos uma área
+  // econômica/prática próxima de 1.3 MP para a geração normal.
+  const rawW=Math.max(1,Number(target.width)||1080);
+  const rawH=Math.max(1,Number(target.height)||1350);
+  const ratio=rawW/rawH;
+
+  // Os formatos oferecidos pelo ChurchDesign já estão dentro de 1:3..3:1.
+  // Se algum formato futuro sair disso, limitamos sem distorcer silenciosamente.
+  const safeRatio=Math.min(3,Math.max(1/3,ratio));
+  const targetPixels=1_327_104; // ~864x1536: bom equilíbrio de custo/qualidade.
+  let h=Math.sqrt(targetPixels/safeRatio);
+  let w=h*safeRatio;
+
+  const round16=n=>Math.max(16,Math.round(n/16)*16);
+  w=round16(w);h=round16(h);
+
+  // Evita ultrapassar aresta segura; preserva o ratio ao reduzir.
+  const maxEdge=2560;
+  if(Math.max(w,h)>maxEdge){
+    const scale=maxEdge/Math.max(w,h);
+    w=round16(w*scale);h=round16(h*scale);
+  }
+
+  return `${w}x${h}`;
 }
 function inputContent(data,prompt){
   const c=[{type:"input_text",text:prompt}];
@@ -179,6 +204,13 @@ ${data.safeMode?`MODO SEGURO OBRIGATÓRIO:
 - todos os dados precisam estar legíveis e corretos;
 - prefira fundo gráfico simples e profissional a uma composição arriscada.`:""}
 
+REGRA DE CANVAS NATIVO — CRÍTICA:
+- O tamanho de saída informado pela API é o CANVAS FINAL desta arte.
+- Componha diretamente nesse aspect ratio. A referência NÃO define o tamanho do canvas.
+- Se a referência tiver outra proporção, REORGANIZE a composição; não reproduza a referência como um quadro dentro de outro quadro.
+- Não crie padding, bordas, molduras, barras, fundo borrado ou extensão artificial para compensar proporção.
+- Todo conteúdo essencial deve permanecer dentro da safe area já definida.
+
 Entregue a arte final, não um mockup.`;
 }
 async function generate(data){
@@ -197,6 +229,6 @@ module.exports=async function handler(req,res){
     const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle&&!data.artDirection)return res.status(400).json({error:"Forneça uma referência ou uma direção de inspiração."});
     const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
     const url=await saveBase64ToStorage(generated.base64,label);
-    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.responseUsage||null,toolUsage:generated.toolUsage||null,requestId:generated.requestId||null,endpoint:"responses:image_generation"}}});
-  }catch(e){console.error("ChurchDesign V0.13 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
+    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.responseUsage||null,toolUsage:generated.toolUsage||null,requestId:generated.requestId||null,endpoint:"responses:image_generation:native-size"}}});
+  }catch(e){console.error("ChurchDesign V0.25 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
 };
