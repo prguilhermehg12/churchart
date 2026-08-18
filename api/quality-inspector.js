@@ -11,7 +11,11 @@ function content(data){
 PRINCÍPIO: complexidade quando possível; coerência sempre. Prefira uma solução visual simples e correta a uma sofisticada com erros.
 
 ERROS CRÍTICOS que reprovam:
-- rosto/pessoa perceptivelmente diferente da foto original;\n- corte desnecessário de cabeça, mãos, braços, pernas, pés ou tronco quando a foto original permitia composição de corpo mais completo e a referência/instrução não justificava esse crop;
+- rosto/pessoa perceptivelmente diferente da foto original;\n- canvas interno/pôster menor dentro de uma área externa, inclusive quando a própria arte é repetida ampliada/desfocada para preencher proporção;
+- duplicação semântica de subtítulo, data, horário, endereço ou nome quando não solicitada;
+- qualquer pessoa, mão, cabeça ou objeto vindo da foto de igreja aparecendo por cima do pregador;
+- texto editável colocado fora da safe area ou com contraste claramente inferior ao contexto;
+- corte desnecessário de cabeça, mãos, braços, pernas, pés ou tronco quando a foto original permitia composição de corpo mais completo e a referência/instrução não justificava esse crop;
 - pessoa obrigatória ausente;
 - logo deformada, redesenhada ou trocada;
 - logo colocada dentro de caixa/card/placa/selo/fundo próprio sem que isso exista claramente na referência ou tenha sido pedido;
@@ -60,7 +64,7 @@ module.exports=async function handler(req,res){
   try{
     const data=req.body||{};
     const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
-      model:"gpt-5.6-sol",reasoning:{effort:"high"},store:false,input:[{role:"user",content:content(data)}],
+      model:"gpt-5.6-sol",reasoning:{effort:"low"},prompt_cache_options:{mode:"explicit",ttl:"24h"},reasoning:{effort:"high"},store:false,input:[{role:"user",content:content(data)}],
       text:{format:{type:"json_schema",name:"churchdesign_quality_review",strict:true,schema},verbosity:"low"}
     })});
     const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
