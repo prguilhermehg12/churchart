@@ -17,6 +17,6 @@ export default async function handler(req,res){
     if(!r.ok)return res.status(r.status).json({error:d?.error?.message||"Falha ao consultar custos.",cost:null});
     let cost=0;
     for(const bucket of d.data||[])for(const row of bucket.results||[])cost+=Number(row?.amount?.value)||0;
-    return res.status(200).json({success:true,cost,currency:"usd",start,end,source:"openai-costs"});
+    return res.status(200).json({success:true,cost,currency:"usd",start,end,source:"openai-costs",project:project||null,buckets:(d.data||[]).length});
   }catch(e){return res.status(500).json({error:e.message||"Falha ao consultar custos.",cost:null});}
 }
