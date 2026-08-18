@@ -135,18 +135,20 @@ module.exports = async function handler(req, res) {
     cfg();
 
     if (action === "bootstrap") {
-      const [profile, assets, generations, drafts] = await Promise.all([
+      const [profile, assets, generations, drafts, ratings] = await Promise.all([
         rest("church_profile?id=eq.default&select=*"),
         rest("church_assets?church_id=eq.default&select=*&order=created_at.desc"),
         rest("church_generations?church_id=eq.default&select=*&order=created_at.desc&limit=12"),
-        rest("church_drafts?church_id=eq.default&select=*&order=updated_at.desc&limit=30")
+        rest("church_drafts?church_id=eq.default&select=*&order=updated_at.desc&limit=30"),
+        rest("church_art_ratings?church_id=eq.default&select=*&order=created_at.desc&limit=200")
       ]);
 
       return res.json({
         profile: profile?.[0] || null,
         assets: assets || [],
         generations: generations || [],
-        drafts: drafts || []
+        drafts: drafts || [],
+        ratings: ratings || []
       });
     }
 
@@ -299,6 +301,23 @@ module.exports = async function handler(req, res) {
       if (!id) throw new Error("ID do esboço ausente.");
       await rest(`church_drafts?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
       return res.json({ ok: true });
+    }
+
+    if (action === "save-rating" && req.method === "POST") {
+      const body = req.body || {};
+      const rating = Math.max(1, Math.min(5, Number(body.rating) || 0));
+      if (!rating) throw new Error("Avaliação inválida.");
+      const data = await rest("church_art_ratings", {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify([{
+          id: crypto.randomUUID(), church_id: "default", rating,
+          format: body.format || "", design_style: body.designStyle || "",
+          audience: body.audience || "", inspiration_style: body.inspirationStyle || "",
+          effect: body.effect || "", meta: body.meta || {}
+        }])
+      });
+      return res.json({ rating: data?.[0] });
     }
 
     return res.status(400).json({
