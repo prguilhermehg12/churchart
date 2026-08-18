@@ -19,12 +19,17 @@ textures:{type:"array",items:{type:"string"}},graphic_elements:{type:"array",ite
 function buildContent(data){
 const c=[{type:"input_text",text:`Você é um DIRETOR DE ARTE SÊNIOR especializado em cartazes contemporâneos de igreja, conferências, música e social media.
 Analise tecnicamente as referências e devolva um blueprint de produção. Foque em composição, hierarquia, recortes, collage, sobreposição, profundidade, fotografia, tipografia display, escala, rotação, contornos, sombras, paleta, textura, grão, halftone, papel, chrome, blur, gradientes, shapes, ritmo e espaço negativo.
-Não use adjetivos genéricos. Use linguagem concreta de direção de arte.
+Não use adjetivos genéricos. Use linguagem concreta de direção de arte. ANTES de definir composição, tipografia, paleta e complexidade, consulte os campos explícitos de PÚBLICO-ALVO e ESTILO.
+Se não estiverem especificados, não invente restrições e decida apenas pelas referências, conteúdo e contexto.
+Se estiverem especificados, eles são parte obrigatória da direção criativa e devem influenciar energia, tipografia, composição, acabamento e grau de ousadia.
+Não reduza esses estilos a estereótipos caricatos.
 Se houver pessoas visualmente recortadas, cutout_required=true.
 Se o título dominar a peça, especifique escala, rotação, outline, sombra e tracking.
 Mapa semântico: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.instruction||"nenhuma"}
 Instrução final: ${data.finalInstruction||"nenhuma"}
+Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}
+Estilo explicitamente escolhido: ${data.designStyle||"não especificado"}
 Efeitos: ${JSON.stringify(data.effects||[])}\nDireção de inspiração sem referência: ${data.inspirationStyle?JSON.stringify(data.inspirationStyle):'não utilizada'}`}];
 for(const r of (data.references||[]).slice(0,3)){if(r?.image&&String(r.image).startsWith("data:image/")){c.push({type:"input_image",image_url:r.image,detail:"high"});if(r.note)c.push({type:"input_text",text:`Orientação desta referência: ${r.note}`});}}
 return c;
