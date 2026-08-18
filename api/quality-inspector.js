@@ -16,7 +16,9 @@ ERROS CRÍTICOS que reprovam:
 - logo deformada, redesenhada ou trocada;
 - título/data/horário/endereço obrigatórios errados, inventados ou ausentes;
 - erro grosseiro de posicionamento quando o usuário especificou uma região;
-- arte quebrada, ilegível ou com artefatos severos;\n- qualquer texto, logo, rosto, data, horário, endereço ou informação essencial cortado, encostado demais na borda ou parcialmente fora do canvas.
+- arte quebrada, ilegível ou com artefatos severos;\n- qualquer texto, logo, rosto, nome de pregador, data, horário, endereço ou informação essencial dentro dos 10% externos da imagem, cortado, encostado na borda ou parcialmente fora do canvas;
+- logo clara/branca sobre fundo claro ou logo escura/preta sobre fundo escuro sem uma solução de contraste;
+- foto da igreja selecionada ausente ou substituída por outra imagem de igreja.
 
 Se público-alvo ou estilo estiverem especificados, verifique se a peça é coerente com eles, mas não reprove por diferenças criativas pequenas.
 Se não estiverem especificados, ignore esse critério.
@@ -37,7 +39,8 @@ Instrução final: ${data.finalInstruction||""}
 
 Avalie de forma conservadora. Se reprovar, escreva correction_prompt curto e operacional. Se a complexidade estiver causando erro, mande SIMPLIFICAR a área problemática.`}];
   for(const r of (data.references||[]).slice(0,2))if(r?.image)c.push({type:"input_text",text:"REFERÊNCIA DE DESIGN:"},{type:"input_image",image_url:r.image,detail:"high"});
-  if(data.assets?.pastor?.image)c.push({type:"input_text",text:"FOTO ORIGINAL DA PESSOA:"},{type:"input_image",image_url:data.assets.pastor.image,detail:"high"});
+  for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(p?.image)c.push({type:"input_text",text:`FOTO ORIGINAL DA PESSOA ${i+1}. Nome esperado: ${p.name||'não informado'}`},{type:"input_image",image_url:p.image,detail:"high"});
+  if(data.assets?.churchImage?.image)c.push({type:"input_text",text:"FOTO DA IGREJA SELECIONADA — deve estar presente e reconhecível na arte:"},{type:"input_image",image_url:data.assets.churchImage.image,detail:"high"});
   if(data.assets?.logo?.image)c.push({type:"input_text",text:"LOGO ORIGINAL:"},{type:"input_image",image_url:data.assets.logo.image,detail:"high"});
   c.push({type:"input_text",text:"ARTE GERADA A SER FISCALIZADA:"},{type:"input_image",image_url:data.generatedImage,detail:"high"});
   return c;
