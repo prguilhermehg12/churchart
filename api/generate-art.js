@@ -59,6 +59,8 @@ CONTEÚDO QUE DEVE APARECER EXATAMENTE:
 ${texts||"Sem textos obrigatórios."}
 
 IGREJA: ${data.church?.name||""}
+PÚBLICO-ALVO ESCOLHIDO: ${data.audience||"não especificado"}
+ESTILO ESCOLHIDO: ${data.designStyle||"não especificado"}
 Se uma LOGO oficial foi fornecida, use a logo e NÃO repita o nome da igreja em texto separado.
 
 REGRA DE COMPOSIÇÃO ADAPTATIVA:
@@ -70,6 +72,15 @@ REGRA DE COMPOSIÇÃO ADAPTATIVA:
 - Preserve a sensação, hierarquia, energia, paleta, tipografia, recortes e texturas da referência, mas adapte geometria, escala e espaços.
 - Nunca interprete ausência de uma foto como pedido para reservar um espaço para ela.
 - Se houver apenas um pregador, faça a arte parecer desenhada originalmente para UM pregador.
+
+
+REGRA DE SAFE AREA / ÁREA SEGURA:
+- Nenhum texto, logo, rosto, data, horário, endereço ou informação essencial pode encostar, ultrapassar ou ficar parcialmente fora do canvas.
+- Reserve no mínimo 8% de margem interna em TODOS os lados para conteúdo essencial.
+- Em formatos verticais, não coloque títulos ou endereços colados no topo ou na base.
+- Em formatos horizontais, proteja especialmente as laterais.
+- Elementos decorativos podem sangrar para fora; conteúdo essencial, jamais.
+- Antes de finalizar, revise mentalmente as quatro bordas e confirme que nada importante está cortado.
 
 REGRAS DE FIDELIDADE:
 - A foto do pregador fornecida é uma identidade protegida. Preserve a pessoa; não invente outro rosto.
@@ -83,7 +94,9 @@ REGRAS DE FIDELIDADE:
 
 FORMATO FINAL: ${target.width||1080}x${target.height||1350}, proporção ${target.ratio||""}
 VARIAÇÃO: ${data.variantLabel||"principal"} — ${data.variantInstruction||""}
-INSTRUÇÃO DO USUÁRIO: ${data.instruction||""}
+INSTRUÇÃO DO USUÁRIO: ${data.instruction||""}\nSe público-alvo ou estilo tiverem sido especificados, siga a interpretação que o DIRETOR DE ARTE já incorporou ao blueprint.
+Use também os campos explícitos acima como trava de consistência.
+Se estiverem como 'não especificado', não force nenhum estilo ou público artificialmente.
 INSTRUÇÃO FINAL: ${data.finalInstruction||""}
 CORREÇÃO DO FISCAL, se houver: ${data.qualityCorrection||"nenhuma"}
 
