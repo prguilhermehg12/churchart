@@ -17,12 +17,6 @@ async function saveBase64ToStorage(base64,label="art"){
   const text=await r.text();if(!r.ok)throw new Error(`Falha ao salvar arte: ${text.slice(0,180)}`);
   return`${c.url}/storage/v1/object/public/${encodeURIComponent(BUCKET)}/${encodePath(path)}`;
 }
-
-function pngDimensionsFromBase64(base64){
-  try{const b=Buffer.from(base64,"base64");if(b.length>=24&&b.toString("ascii",1,4)==="PNG")return{width:b.readUInt32BE(16),height:b.readUInt32BE(20)};}catch{}
-  return{width:null,height:null};
-}
-
 function modelSize(target={}){
   const w=Number(target.width)||1080,h=Number(target.height)||1350,r=w/h;
   if(r>1.18)return"1536x1024";if(r<.84)return"1024x1536";return"1024x1024";
@@ -109,21 +103,13 @@ REGRA DE SAFE AREA / ÁREA SEGURA:
 - Elementos decorativos podem sangrar para fora; conteúdo essencial, jamais.
 - Antes de finalizar, revise mentalmente as quatro bordas e confirme que nada importante está cortado.
 
+ 
+TIPOGRAFIA FINAL:
+- Toda a tipografia é desenhada pela IA visual dentro da arte.
+- Não existe camada de texto posterior.
+- Cada informação obrigatória deve aparecer uma única vez.
+- Preserve tipografia, tratamentos, escala e função visual da referência sempre que possível.
 
-TIPOGRAFIA ADAPTATIVA:
-Plano tipográfico: ${JSON.stringify(data.typographyPlan||{})}
-- Se forceAiTypography=true, renderize TODOS os textos normalmente como parte da composição e ignore instruções SYSTEM/HYBRID.
-- Para cada papel marcado SYSTEM com confidence >= 0.88, NÃO escreva o texto correspondente. Crie apenas uma área gráfica integrada e limpa no box indicado para o ChurchDesign renderizar a fonte real depois. Não desenhe caixas vazias artificiais.
-- Para HYBRID com confidence >= 0.88, crie tratamento gráfico, textura, sombra e suporte visual na região, mas deixe o texto legível exato para a camada tipográfica do sistema.
-- Para AI, componha o texto livremente como parte da arte, seguindo a referência.
-- TÍTULO deve permanecer AI se o plano disser AI ou se confidence < 0.88. Nunca force fonte real quando a referência tiver lettering, distorção, perspectiva, integração com fotografia ou tratamento não reproduzível.
-
-FIDELIDADE À REFERÊNCIA — ORDEM DE PRIORIDADE:
-1. Geometria/composição: escala, posição, enquadramento, áreas vazias e massas visuais.
-2. Hierarquia: o que chama atenção primeiro, segundo e terceiro.
-3. Identidade visual: tipografia, paleta, textura, luz, sombra, glow e grandes elementos de fundo.
-4. Conteúdo substituído.
-5. Adaptação criativa apenas depois disso.
 
 PREGADOR:
 - Com referência, replique primeiro o enquadramento da referência.
@@ -210,8 +196,7 @@ module.exports=async function handler(req,res){
   try{
     const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle&&!data.artDirection)return res.status(400).json({error:"Forneça uma referência ou uma direção de inspiração."});
     const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
-    const rawDimensions=pngDimensionsFromBase64(generated.base64);
     const url=await saveBase64ToStorage(generated.base64,label);
-    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.responseUsage||null,toolUsage:generated.toolUsage||null,requestId:generated.requestId||null,endpoint:"responses:image_generation",rawWidth:rawDimensions.width,rawHeight:rawDimensions.height}}});
+    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.responseUsage||null,toolUsage:generated.toolUsage||null,requestId:generated.requestId||null,endpoint:"responses:image_generation"}}});
   }catch(e){console.error("ChurchDesign V0.13 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
 };
