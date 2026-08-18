@@ -36,6 +36,9 @@ PREFERÊNCIAS APRENDIDAS DO USUÁRIO: ${data.preferenceProfile?JSON.stringify(da
 PLANO DO CURADOR TIPOGRÁFICO: ${data.typographyPlan?JSON.stringify(data.typographyPlan):"não disponível"}
 Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}\nPrioridade explícita de posição da logo: ${data.logoPosition||"não especificada; seguir referência ou equilíbrio"}
 Estilo explicitamente escolhido: ${data.designStyle||"não especificado"}
+Modo de cor predominante: ${data.colorMode||"não especificado"}
+Cor manual, se houver: ${data.dominantColor||"não especificada"}
+REGRA DE PALETA: se colorMode="reference" e houver referência, ANALISE VISUALMENTE a paleta da referência antes de montar o blueprint e preserve sua família cromática dominante. Não invente uma nova cor principal. Se não houver referência, escolha uma paleta coerente automaticamente. Se colorMode="custom", use a cor manual como direção predominante sem sacrificar contraste.
 Efeitos: ${JSON.stringify(data.effects||[])}\nDireção de inspiração sem referência: ${data.inspirationStyle?JSON.stringify(data.inspirationStyle):'não utilizada'}`}];
 for(const r of (data.references||[]).slice(0,3)){if(r?.image&&String(r.image).startsWith("data:image/")){c.push({type:"input_image",image_url:r.image,detail:"high"});if(r.note)c.push({type:"input_text",text:`Orientação desta referência: ${r.note}`});}}
 return c;
@@ -48,7 +51,7 @@ if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KE
 try{
 const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle)return res.status(400).json({error:"Envie uma referência ou escolha uma direção de inspiração."});
 const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
-model:"gpt-5.6-terra",reasoning:{effort:"low"},prompt_cache_options:{mode:"explicit",ttl:"24h"},store:false,input:[{role:"user",content:buildContent(data)}],
+model:"gpt-5.6-terra",reasoning:{effort:"low"},prompt_cache_options:{mode:"explicit",ttl:"30m"},store:false,input:[{role:"user",content:buildContent(data)}],
 text:{format:{type:"json_schema",name:"churchdesign_art_direction",strict:true,schema},verbosity:"low"}
 })});
 const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
