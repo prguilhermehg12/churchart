@@ -28,6 +28,7 @@ Se o título dominar a peça, especifique escala, rotação, outline, sombra e t
 Mapa semântico: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.instruction||"nenhuma"}
 Instrução final: ${data.finalInstruction||"nenhuma"}
+PREFERÊNCIAS APRENDIDAS DO USUÁRIO: ${data.preferenceProfile?JSON.stringify(data.preferenceProfile):"nenhuma ainda"}
 Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}
 Estilo explicitamente escolhido: ${data.designStyle||"não especificado"}
 Efeitos: ${JSON.stringify(data.effects||[])}\nDireção de inspiração sem referência: ${data.inspirationStyle?JSON.stringify(data.inspirationStyle):'não utilizada'}`}];
