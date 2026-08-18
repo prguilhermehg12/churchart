@@ -23,6 +23,16 @@ Não use adjetivos genéricos. Use linguagem concreta de direção de arte. ANTE
 Se não estiverem especificados, não invente restrições e decida apenas pelas referências, conteúdo e contexto.
 Se estiverem especificados, eles são parte obrigatória da direção criativa e devem influenciar energia, tipografia, composição, acabamento e grau de ousadia.
 Não reduza esses estilos a estereótipos caricatos.
+REGRA DE FIDELIDADE GEOMÉTRICA:
+- Antes de escolher estilo, extraia a geometria da referência.
+- Meça conceitualmente onde o pregador está, quanto do canvas ele ocupa e qual enquadramento é usado.
+- Preserve a proporção relativa entre pregador, grandes massas tipográficas e áreas vazias.
+- Se a referência mostrar busto/peito/cintura, NÃO transforme em corpo inteiro.
+- Sem referência ou instrução específica, prefira peito para cima ou cintura para cima; corpo inteiro é exceção.
+- Localize e imite a função espacial de sombras, glows, brilhos e grandes letreiros de fundo.
+- Se houver um letreiro gigante ao fundo na referência, preserve essa função composicional mesmo que o texto exato mude.
+- A referência NÃO dita o aspect ratio final; o target dita o canvas. Adapte a geometria ao target sem criar borda/moldura.
+
 REGRA DE CANVAS NATIVO: o aspect ratio de destino é a própria composição. Nunca planeje uma arte em outra proporção para depois encaixá-la dentro do canvas. Proíba canvas interno, pôster dentro de pôster, barras, margens artificiais e cópia ampliada/desfocada da própria arte para preencher espaço, salvo referência/instrução explícita.
 REGRA DE CAMADAS: imagens da igreja pertencem ao BACKGROUND; pregadores recortados pertencem ao FOREGROUND. Pessoas/mãos/cabeças da foto de igreja nunca podem ficar visualmente por cima de pregadores.
 REGRA DE UNICIDADE SEMÂNTICA: cada campo (subtítulo, data, hora, endereço, nome de pregador) aparece no máximo uma vez, salvo pedido explícito.
@@ -51,12 +61,12 @@ if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KE
 try{
 const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle)return res.status(400).json({error:"Envie uma referência ou escolha uma direção de inspiração."});
 const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
-model:"gpt-5.6-terra",reasoning:{effort:"low"},prompt_cache_options:{mode:"explicit",ttl:"30m"},store:false,input:[{role:"user",content:buildContent(data)}],
+model:"gpt-5.6-terra",reasoning:{effort:"medium"},prompt_cache_options:{mode:"explicit",ttl:"30m"},store:false,input:[{role:"user",content:buildContent(data)}],
 text:{format:{type:"json_schema",name:"churchdesign_art_direction",strict:true,schema},verbosity:"low"}
 })});
-const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
+const requestId=r.headers.get("x-request-id")||null;const d=await r.json();if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.requestId=requestId;throw e;}
 const text=outputText(d);if(!text)throw new Error("Diretor de Arte não devolveu blueprint.");
 let artDirection;try{artDirection=JSON.parse(text)}catch{throw new Error("Blueprint inválido.");}
-return res.status(200).json({success:true,artDirection,meta:{model:'gpt-5.6-terra',usage:d.usage||null}});
+return res.status(200).json({success:true,artDirection,meta:{model:'gpt-5.6-terra',usage:d.usage||null,requestId,endpoint:'responses'}});
 }catch(e){console.error("ChurchDesign Design Director",e);return res.status(500).json({error:e.message||"Erro no Diretor de Arte."});}
 };
