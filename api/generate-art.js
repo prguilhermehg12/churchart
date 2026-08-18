@@ -61,7 +61,7 @@ CONTEÚDO QUE DEVE APARECER EXATAMENTE:
 ${texts||"Sem textos obrigatórios."}
 
 IGREJA: ${data.church?.name||""}
-PÚBLICO-ALVO ESCOLHIDO: ${data.audience||"não especificado"}
+PÚBLICO-ALVO ESCOLHIDO: ${data.audience||"não especificado"}\nPOSIÇÃO PRIORITÁRIA DA LOGO: ${data.logoPosition||"seguir referência / automática"}
 ESTILO ESCOLHIDO: ${data.designStyle||"não especificado"}
 Se uma LOGO oficial foi fornecida, use a logo e NÃO repita o nome da igreja em texto separado.
 
@@ -103,6 +103,22 @@ REGRA DE SAFE AREA / ÁREA SEGURA:
 - Elementos decorativos podem sangrar para fora; conteúdo essencial, jamais.
 - Antes de finalizar, revise mentalmente as quatro bordas e confirme que nada importante está cortado.
 
+
+TIPOGRAFIA ADAPTATIVA:
+Plano tipográfico: ${JSON.stringify(data.typographyPlan||{})}
+- Se forceAiTypography=true, renderize TODOS os textos normalmente como parte da composição e ignore instruções SYSTEM/HYBRID.
+- Para cada papel marcado SYSTEM com confidence >= 0.88, NÃO escreva o texto correspondente. Crie apenas uma área gráfica integrada e limpa no box indicado para o ChurchDesign renderizar a fonte real depois. Não desenhe caixas vazias artificiais.
+- Para HYBRID com confidence >= 0.88, crie tratamento gráfico, textura, sombra e suporte visual na região, mas deixe o texto legível exato para a camada tipográfica do sistema.
+- Para AI, componha o texto livremente como parte da arte, seguindo a referência.
+- TÍTULO deve permanecer AI se o plano disser AI ou se confidence < 0.88. Nunca force fonte real quando a referência tiver lettering, distorção, perspectiva, integração com fotografia ou tratamento não reproduzível.
+
+REGRA DE ENQUADRAMENTO DO PREGADOR:
+- Preserve o corpo inteiro sempre que a fotografia original tiver corpo suficiente para isso.
+- Evite ao máximo cortar cabeça, mãos, braços, pernas, pés ou tronco.
+- Não faça crop agressivo por estética automática.
+- Corte corporal só é permitido quando a referência tiver claramente esse enquadramento ou quando o usuário instruir.
+- Se precisar acomodar título e pessoa, reduza escala ou reorganize a composição antes de cortar partes do corpo.
+
 REGRAS DE FIDELIDADE:
 - A foto do pregador fornecida é uma identidade protegida. Preserve a pessoa; não invente outro rosto.
 - Se não conseguir uma transformação sofisticada sem alterar a identidade, use um recorte/tratamento mais simples e fiel.
@@ -112,6 +128,11 @@ REGRAS DE FIDELIDADE:
 - Complexidade visual somente quando for coerente e segura. Coerência sempre.
 - Título deve fazer parte do design: escala, composição, contraste, possível inclinação, outline, sombra ou deformação quando coerente com a referência.
 - Integre pessoas, título e elementos em camadas, evitando aparência de formulário/cartões genéricos.
+- COMPOSIÇÃO LIMPA: salvo quando a referência ou o usuário pedir explicitamente, nunca crie um cartaz/quadro menor flutuando dentro de outro fundo, moldura ou canvas. A arte deve ocupar o canvas inteiro.
+- Evite caixas, cartões, cápsulas, placas e contornos em torno de data, hora, endereço e textos; só use quando a referência ou instrução justificar claramente.
+- LOGO ORIGINAL: use uma única vez, limpa e intacta. Não coloque a logo dentro de caixa, card, placa, selo, cápsula ou fundo próprio, salvo referência/instrução explícita. Nunca extraia o símbolo da logo para repetir em outro ponto; nunca redesenhe, reescreva, reconstrua ou duplique partes da identidade visual.
+- Em TELÃO, prefira título centralizado quando não houver outro elemento visual principal. Havendo pregador/figura/ilustração solicitada, prefira composição lateral equilibrada: título de um lado e imagem do outro.
+- Se solicitado MODO ESCURO DE TELÃO, use predominância escura sobretudo no fundo, contraste alto e foto da igreja mais discreta/escurecida.
 
 FORMATO FINAL: ${target.width||1080}x${target.height||1350}, proporção ${target.ratio||""}
 VARIAÇÃO: ${data.variantLabel||"principal"} — ${data.variantInstruction||""}
@@ -141,15 +162,15 @@ async function generate(data){
   })});
   const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
   const call=(d.output||[]).find(x=>x.type==="image_generation_call"&&x.result);if(!call?.result)throw new Error("O gerador não retornou imagem.");
-  return call.result;
+  return {base64:call.result,responseUsage:d.usage||null,toolUsage:call.usage||null};
 }
 module.exports=async function handler(req,res){
   if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
   if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY não configurada."});
   try{
     const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle&&!data.artDirection)return res.status(400).json({error:"Forneça uma referência ou uma direção de inspiração."});
-    const base64=await generate(data),label=data.variantLabel||data.target?.label||"arte";
-    const url=await saveBase64ToStorage(base64,label);
-    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2-high"}});
+    const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
+    const url=await saveBase64ToStorage(generated.base64,label);
+    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.responseUsage||null,toolUsage:generated.toolUsage||null}}});
   }catch(e){console.error("ChurchDesign V0.13 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
 };
