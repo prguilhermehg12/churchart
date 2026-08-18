@@ -285,7 +285,7 @@
       <div class="project-mini"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></div>
       <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
       <nav id="stepNav"></nav>
-      <div class="sidebar-foot"><span>V0.15 • Rápido 2.0 + Formatos + Criar do zero</span><small>IA visual será conectada após validar o fluxo.</small></div>
+      <div class="sidebar-foot"><span>V0.15.2 • Estilo opcional + Direção prévia</span><small>IA visual será conectada após validar o fluxo.</small></div>
     </aside>
 
     <main class="main">
@@ -295,7 +295,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="build-stamp">CHURCHDESIGN BUILD V0.15 • RÁPIDO 2.0 + FORMATOS + CRIAR DO ZERO • 17/08/2026</div>
+  <div class="build-stamp">CHURCHDESIGN BUILD V0.15.2 • ESTILO OPCIONAL + DIREÇÃO PRÉVIA • 18/08/2026</div>
   <script>
 const state={
 step:0,
@@ -311,7 +311,7 @@ lastMarked:null,
 currentDraftId:null,
 artDirection:null,
 mode:null,
-quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',logoAssetId:null,pastorAssetId:null,correction:''},
+quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoAssetId:null,pastorAssetId:null,correction:''},
 quickResults:[],
 library:{assets:[],generations:[],drafts:[],dbReady:false},
 user:{email:'pr.guilhermehg12@gmail.com',plan:'studio',credits:null,isAdmin:true},
@@ -358,6 +358,16 @@ const effectCatalog=[
 const planRank={free:0,pro:1,studio:2};
 function canUseFeature(requiredPlan='free'){return (planRank[state.user.plan]??0)>=(planRank[requiredPlan]??0);}
 
+
+
+const audienceOptions=[
+['','Não especificado'],['all','Todos'],['children','Crianças'],['teens','Teens'],['youth','Jovens'],['women','Mulheres'],['men','Homens'],['elderly','Idosos'],['couples','Casais']
+];
+const designStyleOptions=[
+['','Não especificado'],['classic','Clássico'],['traditional','Tradicional'],['reformed','Teologia Reformada'],['centered','Centrado'],['pentecostal','Pentecostal'],['revival','Avivalista'],['modern','Moderno'],['church','Church'],['young-traditional','Jovem Tradicional'],['young-radical','Jovem Radical'],['women-service','Culto de Mulheres'],['men-service','Culto de Homens'],['children','Infantil'],['conference','Conferência'],['cutting-edge','Design de Ponta']
+];
+function audienceLabel(id){return audienceOptions.find(x=>x[0]===id)?.[1]||'';}
+function designStyleLabel(id){return designStyleOptions.find(x=>x[0]===id)?.[1]||'';}
 
 const quickFormats=[
 {id:'feed',label:'Feed 4:5',width:2160,height:2700,ratio:'4:5',note:'Instagram feed'},
@@ -1061,7 +1071,7 @@ async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null)
         semanticMap:payload.semanticMap||[],
         userInstruction:payload.instruction||'',
         finalInstruction:payload.finalInstruction||'',
-        artDirection:payload.artDirection||null
+        artDirection:payload.artDirection||null,audience:payload.audience||null,designStyle:payload.designStyle||null
       },signal);
     }catch(inspectorError){
       if(attempt>=2)return {...lastImage,review:{approved:true,critical_error:false,score:0,gross_errors:['Fiscal indisponível após múltiplas tentativas']}};
@@ -1081,7 +1091,7 @@ async function requestArtDirection(base,signal=null){
     body:JSON.stringify({
       references:base.references||[],semanticMap:base.semanticMap||[],church:base.church||{},
       instruction:base.instruction||'',finalInstruction:base.finalInstruction||'',
-      effects:base.effects||[],format:base.format,target:base.target||primaryTargetSpec(),inspirationStyle:base.inspirationStyle||null
+      effects:base.effects||[],format:base.format,target:base.target||primaryTargetSpec(),inspirationStyle:base.inspirationStyle||null,audience:base.audience||null,designStyle:base.designStyle||null
     }),signal
   });
   const text=await r.text();let data;
@@ -1173,9 +1183,11 @@ async function quickPayload(variantLabel='Principal',correction='',signal=null){
   const target=quickTargetSpec(state.quick.format);
   const base={church:{name:state.church.name,address:state.quick.address||state.church.address,hasLogo:!!assets.logo},format:state.quick.format,reference:ref,references:refs,assets,target,
     inspirationStyle:ref?null:{id:inspiration.id,name:inspiration.name,prompt:inspiration.prompt},
+    audience:state.quick.audience?audienceLabel(state.quick.audience):null,
+    designStyle:state.quick.designStyle?designStyleLabel(state.quick.designStyle):null,
     requiredContent:{title:state.quick.title,subtitle:state.quick.subtitle,date:state.quick.date,time:state.quick.time,address:state.quick.address||state.church.address,churchName:state.church.name},
-    instruction:`Modo rápido. Cor predominante ${state.quick.dominantColor}. Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${ref?'':'Criação sem referência: use a direção visual '+inspiration.name+' — '+inspiration.prompt+'.'} ${correction||state.quick.correction||''}`,
-    finalInstruction:'Preserve coerência e simplicidade. Complexidade somente quando houver segurança visual.',semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[]};
+    instruction:`Modo rápido. ${state.quick.audience?`Público-alvo: ${audienceLabel(state.quick.audience)}. `:''}${state.quick.designStyle?`Estilo desejado: ${designStyleLabel(state.quick.designStyle)}. `:''}Cor predominante ${state.quick.dominantColor}. Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${ref?'':'Criação sem referência: use a direção visual '+inspiration.name+' — '+inspiration.prompt+'.'} SAFE AREA OBRIGATÓRIA: nenhum texto, logo, rosto, data, horário, endereço ou elemento essencial pode tocar ou ultrapassar as bordas. Mantenha pelo menos 8% de margem interna em todos os lados. ${correction||state.quick.correction||''}`,
+    finalInstruction:'Preserve coerência e simplicidade. Complexidade somente quando houver segurança visual. SAFE AREA OBRIGATÓRIA: mantenha textos, logos, rostos e dados essenciais completamente dentro da área útil, com pelo menos 8% de margem em cada borda.',semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[]};
   base.artDirection=await requestArtDirection(base,signal);return base;
 }
 function screenQuickMode(){
@@ -1185,14 +1197,14 @@ function screenQuickMode(){
   document.querySelector('#eyebrow').textContent='MODO RÁPIDO';document.querySelector('#pageTitle').textContent='Crie em poucos campos';
   const selectedFormat=quickTargetSpec(state.quick.format);
   content.innerHTML=`<div class="quick-shell"><div class="help">Preencha o essencial. Você pode usar uma referência ou criar do zero a partir do Banco de Inspiração.</div><div class="quick-grid">
-  <div class="card"><div class="field"><label>Título principal</label><input id="qTitle" value="${esc(state.quick.title)}" placeholder="Ex.: O PREÇO DO PALÁCIO"></div><div class="field"><label>Subtítulo</label><input id="qSubtitle" value="${esc(state.quick.subtitle)}" placeholder="Opcional"></div><div class="grid2"><div class="field"><label>Data</label><input id="qDate" value="${esc(state.quick.date)}" placeholder="QUARTA - 18/06"></div><div class="field"><label>Horário</label><input id="qTime" value="${esc(state.quick.time)}" placeholder="19:30H"></div></div><div class="field"><label>Endereço</label><input id="qAddress" value="${esc(state.quick.address||state.church.address)}"></div><div class="grid2"><div class="field"><label>Cor predominante</label><input id="qColor" class="quick-color" type="color" value="${esc(state.quick.dominantColor)}"></div><div class="field"><label>Efeito</label><select id="qEffect"><option value="none" ${state.quick.effect==='none'?'selected':''}>Nenhum</option>${effectCatalog.map(e=>`<option value="${e.id}" ${state.quick.effect===e.id?'selected':''}>${e.name}</option>`).join('')}</select></div></div><label class="layer" style="cursor:pointer"><input id="qIllustrate" type="checkbox" ${state.quick.illustrateTitle?'checked':''}><div class="layer-info"><strong>Ilustrar pelo título</strong><small>A IA adiciona elementos visuais ligados ao conceito do título.</small></div></label>
+  <div class="card"><div class="field"><label>Título principal</label><input id="qTitle" value="${esc(state.quick.title)}" placeholder="Ex.: O PREÇO DO PALÁCIO"></div><div class="field"><label>Subtítulo</label><input id="qSubtitle" value="${esc(state.quick.subtitle)}" placeholder="Opcional"></div><div class="grid2"><div class="field"><label>Público-alvo</label><select id="qAudience">${audienceOptions.map(o=>`<option value="${o[0]}" ${state.quick.audience===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div><div class="field"><label>Estilo</label><select id="qDesignStyle">${designStyleOptions.map(o=>`<option value="${o[0]}" ${state.quick.designStyle===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div></div><div class="grid2"><div class="field"><label>Data</label><input id="qDate" value="${esc(state.quick.date)}" placeholder="QUARTA - 18/06"></div><div class="field"><label>Horário</label><input id="qTime" value="${esc(state.quick.time)}" placeholder="19:30H"></div></div><div class="field"><label>Endereço</label><input id="qAddress" value="${esc(state.quick.address||state.church.address)}"></div><div class="grid2"><div class="field"><label>Cor predominante</label><input id="qColor" class="quick-color" type="color" value="${esc(state.quick.dominantColor)}"></div><div class="field"><label>Efeito</label><select id="qEffect"><option value="none" ${state.quick.effect==='none'?'selected':''}>Nenhum</option>${effectCatalog.map(e=>`<option value="${e.id}" ${state.quick.effect===e.id?'selected':''}>${e.name}</option>`).join('')}</select></div></div><label class="layer" style="cursor:pointer"><input id="qIllustrate" type="checkbox" ${state.quick.illustrateTitle?'checked':''}><div class="layer-info"><strong>Ilustrar pelo título</strong><small>A IA adiciona elementos visuais ligados ao conceito do título.</small></div></label>
   <h3 style="margin-top:18px">Tamanho da arte</h3><p style="margin-bottom:9px">Telão usa a configuração salva em Minha Igreja.</p><div class="quick-format-grid">${quickFormats.map(f=>{const t=f.id==='screen'?targetSpec('screen'):f;return `<div class="quick-format-card ${state.quick.format===f.id?'selected':''}" data-qformat="${f.id}"><div class="quick-format-sketch"><i style="${formatSketchStyle(t.width,t.height)}"></i></div><strong>${f.label}</strong><small>${f.id==='screen'?`${t.width}×${t.height}`:`${f.width}×${f.height}`}</small></div>`}).join('')}</div></div>
   <div class="card"><h3>Direção visual</h3><div class="quick-mode-toggle"><button class="mini-btn ${state.quick.referenceMode==='upload'?'selected-result':''}" id="qUseReference" type="button">Usar referência</button><button class="mini-btn ${state.quick.referenceMode==='inspiration'?'selected-result':''}" id="qUseInspiration" type="button">Criar do zero</button></div>
   ${state.quick.referenceMode==='upload'?`<p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p><div class="quick-ref-grid">${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><label class="upload" style="margin-top:10px"><strong>Subir referência</strong><span>JPG, PNG ou WEBP</span><input id="qRefUpload" type="file" accept="image/*"></label>`:`<p>Banco de Inspiração interno. A IA usa a linguagem escolhida sem copiar uma peça específica.</p><div class="inspiration-grid">${inspirationCatalog.map(x=>`<div class="inspiration-card ${state.quick.inspirationStyle===x.id?'selected':''}" data-inspiration="${x.id}"><strong>${x.name}</strong><small>${x.prompt}</small></div>`).join('')}</div>`}
   <h3 style="margin-top:18px">Logo</h3><div class="quick-logo-grid">${logos.map(a=>`<div class="quick-asset ${state.quick.logoAssetId===a.id?'selected':''}" data-qlogo="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><h3 style="margin-top:18px">Pregador (opcional)</h3><div class="quick-pastor-grid">${pastors.map(a=>`<div class="quick-asset ${state.quick.pastorAssetId===a.id?'selected':''}" data-qpastor="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div></div></div>
   <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE • ${selectedFormat.label}</button><div id="quickProgress" class="quick-progress"><div class="quick-progress-track"><i id="quickProgressBar"></i></div><div class="quick-progress-row"><span id="quickProgressText">Processando sua arte...</span><span id="quickProgressPct">0%</span></div></div><button id="quickCancel" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div></div><div id="quickResultsWrap" style="margin-top:18px">${renderQuickResultsHTML()}</div></div>`;
   const bind=(id,key)=>document.querySelector('#'+id).oninput=e=>state.quick[key]=e.target.value;bind('qTitle','title');bind('qSubtitle','subtitle');bind('qDate','date');bind('qTime','time');bind('qAddress','address');bind('qColor','dominantColor');
-  document.querySelector('#qEffect').onchange=e=>state.quick.effect=e.target.value;document.querySelector('#qIllustrate').onchange=e=>state.quick.illustrateTitle=e.target.checked;
+  document.querySelector('#qAudience').onchange=e=>state.quick.audience=e.target.value;document.querySelector('#qDesignStyle').onchange=e=>state.quick.designStyle=e.target.value;document.querySelector('#qEffect').onchange=e=>state.quick.effect=e.target.value;document.querySelector('#qIllustrate').onchange=e=>state.quick.illustrateTitle=e.target.checked;
   document.querySelector('#qUseReference').onclick=()=>{state.quick.referenceMode='upload';screenQuickMode()};document.querySelector('#qUseInspiration').onclick=()=>{state.quick.referenceMode='inspiration';state.quick.reference=null;screenQuickMode()};
   document.querySelectorAll('[data-qformat]').forEach(el=>el.onclick=()=>{state.quick.format=el.dataset.qformat;screenQuickMode()});document.querySelectorAll('[data-inspiration]').forEach(el=>el.onclick=()=>{state.quick.inspirationStyle=el.dataset.inspiration;screenQuickMode()});
   document.querySelectorAll('[data-qref]').forEach(el=>el.onclick=()=>{const a=refs.find(x=>x.id===el.dataset.qref);state.quick.reference=a?.url||null;state.quick.referenceMode='upload';screenQuickMode()});document.querySelectorAll('[data-qlogo]').forEach(el=>el.onclick=()=>{state.quick.logoAssetId=el.dataset.qlogo;screenQuickMode()});document.querySelectorAll('[data-qpastor]').forEach(el=>el.onclick=()=>{state.quick.pastorAssetId=el.dataset.qpastor;screenQuickMode()});
