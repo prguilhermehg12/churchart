@@ -32,6 +32,13 @@ Se público-alvo ou estilo estiverem especificados, verifique se a peça é coer
 Se não estiverem especificados, ignore esse critério.
 Erros criativos menores NÃO devem reprovar. Porém, violação de área segura de conteúdo essencial deve reprovar.
 
+FIDELIDADE GEOMÉTRICA:
+- Compare enquadramento, posição e escala do pregador com a referência.
+- Se a referência usa busto/peito/cintura e a arte usa corpo inteiro sem instrução, reprove.
+- Compare grandes massas tipográficas/letreiros de fundo, áreas vazias, glows e sombras. Omissão de um elemento estrutural grande da referência é erro relevante.
+- Reprove qualquer borda/blur externo criado para encaixar uma arte interna em outro aspect ratio.
+- Conte ocorrências de cada dado semântico. Data, hora, endereço, subtítulo e nome de pregador não podem aparecer duplicados sem instrução.
+
 COMPOSIÇÃO ADAPTATIVA:
 - Verifique se a arte usa apenas as pessoas realmente fornecidas.
 - Se a referência tinha mais pessoas que os assets fornecidos, a arte deve ter sido recomposta para a quantidade real.
@@ -64,10 +71,10 @@ module.exports=async function handler(req,res){
   try{
     const data=req.body||{};
     const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
-      model:"gpt-5.6-sol",reasoning:{effort:"low"},prompt_cache_options:{mode:"explicit",ttl:"30m"},store:false,input:[{role:"user",content:content(data)}],
+      model:"gpt-5.6-sol",reasoning:{effort:"high"},prompt_cache_options:{mode:"explicit",ttl:"30m"},store:false,input:[{role:"user",content:content(data)}],
       text:{format:{type:"json_schema",name:"churchdesign_quality_review",strict:true,schema},verbosity:"low"}
     })});
-    const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
+    const requestId=r.headers.get("x-request-id")||null;const d=await r.json();if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.requestId=requestId;throw e;}
     const text=out(d);let review;
     try{review=JSON.parse(text)}
     catch{
@@ -82,6 +89,6 @@ module.exports=async function handler(req,res){
     // hard gates
     if(!review.technicalFailure&&(review.human_fidelity<82||review.logo_fidelity<88||review.content_accuracy<90))review.approved=false;
     if(!review.technicalFailure&&(review.human_fidelity<65||review.logo_fidelity<70||review.content_accuracy<75))review.critical_error=true;
-    return res.status(200).json({success:true,review,meta:{model:'gpt-5.6-sol',usage:d.usage||null}});
+    return res.status(200).json({success:true,review,meta:{model:'gpt-5.6-sol',usage:d.usage||null,requestId,endpoint:'responses'}});
   }catch(e){console.error("ChurchDesign quality inspector",e);return res.status(500).json({error:e.message||"Erro no fiscal."});}
 };
