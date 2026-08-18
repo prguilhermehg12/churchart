@@ -354,7 +354,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="build-stamp">CHURCHDESIGN BUILD V0.20.1 • ENTREGA GARANTIDA + FISCAL RESILIENTE • 18/08/2026</div>
+  <div class="build-stamp">CHURCHDESIGN BUILD V0.21 • CANVAS NATIVO + TIPOGRAFIA DIRIGIDA + CUSTO REAL • 18/08/2026</div>
   <script>
 const state={
 step:0,
@@ -373,7 +373,7 @@ typographyPlan:null,
 mode:null,
 quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoPosition:'',logoAssetId:null,pastorAssetIds:[],pastorNames:{},churchImageAssetId:null,correction:''},
 quickResults:[],
-costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD'},
+costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',actualStart:null,actualEnd:null,actualCost:null},
 library:{assets:[],generations:[],drafts:[],ratings:[],dbReady:false},
 user:{email:'pr.guilhermehg12@gmail.com',plan:'studio',credits:null,isAdmin:true},
 finalConfig:{
@@ -478,6 +478,26 @@ function recordCostEvent(stage,meta={}){
   });
   renderCostSupervisor();
 }
+
+async function fetchActualOpenAICost(startMs,endMs=Date.now()){
+  try{
+    const r=await fetch(`/api/openai-costs?start=${Math.floor(startMs/1000)}&end=${Math.floor(endMs/1000)}`);
+    const d=await r.json();
+    if(r.ok&&Number.isFinite(Number(d.cost))){
+      state.costSupervisor.actualCost=Number(d.cost);
+      state.costSupervisor.actualEnd=endMs;
+      renderCostSupervisor();
+      return Number(d.cost);
+    }
+  }catch{}
+  return null;
+}
+function scheduleActualCostReconcile(){
+  if(!state.user?.isAdmin||!state.costSupervisor?.startedAt)return;
+  setTimeout(()=>fetchActualOpenAICost(state.costSupervisor.startedAt-3000,Date.now()+1000),5000);
+  setTimeout(()=>fetchActualOpenAICost(state.costSupervisor.startedAt-3000,Date.now()+1000),20000);
+}
+
 function costTotal(){return (state.costSupervisor?.events||[]).reduce((s,e)=>s+(Number(e.usd)||0),0);}
 
 function inspectorDeliveryNote(review){
@@ -491,7 +511,7 @@ function costSupervisorHTML(){
   if(!state.user?.isAdmin)return '';
   const ev=state.costSupervisor?.events||[],total=costTotal();
   return `<div class="cost-supervisor ${state.costSupervisor?.sessionId?'show':''}" data-cost-panel>
-    <div class="cost-head"><div><strong>◉ Supervisor de custos</strong><div class="cost-sub">Estimativa da sessão atual • preços verificados em 18/08/2026</div></div><div class="cost-total">${moneyUSD(total)}</div></div>
+    <div class="cost-head"><div><strong>◉ Supervisor de custos</strong><div class="cost-sub">Estimativa da sessão atual • preços verificados em 18/08/2026</div>${Number.isFinite(Number(state.costSupervisor?.actualCost))?`<div class="cost-sub" style="color:#b9d7a8">Custo real conciliado OpenAI: <b>${moneyUSD(state.costSupervisor.actualCost)}</b></div>`:''}</div><div class="cost-total">${moneyUSD(total)}</div></div>
     <div class="cost-events">${ev.length?ev.map(e=>`<div class="cost-row"><div><strong>${esc(e.stage)} <span class="cost-badge">${esc(e.model)}</span></strong><small>${e.input?`${e.input.toLocaleString()} in • `:''}${e.output?`${e.output.toLocaleString()} out • `:''}${e.estimated?'estimado':'usage da API'}</small></div><b>${moneyUSD(e.usd)}</b></div>`).join(''):'<div class="cost-sub">Os custos aparecerão aqui conforme cada etapa terminar.</div>'}</div>
   </div>`;
 }
@@ -1335,7 +1355,7 @@ async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null)
       artDirection:payload.artDirection||null,
       audience:payload.audience||null,
       designStyle:payload.designStyle||null,
-      logoPosition:payload.logoPosition||null
+      logoPosition:payload.logoPosition||null,nativeCanvasRequired:true,churchImageMustBeBackground:true,typographyBlueprint:payload.artDirection?.typographyBlueprint||null
     },signal);
 
     lastReview=review;
@@ -1504,6 +1524,38 @@ function screenQuickMode(){
   document.querySelectorAll('[data-qlogo]').forEach(el=>el.onclick=()=>{state.quick.logoAssetId=el.dataset.qlogo;screenQuickMode()});document.querySelectorAll('[data-qpastor]').forEach(el=>el.onclick=e=>{if(e.target.matches('input'))return;const id=el.dataset.qpastor;const arr=state.quick.pastorAssetIds||[];state.quick.pastorAssetIds=arr.includes(id)?arr.filter(x=>x!==id):[...arr,id];if(!state.quick.pastorAssetIds.includes(id))delete state.quick.pastorNames[id];screenQuickMode()});document.querySelectorAll('[data-pastor-name]').forEach(inp=>inp.oninput=e=>{e.stopPropagation();state.quick.pastorNames[inp.dataset.pastorName]=e.target.value;});document.querySelectorAll('[data-qchurch]').forEach(el=>el.onclick=()=>{state.quick.churchImageAssetId=state.quick.churchImageAssetId===el.dataset.qchurch?null:el.dataset.qchurch;screenQuickMode()});
   const up=document.querySelector('#qRefUpload');if(up)up.onchange=async e=>{const a=await uploadLibraryAsset(e.target.files[0],'reference');if(a){state.quick.reference=a.url;state.quick.referenceMode='upload';screenQuickMode();}};const cup=document.querySelector('#qChurchUpload');if(cup)cup.onchange=async e=>{for(const file of [...(e.target.files||[])]){const a=await uploadLibraryAsset(file,'church');if(a&&!state.quick.churchImageAssetId)state.quick.churchImageAssetId=a.id;}screenQuickMode();};
   document.querySelector('#quickGenerate').onclick=()=>runQuickGeneration('Principal',0);document.querySelector('#quickCancel').onclick=()=>{cancelActiveProcess();document.querySelector('#quickStatus').textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');};bindQuickResultEvents();bindAllArtworksEvents();
+}
+
+
+function editableSemanticKeys(required={}){
+  return ['subtitle','date','time','address','pastorNames'].filter(k=>{
+    const v=required?.[k];
+    return Array.isArray(v)?v.length>0:!!v;
+  });
+}
+function hybridTypographyInstruction(required={}){
+  const keys=editableSemanticKeys(required);
+  if(!keys.length)return '';
+  return `TIPOGRAFIA HÍBRIDA: o título principal pode permanecer artístico/nativo quando isso preservar melhor o design. Os seguintes campos serão renderizados depois como texto preciso: ${keys.join(', ')}. NÃO escreva esses campos na imagem base. Em vez disso, reserve áreas naturais para eles e descreva no typographyBlueprint a posição, alinhamento, cor, contraste, tamanho relativo, largura máxima, peso e família visual que você usaria se fosse o designer final.`;
+}
+function normalizeTypographyBlueprint(bp={}){
+  const out={};
+  for(const [k,v] of Object.entries(bp||{})){
+    if(!v||typeof v!=='object')continue;
+    out[k]={
+      x:Math.min(92,Math.max(8,Number(v.x)||50)),
+      y:Math.min(92,Math.max(8,Number(v.y)||50)),
+      maxWidth:Math.min(76,Math.max(12,Number(v.maxWidth)||35)),
+      align:['left','center','right'].includes(v.align)?v.align:'left',
+      color:/^#[0-9A-F]{6}$/i.test(v.color||'')?v.color:'#FFFFFF',
+      contrast:['light-on-dark','dark-on-light','auto'].includes(v.contrast)?v.contrast:'auto',
+      weight:['regular','medium','bold','black'].includes(v.weight)?v.weight:'bold',
+      sizePct:Math.min(8,Math.max(1.2,Number(v.sizePct)||3)),
+      familyStyle:String(v.familyStyle||'sans condensed'),
+      box:!!v.box
+    };
+  }
+  return out;
 }
 
 function logoPositionInstruction(pos){
