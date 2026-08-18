@@ -23,6 +23,12 @@ Não use adjetivos genéricos. Use linguagem concreta de direção de arte. ANTE
 Se não estiverem especificados, não invente restrições e decida apenas pelas referências, conteúdo e contexto.
 Se estiverem especificados, eles são parte obrigatória da direção criativa e devem influenciar energia, tipografia, composição, acabamento e grau de ousadia.
 Não reduza esses estilos a estereótipos caricatos.
+REGRA DE TIPOGRAFIA FINAL:
+- A própria IA visual deve desenhar TODA a tipografia final.
+- Não há renderer externo de texto.
+- Data, hora, endereço, subtítulo e nomes devem aparecer uma única vez cada.
+- Decida posição, cor, contraste, tamanho e hierarquia como parte integral do design.
+
 REGRA DE FIDELIDADE GEOMÉTRICA:
 - Antes de escolher estilo, extraia a geometria da referência.
 - Meça conceitualmente onde o pregador está, quanto do canvas ele ocupa e qual enquadramento é usado.
@@ -43,7 +49,6 @@ Mapa semântico: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.instruction||"nenhuma"}
 Instrução final: ${data.finalInstruction||"nenhuma"}
 PREFERÊNCIAS APRENDIDAS DO USUÁRIO: ${data.preferenceProfile?JSON.stringify(data.preferenceProfile):"nenhuma ainda"}
-PLANO DO CURADOR TIPOGRÁFICO: ${data.typographyPlan?JSON.stringify(data.typographyPlan):"não disponível"}
 Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}\nPrioridade explícita de posição da logo: ${data.logoPosition||"não especificada; seguir referência ou equilíbrio"}
 Estilo explicitamente escolhido: ${data.designStyle||"não especificado"}
 Modo de cor predominante: ${data.colorMode||"não especificado"}
