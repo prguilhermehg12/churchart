@@ -354,7 +354,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="build-stamp">CHURCHDESIGN BUILD V0.20 • CARROSSEL COMPLETO + CORPO INTEIRO + POSIÇÃO DA LOGO • 18/08/2026</div>
+  <div class="build-stamp">CHURCHDESIGN BUILD V0.20.1 • ENTREGA GARANTIDA + FISCAL RESILIENTE • 18/08/2026</div>
   <script>
 const state={
 step:0,
@@ -479,6 +479,13 @@ function recordCostEvent(stage,meta={}){
   renderCostSupervisor();
 }
 function costTotal(){return (state.costSupervisor?.events||[]).reduce((s,e)=>s+(Number(e.usd)||0),0);}
+
+function inspectorDeliveryNote(review){
+  if(review?.deliveredDespiteInspectorFailure)return ' • fiscalização técnica inconclusiva; arte preservada';
+  if(review?.deliveredAfterFinalReview)return ' • entregue após última tentativa';
+  return '';
+}
+
 function moneyUSD(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:4,maximumFractionDigits:4}).format(Number(v)||0);}
 function costSupervisorHTML(){
   if(!state.user?.isAdmin)return '';
@@ -1233,19 +1240,65 @@ function exactContentFromLayers(){
   return out;
 }
 async function callQualityInspector(payload,signal=null){
-  const r=await fetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});
-  const text=await r.text();let data;
-  try{data=JSON.parse(text)}catch{throw new Error('Fiscal: resposta inválida.');}
-  if(!r.ok)throw new Error(data.error||'Fiscal indisponível.');
-  recordCostEvent(payload?.phase==='final_typography'?'Fiscal final':'Fiscal visual',data.meta||{});return data.review;
+  try{
+    const r=await fetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});
+    const text=await r.text();
+    let data;
+    try{data=JSON.parse(text)}
+    catch{
+      return {
+        approved:true,
+        critical_error:false,
+        score:0,
+        technicalFailure:true,
+        gross_errors:['Fiscal retornou resposta inválida.'],
+        correction_prompt:'',
+        _meta:{technicalFailure:true,reason:'invalid_json'}
+      };
+    }
+    if(!r.ok){
+      return {
+        approved:true,
+        critical_error:false,
+        score:0,
+        technicalFailure:true,
+        gross_errors:[data?.error||`Fiscal indisponível (${r.status}).`],
+        correction_prompt:'',
+        _meta:{technicalFailure:true,reason:'http_error'}
+      };
+    }
+    recordCostEvent(payload?.phase==='final_typography'?'Fiscal final':'Fiscal visual',data.meta||{});
+    const review=data.review||{};
+    if(typeof review.approved!=='boolean'){
+      return {
+        approved:true,
+        critical_error:false,
+        score:0,
+        technicalFailure:true,
+        gross_errors:['Fiscal não devolveu uma decisão válida.'],
+        correction_prompt:'',
+        _meta:{technicalFailure:true,reason:'invalid_shape'}
+      };
+    }
+    return review;
+  }catch(e){
+    if(e?.name==='AbortError')throw e;
+    return {
+      approved:true,
+      critical_error:false,
+      score:0,
+      technicalFailure:true,
+      gross_errors:[`Fiscal indisponível: ${e.message||'falha técnica'}`],
+      correction_prompt:'',
+      _meta:{technicalFailure:true,reason:'exception'}
+    };
+  }
 }
 async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null){
   let lastReview=null,lastImage=null;
   const retryInstructions=[
     '',
-    'Corrija apenas os erros apontados pelo fiscal. Preserve o restante da composição. Reduza qualquer transformação que possa alterar identidade, logo ou texto.',
-    'Simplifique a composição. Preserve rosto, logo e informações exatamente. Evite efeitos complexos, sobreposições agressivas e deformações em áreas protegidas.',
-    'MODO SEGURO: priorize fidelidade acima de criatividade. Use composição simples, limpa e profissional. Mantenha a pessoa com aparência praticamente fotográfica, logo intacta e todos os textos corretos. Não arrisque soluções experimentais.'
+    'Corrija apenas os erros objetivos apontados pelo fiscal. Preserve o restante da composição. Se houver risco de degradar rosto, logo ou tipografia, simplifique.'
   ];
 
   for(let attempt=0;attempt<=maxCorrections;attempt++){
@@ -1254,12 +1307,12 @@ async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null)
       lastReview?.correction_prompt||''
     ].filter(Boolean).join(' ');
 
-    const request={...payload,qualityCorrection,revisionAttempt:attempt,safeMode:attempt>=3};
-
+    const request={...payload,qualityCorrection,revisionAttempt:attempt,safeMode:attempt>=maxCorrections&&attempt>0};
     const r=await fetch('/api/generate-art',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(request),signal
+      body:JSON.stringify(request),
+      signal
     });
 
     const text=await r.text();
@@ -1267,31 +1320,60 @@ async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null)
     try{data=JSON.parse(text)}
     catch{throw new Error(text.slice(0,180)||`Resposta inválida (${r.status})`);}
     if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);
-    recordCostEvent(attempt===0?'Gerador de imagem':`Retry de imagem ${attempt}`,data.image?.meta||data.meta||{});
 
+    recordCostEvent(attempt===0?'Gerador de imagem':`Retry de imagem ${attempt}`,data.image?.meta||data.meta||{});
     lastImage=data.image;
 
-    try{
-      lastReview=await callQualityInspector({
-        generatedImage:lastImage.url,
-        references:payload.references||[],
-        assets:payload.assets||{},
-        requiredContent:payload.requiredContent||{},
-        semanticMap:payload.semanticMap||[],
-        userInstruction:payload.instruction||'',
-        finalInstruction:payload.finalInstruction||'',
-        artDirection:payload.artDirection||null,audience:payload.audience||null,designStyle:payload.designStyle||null,typographyPlan:payload.typographyPlan||null,phase:'pre_typography'
-      },signal);
-    }catch(inspectorError){
-      if(attempt>=2)return {...lastImage,review:{approved:true,critical_error:false,score:0,gross_errors:['Fiscal indisponível após múltiplas tentativas']}};
-      continue;
+    const review=await callQualityInspector({
+      generatedImage:lastImage.url,
+      references:payload.references||[],
+      assets:payload.assets||{},
+      requiredContent:payload.requiredContent||{},
+      semanticMap:payload.semanticMap||[],
+      userInstruction:payload.instruction||'',
+      finalInstruction:payload.finalInstruction||'',
+      artDirection:payload.artDirection||null,
+      audience:payload.audience||null,
+      designStyle:payload.designStyle||null,
+      logoPosition:payload.logoPosition||null
+    },signal);
+
+    lastReview=review;
+
+    // REGRA DE ENTREGA GARANTIDA:
+    // falha técnica do fiscal nunca destrói uma imagem já paga/gerada.
+    if(review?.technicalFailure||review?._meta?.technicalFailure){
+      return {
+        ...lastImage,
+        review:{
+          ...review,
+          approved:true,
+          deliveredDespiteInspectorFailure:true
+        }
+      };
     }
 
-    if(lastReview.approved)return {...lastImage,review:lastReview};
+    if(review.approved){
+      return {...lastImage,review};
+    }
+
+    // Reprovação real: tenta corrigir somente se ainda houver retry disponível.
     if(attempt<maxCorrections)continue;
+
+    // Se já gastamos a última tentativa, entregamos a última imagem válida.
+    // A UI pode indicar internamente que foi entregue após revisão não aprovada,
+    // mas não deve descartar o ativo pago.
+    return {
+      ...lastImage,
+      review:{
+        ...lastReview,
+        deliveredAfterFinalReview:true
+      }
+    };
   }
 
-  return {...lastImage,review:lastReview||{approved:false,critical_error:false,score:0,gross_errors:['Entregue em modo seguro']}};
+  if(lastImage)return {...lastImage,review:lastReview||{approved:true,technicalFailure:true}};
+  throw new Error('Nenhuma imagem foi gerada.');
 }
 
 async function requestArtDirection(base,signal=null){
@@ -1488,7 +1570,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
       const original=state.quickResults[replaceIndex];
       original.corrections=original.corrections||[];
       original.corrections.push({...result,id:crypto.randomUUID(),label:`${original.label} • corrigida`});
-    }setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>';const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível concluir.</strong><br>${esc(e.message)}`;}finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}}
+    }setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>'+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível concluir.</strong><br>${esc(e.message)}`;}finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}}
 async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false){scrollToGenerationPanel();const source=state.quickResults[sourceIndex];if(!source)return;const signal=beginProcess(),target=quickTargetSpec(formatId),status=document.querySelector('#quickStatus'),cancel=document.querySelector('#quickCancel');if(cancel)cancel.style.display='block';setQuickProgress(18,`Adaptando para ${target.label}...`);if(status)status.textContent='Processando sua arte...';try{const sourceRef=await prepareImageForAI(source.sourceUrl||source.dataUrl,1400,.9);const required={...source.requiredContent};omit.forEach(k=>{if(k==='pastorNames')required.pastorNames=[];else required[k]='';});const assets={...source.assets};if(omit.includes('logo'))assets.logo=null;if(omit.includes('pastors')){assets.pastor=null;assets.pastors=[];}if(omit.includes('churchImage'))assets.churchImage=null;const payload={mode:'adaptation',format:formatId,reference:sourceRef,references:[{image:sourceRef,note:'Preserve a identidade visual desta arte e adapte naturalmente para a nova proporção.'}],target,assets,requiredContent:required,instruction:source.instruction,finalInstruction:`Adapte o layout; não estique nem apenas recorte. Reorganize tipografia, pessoa e elementos para a nova proporção. SAFE FRAME RÍGIDO: 12% de margem livre em cada lado para TODO conteúdo essencial. Omitir explicitamente: ${omit.join(', ')||'nada'}. ${target.id==='screen'?`TELÃO: prefira o TÍTULO centralizado e dominante. Se houver foto de pregador, ilustração ou figura solicitada, use composição em dois polos: título à esquerda e imagem à direita OU título à direita e imagem à esquerda, escolhendo o lado de melhor equilíbrio. Não centralize título sobre o rosto.`:''} ${darkScreen?'VERSÃO ESCURA OBRIGATÓRIA: fundo e áreas dominantes devem ser escuros para telão/câmera de live; preserve contraste alto e, se houver foto da igreja, integre-a com opacidade visual reduzida, tratamento escuro e discreto, sem perder reconhecimento.':''} COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referência ou ordem explícita. Evite caixas/cards/cápsulas desnecessários. Use a logo original uma única vez, limpa, sem caixa/placa/selo e nunca repita ou extraia partes dela.`,semanticMap:[],effects:[],artDirection:source.artDirection,typographyPlan:source.typographyPlan||null,redesign:false,variantLabel:`${source.label} • ${target.label}`};setQuickProgress(48,'Recompondo para o novo formato...');const image=await generateWithInvisibleReview(payload,1,signal);setQuickProgress(88,'Finalizando...');let dataUrl=await remoteToDataUrl(image.url);dataUrl=await resizeToTarget(dataUrl,target);source.adaptations=source.adaptations||[];source.adaptations.push({id:crypto.randomUUID(),format:formatId,target,dataUrl,sourceUrl:image.url,omit});setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Nova versão pronta.</strong>';const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();}catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;}finally{activeProcessController=null;if(cancel)cancel.style.display='none';}}
 
 
