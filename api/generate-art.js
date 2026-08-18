@@ -24,7 +24,8 @@ function modelSize(target={}){
 function inputContent(data,prompt){
   const c=[{type:"input_text",text:prompt}];
   for(const r of (data.references||[]).slice(0,3))if(r?.image)c.push({type:"input_image",image_url:r.image,detail:"high"});
-  if(data.assets?.pastor?.image)c.push({type:"input_text",text:"FOTO ORIGINAL DO PREGADOR. Preserve identidade, rosto, cabelo, barba, óculos, idade aparente e características individuais com máxima fidelidade."},{type:"input_image",image_url:data.assets.pastor.image,detail:"high"});
+  for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(p?.image)c.push({type:"input_text",text:`FOTO ORIGINAL DO PREGADOR ${i+1}. Nome solicitado: ${p.name||'não informado'}. Preserve identidade, rosto, cabelo, barba, óculos, idade aparente e características individuais com máxima fidelidade. Se houver nome, posicione-o próximo desta pessoa de forma harmônica, legível e com contraste suficiente.`},{type:"input_image",image_url:p.image,detail:"high"});
+  if(data.assets?.churchImage?.image)c.push({type:"input_text",text:"FOTO DA IGREJA OBRIGATÓRIA. Esta imagem foi escolhida pelo usuário e deve aparecer claramente integrada ao fundo/ambiente da arte. Não substitua por outra igreja e não a ignore."},{type:"input_image",image_url:data.assets.churchImage.image,detail:"high"});
   if(data.assets?.logo?.image)c.push({type:"input_text",text:"LOGO OFICIAL. Use esta marca exatamente como fornecida. Não redesenhe, não invente letras e não altere símbolo."},{type:"input_image",image_url:data.assets.logo.image,detail:"high"});
   return c;
 }
@@ -46,7 +47,8 @@ function prompt(data){
     c.subtitle?`SUBTÍTULO EXATO: ${c.subtitle}`:"",
     c.date?`DATA EXATA: ${c.date}`:"",
     c.time?`HORÁRIO EXATO: ${c.time}`:"",
-    c.address?`ENDEREÇO EXATO: ${c.address}`:""
+    c.address?`ENDEREÇO EXATO: ${c.address}`:"",
+    ...(Array.isArray(c.pastorNames)?c.pastorNames.filter(Boolean).map((n,i)=>`NOME DO PREGADOR ${i+1} EXATO: ${n}`):[])
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
 
@@ -63,6 +65,11 @@ PÚBLICO-ALVO ESCOLHIDO: ${data.audience||"não especificado"}
 ESTILO ESCOLHIDO: ${data.designStyle||"não especificado"}
 Se uma LOGO oficial foi fornecida, use a logo e NÃO repita o nome da igreja em texto separado.
 
+REGRA DE FOTO DA IGREJA:
+- Se data.assets.churchImage foi fornecida, o uso dessa foto é obrigatório no ambiente/fundo e deve ser visualmente reconhecível.
+- Se não foi fornecida e a referência já possui ambiente de igreja, congregação ou adoração ao fundo, preserve esse tipo de ambiente da referência.
+- Não crie silhuetas humanas apenas para preencher lugares vazios.
+
 REGRA DE COMPOSIÇÃO ADAPTATIVA:
 - A referência é uma linguagem visual, NÃO um molde rígido.
 - Conte quantas pessoas existem nas fotos realmente fornecidas. Use SOMENTE essas pessoas.
@@ -73,6 +80,20 @@ REGRA DE COMPOSIÇÃO ADAPTATIVA:
 - Nunca interprete ausência de uma foto como pedido para reservar um espaço para ela.
 - Se houver apenas um pregador, faça a arte parecer desenhada originalmente para UM pregador.
 
+
+
+TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
+- Trate os 12% externos de CADA LADO como zona proibida para conteúdo essencial.
+- Todo texto, título, subtítulo, data, hora, endereço, logo, nome de pregador, rosto e cabeça deve ficar integralmente dentro do retângulo central de 76% da largura por 76% da altura.
+- Nada essencial pode tocar a borda. Nada essencial pode ser parcialmente cortado.
+- Faça o layout MENOR e mais central se houver qualquer dúvida. Espaço vazio nas bordas é aceitável; conteúdo cortado não é.
+- Elementos abstratos/texturas podem sangrar; informação e pessoas nunca.
+- Faça uma revisão final das quatro bordas antes de concluir.
+
+REGRA DE CONTRASTE DA LOGO:
+- A logo oficial deve permanecer com suas cores originais.
+- Nunca coloque logo branca/clara sobre região clara e nunca coloque logo preta/escura sobre região escura.
+- Se o fundo não oferecer contraste, crie discretamente atrás da logo uma área/placa/halo compatível com o design. NÃO altere a cor da logo para resolver contraste.
 
 REGRA DE SAFE AREA / ÁREA SEGURA:
 - Nenhum texto, logo, rosto, data, horário, endereço ou informação essencial pode encostar, ultrapassar ou ficar parcialmente fora do canvas.
