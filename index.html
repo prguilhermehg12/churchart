@@ -361,7 +361,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="build-stamp">CHURCHDESIGN BUILD V0.21.1 • CACHE 30M + COR DA REFERÊNCIA • 18/08/2026</div>
+  
   <script>
 const state={
 step:0,
@@ -380,7 +380,7 @@ typographyPlan:null,
 mode:null,
 quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',dominantColorMode:'custom',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoPosition:'',logoAssetId:null,pastorAssetIds:[],pastorNames:{},churchImageAssetId:null,correction:''},
 quickResults:[],
-costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',actualStart:null,actualEnd:null,actualCost:null},
+costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',actualStart:null,actualEnd:null,actualCost:null,requests:[],untrackedEstimate:0},
 library:{assets:[],generations:[],drafts:[],ratings:[],dbReady:false},
 user:{email:'pr.guilhermehg12@gmail.com',plan:'studio',credits:null,isAdmin:true},
 finalConfig:{
@@ -475,6 +475,33 @@ function estimateUsageCost(model,usage,toolUsage=null){
   // é deliberadamente conservador para o supervisor não subestimar gasto.
   return {usd:(input*r.image_input+output*r.image_output)/1e6,estimated:true,input,output,note:'modalidade estimada'};
 }
+
+function recordOpenAIRequest(stage,meta={}){
+  if(!state.costSupervisor?.sessionId)beginCostSession('Criação');
+  state.costSupervisor.requests=state.costSupervisor.requests||[];
+  const item={
+    id:meta.requestId||crypto.randomUUID(),
+    stage,
+    requestId:meta.requestId||null,
+    model:meta.model||meta.modelUsed||'desconhecido',
+    endpoint:meta.endpoint||null,
+    status:meta.status||'ok',
+    usage:meta.usage||null,
+    toolUsage:meta.toolUsage||null,
+    at:Date.now()
+  };
+  state.costSupervisor.requests.push(item);
+  recordCostEvent(stage,meta);
+}
+function costAuditSummary(){
+  const req=state.costSupervisor?.requests||[];
+  return {
+    requests:req.length,
+    failed:req.filter(x=>x.status&&x.status!=='ok').length,
+    ids:req.filter(x=>x.requestId).map(x=>x.requestId)
+  };
+}
+
 function recordCostEvent(stage,meta={}){
   if(!state.costSupervisor?.sessionId)beginCostSession('Criação');
   const model=meta.model||meta.modelUsed||'desconhecido';
@@ -518,8 +545,8 @@ function costSupervisorHTML(){
   if(!state.user?.isAdmin)return '';
   const ev=state.costSupervisor?.events||[],total=costTotal();
   return `<div class="cost-supervisor ${state.costSupervisor?.sessionId?'show':''}" data-cost-panel>
-    <div class="cost-head"><div><strong>◉ Supervisor de custos</strong><div class="cost-sub">Estimativa da sessão atual • preços verificados em 18/08/2026</div>${Number.isFinite(Number(state.costSupervisor?.actualCost))?`<div class="cost-sub" style="color:#b9d7a8">Custo real conciliado OpenAI: <b>${moneyUSD(state.costSupervisor.actualCost)}</b></div>`:''}</div><div class="cost-total">${moneyUSD(total)}</div></div>
-    <div class="cost-events">${ev.length?ev.map(e=>`<div class="cost-row"><div><strong>${esc(e.stage)} <span class="cost-badge">${esc(e.model)}</span></strong><small>${e.input?`${e.input.toLocaleString()} in • `:''}${e.output?`${e.output.toLocaleString()} out • `:''}${e.estimated?'estimado':'usage da API'}</small></div><b>${moneyUSD(e.usd)}</b></div>`).join(''):'<div class="cost-sub">Os custos aparecerão aqui conforme cada etapa terminar.</div>'}</div>
+    <div class="cost-head"><div><strong>◉ Supervisor de custos</strong><div class="cost-sub">Estimativa da sessão atual • preços verificados em 18/08/2026</div>${Number.isFinite(Number(state.costSupervisor?.actualCost))?`<div class="cost-sub" style="color:#b9d7a8">Custo real conciliado OpenAI: <b>${moneyUSD(state.costSupervisor.actualCost)}</b>${state.costSupervisor.actualCost>total+.002?` • diferença: <b>${moneyUSD(state.costSupervisor.actualCost-total)}</b>`:''}</div>`:''}${Number.isFinite(Number(state.costSupervisor?.actualCost))?`<div class="cost-sub" style="color:#b9d7a8">Custo real conciliado OpenAI: <b>${moneyUSD(state.costSupervisor.actualCost)}</b></div>`:''}</div><div class="cost-total">${moneyUSD(total)}</div></div>
+    <div class="cost-sub" style="margin-top:5px">Chamadas rastreadas: ${(state.costSupervisor?.requests||[]).length}</div><div class="cost-events">${ev.length?ev.map(e=>`<div class="cost-row"><div><strong>${esc(e.stage)} <span class="cost-badge">${esc(e.model)}</span></strong><small>${e.input?`${e.input.toLocaleString()} in • `:''}${e.output?`${e.output.toLocaleString()} out • `:''}${e.estimated?'estimado':'usage da API'}</small></div><b>${moneyUSD(e.usd)}</b></div>`).join(''):'<div class="cost-sub">Os custos aparecerão aqui conforme cada etapa terminar.</div>'}</div>
   </div>`;
 }
 function renderCostSupervisor(){
@@ -1229,7 +1256,7 @@ async function requestTypographyPlan(base,signal=null){
     references:base.references||[],requiredContent:base.requiredContent||{},fontCandidates,audience:base.audience||null,designStyle:base.designStyle||null,colorMode:base.colorMode||null,dominantColor:base.dominantColor||null,logoPosition:base.logoPosition||null,target:base.target||primaryTargetSpec(),instruction:base.instruction||''
   })});
   const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error('Curador tipográfico: resposta inválida.');}
-  if(!r.ok)throw new Error(data.error||'Curador tipográfico indisponível.');recordCostEvent('Curador tipográfico',data.meta||{});state.typographyPlan=data.typographyPlan||null;return state.typographyPlan;
+  if(!r.ok)throw new Error(data.error||'Curador tipográfico indisponível.');recordOpenAIRequest('Curador tipográfico',data.meta||{});state.typographyPlan=data.typographyPlan||null;return state.typographyPlan;
 }
 function typographyRole(plan,role){return plan?.roles?.[role]||{mode:'ai',confidence:0};}
 function typographyFontFamily(rolePlan){
@@ -1294,7 +1321,7 @@ async function callQualityInspector(payload,signal=null){
         _meta:{technicalFailure:true,reason:'http_error'}
       };
     }
-    recordCostEvent(payload?.phase==='final_typography'?'Fiscal final':'Fiscal visual',data.meta||{});
+    recordOpenAIRequest(payload?.phase==='final_typography'?'Fiscal final':'Fiscal visual',data.meta||{});
     const review=data.review||{};
     if(typeof review.approved!=='boolean'){
       return {
@@ -1348,7 +1375,7 @@ async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null)
     catch{throw new Error(text.slice(0,180)||`Resposta inválida (${r.status})`);}
     if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);
 
-    recordCostEvent(attempt===0?'Gerador de imagem':`Retry de imagem ${attempt}`,data.image?.meta||data.meta||{});
+    recordOpenAIRequest(attempt===0?'Gerador de imagem':`Retry de imagem ${attempt}`,data.image?.meta||data.meta||{});
     lastImage=data.image;
 
     const review=await callQualityInspector({
@@ -1384,8 +1411,12 @@ async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null)
       return {...lastImage,review};
     }
 
-    // Reprovação real: tenta corrigir somente se ainda houver retry disponível.
-    if(attempt<maxCorrections)continue;
+    const hardFailure=!!review.critical_error || (review.gross_errors||[]).some(x=>/rosto|logo|data|hor[aá]rio|endere[cç]o|duplic|borda|canvas|crop|corpo inteiro|sobrepos/i.test(String(x)));
+    // Só gaste outra imagem se o erro for objetivamente grave.
+    if(attempt<maxCorrections && hardFailure)continue;
+
+    // Erro apenas estético/menor: preserve a primeira imagem em vez de gastar um retry caro.
+    return {...lastImage,review:{...review,deliveredWithoutRetry:true}};
 
     // Se já gastamos a última tentativa, entregamos a última imagem válida.
     // A UI pode indicar internamente que foi entregue após revisão não aprovada,
@@ -1415,7 +1446,7 @@ async function requestArtDirection(base,signal=null){
   const text=await r.text();let data;
   try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,220)||`Diretor de arte: resposta inválida (${r.status})`);}
   if(!r.ok)throw new Error(data.error||`Diretor de arte: erro ${r.status}`);
-  recordCostEvent('Diretor de Arte',data.meta||{});state.artDirection=data.artDirection||null;return state.artDirection;
+  recordOpenAIRequest('Diretor de Arte',data.meta||{});state.artDirection=data.artDirection||null;return state.artDirection;
 }
 function titleDirection(){return state.artDirection?.typography?.title||null;}
 function normalizeHex(v,fallback='#ffffff'){return /^#[0-9a-f]{6}$/i.test(String(v||''))?v:fallback;}
@@ -1535,6 +1566,18 @@ function screenQuickMode(){
 }
 
 
+
+function typographyDecisionFor(key,artDirection={}){
+  const bp=artDirection?.typographyBlueprint?.[key]||null;
+  if(!bp)return null;
+  return normalizeTypographyBlueprint({[key]:bp})[key]||null;
+}
+function typographyBlueprintInstruction(required={}){
+  const keys=editableSemanticKeys(required);
+  if(!keys.length)return '';
+  return `Você é o designer responsável também pelos textos editáveis. Para cada campo editável (${keys.join(', ')}), decida ANTES da geração: posição relativa x/y, largura máxima, alinhamento, cor exata, contraste, peso, tamanho relativo e estilo de fonte. O renderer obedecerá suas decisões; portanto não deixe essas escolhas para o código. Não escreva esses campos na imagem base. Reserve espaço real e coerente para cada um.`;
+}
+
 function editableSemanticKeys(required={}){
   return ['subtitle','date','time','address','pastorNames'].filter(k=>{
     const v=required?.[k];
@@ -1544,7 +1587,7 @@ function editableSemanticKeys(required={}){
 function hybridTypographyInstruction(required={}){
   const keys=editableSemanticKeys(required);
   if(!keys.length)return '';
-  return `TIPOGRAFIA HÍBRIDA: o título principal pode permanecer artístico/nativo quando isso preservar melhor o design. Os seguintes campos serão renderizados depois como texto preciso: ${keys.join(', ')}. NÃO escreva esses campos na imagem base. Em vez disso, reserve áreas naturais para eles e descreva no typographyBlueprint a posição, alinhamento, cor, contraste, tamanho relativo, largura máxima, peso e família visual que você usaria se fosse o designer final.`;
+  return `TIPOGRAFIA HÍBRIDA: o título principal pode permanecer artístico/nativo quando isso preservar melhor o design. Os seguintes campos serão renderizados depois como texto preciso: ${keys.join(', ')}. NÃO escreva esses campos na imagem base. Em vez disso, reserve áreas naturais para eles e descreva no typographyBlueprint a posição, alinhamento, cor EXATA, contraste, tamanho relativo, largura máxima, peso e família visual que você usaria se fosse o designer final. O renderer NÃO deve inventar posição nem cor.`;
 }
 function normalizeTypographyBlueprint(bp={}){
   const out={};
@@ -1564,6 +1607,11 @@ function normalizeTypographyBlueprint(bp={}){
     };
   }
   return out;
+}
+
+
+function referenceGeometryInstruction(){
+  return `FIDELIDADE GEOMÉTRICA: trate a referência como um mapa espacial. Extraia e preserve, quando aplicável: posição relativa do pregador, escala do pregador no canvas, enquadramento (rosto/peito/cintura/3-4/corpo inteiro), ponto de corte, massas tipográficas grandes, localização de brilhos/sombras/glows, áreas vazias, direção de leitura e sobreposição entre elementos. Não copie a proporção física da referência quando o formato de saída for diferente; adapte a MESMA geometria proporcional ao aspect ratio de destino.`;
 }
 
 function logoPositionInstruction(pos){
