@@ -16,9 +16,11 @@ ERROS CRÍTICOS que reprovam:
 - logo deformada, redesenhada ou trocada;
 - título/data/horário/endereço obrigatórios errados, inventados ou ausentes;
 - erro grosseiro de posicionamento quando o usuário especificou uma região;
-- arte quebrada, ilegível ou com artefatos severos.
+- arte quebrada, ilegível ou com artefatos severos;\n- qualquer texto, logo, rosto, data, horário, endereço ou informação essencial cortado, encostado demais na borda ou parcialmente fora do canvas.
 
-Erros criativos menores NÃO devem reprovar.
+Se público-alvo ou estilo estiverem especificados, verifique se a peça é coerente com eles, mas não reprove por diferenças criativas pequenas.
+Se não estiverem especificados, ignore esse critério.
+Erros criativos menores NÃO devem reprovar. Porém, violação de área segura de conteúdo essencial deve reprovar.
 
 COMPOSIÇÃO ADAPTATIVA:
 - Verifique se a arte usa apenas as pessoas realmente fornecidas.
@@ -27,6 +29,8 @@ COMPOSIÇÃO ADAPTATIVA:
 - A referência deve ser preservada como linguagem visual, não como molde rígido.
 
 Conteúdo obrigatório: ${JSON.stringify(data.requiredContent||{})}
+Público-alvo escolhido: ${data.audience||"não especificado"}
+Estilo escolhido: ${data.designStyle||"não especificado"}
 Mapa/posições: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.userInstruction||""}
 Instrução final: ${data.finalInstruction||""}
