@@ -357,7 +357,6 @@
       <div class="project-mini"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></div>
       <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
       <nav id="stepNav"></nav>
-      <div class="sidebar-foot"><span>V0.17 • Tipografia Adaptativa + Curador + Fiscal</span><small>IA visual será conectada após validar o fluxo.</small></div>
     </aside>
 
     <main class="main">
@@ -1638,7 +1637,9 @@ function buildDiagnosticVerdict(d){
   return'Compare RAW e FINAL: se a borda já estiver na RAW, o problema é da geração; se surgir apenas na FINAL, o problema é do pós-processamento.';
 }
 function diagnosticPanelHTML(){
-  if(!state.user?.isAdmin||!state.diagnostics?.last)return'';const d=state.diagnostics.last;
+  if(!state.user?.isAdmin)return'';
+  const d=state.diagnostics?.last||null;
+  if(!d)return`<div class="diag-panel show"><strong style="font-size:11px;color:#bcd4ff">◉ Diagnóstico de canvas</strong><div style="font-size:8px;color:#7f91ad;margin-top:3px">Teste local • sem custo de IA</div><div class="diag-verdict">A rotina antiga de blur + inset foi removida. Você pode validar o novo resize sem gerar arte.</div><div class="diag-actions"><button class="mini-btn" id="runSyntheticResizeTest" type="button">Rodar teste local de resize (US$ 0,00)</button></div><div id="syntheticResizeResult"></div></div>`;
   return`<div class="diag-panel show"><strong style="font-size:11px;color:#bcd4ff">◉ Diagnóstico RAW vs FINAL</strong><div style="font-size:8px;color:#7f91ad;margin-top:3px">Somente administrador • sem custo adicional</div><div class="diag-grid"><div class="diag-card"><img src="${d.rawUrl}"><div class="meta"><b>RAW OpenAI</b><br>${d.rawDims?.width||'?'}×${d.rawDims?.height||'?'}</div></div><div class="diag-card"><img src="${d.finalUrl}"><div class="meta"><b>FINAL ChurchDesign</b><br>${d.finalDims?.width||'?'}×${d.finalDims?.height||'?'}</div></div></div><div class="diag-verdict">${esc(buildDiagnosticVerdict(d))}</div><div class="diag-actions"><button class="mini-btn" id="runSyntheticResizeTest" type="button">Rodar teste local de resize (US$ 0,00)</button></div><div id="syntheticResizeResult"></div></div>`;
 }
 async function runSyntheticResizeTest(){
@@ -1702,12 +1703,20 @@ function bindQuickResultEvents(){
 }
 function setQuickProgress(pct,text){const wrap=document.querySelector('#quickProgress'),bar=document.querySelector('#quickProgressBar'),label=document.querySelector('#quickProgressText'),num=document.querySelector('#quickProgressPct');if(!wrap)return;wrap.classList.toggle('show',pct>0&&pct<100);if(bar)bar.style.width=`${pct}%`;if(label)label.textContent=text||'Processando sua arte...';if(num)num.textContent=`${pct}%`;}
 async function resizeToTarget(dataUrl,target){
-  const img=await loadImageSafe(dataUrl);const c=document.createElement('canvas');c.width=target.width;c.height=target.height;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-  // Background extension: cover + blur; this may crop only decorative background.
-  ctx.save();ctx.filter='blur(28px) saturate(.9)';ctx.globalAlpha=.82;drawImageCover(ctx,img,c.width,c.height);ctx.restore();
-  // Hard safety lock: the COMPLETE generated artwork is never cropped and is inset 7% from every edge.
-  const margin=Math.round(Math.min(c.width,c.height)*.07),aw=c.width-margin*2,ah=c.height-margin*2,r=Math.min(aw/img.naturalWidth,ah/img.naturalHeight),dw=img.naturalWidth*r,dh=img.naturalHeight*r;
-  ctx.drawImage(img,(c.width-dw)/2,(c.height-dh)/2,dw,dh);
+  const img=await loadImageSafe(dataUrl);
+  const c=document.createElement('canvas');
+  c.width=target.width;
+  c.height=target.height;
+  const ctx=c.getContext('2d');
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+
+  // V0.23.1 — CANVAS REAL:
+  // Nunca criar fundo borrado, moldura, inset ou "arte dentro da arte".
+  // A imagem gerada ocupa 100% do canvas final.
+  // Diferenças pequenas de aspect ratio são resolvidas por crop central do cover.
+  drawImageCover(ctx,img,c.width,c.height);
+
   return c.toDataURL('image/png');
 }
 async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null){scrollToGenerationPanel();if(label==='Principal'&&replaceIndex===null)beginCostSession('Modo Rápido • primeira arte');const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent='Processando sua arte...';try{const payload=await quickPayload(label,correction,signal);setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual.`;setQuickProgress(48,'Criando sua arte...');const image=await generateWithInvisibleReview(payload,1,signal);setQuickProgress(88,'Finalizando...');let dataUrl=await remoteToDataUrl(image.url);dataUrl=await resizeToTarget(dataUrl,payload.target);dataUrl=await applyTypographyPlan(dataUrl,payload.typographyPlan,payload.requiredContent,payload.target);const finalReview=await callQualityInspector({generatedImage:dataUrl,preTypographyImage:image.url,references:payload.references||[],assets:payload.assets||{},requiredContent:payload.requiredContent||{},semanticMap:[],userInstruction:payload.instruction||'',finalInstruction:payload.finalInstruction||'',artDirection:payload.artDirection||null,typographyPlan:payload.typographyPlan,phase:'final_typography'},signal);if(finalReview.typography_conversion_safe===false){const aiPayload={...payload,forceAiTypography:true,typographyPlan:{...payload.typographyPlan,force_ai:true}};const aiImage=await generateWithInvisibleReview(aiPayload,1,signal);dataUrl=await remoteToDataUrl(aiImage.url);dataUrl=await resizeToTarget(dataUrl,payload.target);}const result={id:crypto.randomUUID(),label,dataUrl,sourceUrl:image.url,target:payload.target,artDirection:payload.artDirection,typographyPlan:payload.typographyPlan,requiredContent:payload.requiredContent,assets:payload.assets,instruction:payload.instruction,adaptations:[],correction:''};if(replaceIndex===null)state.quickResults.push(result);else{
