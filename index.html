@@ -340,6 +340,7 @@
 
 
 </style>
+  <!-- ChurchDesign V0.25 — native aspect ratio / no ratio retry -->
 </head>
 <body>
   <div class="app-shell">
@@ -1611,54 +1612,33 @@ function bindQuickResultEvents(){
 function setQuickProgress(pct,text){const wrap=document.querySelector('#quickProgress'),bar=document.querySelector('#quickProgressBar'),label=document.querySelector('#quickProgressText'),num=document.querySelector('#quickProgressPct');if(!wrap)return;wrap.classList.toggle('show',pct>0&&pct<100);if(bar)bar.style.width=`${pct}%`;if(label)label.textContent=text||'Processando sua arte...';if(num)num.textContent=`${pct}%`;}
 
 async function normalizeArtworkToTarget(image,payload,target,signal=null){
+  // V0.25: o GPT Image 2 recebe o aspect ratio nativo no backend.
+  // Esta etapa NUNCA dispara nova geração. Uma imagem já paga sempre segue para entrega.
   const raw=await remoteToDataUrl(image.url);
-  try{
-    return {image,dataUrl:await resizeToTarget(raw,target),recomposed:false};
-  }catch(e){
-    if(e?.code!=='ASPECT_RATIO_RECOMPOSE_REQUIRED')throw e;
-
-    const correction=`RECOMPOSIÇÃO DE FORMATO OBRIGATÓRIA. A imagem anterior saiu em proporção incompatível com ${target.width}x${target.height} (${target.ratio||target.label}). NÃO recorte nem use blur/moldura. Recrie a composição NATIVAMENTE no aspect ratio solicitado, redistribuindo título, pregador, logo, fundo e informações. Preserve a linguagem visual e o conteúdo, mas adapte a geometria para preencher 100% do canvas.`;
-    const retryPayload={
-      ...payload,
-      mode:'aspect-ratio-recompose',
-      target,
-      qualityCorrection:[payload.qualityCorrection||'',correction].filter(Boolean).join(' '),
-      revisionAttempt:(payload.revisionAttempt||0)+1,
-      safeMode:false
-    };
-    const regenerated=await generateWithInvisibleReview(retryPayload,0,signal);
-    const raw2=await remoteToDataUrl(regenerated.url);
-    // Segunda saída: só aceita se já estiver suficientemente próxima.
-    return {image:regenerated,dataUrl:await resizeToTarget(raw2,target),recomposed:true};
-  }
+  const normalized=await resizeToTarget(raw,target);
+  return {image,dataUrl:normalized.dataUrl,recomposed:false,aspectRatioFallback:normalized.aspectRatioFallback||false};
 }
 
 async function resizeToTarget(dataUrl,target){
   const img=await loadImageSafe(dataUrl);
   const srcW=img.naturalWidth||img.width,srcH=img.naturalHeight||img.height;
-  const srcRatio=srcW/srcH,targetRatio=target.width/target.height;
+  const targetW=Number(target.width)||srcW,targetH=Number(target.height)||srcH;
+  const srcRatio=srcW/srcH,targetRatio=targetW/targetH;
   const ratioDrift=Math.abs(Math.log(srcRatio/targetRatio));
 
-  // Diferenças pequenas são corrigidas por cover.
-  // Diferenças grandes NÃO podem ser resolvidas com crop agressivo.
-  // Nesse caso a função sinaliza que a arte precisa ser recomposta nativamente.
-  const MAX_SAFE_RATIO_DRIFT=0.16; // ~17% de diferença proporcional
-  if(ratioDrift>MAX_SAFE_RATIO_DRIFT){
-    const e=new Error('ASPECT_RATIO_RECOMPOSE_REQUIRED');
-    e.code='ASPECT_RATIO_RECOMPOSE_REQUIRED';
-    e.sourceRatio=srcRatio;
-    e.targetRatio=targetRatio;
-    throw e;
-  }
-
+  // Com size nativo, normalmente não haverá diferença relevante.
+  // Pequenas diferenças técnicas são normalizadas por cover.
+  // Diferença grande NÃO causa retry nem erro: preservamos a arte paga e marcamos
+  // fallback interno. Isso só deve ocorrer se a API/modelo ignorar o size solicitado.
   const c=document.createElement('canvas');
-  c.width=target.width;c.height=target.height;
+  c.width=targetW;c.height=targetH;
   const ctx=c.getContext('2d');
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
 
-  // Sem blur, sem inset, sem moldura, sem arte dentro da arte.
+  const aspectRatioFallback=ratioDrift>0.08;
   drawImageCover(ctx,img,c.width,c.height);
-  return c.toDataURL('image/png');
+
+  return {dataUrl:c.toDataURL('image/png'),aspectRatioFallback};
 }
 async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null){scrollToGenerationPanel();if(label==='Principal'&&replaceIndex===null)beginCostSession('Modo Rápido • primeira arte');const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent='Processando sua arte...';try{const payload=await quickPayload(label,correction,signal);setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual.`;setQuickProgress(48,'Criando sua arte...');const image=await generateWithInvisibleReview(payload,1,signal);setQuickProgress(88,'Finalizando...');
     const normalized=await normalizeArtworkToTarget(image,payload,payload.target,signal);
