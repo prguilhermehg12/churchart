@@ -112,11 +112,27 @@ Plano tipográfico: ${JSON.stringify(data.typographyPlan||{})}
 - Para AI, componha o texto livremente como parte da arte, seguindo a referência.
 - TÍTULO deve permanecer AI se o plano disser AI ou se confidence < 0.88. Nunca force fonte real quando a referência tiver lettering, distorção, perspectiva, integração com fotografia ou tratamento não reproduzível.
 
+FIDELIDADE À REFERÊNCIA — ORDEM DE PRIORIDADE:
+1. Geometria/composição: escala, posição, enquadramento, áreas vazias e massas visuais.
+2. Hierarquia: o que chama atenção primeiro, segundo e terceiro.
+3. Identidade visual: tipografia, paleta, textura, luz, sombra, glow e grandes elementos de fundo.
+4. Conteúdo substituído.
+5. Adaptação criativa apenas depois disso.
+
+PREGADOR:
+- Com referência, replique primeiro o enquadramento da referência.
+- Se a referência mostrar busto, peito ou cintura, não transforme em corpo inteiro.
+- Sem referência/instrução, priorize peito para cima ou cintura para cima.
+- Corpo inteiro apenas se referência/instrução justificar.
+- Preserve posição e escala relativa do pregador no canvas.
+- Preserve direção e função espacial de sombras, glows e brilhos.
+- Grandes letreiros/formas de fundo que estruturam a referência devem ser reproduzidos/adaptados, não omitidos por simplificação.
+
 REGRA DE CANVAS NATIVO — HARD CONSTRAINT:
 - O tamanho/proporção solicitados são o canvas real da arte.
 - Crie a composição diretamente nessa proporção e preencha 100% dela.
 - PROIBIDO gerar um pôster/cartaz menor dentro de outro canvas.
-- PROIBIDO usar a própria arte ampliada, borrada, desfocada ou duplicada como fundo para completar a proporção.
+- PROIBIDO usar a própria arte ampliada, borrada, desfocada ou duplicada como fundo para completar a proporção. Isso inclui qualquer efeito de 'contain' visual, vinheta externa, frame interno ou preenchimento por blur.
 - PROIBIDO adicionar barras, margens externas ou moldura de compensação, salvo quando referência/instrução explicitamente usar isso.
 - Se a composição original não couber, redistribua e redimensione os elementos.
 
@@ -178,9 +194,9 @@ async function generate(data){
   const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
     model:"gpt-5.6-sol",reasoning:{effort:"medium"},store:false,input:[{role:"user",content:inputContent(data,prompt(data))}],tools:[tool],tool_choice:"required"
   })});
-  const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
+  const requestId=r.headers.get("x-request-id")||null;const d=await r.json();if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.requestId=requestId;throw e;}
   const call=(d.output||[]).find(x=>x.type==="image_generation_call"&&x.result);if(!call?.result)throw new Error("O gerador não retornou imagem.");
-  return {base64:call.result,responseUsage:d.usage||null,toolUsage:call.usage||null};
+  return {base64:call.result,responseUsage:d.usage||null,toolUsage:call.usage||null,requestId};
 }
 module.exports=async function handler(req,res){
   if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
@@ -189,6 +205,6 @@ module.exports=async function handler(req,res){
     const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle&&!data.artDirection)return res.status(400).json({error:"Forneça uma referência ou uma direção de inspiração."});
     const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
     const url=await saveBase64ToStorage(generated.base64,label);
-    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.responseUsage||null,toolUsage:generated.toolUsage||null}}});
+    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.responseUsage||null,toolUsage:generated.toolUsage||null,requestId:generated.requestId||null,endpoint:"responses:image_generation"}}});
   }catch(e){console.error("ChurchDesign V0.13 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
 };
