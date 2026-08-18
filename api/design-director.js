@@ -23,13 +23,15 @@ Não use adjetivos genéricos. Use linguagem concreta de direção de arte. ANTE
 Se não estiverem especificados, não invente restrições e decida apenas pelas referências, conteúdo e contexto.
 Se estiverem especificados, eles são parte obrigatória da direção criativa e devem influenciar energia, tipografia, composição, acabamento e grau de ousadia.
 Não reduza esses estilos a estereótipos caricatos.
+REGRA DE ENQUADRAMENTO HUMANO: por padrão preserve o corpo inteiro do pregador quando a foto permitir. Só recomende crop corporal quando a referência ou instrução justificar claramente. Prefira redimensionar/reorganizar a composição a cortar cabeça, mãos, braços, pernas ou tronco.\nREGRA DE COMPOSIÇÃO PROFISSIONAL: por padrão, não proponha poster-in-poster, quadro dentro de quadro, moldura externa artificial ou card central flutuando no canvas. Só faça isso se estiver claramente na referência ou for pedido. Evite UI-like boxes/cards/cápsulas em informações. Para LOGO, seja ainda mais rígido: uma única logo original, limpa, sem caixa/placa/selo/fundo próprio, sem duplicar símbolo, sem extrair ícone, sem redesenhar. Em telão sem imagem principal, favoreça título centralizado. Com pregador/figura/ilustração, favoreça título em um lado e imagem no lado oposto.
 Se houver pessoas visualmente recortadas, cutout_required=true.
-Se o título dominar a peça, especifique escala, rotação, outline, sombra e tracking.
+Se o título dominar a peça, especifique escala, rotação, outline, sombra e tracking. O Curador Tipográfico é conservador: respeite mode=AI quando houver risco de perda visual. Editabilidade nunca tem prioridade sobre fidelidade.
 Mapa semântico: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.instruction||"nenhuma"}
 Instrução final: ${data.finalInstruction||"nenhuma"}
 PREFERÊNCIAS APRENDIDAS DO USUÁRIO: ${data.preferenceProfile?JSON.stringify(data.preferenceProfile):"nenhuma ainda"}
-Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}
+PLANO DO CURADOR TIPOGRÁFICO: ${data.typographyPlan?JSON.stringify(data.typographyPlan):"não disponível"}
+Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}\nPrioridade explícita de posição da logo: ${data.logoPosition||"não especificada; seguir referência ou equilíbrio"}
 Estilo explicitamente escolhido: ${data.designStyle||"não especificado"}
 Efeitos: ${JSON.stringify(data.effects||[])}\nDireção de inspiração sem referência: ${data.inspirationStyle?JSON.stringify(data.inspirationStyle):'não utilizada'}`}];
 for(const r of (data.references||[]).slice(0,3)){if(r?.image&&String(r.image).startsWith("data:image/")){c.push({type:"input_image",image_url:r.image,detail:"high"});if(r.note)c.push({type:"input_text",text:`Orientação desta referência: ${r.note}`});}}
@@ -49,6 +51,6 @@ text:{format:{type:"json_schema",name:"churchdesign_art_direction",strict:true,s
 const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
 const text=outputText(d);if(!text)throw new Error("Diretor de Arte não devolveu blueprint.");
 let artDirection;try{artDirection=JSON.parse(text)}catch{throw new Error("Blueprint inválido.");}
-return res.status(200).json({success:true,artDirection});
+return res.status(200).json({success:true,artDirection,meta:{model:'gpt-5.6-terra',usage:d.usage||null}});
 }catch(e){console.error("ChurchDesign Design Director",e);return res.status(500).json({error:e.message||"Erro no Diretor de Arte."});}
 };
