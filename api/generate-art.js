@@ -17,6 +17,12 @@ async function saveBase64ToStorage(base64,label="art"){
   const text=await r.text();if(!r.ok)throw new Error(`Falha ao salvar arte: ${text.slice(0,180)}`);
   return`${c.url}/storage/v1/object/public/${encodeURIComponent(BUCKET)}/${encodePath(path)}`;
 }
+
+function pngDimensionsFromBase64(base64){
+  try{const b=Buffer.from(base64,"base64");if(b.length>=24&&b.toString("ascii",1,4)==="PNG")return{width:b.readUInt32BE(16),height:b.readUInt32BE(20)};}catch{}
+  return{width:null,height:null};
+}
+
 function modelSize(target={}){
   const w=Number(target.width)||1080,h=Number(target.height)||1350,r=w/h;
   if(r>1.18)return"1536x1024";if(r<.84)return"1024x1536";return"1024x1024";
@@ -204,7 +210,8 @@ module.exports=async function handler(req,res){
   try{
     const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle&&!data.artDirection)return res.status(400).json({error:"Forneça uma referência ou uma direção de inspiração."});
     const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
+    const rawDimensions=pngDimensionsFromBase64(generated.base64);
     const url=await saveBase64ToStorage(generated.base64,label);
-    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.responseUsage||null,toolUsage:generated.toolUsage||null,requestId:generated.requestId||null,endpoint:"responses:image_generation"}}});
+    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.responseUsage||null,toolUsage:generated.toolUsage||null,requestId:generated.requestId||null,endpoint:"responses:image_generation",rawWidth:rawDimensions.width,rawHeight:rawDimensions.height}}});
   }catch(e){console.error("ChurchDesign V0.13 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
 };
