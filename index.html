@@ -288,11 +288,7 @@
 
 
 /* V0.17 — tipografia adaptativa */
-.typography-policy{margin-top:10px;padding:9px 10px;border:1px solid #3a4353;border-radius:10px;background:#0d1016;font-size:9px;color:#aeb7c7}
-.typography-policy strong{color:#e8ecf3}.typography-policy .tp-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.tp-tag{border:1px solid #414b5d;border-radius:99px;padding:3px 6px;background:#151923;color:#cbd2df}
-
-
-/* V0.19 — supervisor de custos */
+.typography-policy strong{color:#e8ecf3}.typography-policy /* V0.19 — supervisor de custos */
 .cost-supervisor{display:none;margin-top:12px;border:1px solid #5c4c26;border-radius:12px;background:#18150e;padding:11px}
 .cost-supervisor.show{display:block}
 .cost-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -343,11 +339,6 @@
 .color-picker-wrap .quick-color{flex:1}
 
 
-/* V0.23 */
-.diag-panel{display:none;margin-top:14px;border:1px solid #34455d;border-radius:13px;background:#0d121a;padding:12px}.diag-panel.show{display:block}
-.diag-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.diag-card{border:1px solid #263244;border-radius:10px;overflow:hidden;background:#090c11}.diag-card img{display:block;width:100%;background:#050608}.diag-card .meta{padding:7px 8px;font-size:8px;color:#8fa0bb;line-height:1.45}.diag-card .meta b{color:#d8e6ff}
-.diag-verdict{margin-top:9px;border-radius:9px;padding:8px;font-size:9px;line-height:1.45;background:#101a25;color:#b8c8df}.diag-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
-@media(max-width:900px){.diag-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -381,11 +372,9 @@ projectTitle:'Nova arte',
 lastMarked:null,
 currentDraftId:null,
 artDirection:null,
-typographyPlan:null,
 mode:null,
 quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',dominantColorMode:'custom',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoPosition:'',logoAssetId:null,pastorAssetIds:[],pastorNames:{},churchImageAssetId:null,correction:''},
 quickResults:[],
-diagnostics:{last:null,history:[]},
 costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',actualStart:null,actualEnd:null,actualCost:null,requests:[],untrackedEstimate:0},
 library:{assets:[],generations:[],drafts:[],ratings:[],dbReady:false},
 user:{email:'pr.guilhermehg12@gmail.com',plan:'studio',credits:null,isAdmin:true},
@@ -1036,18 +1025,18 @@ function screenResults(){
     if(artDirectorTags)artDirectorTags.innerHTML=(ad.style_tags||[]).slice(0,8).map(t=>`<span class="art-director-tag">${esc(t)}</span>`).join('');
     if(artDirectorSummary)artDirectorSummary.textContent=ad.visual_summary||'Direção visual analisada.';
   }
-  async function generatePrimary(){beginCostSession('Modo Detalhado • propostas');stopRequested=false;stopBtn.disabled=false;stopBtn.textContent='✓ Gostei dessa, pode parar';currentImages=[];results.innerHTML='';btn.disabled=true;stopBtn.style.display='none';if(loader)loader.classList.add('show');seq.innerHTML=variantSpecs.map((v,i)=>`<div class="seq-row" data-seq="${i}"><i class="seq-dot"></i><span>${i+1}/3 — ${v.label}</span></div>`).join('');const saved=[];try{const base=await basePayload();await loadLibraryFonts();base.typographyPlan=await requestTypographyPlan(base,globalSignal);
-artDirectorPanel?.classList.add('show');
-if(artDirectorStatus)artDirectorStatus.textContent='Analisando tipografia, recortes, hierarquia, paleta e linguagem gráfica...';
+  async function generatePrimary(){beginCostSession('Modo Detalhado • propostas');stopRequested=false;stopBtn.disabled=false;stopBtn.textContent='✓ Gostei dessa, pode parar';currentImages=[];results.innerHTML='';btn.disabled=true;stopBtn.style.display='none';if(loader)loader.classList.add('show');seq.innerHTML=variantSpecs.map((v,i)=>`<div class="seq-row" data-seq="${i}"><i class="seq-dot"></i><span>${i+1}/3 — ${v.label}</span></div>`).join('');const saved=[];try{const base=await basePayload();artDirectorPanel?.classList.add('show');
+if(artDirectorStatus)artDirectorStatus.textContent='Analisando composição, enquadramento, hierarquia, paleta e linguagem gráfica...';
 if(artDirectorSummary)artDirectorSummary.textContent='Transformando as referências em um blueprint de direção de arte.';
 const artDirection=await requestArtDirection(base,globalSignal);renderArtDirection(artDirection);base.artDirection=artDirection;
 for(let i=0;i<variantSpecs.length;i++){if(stopRequested)break;const v=variantSpecs[i],row=seq.querySelector(`[data-seq="${i}"]`);row.classList.add('active');status.textContent=`${i+1}/3 — Gerando ${v.label}...`;currentController=new AbortController();try{const d=await generateWithInvisibleReview({...base,mode:'primary',variantId:v.id,variantLabel:v.label,variantInstruction:state.finalConfig.variants[v.id],target:primaryTargetSpec()},1,globalSignal);
-          let finalData=await remoteToDataUrl(d.url);finalData=await resizeToTarget(finalData,primaryTargetSpec());finalData=await applyTypographyPlan(finalData,base.typographyPlan,base.requiredContent,primaryTargetSpec());
-          const im={label:v.label,dataUrl:finalData,baseUrl:d.url,modelUsed:d.modelUsed,review:d.review,typographyPlan:base.typographyPlan};appendResult(im);const persisted=await persistOne(im);if(persisted)saved.push(persisted);row.classList.remove('active');row.classList.add('done');}catch(e){row.classList.remove('active');if(stopRequested||e.name==='AbortError')break;row.classList.add('fail');throw e;}finally{currentController=null;}}if(saved.length){const g=await apiJSON('save-generation',{method:'POST',body:{format:state.format,images:saved}});state.library.generations=[g.generation,...state.library.generations];renderGallery();}status.innerHTML=stopRequested?'<strong style="color:var(--good)">✓ Processo interrompido por você. As propostas prontas foram mantidas.</strong>':`<strong style="color:var(--good)">✓ ${currentImages.length} proposta(s) finalizada(s).</strong>`;}catch(e){status.innerHTML=`<strong style="color:#ff9eac">A geração foi interrompida.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">As propostas que já apareceram continuam disponíveis.</span>`;}finally{if(loader)loader.classList.remove('show');btn.disabled=false;btn.textContent='✦ GERAR NOVAMENTE';currentController=null;activeProcessController=null;if(cancelBtn)cancelBtn.style.display='none';}}
+          const normalized=await normalizeArtworkToTarget(d,{...base,mode:'primary',variantId:v.id,variantLabel:v.label,variantInstruction:state.finalConfig.variants[v.id],target:primaryTargetSpec()},primaryTargetSpec(),globalSignal);
+          const finalImage=normalized.image,finalData=normalized.dataUrl;
+          const im={label:v.label,dataUrl:finalData,baseUrl:(finalImage||d).url,modelUsed:d.modelUsed,review:d.review};appendResult(im);const persisted=await persistOne(im);if(persisted)saved.push(persisted);row.classList.remove('active');row.classList.add('done');}catch(e){row.classList.remove('active');if(stopRequested||e.name==='AbortError')break;row.classList.add('fail');throw e;}finally{currentController=null;}}if(saved.length){const g=await apiJSON('save-generation',{method:'POST',body:{format:state.format,images:saved}});state.library.generations=[g.generation,...state.library.generations];renderGallery();}status.innerHTML=stopRequested?'<strong style="color:var(--good)">✓ Processo interrompido por você. As propostas prontas foram mantidas.</strong>':`<strong style="color:var(--good)">✓ ${currentImages.length} proposta(s) finalizada(s).</strong>`;}catch(e){status.innerHTML=`<strong style="color:#ff9eac">A geração foi interrompida.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">As propostas que já apareceram continuam disponíveis.</span>`;}finally{if(loader)loader.classList.remove('show');btn.disabled=false;btn.textContent='✦ GERAR NOVAMENTE';currentController=null;activeProcessController=null;if(cancelBtn)cancelBtn.style.display='none';}}
   if(cancelBtn)cancelBtn.onclick=()=>{stopRequested=true;cancelActiveProcess();status.textContent='Processamento cancelado.';};
   stopBtn.onclick=()=>{stopRequested=true;stopBtn.disabled=true;stopBtn.textContent='Parando...';if(currentController)currentController.abort();};
   function selectedKeep(i,f){const box=document.querySelector(`[data-keep-box="${i}-${f}"]`);if(!box)return ['all'];const vals=[...box.querySelectorAll('[data-keep].active')].map(x=>x.dataset.keep);return vals.length?vals:['all'];}
-  async function generateOneAdaptation(i,format,redesign=false){const source=currentImages[i];if(!source)return;const target=targetSpec(format),keep=selectedKeep(i,format),list=document.querySelector(`#adaptList-${i}`);const tempId=`adapt-${i}-${format}-${Date.now()}`;list.insertAdjacentHTML('beforeend',`<div class="adaptation-card" id="${tempId}"><div style="width:68px;height:45px;border-radius:7px;background:#171a20;display:grid;place-items:center"><div class="loader-orb" style="width:22px;height:22px"></div></div><div class="adaptation-info"><strong>${target.label}</strong><small>Gerando ${target.width} × ${target.height}...</small></div></div>`);try{const ref=await prepareImageForAI(source.baseUrl||source.dataUrl,1280,.78);const d=await generateWithInvisibleReview({mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},1);const finalData=await remoteToDataUrl(d.url);const card=document.getElementById(tempId);card.className=`adaptation-card ${format==='story'?'story':''}`;card.innerHTML=`<img src="${finalData}"><div class="adaptation-info"><strong>${target.label} • ${target.width} × ${target.height}</strong><small>${redesign?'Layout redesenhado':'Adaptação concluída'} • ${keep.includes('all')?'Tudo mantido':keep.join(', ')}</small></div><div class="adaptation-actions"><button class="mini-btn download-btn" type="button" data-adapt-download>↓ Baixar</button><button class="mini-btn" type="button" data-adapt-redraw>↻ Redesenhar</button></div>`;card.querySelector('[data-adapt-download]').onclick=()=>downloadDataUrl(finalData,`${buildDownloadName(source.label).replace('.png','')}-${format}.png`);card.querySelector('[data-adapt-redraw]').onclick=()=>generateOneAdaptation(i,format,true);}catch(e){const card=document.getElementById(tempId);if(card)card.innerHTML=`<div></div><div class="adaptation-info"><strong style="color:#ff9eac">${target.label}: falhou</strong><small>${esc(e.message)}</small></div><div class="adaptation-actions"><button class="mini-btn" type="button" data-retry>Repetir</button></div>`;card?.querySelector('[data-retry]')?.addEventListener('click',()=>generateOneAdaptation(i,format,redesign));}}
+  async function generateOneAdaptation(i,format,redesign=false){const source=currentImages[i];if(!source)return;const target=targetSpec(format),keep=selectedKeep(i,format),list=document.querySelector(`#adaptList-${i}`);const tempId=`adapt-${i}-${format}-${Date.now()}`;list.insertAdjacentHTML('beforeend',`<div class="adaptation-card" id="${tempId}"><div style="width:68px;height:45px;border-radius:7px;background:#171a20;display:grid;place-items:center"><div class="loader-orb" style="width:22px;height:22px"></div></div><div class="adaptation-info"><strong>${target.label}</strong><small>Gerando ${target.width} × ${target.height}...</small></div></div>`);try{const ref=await prepareImageForAI(source.baseUrl||source.dataUrl,1280,.78);const d=await generateWithInvisibleReview({mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},1);const normalized=await normalizeArtworkToTarget(d,{mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},target);const finalData=normalized.dataUrl;const card=document.getElementById(tempId);card.className=`adaptation-card ${format==='story'?'story':''}`;card.innerHTML=`<img src="${finalData}"><div class="adaptation-info"><strong>${target.label} • ${target.width} × ${target.height}</strong><small>${redesign?'Layout redesenhado':'Adaptação concluída'} • ${keep.includes('all')?'Tudo mantido':keep.join(', ')}</small></div><div class="adaptation-actions"><button class="mini-btn download-btn" type="button" data-adapt-download>↓ Baixar</button><button class="mini-btn" type="button" data-adapt-redraw>↻ Redesenhar</button></div>`;card.querySelector('[data-adapt-download]').onclick=()=>downloadDataUrl(finalData,`${buildDownloadName(source.label).replace('.png','')}-${format}.png`);card.querySelector('[data-adapt-redraw]').onclick=()=>generateOneAdaptation(i,format,true);}catch(e){const card=document.getElementById(tempId);if(card)card.innerHTML=`<div></div><div class="adaptation-info"><strong style="color:#ff9eac">${target.label}: falhou</strong><small>${esc(e.message)}</small></div><div class="adaptation-actions"><button class="mini-btn" type="button" data-retry>Repetir</button></div>`;card?.querySelector('[data-retry]')?.addEventListener('click',()=>generateOneAdaptation(i,format,redesign));}}
   async function generateAdaptationsFor(i){const formats=['screen','youtube','story'].filter(f=>document.querySelector(`[data-adapt-toggle="${i}-${f}"]`)?.classList.contains('active'));if(!formats.length)return showMapNotice('Selecione um formato','Marque Telão, YouTube e/ou Stories.');for(const f of formats)await generateOneAdaptation(i,f,false);}
   btn.onclick=generatePrimary;renderGallery();
 }
@@ -1148,9 +1137,9 @@ async function deleteDraftById(id){
 }
 
 function apiJSON(action,options={}){const method=options.method||'GET';const url=`/api/church-data?action=${encodeURIComponent(action)}`;return fetch(url,{method,headers:{'Content-Type':'application/json'},body:method==='GET'?undefined:JSON.stringify(options.body||{})}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;});}
-async function bootstrapLibrary(){try{const data=await apiJSON('bootstrap');state.library.assets=data.assets||[];const savedLogos=state.library.assets.filter(a=>a.type==='logo');if(!state.finalConfig.logoAssetId&&savedLogos.length)state.finalConfig.logoAssetId=(savedLogos.find(a=>a.is_primary)||savedLogos[0]).id;state.library.generations=data.generations||[];state.library.drafts=data.drafts||[];state.library.ratings=data.ratings||[];state.library.dbReady=true;if(data.profile){state.church.name=data.profile.name||state.church.name;state.church.address=data.profile.address||state.church.address;state.church.screenConfig=data.profile.screen_config||state.church.screenConfig;state.projectTitle=state.church.name||'Nova arte';}const primary=state.library.assets.find(a=>a.type==='logo'&&a.is_primary)||state.library.assets.find(a=>a.type==='logo');if(primary&&!state.church.logo)state.church.logo=primary.url;await loadLibraryFonts();render();}catch(e){console.warn('Banco não configurado:',e);state.library.dbReady=false;render();}}
+async function bootstrapLibrary(){try{const data=await apiJSON('bootstrap');state.library.assets=data.assets||[];const savedLogos=state.library.assets.filter(a=>a.type==='logo');if(!state.finalConfig.logoAssetId&&savedLogos.length)state.finalConfig.logoAssetId=(savedLogos.find(a=>a.is_primary)||savedLogos[0]).id;state.library.generations=data.generations||[];state.library.drafts=data.drafts||[];state.library.ratings=data.ratings||[];state.library.dbReady=true;if(data.profile){state.church.name=data.profile.name||state.church.name;state.church.address=data.profile.address||state.church.address;state.church.screenConfig=data.profile.screen_config||state.church.screenConfig;state.projectTitle=state.church.name||'Nova arte';}const primary=state.library.assets.find(a=>a.type==='logo'&&a.is_primary)||state.library.assets.find(a=>a.type==='logo');if(primary&&!state.church.logo)state.church.logo=primary.url;render();}catch(e){console.warn('Banco não configurado:',e);state.library.dbReady=false;render();}}
 async function saveChurchProfile(){if(!state.library.dbReady)return;try{await apiJSON('save-profile',{method:'POST',body:{name:state.church.name,address:state.church.address,screenConfig:state.church.screenConfig}});}catch(e){console.warn(e)}}
-async function uploadLibraryAsset(file,type){try{if(type==='reference'&&state.library.assets.filter(a=>a.type==='reference').length>=20){alert('Limite de 20 referências por igreja. Remova uma referência antes de adicionar outra.');return null;}const isFont=type==='font';const dataUrl=isFont?await fileAsDataUrl(file):await optimizeImageFile(file,1800,type==='logo'?.95:.9);const meta=isFont?{family:file.name.replace(/\.[^.]+$/,'')}:{originalName:file.name};const d=await apiJSON('upload-asset',{method:'POST',body:{type,name:file.name,dataUrl,mimeType:file.type||guessMime(file.name),meta}});state.library.assets=[d.asset,...state.library.assets.filter(a=>a.id!==d.asset.id)];if(type==='font')await loadLibraryFonts();return d.asset;}catch(e){console.error(e);alert('Não foi possível salvar no banco: '+e.message);return null;}}
+async function uploadLibraryAsset(file,type){try{if(type==='reference'&&state.library.assets.filter(a=>a.type==='reference').length>=20){alert('Limite de 20 referências por igreja. Remova uma referência antes de adicionar outra.');return null;}const isFont=type==='font';const dataUrl=isFont?await fileAsDataUrl(file):await optimizeImageFile(file,1800,type==='logo'?.95:.9);const meta=isFont?{family:file.name.replace(/\.[^.]+$/,'')}:{originalName:file.name};const d=await apiJSON('upload-asset',{method:'POST',body:{type,name:file.name,dataUrl,mimeType:file.type||guessMime(file.name),meta}});state.library.assets=[d.asset,...state.library.assets.filter(a=>a.id!==d.asset.id)];if(type==='font')return d.asset;}catch(e){console.error(e);alert('Não foi possível salvar no banco: '+e.message);return null;}}
 async function deleteLibraryAsset(id){try{await apiJSON('delete-asset',{method:'DELETE',body:{id}});state.library.assets=state.library.assets.filter(a=>a.id!==id);openMyChurch();}catch(e){alert(e.message)}}
 async function persistGeneration(images){
   try{
@@ -1246,7 +1235,7 @@ async function renderFontPreview(id,label,family){
   return c.toDataURL('image/jpeg',.82);
 }
 async function buildFontCandidatesForAI(){
-  await loadLibraryFonts();
+  
   const candidates=[
     {id:'system-condensed',label:'System Condensed',family:'Impact, Haettenschweiler, Arial Narrow Bold, sans-serif'},
     {id:'system-sans',label:'System Sans',family:'Arial, Helvetica, sans-serif'},
@@ -1256,31 +1245,13 @@ async function buildFontCandidatesForAI(){
   const out=[];for(const f of candidates){try{out.push({...f,preview:await renderFontPreview(f.id,f.label,f.family)});}catch(e){}}
   return out;
 }
-async function requestTypographyPlan(base,signal=null){
-  const fontCandidates=await buildFontCandidatesForAI();
-  const r=await fetch('/api/typography-curator',{method:'POST',headers:{'Content-Type':'application/json'},signal,body:JSON.stringify({
-    references:base.references||[],requiredContent:base.requiredContent||{},fontCandidates,audience:base.audience||null,designStyle:base.designStyle||null,colorMode:base.colorMode||null,dominantColor:base.dominantColor||null,logoPosition:base.logoPosition||null,target:base.target||primaryTargetSpec(),instruction:base.instruction||''
-  })});
-  const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error('Curador tipográfico: resposta inválida.');}
-  if(!r.ok)throw new Error(data.error||'Curador tipográfico indisponível.');recordOpenAIRequest('Curador tipográfico',data.meta||{});state.typographyPlan=data.typographyPlan||null;return state.typographyPlan;
-}
+
 function typographyRole(plan,role){return plan?.roles?.[role]||{mode:'ai',confidence:0};}
 function typographyFontFamily(rolePlan){
   const id=rolePlan?.selected_font_id||'system-sans';if(id==='system-condensed')return'Impact, Haettenschweiler, Arial Narrow Bold, sans-serif';if(id==='system-serif')return'Georgia, serif';if(id==='system-sans')return'Arial, Helvetica, sans-serif';return state.library.assets.find(a=>a.id===id)?.cssFamily||'Arial, Helvetica, sans-serif';
 }
 function shouldSystemRender(rolePlan){return ['system','hybrid'].includes(rolePlan?.mode)&&Number(rolePlan?.confidence||0)>=.88;}
-async function applyTypographyPlan(dataUrl,plan,required,target){
-  if(!plan)return dataUrl;const roles=Object.entries(plan.roles||{}).filter(([role,p])=>shouldSystemRender(p)&&required?.[role]);if(!roles.length)return dataUrl;
-  const img=await loadImageSafe(dataUrl);const c=document.createElement('canvas');c.width=target.width;c.height=target.height;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(img,0,0,c.width,c.height);
-  for(const [role,p] of roles){
-    const box=p.box||{x:.12,y:.72,w:.76,h:.12},x=box.x*c.width,y=box.y*c.height,w=box.w*c.width,h=box.h*c.height;let value=String(required[role]||'');if(!value)continue;if(p.uppercase)value=value.toUpperCase();
-    let size=Math.max(14,Math.floor(h*(Number(p.size_scale)||.62)));ctx.save();ctx.textBaseline='middle';ctx.textAlign=p.align||'center';ctx.font=`900 ${size}px ${typographyFontFamily(p)}`;while(size>12&&ctx.measureText(value).width>w){size-=2;ctx.font=`900 ${size}px ${typographyFontFamily(p)}`;}
-    const tx=(p.align==='left'?x:(p.align==='right'?x+w:x+w/2)),ty=y+h/2;ctx.fillStyle=/^#[0-9a-f]{6}$/i.test(p.color||'')?p.color:'#ffffff';
-    if(p.shadow){ctx.shadowColor='rgba(0,0,0,.65)';ctx.shadowBlur=Math.max(3,size*.12);ctx.shadowOffsetY=Math.max(2,size*.04);}if(p.outline){ctx.lineWidth=Math.max(2,size*.045);ctx.strokeStyle=/^#[0-9a-f]{6}$/i.test(p.outline_color||'')?p.outline_color:'#111111';ctx.strokeText(value,tx,ty,w);}
-    ctx.fillText(value,tx,ty,w);ctx.restore();
-  }
-  return c.toDataURL('image/png');
-}
+
 
 async function selectedAssetPayload(){
   const logo=getSelectedLogo();
@@ -1327,7 +1298,7 @@ async function callQualityInspector(payload,signal=null){
         _meta:{technicalFailure:true,reason:'http_error'}
       };
     }
-    recordOpenAIRequest(payload?.phase==='final_typography'?'Fiscal final':'Fiscal visual',data.meta||{});
+    recordOpenAIRequest('Fiscal visual',data.meta||{});
     const review=data.review||{};
     if(typeof review.approved!=='boolean'){
       return {
@@ -1446,7 +1417,7 @@ async function requestArtDirection(base,signal=null){
     body:JSON.stringify({
       references:base.references||[],semanticMap:base.semanticMap||[],church:base.church||{},
       instruction:base.instruction||'',finalInstruction:base.finalInstruction||'',
-      effects:base.effects||[],format:base.format,target:base.target||primaryTargetSpec(),inspirationStyle:base.inspirationStyle||null,audience:base.audience||null,designStyle:base.designStyle||null,preferenceProfile:base.preferenceProfile||null,typographyPlan:base.typographyPlan||null
+      effects:base.effects||[],format:base.format,target:base.target||primaryTargetSpec(),inspirationStyle:base.inspirationStyle||null,audience:base.audience||null,designStyle:base.designStyle||null,preferenceProfile:base.preferenceProfile||null||null
     }),signal
   });
   const text=await r.text();let data;
@@ -1545,7 +1516,7 @@ async function quickPayload(variantLabel='Principal',correction='',signal=null){
     requiredContent:{title:state.quick.title,subtitle:state.quick.subtitle,date:state.quick.date,time:state.quick.time,address:state.quick.address||state.church.address,churchName:state.church.name,pastorNames:names},
     instruction:`Modo rápido. ${state.quick.audience?`Público-alvo: ${audienceLabel(state.quick.audience)}. `:''}${state.quick.designStyle?`Estilo desejado: ${designStyleLabel(state.quick.designStyle)}. `:''}${!state.quick.designStyle&&learned?.designStyle?`Preferência aprendida do usuário: ${learned.designStyle}. `:''}${state.quick.dominantColorMode==='reference'?(ref?'PALETA: preserve a paleta predominante da referência; analise-a visualmente antes de definir cores. Não introduza uma nova cor dominante que descaracterize a referência.':'PALETA: não há referência disponível; escolha automaticamente uma paleta coerente com conteúdo, estilo e público.'):`Cor predominante escolhida pelo usuário: ${state.quick.dominantColor}.`} Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${ref?'':'Criação sem referência: use a direção visual '+inspiration.name+' — '+inspiration.prompt+'.'} SAFE FRAME RÍGIDO: mantenha TODO conteúdo essencial dentro dos 76% centrais do canvas, reservando 12% livres em cada borda. Nenhum texto, logo, rosto, nome, data, hora ou endereço pode tocar as bordas. ${churchAsset?'A FOTO DA IGREJA selecionada é OBRIGATÓRIA: use-a claramente como ambiente/fundo integrado, sem substituí-la por outra igreja.':'Se a referência já tiver pessoas adorando ou ambiente de igreja ao fundo, preserve essa atmosfera; não invente espaços vazios.'} ${correction||state.quick.correction||''}`,
     finalInstruction:'SAFE FRAME OBRIGATÓRIO: conteúdo essencial dentro dos 76% centrais; 12% de margem livre em todos os lados. Elementos decorativos podem sangrar, conteúdo essencial jamais. Preserve contraste de logo: nunca logo clara sobre fundo claro nem logo escura sobre fundo escuro; crie placa/halo de contraste sem alterar a logo.',semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[]};
-  base.typographyPlan=await requestTypographyPlan(base,signal);base.artDirection=await requestArtDirection(base,signal);return base;
+  base.artDirection=await requestArtDirection(base,signal);return base;
 }
 function screenQuickMode(){
   quickDefaultLogo();quickDefaultPastor();
@@ -1559,7 +1530,7 @@ function screenQuickMode(){
   <div class="card"><h3>Direção visual</h3><div class="quick-mode-toggle"><button class="mini-btn ${state.quick.referenceMode==='upload'?'selected-result':''}" id="qUseReference" type="button">Usar referência</button><button class="mini-btn ${state.quick.referenceMode==='inspiration'?'selected-result':''}" id="qUseInspiration" type="button">Criar do zero</button></div>
   ${state.quick.referenceMode==='upload'?`<p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p><div class="quick-ref-grid">${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><label class="upload" style="margin-top:10px"><strong>Subir referência</strong><span>JPG, PNG ou WEBP</span><input id="qRefUpload" type="file" accept="image/*"></label>`:`<p>Banco de Inspiração interno. A IA usa a linguagem escolhida sem copiar uma peça específica.</p><div class="inspiration-grid">${inspirationCatalog.map(x=>`<div class="inspiration-card ${state.quick.inspirationStyle===x.id?'selected':''}" data-inspiration="${x.id}"><strong>${x.name}</strong><small>${x.prompt}</small></div>`).join('')}</div>`}
   <h3 style="margin-top:18px">Logo</h3><div class="logo-position-wrap"><div class="field"><label>Prioridade de posição da logo</label><div class="logo-position-grid">${['top-left','top-center','top-right','bottom-left','bottom-center','bottom-right'].map(p=>`<button class="logo-position-cell ${state.quick.logoPosition===p?'selected':''}" data-logo-pos="${p}" type="button" aria-label="${p}"></button>`).join('')}</div><label class="logo-position-default"><input id="qLogoPositionDefault" type="checkbox" ${!state.quick.logoPosition?'checked':''}> Usar posição da referência / automática</label></div></div><div class="quick-logo-grid">${logos.map(a=>`<div class="quick-asset ${state.quick.logoAssetId===a.id?'selected':''}" data-qlogo="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><h3 style="margin-top:18px">Pregadores (opcional)</h3><p style="margin-bottom:8px">Selecione um ou mais. Para cada selecionado, informe o nome que deve aparecer próximo à pessoa.</p><div class="quick-pastor-grid">${pastors.map(a=>`<div class="quick-asset ${(state.quick.pastorAssetIds||[]).includes(a.id)?'multi-selected':''}" data-qpastor="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong>${(state.quick.pastorAssetIds||[]).includes(a.id)?`<input class="pastor-name-input" data-pastor-name="${a.id}" value="${esc(state.quick.pastorNames?.[a.id]||'')}" placeholder="Nome na arte">`:''}</div>`).join('')}</div><h3 style="margin-top:18px">Imagem da igreja (opcional)</h3><p style="margin-bottom:8px">Se escolher uma foto, a IA deverá usá-la na composição do fundo/ambiente.</p><div class="church-image-grid">${churchImages.map(a=>`<div class="quick-asset ${state.quick.churchImageAssetId===a.id?'selected':''}" data-qchurch="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}<label class="library-upload"><strong>+ Foto da igreja</strong><span>Salvar em Minha Igreja</span><input id="qChurchUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>
-  <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE • ${selectedFormat.label}</button><div id="quickProgress" class="quick-progress"><div class="quick-progress-track"><i id="quickProgressBar"></i></div><div class="quick-progress-row"><span id="quickProgressText">Processando sua arte...</span><span id="quickProgressPct">0%</span></div></div><button id="quickCancel" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div>${costSupervisorHTML()}</div><div id="quickResultsWrap" style="margin-top:18px">${renderQuickResultsHTML()}${allArtworksHTML()}${diagnosticPanelHTML()}</div></div>`;
+  <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE • ${selectedFormat.label}</button><div id="quickProgress" class="quick-progress"><div class="quick-progress-track"><i id="quickProgressBar"></i></div><div class="quick-progress-row"><span id="quickProgressText">Processando sua arte...</span><span id="quickProgressPct">0%</span></div></div><button id="quickCancel" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div>${costSupervisorHTML()}</div><div id="quickResultsWrap" style="margin-top:18px">${renderQuickResultsHTML()}${allArtworksHTML()}</div></div>`;
   const bind=(id,key)=>document.querySelector('#'+id).oninput=e=>state.quick[key]=e.target.value;bind('qTitle','title');bind('qSubtitle','subtitle');bind('qDate','date');bind('qTime','time');bind('qAddress','address');bind('qColor','dominantColor');
   const qcm=document.querySelector('#qColorMode');if(qcm)qcm.onchange=e=>{state.quick.dominantColorMode=e.target.value;const w=document.querySelector('#qColorPickerWrap');if(w)w.classList.toggle('hidden',e.target.value==='reference');};
   document.querySelector('#qAudience').onchange=e=>state.quick.audience=e.target.value;document.querySelector('#qDesignStyle').onchange=e=>state.quick.designStyle=e.target.value;document.querySelector('#qEffect').onchange=e=>state.quick.effect=e.target.value;document.querySelector('#qIllustrate').onchange=e=>state.quick.illustrateTitle=e.target.checked;
@@ -1568,52 +1539,17 @@ function screenQuickMode(){
   document.querySelectorAll('[data-qref]').forEach(el=>el.onclick=()=>{const a=refs.find(x=>x.id===el.dataset.qref);state.quick.reference=a?.url||null;state.quick.referenceMode='upload';screenQuickMode()});document.querySelectorAll('[data-logo-pos]').forEach(el=>el.onclick=()=>{state.quick.logoPosition=el.dataset.logoPos;screenQuickMode()});const qlpd=document.querySelector('#qLogoPositionDefault');if(qlpd)qlpd.onchange=e=>{if(e.target.checked){state.quick.logoPosition='';screenQuickMode();}};
   document.querySelectorAll('[data-qlogo]').forEach(el=>el.onclick=()=>{state.quick.logoAssetId=el.dataset.qlogo;screenQuickMode()});document.querySelectorAll('[data-qpastor]').forEach(el=>el.onclick=e=>{if(e.target.matches('input'))return;const id=el.dataset.qpastor;const arr=state.quick.pastorAssetIds||[];state.quick.pastorAssetIds=arr.includes(id)?arr.filter(x=>x!==id):[...arr,id];if(!state.quick.pastorAssetIds.includes(id))delete state.quick.pastorNames[id];screenQuickMode()});document.querySelectorAll('[data-pastor-name]').forEach(inp=>inp.oninput=e=>{e.stopPropagation();state.quick.pastorNames[inp.dataset.pastorName]=e.target.value;});document.querySelectorAll('[data-qchurch]').forEach(el=>el.onclick=()=>{state.quick.churchImageAssetId=state.quick.churchImageAssetId===el.dataset.qchurch?null:el.dataset.qchurch;screenQuickMode()});
   const up=document.querySelector('#qRefUpload');if(up)up.onchange=async e=>{const a=await uploadLibraryAsset(e.target.files[0],'reference');if(a){state.quick.reference=a.url;state.quick.referenceMode='upload';screenQuickMode();}};const cup=document.querySelector('#qChurchUpload');if(cup)cup.onchange=async e=>{for(const file of [...(e.target.files||[])]){const a=await uploadLibraryAsset(file,'church');if(a&&!state.quick.churchImageAssetId)state.quick.churchImageAssetId=a.id;}screenQuickMode();};
-  document.querySelector('#quickGenerate').onclick=()=>runQuickGeneration('Principal',0);document.querySelector('#quickCancel').onclick=()=>{cancelActiveProcess();document.querySelector('#quickStatus').textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');};bindQuickResultEvents();bindAllArtworksEvents();bindDiagnosticEvents();
+  document.querySelector('#quickGenerate').onclick=()=>runQuickGeneration('Principal',0);document.querySelector('#quickCancel').onclick=()=>{cancelActiveProcess();document.querySelector('#quickStatus').textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');};bindQuickResultEvents();bindAllArtworksEvents();
 }
 
 
 
-function typographyDecisionFor(key,artDirection={}){
-  const bp=artDirection?.typographyBlueprint?.[key]||null;
-  if(!bp)return null;
-  return normalizeTypographyBlueprint({[key]:bp})[key]||null;
-}
-function typographyBlueprintInstruction(required={}){
-  const keys=editableSemanticKeys(required);
-  if(!keys.length)return '';
-  return `Você é o designer responsável também pelos textos editáveis. Para cada campo editável (${keys.join(', ')}), decida ANTES da geração: posição relativa x/y, largura máxima, alinhamento, cor exata, contraste, peso, tamanho relativo e estilo de fonte. O renderer obedecerá suas decisões; portanto não deixe essas escolhas para o código. Não escreva esses campos na imagem base. Reserve espaço real e coerente para cada um.`;
-}
 
-function editableSemanticKeys(required={}){
-  return ['subtitle','date','time','address','pastorNames'].filter(k=>{
-    const v=required?.[k];
-    return Array.isArray(v)?v.length>0:!!v;
-  });
-}
-function hybridTypographyInstruction(required={}){
-  const keys=editableSemanticKeys(required);
-  if(!keys.length)return '';
-  return `TIPOGRAFIA HÍBRIDA: o título principal pode permanecer artístico/nativo quando isso preservar melhor o design. Os seguintes campos serão renderizados depois como texto preciso: ${keys.join(', ')}. NÃO escreva esses campos na imagem base. Em vez disso, reserve áreas naturais para eles e descreva no typographyBlueprint a posição, alinhamento, cor EXATA, contraste, tamanho relativo, largura máxima, peso e família visual que você usaria se fosse o designer final. O renderer NÃO deve inventar posição nem cor.`;
-}
-function normalizeTypographyBlueprint(bp={}){
-  const out={};
-  for(const [k,v] of Object.entries(bp||{})){
-    if(!v||typeof v!=='object')continue;
-    out[k]={
-      x:Math.min(92,Math.max(8,Number(v.x)||50)),
-      y:Math.min(92,Math.max(8,Number(v.y)||50)),
-      maxWidth:Math.min(76,Math.max(12,Number(v.maxWidth)||35)),
-      align:['left','center','right'].includes(v.align)?v.align:'left',
-      color:/^#[0-9A-F]{6}$/i.test(v.color||'')?v.color:'#FFFFFF',
-      contrast:['light-on-dark','dark-on-light','auto'].includes(v.contrast)?v.contrast:'auto',
-      weight:['regular','medium','bold','black'].includes(v.weight)?v.weight:'bold',
-      sizePct:Math.min(8,Math.max(1.2,Number(v.sizePct)||3)),
-      familyStyle:String(v.familyStyle||'sans condensed'),
-      box:!!v.box
-    };
-  }
-  return out;
-}
+
+
+
+
+
 
 
 function referenceGeometryInstruction(){
@@ -1621,35 +1557,6 @@ function referenceGeometryInstruction(){
 }
 
 
-async function imageDimensions(src){const img=await loadImageSafe(src);return{width:img.naturalWidth||img.width,height:img.naturalHeight||img.height};}
-async function diagnosticEdgeStats(src){
-  const img=await loadImageSafe(src),c=document.createElement('canvas');
-  const w=Math.min(512,img.naturalWidth||img.width),h=Math.max(1,Math.round((img.naturalHeight||img.height)*(w/(img.naturalWidth||img.width))));
-  c.width=w;c.height=h;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
-  const data=ctx.getImageData(0,0,w,h).data,band=Math.max(4,Math.round(Math.min(w,h)*.06));
-  function v(x0,y0,x1,y1){let n=0,s=0,s2=0;for(let y=y0;y<y1;y+=2)for(let x=x0;x<x1;x+=2){const i=(y*w+x)*4,l=.2126*data[i]+.7152*data[i+1]+.0722*data[i+2];s+=l;s2+=l*l;n++;}const m=n?s/n:0;return n?Math.max(0,s2/n-m*m):0;}
-  const edge=(v(0,0,w,band)+v(0,h-band,w,h)+v(0,0,band,h)+v(w-band,0,w,h))/4,center=v(Math.round(w*.22),Math.round(h*.22),Math.round(w*.78),Math.round(h*.78));
-  return{edgeVariance:edge,centerVariance:center,edgeToCenter:center?edge/center:0};
-}
-function buildDiagnosticVerdict(d){
-  if(!d)return'';const raw=d.rawStats,fin=d.finalStats;
-  if(raw&&fin){const r=raw.edgeToCenter<.22,f=fin.edgeToCenter<.22;if(r&&f)return'A borda já parece existir na imagem RAW. Forte indicação de que o efeito veio da geração.';if(!r&&f)return'A RAW não apresenta o mesmo padrão, mas a FINAL apresenta. Forte indicação de pós-processamento no ChurchDesign.';}
-  return'Compare RAW e FINAL: se a borda já estiver na RAW, o problema é da geração; se surgir apenas na FINAL, o problema é do pós-processamento.';
-}
-function diagnosticPanelHTML(){
-  if(!state.user?.isAdmin)return'';
-  const d=state.diagnostics?.last||null;
-  if(!d)return`<div class="diag-panel show"><strong style="font-size:11px;color:#bcd4ff">◉ Diagnóstico de canvas</strong><div style="font-size:8px;color:#7f91ad;margin-top:3px">Teste local • sem custo de IA</div><div class="diag-verdict">A rotina antiga de blur + inset foi removida. Você pode validar o novo resize sem gerar arte.</div><div class="diag-actions"><button class="mini-btn" id="runSyntheticResizeTest" type="button">Rodar teste local de resize (US$ 0,00)</button></div><div id="syntheticResizeResult"></div></div>`;
-  return`<div class="diag-panel show"><strong style="font-size:11px;color:#bcd4ff">◉ Diagnóstico RAW vs FINAL</strong><div style="font-size:8px;color:#7f91ad;margin-top:3px">Somente administrador • sem custo adicional</div><div class="diag-grid"><div class="diag-card"><img src="${d.rawUrl}"><div class="meta"><b>RAW OpenAI</b><br>${d.rawDims?.width||'?'}×${d.rawDims?.height||'?'}</div></div><div class="diag-card"><img src="${d.finalUrl}"><div class="meta"><b>FINAL ChurchDesign</b><br>${d.finalDims?.width||'?'}×${d.finalDims?.height||'?'}</div></div></div><div class="diag-verdict">${esc(buildDiagnosticVerdict(d))}</div><div class="diag-actions"><button class="mini-btn" id="runSyntheticResizeTest" type="button">Rodar teste local de resize (US$ 0,00)</button></div><div id="syntheticResizeResult"></div></div>`;
-}
-async function runSyntheticResizeTest(){
-  const out=document.querySelector('#syntheticResizeResult');if(!out)return;out.innerHTML='<div class="diag-verdict">Executando teste local...</div>';
-  const src=document.createElement('canvas');src.width=900;src.height=1350;const s=src.getContext('2d');s.fillStyle='#10131a';s.fillRect(0,0,900,1350);s.fillStyle='#fff';s.fillRect(40,40,820,1270);s.fillStyle='#111827';s.fillRect(70,70,760,1210);s.fillStyle='#ff5a1f';s.font='bold 86px sans-serif';s.fillText('TESTE',150,520);s.fillStyle='#fff';s.font='bold 42px sans-serif';s.fillText('SEM BORDA',180,610);
-  const original=src.toDataURL('image/png'),target={width:1600,height:900,label:'16:9 sintético'},resized=await resizeToTarget(original,target),rs=await diagnosticEdgeStats(resized);
-  const verdict=rs.edgeToCenter<.22?'O resize local produziu borda de baixa variação: pós-processamento suspeito.':'O resize local NÃO produziu padrão de borda embaçada. Isso enfraquece a hipótese de resizeToTarget ser o culpado.';
-  out.innerHTML=`<div class="diag-grid"><div class="diag-card"><img src="${original}"></div><div class="diag-card"><img src="${resized}"></div></div><div class="diag-verdict">${verdict}<br>edge/center=${rs.edgeToCenter.toFixed(3)}</div>`;
-}
-function bindDiagnosticEvents(){const b=document.querySelector('#runSyntheticResizeTest');if(b)b.onclick=runSyntheticResizeTest;}
 
 function logoPositionInstruction(pos){
   const map={
@@ -1691,7 +1598,7 @@ function bindAllArtworksEvents(){
 }
 
 function renderQuickResultsHTML(){if(!state.quickResults.length)return '';return `<div class="card"><h3>Artes desta criação</h3><p style="margin-bottom:10px">As variações ficam lado a lado.</p><div class="quick-results-row">${state.quickResults.map((r,i)=>quickResultCardHTML(r,i)).join('')}</div></div>`;}
-function quickResultCardHTML(r,i){const adaptButtons=['story','youtube','screen','square','wide16','fourthree','threetwo'].map(f=>{const t=quickTargetSpec(f);return `<button class="quick-adapt-btn" data-qadapt="${i}-${f}" type="button">${t.label}</button>`}).join('');return `<div class="quick-result-card" id="quickResultCard-${i}"><img src="${r.dataUrl}"><div class="quick-result-body"><h4>${esc(r.label)} • ${esc(r.target.label)}</h4>${r.typographyPlan?`<div class="typography-policy"><strong>Tipografia adaptativa</strong><div class="tp-tags">${Object.entries(r.typographyPlan.roles||{}).map(([k,p])=>`<span class="tp-tag">${k}: ${p.mode}</span>`).join('')}</div></div>`:''}<div class="quick-actions"><button class="mini-btn download-btn" data-qdownload="${i}">↓ Baixar</button>${i===state.quickResults.length-1&&i<2?`<button class="mini-btn" data-qvariation="${i+1}">Gerar variação ${i+1}</button>`:''}<button class="mini-btn" data-qreload="${i}">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:8px"><label>Correção desta arte</label><textarea data-qcorrection="${i}">${esc(r.correction||'')}</textarea></div><strong style="font-size:9px">Criar outro tamanho</strong><div class="quick-adapt-grid">${adaptButtons}</div><div id="quickAdaptConfig-${i}"></div><div class="quick-adaptations" id="quickAdaptations-${i}">${(r.adaptations||[]).map(a=>quickAdaptationHTML(a,i)).join('')}</div></div></div>`;}
+function quickResultCardHTML(r,i){const adaptButtons=['story','youtube','screen','square','wide16','fourthree','threetwo'].map(f=>{const t=quickTargetSpec(f);return `<button class="quick-adapt-btn" data-qadapt="${i}-${f}" type="button">${t.label}</button>`}).join('');return `<div class="quick-result-card" id="quickResultCard-${i}"><img src="${r.dataUrl}"><div class="quick-result-body"><h4>${esc(r.label)} • ${esc(r.target.label)}</h4><div class="quick-actions"><button class="mini-btn download-btn" data-qdownload="${i}">↓ Baixar</button>${i===state.quickResults.length-1&&i<2?`<button class="mini-btn" data-qvariation="${i+1}">Gerar variação ${i+1}</button>`:''}<button class="mini-btn" data-qreload="${i}">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:8px"><label>Correção desta arte</label><textarea data-qcorrection="${i}">${esc(r.correction||'')}</textarea></div><strong style="font-size:9px">Criar outro tamanho</strong><div class="quick-adapt-grid">${adaptButtons}</div><div id="quickAdaptConfig-${i}"></div><div class="quick-adaptations" id="quickAdaptations-${i}">${(r.adaptations||[]).map(a=>quickAdaptationHTML(a,i)).join('')}</div></div></div>`;}
 function openQuickAdaptConfig(i,f){const target=quickTargetSpec(f),box=document.querySelector(`#quickAdaptConfig-${i}`);if(!box)return;box.innerHTML=`<div class="adapt-config"><strong>${target.label}: o que deve ser omitido?</strong><div class="adapt-omit-grid"><label><input type="checkbox" data-omit="subtitle">Omitir subtítulo</label><label><input type="checkbox" data-omit="date">Omitir data</label><label><input type="checkbox" data-omit="time">Omitir hora</label><label><input type="checkbox" data-omit="address">Omitir endereço</label><label><input type="checkbox" data-omit="logo">Omitir logo</label><label><input type="checkbox" data-omit="pastorNames">Omitir nome do(s) pregador(es)</label><label><input type="checkbox" data-omit="pastors">Omitir foto do(s) pregador(es)</label><label><input type="checkbox" data-omit="churchImage">Omitir foto da igreja</label>${f==='screen'?`<label class="dark-screen-option"><input type="checkbox" data-dark-screen>Versão escura para telão / transmissão</label>`:''}</div><button class="mini-btn" data-confirm-adapt="${i}-${f}" style="width:100%;margin-top:8px">Gerar ${target.label}</button></div>`;box.querySelector('[data-confirm-adapt]').onclick=()=>{const omit=[...box.querySelectorAll('[data-omit]:checked')].map(x=>x.dataset.omit);const darkScreen=!!box.querySelector('[data-dark-screen]:checked');runQuickAdaptation(i,f,omit,darkScreen);};}
 function quickAdaptationHTML(a,parentIndex){return `<div class="quick-adapt-item ${a.format==='story'?'story':''}"><img src="${a.dataUrl}"><div style="min-width:0;flex:1"><strong style="font-size:9px">${esc(a.target.label)}</strong><small style="display:block;font-size:8px;color:var(--muted)">${a.target.width}×${a.target.height}</small></div><button class="mini-btn download-btn" data-qadapt-download="${parentIndex}-${a.id}">↓</button></div>`;}
 function bindQuickResultEvents(){
@@ -1702,29 +1609,67 @@ function bindQuickResultEvents(){
   document.querySelectorAll('[data-qadapt-download]').forEach(b=>b.onclick=()=>{const [i,id]=b.dataset.qadaptDownload.split('-'),a=state.quickResults[+i]?.adaptations?.find(x=>x.id===id);if(a)downloadDataUrl(a.dataUrl,`churchdesign-${a.target.id}.png`,{label:a.target.label,format:a.target.id,target:a.target,designStyle:state.quick.designStyle,audience:state.quick.audience,inspirationStyle:state.quick.inspirationStyle,effect:state.quick.effect})});
 }
 function setQuickProgress(pct,text){const wrap=document.querySelector('#quickProgress'),bar=document.querySelector('#quickProgressBar'),label=document.querySelector('#quickProgressText'),num=document.querySelector('#quickProgressPct');if(!wrap)return;wrap.classList.toggle('show',pct>0&&pct<100);if(bar)bar.style.width=`${pct}%`;if(label)label.textContent=text||'Processando sua arte...';if(num)num.textContent=`${pct}%`;}
+
+async function normalizeArtworkToTarget(image,payload,target,signal=null){
+  const raw=await remoteToDataUrl(image.url);
+  try{
+    return {image,dataUrl:await resizeToTarget(raw,target),recomposed:false};
+  }catch(e){
+    if(e?.code!=='ASPECT_RATIO_RECOMPOSE_REQUIRED')throw e;
+
+    const correction=`RECOMPOSIÇÃO DE FORMATO OBRIGATÓRIA. A imagem anterior saiu em proporção incompatível com ${target.width}x${target.height} (${target.ratio||target.label}). NÃO recorte nem use blur/moldura. Recrie a composição NATIVAMENTE no aspect ratio solicitado, redistribuindo título, pregador, logo, fundo e informações. Preserve a linguagem visual e o conteúdo, mas adapte a geometria para preencher 100% do canvas.`;
+    const retryPayload={
+      ...payload,
+      mode:'aspect-ratio-recompose',
+      target,
+      qualityCorrection:[payload.qualityCorrection||'',correction].filter(Boolean).join(' '),
+      revisionAttempt:(payload.revisionAttempt||0)+1,
+      safeMode:false
+    };
+    const regenerated=await generateWithInvisibleReview(retryPayload,0,signal);
+    const raw2=await remoteToDataUrl(regenerated.url);
+    // Segunda saída: só aceita se já estiver suficientemente próxima.
+    return {image:regenerated,dataUrl:await resizeToTarget(raw2,target),recomposed:true};
+  }
+}
+
 async function resizeToTarget(dataUrl,target){
   const img=await loadImageSafe(dataUrl);
+  const srcW=img.naturalWidth||img.width,srcH=img.naturalHeight||img.height;
+  const srcRatio=srcW/srcH,targetRatio=target.width/target.height;
+  const ratioDrift=Math.abs(Math.log(srcRatio/targetRatio));
+
+  // Diferenças pequenas são corrigidas por cover.
+  // Diferenças grandes NÃO podem ser resolvidas com crop agressivo.
+  // Nesse caso a função sinaliza que a arte precisa ser recomposta nativamente.
+  const MAX_SAFE_RATIO_DRIFT=0.16; // ~17% de diferença proporcional
+  if(ratioDrift>MAX_SAFE_RATIO_DRIFT){
+    const e=new Error('ASPECT_RATIO_RECOMPOSE_REQUIRED');
+    e.code='ASPECT_RATIO_RECOMPOSE_REQUIRED';
+    e.sourceRatio=srcRatio;
+    e.targetRatio=targetRatio;
+    throw e;
+  }
+
   const c=document.createElement('canvas');
-  c.width=target.width;
-  c.height=target.height;
+  c.width=target.width;c.height=target.height;
   const ctx=c.getContext('2d');
-  ctx.imageSmoothingEnabled=true;
-  ctx.imageSmoothingQuality='high';
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
 
-  // V0.23.1 — CANVAS REAL:
-  // Nunca criar fundo borrado, moldura, inset ou "arte dentro da arte".
-  // A imagem gerada ocupa 100% do canvas final.
-  // Diferenças pequenas de aspect ratio são resolvidas por crop central do cover.
+  // Sem blur, sem inset, sem moldura, sem arte dentro da arte.
   drawImageCover(ctx,img,c.width,c.height);
-
   return c.toDataURL('image/png');
 }
-async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null){scrollToGenerationPanel();if(label==='Principal'&&replaceIndex===null)beginCostSession('Modo Rápido • primeira arte');const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent='Processando sua arte...';try{const payload=await quickPayload(label,correction,signal);setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual.`;setQuickProgress(48,'Criando sua arte...');const image=await generateWithInvisibleReview(payload,1,signal);setQuickProgress(88,'Finalizando...');let dataUrl=await remoteToDataUrl(image.url);dataUrl=await resizeToTarget(dataUrl,payload.target);dataUrl=await applyTypographyPlan(dataUrl,payload.typographyPlan,payload.requiredContent,payload.target);const finalReview=await callQualityInspector({generatedImage:dataUrl,preTypographyImage:image.url,references:payload.references||[],assets:payload.assets||{},requiredContent:payload.requiredContent||{},semanticMap:[],userInstruction:payload.instruction||'',finalInstruction:payload.finalInstruction||'',artDirection:payload.artDirection||null,typographyPlan:payload.typographyPlan,phase:'final_typography'},signal);if(finalReview.typography_conversion_safe===false){const aiPayload={...payload,forceAiTypography:true,typographyPlan:{...payload.typographyPlan,force_ai:true}};const aiImage=await generateWithInvisibleReview(aiPayload,1,signal);dataUrl=await remoteToDataUrl(aiImage.url);dataUrl=await resizeToTarget(dataUrl,payload.target);}const result={id:crypto.randomUUID(),label,dataUrl,sourceUrl:image.url,target:payload.target,artDirection:payload.artDirection,typographyPlan:payload.typographyPlan,requiredContent:payload.requiredContent,assets:payload.assets,instruction:payload.instruction,adaptations:[],correction:''};if(replaceIndex===null)state.quickResults.push(result);else{
+async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null){scrollToGenerationPanel();if(label==='Principal'&&replaceIndex===null)beginCostSession('Modo Rápido • primeira arte');const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent='Processando sua arte...';try{const payload=await quickPayload(label,correction,signal);setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual.`;setQuickProgress(48,'Criando sua arte...');const image=await generateWithInvisibleReview(payload,1,signal);setQuickProgress(88,'Finalizando...');
+    const normalized=await normalizeArtworkToTarget(image,payload,payload.target,signal);
+    const finalImage=normalized.image;
+    const dataUrl=normalized.dataUrl;
+    const result={id:crypto.randomUUID(),label,dataUrl,sourceUrl:(finalImage||image).url,target:payload.target,artDirection:payload.artDirection,requiredContent:payload.requiredContent,assets:payload.assets,instruction:payload.instruction,adaptations:[],correction:''};if(replaceIndex===null)state.quickResults.push(result);else{
       const original=state.quickResults[replaceIndex];
       original.corrections=original.corrections||[];
       original.corrections.push({...result,id:crypto.randomUUID(),label:`${original.label} • corrigida`});
-    }setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>'+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML()+diagnosticPanelHTML();bindQuickResultEvents();bindAllArtworksEvents();bindDiagnosticEvents();renderCostSupervisor();}catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível concluir.</strong><br>${esc(e.message)}`;}finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}}
-async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false){scrollToGenerationPanel();const source=state.quickResults[sourceIndex];if(!source)return;const signal=beginProcess(),target=quickTargetSpec(formatId),status=document.querySelector('#quickStatus'),cancel=document.querySelector('#quickCancel');if(cancel)cancel.style.display='block';setQuickProgress(18,`Adaptando para ${target.label}...`);if(status)status.textContent='Processando sua arte...';try{const sourceRef=await prepareImageForAI(source.sourceUrl||source.dataUrl,1400,.9);const required={...source.requiredContent};omit.forEach(k=>{if(k==='pastorNames')required.pastorNames=[];else required[k]='';});const assets={...source.assets};if(omit.includes('logo'))assets.logo=null;if(omit.includes('pastors')){assets.pastor=null;assets.pastors=[];}if(omit.includes('churchImage'))assets.churchImage=null;const payload={mode:'adaptation',format:formatId,reference:sourceRef,references:[{image:sourceRef,note:'Preserve a identidade visual desta arte e adapte naturalmente para a nova proporção.'}],target,assets,requiredContent:required,instruction:source.instruction,finalInstruction:`Adapte o layout; não estique nem apenas recorte. Reorganize tipografia, pessoa e elementos para a nova proporção. SAFE FRAME RÍGIDO: 12% de margem livre em cada lado para TODO conteúdo essencial. Omitir explicitamente: ${omit.join(', ')||'nada'}. ${target.id==='screen'?`TELÃO: prefira o TÍTULO centralizado e dominante. Se houver foto de pregador, ilustração ou figura solicitada, use composição em dois polos: título à esquerda e imagem à direita OU título à direita e imagem à esquerda, escolhendo o lado de melhor equilíbrio. Não centralize título sobre o rosto.`:''} ${darkScreen?'VERSÃO ESCURA OBRIGATÓRIA: fundo e áreas dominantes devem ser escuros para telão/câmera de live; preserve contraste alto e, se houver foto da igreja, integre-a com opacidade visual reduzida, tratamento escuro e discreto, sem perder reconhecimento.':''} COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referência ou ordem explícita. Evite caixas/cards/cápsulas desnecessários. Use a logo original uma única vez, limpa, sem caixa/placa/selo e nunca repita ou extraia partes dela.`,semanticMap:[],effects:[],artDirection:source.artDirection,typographyPlan:source.typographyPlan||null,redesign:false,variantLabel:`${source.label} • ${target.label}`};setQuickProgress(48,'Recompondo para o novo formato...');const image=await generateWithInvisibleReview(payload,1,signal);setQuickProgress(88,'Finalizando...');let dataUrl=await remoteToDataUrl(image.url);dataUrl=await resizeToTarget(dataUrl,target);source.adaptations=source.adaptations||[];source.adaptations.push({id:crypto.randomUUID(),format:formatId,target,dataUrl,sourceUrl:image.url,omit});setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Nova versão pronta.</strong>';const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML()+diagnosticPanelHTML();bindQuickResultEvents();bindAllArtworksEvents();bindDiagnosticEvents();}catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;}finally{activeProcessController=null;if(cancel)cancel.style.display='none';}}
+    }setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>'+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível concluir.</strong><br>${esc(e.message)}`;}finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}}
+async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false){scrollToGenerationPanel();const source=state.quickResults[sourceIndex];if(!source)return;const signal=beginProcess(),target=quickTargetSpec(formatId),status=document.querySelector('#quickStatus'),cancel=document.querySelector('#quickCancel');if(cancel)cancel.style.display='block';setQuickProgress(18,`Adaptando para ${target.label}...`);if(status)status.textContent='Processando sua arte...';try{const sourceRef=await prepareImageForAI(source.sourceUrl||source.dataUrl,1400,.9);const required={...source.requiredContent};omit.forEach(k=>{if(k==='pastorNames')required.pastorNames=[];else required[k]='';});const assets={...source.assets};if(omit.includes('logo'))assets.logo=null;if(omit.includes('pastors')){assets.pastor=null;assets.pastors=[];}if(omit.includes('churchImage'))assets.churchImage=null;const payload={mode:'adaptation',format:formatId,reference:sourceRef,references:[{image:sourceRef,note:'Preserve a identidade visual desta arte e adapte naturalmente para a nova proporção.'}],target,assets,requiredContent:required,instruction:source.instruction,finalInstruction:`Adapte o layout; não estique nem apenas recorte. Reorganize tipografia, pessoa e elementos para a nova proporção. SAFE FRAME RÍGIDO: 12% de margem livre em cada lado para TODO conteúdo essencial. Omitir explicitamente: ${omit.join(', ')||'nada'}. ${target.id==='screen'?`TELÃO: prefira o TÍTULO centralizado e dominante. Se houver foto de pregador, ilustração ou figura solicitada, use composição em dois polos: título à esquerda e imagem à direita OU título à direita e imagem à esquerda, escolhendo o lado de melhor equilíbrio. Não centralize título sobre o rosto.`:''} ${darkScreen?'VERSÃO ESCURA OBRIGATÓRIA: fundo e áreas dominantes devem ser escuros para telão/câmera de live; preserve contraste alto e, se houver foto da igreja, integre-a com opacidade visual reduzida, tratamento escuro e discreto, sem perder reconhecimento.':''} COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referência ou ordem explícita. Evite caixas/cards/cápsulas desnecessários. Use a logo original uma única vez, limpa, sem caixa/placa/selo e nunca repita ou extraia partes dela.`,semanticMap:[],effects:[],artDirection:source.artDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`};setQuickProgress(48,'Recompondo para o novo formato...');const image=await generateWithInvisibleReview(payload,1,signal);setQuickProgress(88,'Finalizando...');const normalized=await normalizeArtworkToTarget(image,payload,target,signal);const finalImage=normalized.image;const dataUrl=normalized.dataUrl;source.adaptations=source.adaptations||[];source.adaptations.push({id:crypto.randomUUID(),format:formatId,target,dataUrl,sourceUrl:image.url,omit});setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Nova versão pronta.</strong>';const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();}catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;}finally{activeProcessController=null;if(cancel)cancel.style.display='none';}}
 
 
 next.onclick=()=>{if(state.step===steps.length-1){state.step=0;state.reference=null;state.layers=[];state.instruction='';render();return}state.step++;render()};back.onclick=()=>{if(state.step>0){state.step--;render()}};render();bootstrapLibrary().finally(()=>setTimeout(showModeChooser,150));
