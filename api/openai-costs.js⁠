@@ -1,0 +1,22 @@
+export default async function handler(req,res){
+  res.setHeader("Cache-Control","no-store");
+  if(req.method!=="GET")return res.status(405).json({error:"Método não permitido."});
+  const key=process.env.OPENAI_ADMIN_KEY;
+  if(!key)return res.status(503).json({error:"OPENAI_ADMIN_KEY não configurada.",cost:null});
+  const start=Math.max(0,Number(req.query.start)||Math.floor(Date.now()/1000)-3600);
+  const end=Math.max(start+1,Number(req.query.end)||Math.floor(Date.now()/1000));
+  try{
+    const qs=new URLSearchParams({start_time:String(start),end_time:String(end),bucket_width:"1d",limit:"2"});
+    const project=process.env.OPENAI_PROJECT_ID;
+    if(project)qs.append("project_ids",project);
+    const r=await fetch(`https://api.openai.com/v1/organization/costs?${qs.toString()}`,{
+      headers:{Authorization:`Bearer ${key}`,"Content-Type":"application/json"}
+    });
+    const text=await r.text();let d;
+    try{d=JSON.parse(text)}catch{return res.status(502).json({error:"Resposta inválida do Costs endpoint.",cost:null});}
+    if(!r.ok)return res.status(r.status).json({error:d?.error?.message||"Falha ao consultar custos.",cost:null});
+    let cost=0;
+    for(const bucket of d.data||[])for(const row of bucket.results||[])cost+=Number(row?.amount?.value)||0;
+    return res.status(200).json({success:true,cost,currency:"usd",start,end,source:"openai-costs"});
+  }catch(e){return res.status(500).json({error:e.message||"Falha ao consultar custos.",cost:null});}
+}
