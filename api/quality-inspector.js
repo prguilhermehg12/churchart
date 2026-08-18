@@ -64,10 +64,20 @@ module.exports=async function handler(req,res){
       text:{format:{type:"json_schema",name:"churchdesign_quality_review",strict:true,schema},verbosity:"low"}
     })});
     const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
-    const text=out(d);let review;try{review=JSON.parse(text)}catch{throw new Error("Fiscal devolveu resposta inválida.");}
+    const text=out(d);let review;
+    try{review=JSON.parse(text)}
+    catch{
+      review={
+        approved:true,critical_error:false,score:0,
+        human_fidelity:0,logo_fidelity:0,content_accuracy:0,reference_coherence:0,
+        gross_errors:["Fiscal devolveu resposta inválida."],
+        correction_prompt:"",
+        technicalFailure:true
+      };
+    }
     // hard gates
-    if(review.human_fidelity<82||review.logo_fidelity<88||review.content_accuracy<90)review.approved=false;
-    if(review.human_fidelity<65||review.logo_fidelity<70||review.content_accuracy<75)review.critical_error=true;
+    if(!review.technicalFailure&&(review.human_fidelity<82||review.logo_fidelity<88||review.content_accuracy<90))review.approved=false;
+    if(!review.technicalFailure&&(review.human_fidelity<65||review.logo_fidelity<70||review.content_accuracy<75))review.critical_error=true;
     return res.status(200).json({success:true,review,meta:{model:'gpt-5.6-sol',usage:d.usage||null}});
   }catch(e){console.error("ChurchDesign quality inspector",e);return res.status(500).json({error:e.message||"Erro no fiscal."});}
 };
