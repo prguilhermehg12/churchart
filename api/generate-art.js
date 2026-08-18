@@ -112,6 +112,24 @@ Plano tipográfico: ${JSON.stringify(data.typographyPlan||{})}
 - Para AI, componha o texto livremente como parte da arte, seguindo a referência.
 - TÍTULO deve permanecer AI se o plano disser AI ou se confidence < 0.88. Nunca force fonte real quando a referência tiver lettering, distorção, perspectiva, integração com fotografia ou tratamento não reproduzível.
 
+REGRA DE CANVAS NATIVO — HARD CONSTRAINT:
+- O tamanho/proporção solicitados são o canvas real da arte.
+- Crie a composição diretamente nessa proporção e preencha 100% dela.
+- PROIBIDO gerar um pôster/cartaz menor dentro de outro canvas.
+- PROIBIDO usar a própria arte ampliada, borrada, desfocada ou duplicada como fundo para completar a proporção.
+- PROIBIDO adicionar barras, margens externas ou moldura de compensação, salvo quando referência/instrução explicitamente usar isso.
+- Se a composição original não couber, redistribua e redimensione os elementos.
+
+REGRA DE CAMADAS — HARD CONSTRAINT:
+- Foto da igreja = BACKGROUND.
+- Pregadores selecionados = FOREGROUND.
+- Nenhuma mão, cabeça, braço, pessoa ou objeto da foto da igreja pode sobrepor visualmente rosto ou corpo do pregador.
+- Quando houver múltiplos pregadores, componha-os deliberadamente; não duplique pessoas apenas para preencher espaço.
+
+REGRA DE TEXTO — HARD CONSTRAINT:
+- Cada dado semântico deve aparecer no máximo uma vez.
+- Se a instrução disser que determinado campo será renderizado posteriormente, NÃO o desenhe na imagem base; apenas reserve espaço coerente.
+
 REGRA DE ENQUADRAMENTO DO PREGADOR:
 - Preserve o corpo inteiro sempre que a fotografia original tiver corpo suficiente para isso.
 - Evite ao máximo cortar cabeça, mãos, braços, pernas, pés ou tronco.
