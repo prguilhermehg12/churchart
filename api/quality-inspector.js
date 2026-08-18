@@ -32,6 +32,13 @@ Se público-alvo ou estilo estiverem especificados, verifique se a peça é coer
 Se não estiverem especificados, ignore esse critério.
 Erros criativos menores NÃO devem reprovar. Porém, violação de área segura de conteúdo essencial deve reprovar.
 
+TIPOGRAFIA:
+- Toda tipografia deve estar integrada à arte final.
+- Conte ocorrências de data, hora, endereço, subtítulo e nomes.
+- Reprove duplicação de qualquer campo obrigatório.
+- Reprove texto sobreposto a outro texto a ponto de comprometer legibilidade.
+- Reprove informação obrigatória fora da safe area.
+
 FIDELIDADE GEOMÉTRICA:
 - Compare enquadramento, posição e escala do pregador com a referência.
 - Se a referência usa busto/peito/cintura e a arte usa corpo inteiro sem instrução, reprove.
@@ -46,10 +53,11 @@ COMPOSIÇÃO ADAPTATIVA:
 - A referência deve ser preservada como linguagem visual, não como molde rígido.
 
 Conteúdo obrigatório: ${JSON.stringify(data.requiredContent||{})}
-Plano tipográfico: ${JSON.stringify(data.typographyPlan||{})}
-Fase da avaliação: ${data.phase||"geração"}
-REGRA TIPOGRÁFICA: se a conversão SYSTEM/HYBRID tornar a arte perceptivelmente pior, mais genérica, menos fiel à referência ou com aparência de template, marque typography_conversion_safe=false. Em dúvida, prefira preservar AI Typography.
-Na fase pre_typography, não reprove a ausência de textos que o plano marcou SYSTEM/HYBRID, pois eles serão aplicados depois.
+TIPOGRAFIA FINAL:
+- Toda a tipografia é gerada diretamente na arte.
+- Reprove qualquer dado obrigatório duplicado.
+- Reprove texto sobre texto, informação ilegível, conteúdo cortado ou contraste inadequado.
+- Compare a linguagem tipográfica com a referência; diferença significativa sem justificativa reduz a fidelidade.
 Público-alvo escolhido: ${data.audience||"não especificado"}
 Estilo escolhido: ${data.designStyle||"não especificado"}\nPosição prioritária da logo: ${data.logoPosition||"seguir referência / automática"}
 Mapa/posições: ${JSON.stringify(data.semanticMap||[])}
