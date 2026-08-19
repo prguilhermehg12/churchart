@@ -44,7 +44,7 @@ TIPOGRAFIA:
 - Conte ocorrências de data, hora, endereço, subtítulo e nomes.
 - Reprove duplicação de qualquer campo obrigatório.
 - Reprove texto sobreposto a outro texto a ponto de comprometer legibilidade.
-- Reprove informação obrigatória fora da safe area.
+- Reprove informação obrigatória fora da safe area.\n- Se houver logo de evento, reprove se ela estiver ausente, redesenhada, duplicada, nos cantos extremos ou sobreposta à logo principal/rosto/título.
 
 FIDELIDADE GEOMÉTRICA:
 - Compare enquadramento, posição e escala do pregador com a referência.
@@ -66,7 +66,7 @@ TIPOGRAFIA FINAL:
 - Reprove texto sobre texto, informação ilegível, conteúdo cortado ou contraste inadequado.
 - Compare a linguagem tipográfica com a referência; diferença significativa sem justificativa reduz a fidelidade.
 Público-alvo escolhido: ${data.audience||"não especificado"}
-Estilo escolhido: ${data.designStyle||"não especificado"}\nPosição prioritária da logo: ${data.logoPosition||"seguir referência / automática"}
+Estilo escolhido: ${data.designStyle||"não especificado"}\nPosição prioritária da logo: ${data.logoPosition||"seguir referência / automática"}\nPosição/zona da logo de evento: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"automática entre seis zonas centrais"}
 Mapa/posições: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.userInstruction||""}
 Instrução final: ${data.finalInstruction||""}
@@ -76,6 +76,7 @@ Avalie de forma conservadora. Se reprovar, escreva correction_prompt curto e ope
   for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(p?.image)c.push({type:"input_text",text:`FOTO ORIGINAL DA PESSOA ${i+1}. Nome esperado: ${p.name||'não informado'}`},{type:"input_image",image_url:p.image,detail:"auto"});
   if(data.assets?.churchImage?.image&&!/omitir foto da igreja/i.test(`${data.userInstruction||""} ${data.finalInstruction||""}`))c.push({type:"input_text",text:"FOTO DA IGREJA SELECIONADA — deve estar presente e reconhecível na arte:"},{type:"input_image",image_url:data.assets.churchImage.image,detail:"auto"});
   if(data.assets?.logo?.image)c.push({type:"input_text",text:"LOGO ORIGINAL:"},{type:"input_image",image_url:data.assets.logo.image,detail:"auto"});
+  if(data.assets?.eventLogo?.image)c.push({type:"input_text",text:"LOGO DE EVENTO ORIGINAL — deve aparecer intacta uma única vez, em zona central lateral permitida e sem conflito com a logo principal:"},{type:"input_image",image_url:data.assets.eventLogo.image,detail:"auto"});
   if(data.preTypographyImage)c.push({type:"input_text",text:"ARTE ANTES DA CONVERSÃO TIPOGRÁFICA:"},{type:"input_image",image_url:data.preTypographyImage,detail:"high"});
   c.push({type:"input_text",text:"ARTE GERADA A SER FISCALIZADA:"},{type:"input_image",image_url:data.generatedImage,detail:"high"});
   return c;
