@@ -44,7 +44,10 @@ TIPOGRAFIA:
 - Conte ocorrências de data, hora, endereço, subtítulo e nomes.
 - Reprove duplicação de qualquer campo obrigatório.
 - Reprove texto sobreposto a outro texto a ponto de comprometer legibilidade.
-- Reprove informação obrigatória fora da safe area.\n- Se houver logo de evento, reprove se ela estiver ausente, redesenhada, duplicada, nos cantos extremos ou sobreposta à logo principal/rosto/título.
+- Reprove informação obrigatória fora da safe area.\n
+- REGRA CRÍTICA DE CAMADAS: a logo de evento jamais pode estar desenhada à frente de qualquer parte do pregador. Se houver interseção, o recorte do pregador deve ocluir a logo de evento. Reprove se qualquer fragmento da logo aparecer sobre rosto, cabelo, corpo, roupa, braços ou mãos do pregador.
+- Não reprove apenas porque a logo ficou parcialmente escondida atrás do pregador: isso é o comportamento correto quando houver conflito e não existir reposicionamento melhor dentro da zona escolhida.
+- Se houver logo de evento, reprove se ela estiver ausente, redesenhada, duplicada, nos cantos extremos, grande além do limite selecionado ou sobreposta à logo principal/rosto/título.\n- Se omitChurchLogo=true, a presença de qualquer logo principal da igreja é falha crítica.\n- Se omitChurchName=true, a presença textual do nome da igreja é falha crítica.
 
 FIDELIDADE GEOMÉTRICA:
 - Compare enquadramento, posição e escala do pregador com a referência.
@@ -66,7 +69,7 @@ TIPOGRAFIA FINAL:
 - Reprove texto sobre texto, informação ilegível, conteúdo cortado ou contraste inadequado.
 - Compare a linguagem tipográfica com a referência; diferença significativa sem justificativa reduz a fidelidade.
 Público-alvo escolhido: ${data.audience||"não especificado"}
-Estilo escolhido: ${data.designStyle||"não especificado"}\nPosição prioritária da logo: ${data.logoPosition||"seguir referência / automática"}\nPosição/zona da logo de evento: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"automática entre seis zonas centrais"}
+Estilo escolhido: ${data.designStyle||"não especificado"}\nPosição prioritária da logo: ${data.logoPosition||"seguir referência / automática"}\nPosição/zona da logo de evento: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"automática entre seis zonas centrais"}\nTamanho máximo da logo de evento: ${data.eventLogoSize||data.assets?.eventLogo?.size||"small"} (small≈14% da largura; medium≈20%; large≈26%)\nOmitir logo principal: ${data.omitChurchLogo?"SIM":"não"}\nOmitir nome da igreja: ${data.omitChurchName?"SIM":"não"}
 Mapa/posições: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.userInstruction||""}
 Instrução final: ${data.finalInstruction||""}
