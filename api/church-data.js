@@ -216,6 +216,18 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    if (action === "update-asset-meta" && req.method === "POST") {
+      const body=req.body||{};
+      if(!body.id)throw new Error("ID do asset ausente.");
+      const rows=await rest(`church_assets?id=eq.${encodeURIComponent(body.id)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`);
+      const current=rows?.[0];if(!current)throw new Error("Asset não encontrado.");
+      const data=await rest(`church_assets?id=eq.${encodeURIComponent(body.id)}&church_id=eq.${encodeURIComponent(churchId)}`,{
+        method:"PATCH",headers:{Prefer:"return=representation"},
+        body:JSON.stringify({meta:{...(current.meta||{}),...(body.meta||{})}})
+      });
+      return res.json({asset:data?.[0]||null});
+    }
+
     if (action === "delete-asset" && req.method === "DELETE") {
       const id = req.body?.id;
 
