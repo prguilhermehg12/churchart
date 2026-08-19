@@ -1,6 +1,7 @@
 module.exports.config={maxDuration:180};
 
-const RESPONSES_URL="https://api.openai.com/v1/responses";
+const IMAGES_EDIT_URL="https://api.openai.com/v1/images/edits";
+const IMAGES_GENERATE_URL="https://api.openai.com/v1/images/generations";
 const BUCKET="churchart-assets";
 
 function cfg(){
@@ -46,13 +47,19 @@ function modelSize(target={}){
 
   return `${w}x${h}`;
 }
-function inputContent(data,prompt){
-  const c=[{type:"input_text",text:prompt}];
-  for(const r of (data.references||[]).slice(0,3))if(r?.image)c.push({type:"input_image",image_url:r.image,detail:"high"});
-  for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(p?.image)c.push({type:"input_text",text:`FOTO ORIGINAL DO PREGADOR ${i+1}. Nome solicitado: ${p.name||'não informado'}. Preserve identidade, rosto, cabelo, barba, óculos, idade aparente e características individuais com máxima fidelidade. Se houver nome, posicione-o próximo desta pessoa de forma harmônica, legível e com contraste suficiente.`},{type:"input_image",image_url:p.image,detail:"high"});
-  if(data.assets?.churchImage?.image)c.push({type:"input_text",text:"FOTO DA IGREJA OBRIGATÓRIA. Esta imagem foi escolhida pelo usuário e deve aparecer claramente integrada ao fundo/ambiente da arte. Não substitua por outra igreja e não a ignore."},{type:"input_image",image_url:data.assets.churchImage.image,detail:"high"});
-  if(data.assets?.logo?.image)c.push({type:"input_text",text:"LOGO OFICIAL. Use esta marca exatamente como fornecida. Não redesenhe, não invente letras e não altere símbolo."},{type:"input_image",image_url:data.assets.logo.image,detail:"high"});
-  return c;
+function isDataImage(v){return typeof v==="string"&&v.startsWith("data:image/");}
+function dataUrlPart(dataUrl,name="image.png"){
+  const m=String(dataUrl||"").match(/^data:([^;]+);base64,(.+)$/);
+  if(!m)throw new Error(`Imagem inválida: ${name}`);
+  return new Blob([Buffer.from(m[2],"base64")],{type:m[1]||"image/png"});
+}
+function collectInputImages(data){
+  const imgs=[];
+  for(const r of (data.references||[]).slice(0,3))if(isDataImage(r?.image))imgs.push({data:r.image,name:`reference-${imgs.length+1}.png`});
+  for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(isDataImage(p?.image))imgs.push({data:p.image,name:`pastor-${i+1}.png`});
+  if(isDataImage(data.assets?.churchImage?.image))imgs.push({data:data.assets.churchImage.image,name:"church.png"});
+  if(isDataImage(data.assets?.logo?.image))imgs.push({data:data.assets.logo.image,name:"logo.png"});
+  return imgs;
 }
 function blueprint(data){const a=data.artDirection||{};return `Direção visual: ${a.visual_summary||""}
 Estilo: ${(a.style_tags||[]).join(", ")}
@@ -214,13 +221,29 @@ REGRA DE CANVAS NATIVO — CRÍTICA:
 Entregue a arte final, não um mockup.`;
 }
 async function generate(data){
-  const tool={type:"image_generation",model:"gpt-image-2",action:"edit",quality:"medium",size:modelSize(data.target),output_format:"png"};
-  const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
-    model:"gpt-5.6-sol",reasoning:{effort:"medium"},store:false,input:[{role:"user",content:inputContent(data,prompt(data))}],tools:[tool],tool_choice:"required"
-  })});
-  const requestId=r.headers.get("x-request-id")||null;const d=await r.json();if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.requestId=requestId;throw e;}
-  const call=(d.output||[]).find(x=>x.type==="image_generation_call"&&x.result);if(!call?.result)throw new Error("O gerador não retornou imagem.");
-  return {base64:call.result,responseUsage:d.usage||null,toolUsage:call.usage||null,requestId};
+  const images=collectInputImages(data),size=modelSize(data.target),text=prompt(data);
+  let r;
+  if(images.length){
+    const form=new FormData();
+    form.append("model","gpt-image-2");
+    form.append("prompt",text);
+    form.append("quality","medium");
+    form.append("size",size);
+    form.append("output_format","png");
+    for(const im of images)form.append("image",dataUrlPart(im.data,im.name),im.name);
+    r=await fetch(IMAGES_EDIT_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`},body:form});
+  }else{
+    r=await fetch(IMAGES_GENERATE_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
+      model:"gpt-image-2",prompt:text,quality:"medium",size,output_format:"png"
+    })});
+  }
+  const requestId=r.headers.get("x-request-id")||null;
+  const d=await r.json();
+  if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.requestId=requestId;throw e;}
+  const item=d?.data?.[0];
+  const base64=item?.b64_json||item?.base64||null;
+  if(!base64)throw new Error("GPT Image 2 não retornou imagem.");
+  return {base64,usage:d.usage||null,requestId,endpoint:images.length?"images/edits":"images/generations",size};
 }
 module.exports=async function handler(req,res){
   if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
@@ -229,6 +252,6 @@ module.exports=async function handler(req,res){
     const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle&&!data.artDirection)return res.status(400).json({error:"Forneça uma referência ou uma direção de inspiração."});
     const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
     const url=await saveBase64ToStorage(generated.base64,label);
-    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.responseUsage||null,toolUsage:generated.toolUsage||null,requestId:generated.requestId||null,endpoint:"responses:image_generation:native-size"}}});
-  }catch(e){console.error("ChurchDesign V0.25 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
+    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.usage||null,requestId:generated.requestId||null,endpoint:generated.endpoint,size:generated.size}}});
+  }catch(e){console.error("ChurchDesign V0.27 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
 };
