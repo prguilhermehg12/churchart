@@ -45,6 +45,10 @@ TIPOGRAFIA:
 - Reprove duplicação de qualquer campo obrigatório.
 - Reprove texto sobreposto a outro texto a ponto de comprometer legibilidade.
 - Reprove informação obrigatória fora da safe area.\n
+- HIERARQUIA DE PREGADORES: quando houver mais de um, PESSOA 1 é PRINCIPAL e precisa ter prioridade visual e posição mais central que os auxiliares. PESSOA 2 = AUXILIAR 1; PESSOA 3 = AUXILIAR 2.
+- Reprove se o principal for tratado como auxiliar periférico enquanto outro pregador ocupa claramente a posição central/dominante sem instrução explícita do usuário.
+- Reprove troca de identidade, nome ou papel entre os pregadores.
+- Com três pregadores, aceite variações criativas, mas exija que o principal continue sendo o eixo visual predominante.
 - REGRA CRÍTICA DE CAMADAS: a logo de evento jamais pode estar desenhada à frente de qualquer parte do pregador. Se houver interseção, o recorte do pregador deve ocluir a logo de evento. Reprove se qualquer fragmento da logo aparecer sobre rosto, cabelo, corpo, roupa, braços ou mãos do pregador.
 - Não reprove apenas porque a logo ficou parcialmente escondida atrás do pregador: isso é o comportamento correto quando houver conflito e não existir reposicionamento melhor dentro da zona escolhida.
 - Se houver logo de evento, reprove se ela estiver ausente, redesenhada, duplicada, nos cantos extremos, grande além do limite selecionado ou sobreposta à logo principal/rosto/título.\n- Se omitChurchLogo=true, a presença de qualquer logo principal da igreja é falha crítica.\n- Se omitChurchName=true, a presença textual do nome da igreja é falha crítica.
@@ -76,7 +80,7 @@ Instrução final: ${data.finalInstruction||""}
 
 Avalie de forma conservadora. Se reprovar, escreva correction_prompt curto e operacional. Se a complexidade estiver causando erro, mande SIMPLIFICAR a área problemática.`}];
   for(const r of (data.references||[]).slice(0,1))if(r?.image)c.push({type:"input_text",text:"REFERÊNCIA DE DESIGN:"},{type:"input_image",image_url:r.image,detail:"auto"});
-  for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(p?.image)c.push({type:"input_text",text:`FOTO ORIGINAL DA PESSOA ${i+1}. Nome esperado: ${p.name||'não informado'}`},{type:"input_image",image_url:p.image,detail:"auto"});
+  for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(p?.image)c.push({type:"input_text",text:`FOTO ORIGINAL — ${i===0?'PREGADOR PRINCIPAL':`PREGADOR AUXILIAR ${i}`}. Nome esperado: ${p.name||'não informado'}`},{type:"input_image",image_url:p.image,detail:"auto"});
   if(data.assets?.churchImage?.image&&!/omitir foto da igreja/i.test(`${data.userInstruction||""} ${data.finalInstruction||""}`))c.push({type:"input_text",text:"FOTO DA IGREJA SELECIONADA — deve estar presente e reconhecível na arte:"},{type:"input_image",image_url:data.assets.churchImage.image,detail:"auto"});
   if(data.assets?.logo?.image)c.push({type:"input_text",text:"LOGO ORIGINAL:"},{type:"input_image",image_url:data.assets.logo.image,detail:"auto"});
   if(data.assets?.eventLogo?.image)c.push({type:"input_text",text:"LOGO DE EVENTO ORIGINAL — deve aparecer intacta uma única vez, em zona central lateral permitida e sem conflito com a logo principal:"},{type:"input_image",image_url:data.assets.eventLogo.image,detail:"auto"});
