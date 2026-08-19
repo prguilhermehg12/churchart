@@ -55,7 +55,13 @@ Mapa semântico: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.instruction||"nenhuma"}
 Instrução final: ${data.finalInstruction||"nenhuma"}
 PREFERÊNCIAS APRENDIDAS DO USUÁRIO: ${data.preferenceProfile?JSON.stringify(data.preferenceProfile):"nenhuma ainda"}
-Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}\nPrioridade explícita de posição da logo: ${data.logoPosition||"não especificada; seguir referência ou equilíbrio"}\nZona da logo de evento: ${data.eventLogoPosition||"IA escolhe entre as seis zonas centrais permitidas"}
+Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}\nPrioridade explícita de posição da logo: ${data.logoPosition||"não especificada; seguir referência ou equilíbrio"}\nZona da logo de evento: ${data.eventLogoPosition||"IA escolhe entre as seis zonas centrais permitidas"}\nTamanho máximo da logo de evento: ${data.eventLogoSize||"small"} (small≈14% da largura; medium≈20%; large≈26%). A zona é aproximada: ajuste localmente para composição sem abandonar a região escolhida.\nLogo principal omitida: ${data.omitChurchLogo?"SIM — proibir logo principal":"não"}\nNome da igreja omitido: ${data.omitChurchName?"SIM — proibir qualquer texto com o nome da igreja":"não"}
+
+REGRA ABSOLUTA DE CAMADAS — LOGO DE EVENTO × PREGADOR:
+A foto/recorte do pregador tem prioridade visual sobre a logo de evento.
+Se a logo de evento ocupar, tocar ou cruzar a área do pregador, a logo de evento DEVE permanecer atrás do pregador, parcialmente ocultada pelo recorte quando necessário.
+A logo de evento NUNCA pode aparecer sobre o rosto, cabelo, corpo, roupa, mãos ou qualquer parte visível do pregador.
+Não mova o pregador para acomodar a logo se isso prejudicar a composição baseada na referência; primeiro reposicione discretamente a logo dentro da zona escolhida e, se ainda houver conflito, mantenha-a atrás do pregador.
 Estilo explicitamente escolhido: ${data.designStyle||"não especificado"}
 Modo de cor predominante: ${data.colorMode||"não especificado"}
 Cor manual, se houver: ${data.dominantColor||"não especificada"}
