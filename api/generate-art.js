@@ -81,7 +81,7 @@ function prompt(data){
     c.date?`DATA EXATA: ${c.date}`:"",
     c.time?`HORÁRIO EXATO: ${c.time}`:"",
     c.address?`ENDEREÇO EXATO: ${c.address}`:"",
-    ...(Array.isArray(c.pastorNames)?c.pastorNames.filter(Boolean).map((n,i)=>`NOME DO PREGADOR ${i+1} EXATO: ${n}`):[])
+    ...(Array.isArray(c.pastorNames)?c.pastorNames.filter(Boolean).map((n,i)=>`${i===0?'PREGADOR PRINCIPAL':`PREGADOR AUXILIAR ${i}`} — NOME EXATO: ${n}`):[])
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
 
@@ -145,6 +145,13 @@ TIPOGRAFIA FINAL:
 
 
 PREGADOR:
+- O sistema aceita NO MÁXIMO 3 pregadores.
+- A ordem dos assets é semântica e obrigatória: PESSOA 1 = PRINCIPAL; PESSOA 2 = AUXILIAR 1; PESSOA 3 = AUXILIAR 2.
+- O PRINCIPAL deve ter maior prioridade visual: posição mais central, escala igual ou maior e leitura imediata antes dos auxiliares.
+- Com 2 pessoas: mantenha o PRINCIPAL mais central/dominante e o AUXILIAR 1 em posição lateral secundária.
+- Com 3 pessoas: mantenha o PRINCIPAL no eixo ou região central dominante e distribua AUXILIAR 1 e AUXILIAR 2 nas laterais de forma equilibrada.
+- Nunca troque rostos, nomes, funções ou hierarquia entre as pessoas.
+- Auxiliares podem ficar parcialmente atrás do principal quando a composição pedir profundidade, mas nunca devem cobrir o rosto do principal.
 - Com referência, replique primeiro o enquadramento da referência.
 - Se a referência mostrar busto, peito ou cintura, não transforme em corpo inteiro.
 - Sem referência/instrução, priorize peito para cima ou cintura para cima.
@@ -226,13 +233,18 @@ async function generate(data){
   const images=collectInputImages(data),size=modelSize(data.target),text=prompt(data);
   let r;
   if(images.length){
+    // ZERO-COST PREFLIGHT: multiple edit inputs MUST use image[].
+    // This is validated locally before any Images API request is sent.
+    if(!Array.isArray(images)||images.some(im=>!isDataImage(im?.data)))throw new Error("Preflight: imagens de entrada inválidas.");
     const form=new FormData();
     form.append("model","gpt-image-2");
     form.append("prompt",text);
     form.append("quality","medium");
     form.append("size",size);
     form.append("output_format","png");
-    for(const im of images)form.append("image",dataUrlPart(im.data,im.name),im.name);
+    for(const im of images)form.append("image[]",dataUrlPart(im.data,im.name),im.name);
+    const imageFields=[...form.keys()].filter(k=>k==="image[]"||k==="image");
+    if(imageFields.length!==images.length||imageFields.some(k=>k!=="image[]"))throw new Error("Preflight multipart: use image[] para múltiplas imagens.");
     r=await fetch(IMAGES_EDIT_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`},body:form});
   }else{
     r=await fetch(IMAGES_GENERATE_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
@@ -255,5 +267,5 @@ module.exports=async function handler(req,res){
     const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
     const url=await saveBase64ToStorage(generated.base64,label);
     return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.usage||null,requestId:generated.requestId||null,endpoint:generated.endpoint,size:generated.size}}});
-  }catch(e){console.error("ChurchDesign V0.27 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
+  }catch(e){console.error("ChurchDesign V0.28.4 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
 };
