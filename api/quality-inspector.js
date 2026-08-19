@@ -45,6 +45,14 @@ TIPOGRAFIA:
 - Reprove duplicação de qualquer campo obrigatório.
 - Reprove texto sobreposto a outro texto a ponto de comprometer legibilidade.
 - Reprove informação obrigatória fora da safe area.\n
+
+- SUBSTITUIÇÃO DE REFERÊNCIA — FALHA CRÍTICA: se existem fotos de pregadores enviadas, nenhuma pessoa humana original da arte de referência pode permanecer, salvo autorização explícita. Reprove imediatamente se o protagonista/pastor/modelo da referência continuar visível.
+- PRINCIPAL: confirme que a pessoa central/dominante é de fato a FOTO DO PREGADOR PRINCIPAL enviada, e não a pessoa da referência.
+- FISIONOMIA: compare rigorosamente cada rosto final às fotos originais. Mudança perceptível de identidade, mistura de traços ou alteração facial significativa é falha crítica.
+- POSE: preserve braço levantado/abaixado, gesto, microfone, orientação corporal e direção do olhar. Mudança injustificada de uma pose marcante deve reprovar.
+- POSICIONAMENTO DIRECIONAL: auxiliar orientado para a direita deve preferencialmente ficar do lado direito do principal; orientado para a esquerda, do lado esquerdo. Reprove quando a inversão prejudicar claramente a lógica visual e não houver justificativa da referência/instrução.
+- LOGO PRINCIPAL DUPLICADA: qualquer segunda ocorrência da logo principal, símbolo extraído ou variação inventada é falha crítica.
+- LOGO DE EVENTO: se selecionada, verifique se é a logo de evento correta. Reprove se estiver ausente ou se a logo principal tiver sido repetida no lugar dela.
 - HIERARQUIA DE PREGADORES: quando houver mais de um, PESSOA 1 é PRINCIPAL e precisa ter prioridade visual e posição mais central que os auxiliares. PESSOA 2 = AUXILIAR 1; PESSOA 3 = AUXILIAR 2.
 - Reprove se o principal for tratado como auxiliar periférico enquanto outro pregador ocupa claramente a posição central/dominante sem instrução explícita do usuário.
 - Reprove troca de identidade, nome ou papel entre os pregadores.
