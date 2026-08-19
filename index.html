@@ -366,14 +366,28 @@
 .my-church-panel{width:min(980px,94vw)!important;height:min(760px,88dvh)!important;max-height:none!important;overflow:hidden!important;display:grid;grid-template-rows:auto 1fr}
 .my-church-panel .modal-body{overflow:auto;min-height:0}
 .my-church-panel .library-tabs{position:sticky;top:0;z-index:3;background:#0f1116;padding:2px 0 12px;margin-bottom:12px}
+.quick-shell,.quick-grid,.quick-grid>.card{min-width:0}
 .quick-ref-grid,.quick-logo-grid,.quick-pastor-grid,.church-image-grid,.quick-event-logo-grid{
-  display:flex!important;gap:9px!important;overflow-x:auto!important;overflow-y:hidden;padding:2px 2px 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:9px!important;
+  max-height:360px;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  padding:2px 6px 8px 2px;
+  min-width:0;
+  width:100%;
+  align-content:start;
+  scrollbar-gutter:stable;
 }
 .quick-ref-grid .quick-asset,.quick-logo-grid .quick-asset,.quick-pastor-grid .quick-asset,.church-image-grid .quick-asset,.quick-event-logo-grid .quick-asset{
-  flex:0 0 118px;scroll-snap-align:start
+  min-width:0!important;
+  width:100%!important;
+  max-width:100%!important;
 }
-.quick-ref-grid::-webkit-scrollbar,.quick-logo-grid::-webkit-scrollbar,.quick-pastor-grid::-webkit-scrollbar,.church-image-grid::-webkit-scrollbar,.quick-event-logo-grid::-webkit-scrollbar{height:7px}
+.quick-ref-grid::-webkit-scrollbar,.quick-logo-grid::-webkit-scrollbar,.quick-pastor-grid::-webkit-scrollbar,.church-image-grid::-webkit-scrollbar,.quick-event-logo-grid::-webkit-scrollbar{width:7px;height:0}
 .quick-ref-grid::-webkit-scrollbar-thumb,.quick-logo-grid::-webkit-scrollbar-thumb,.quick-pastor-grid::-webkit-scrollbar-thumb,.church-image-grid::-webkit-scrollbar-thumb,.quick-event-logo-grid::-webkit-scrollbar-thumb{background:#353b47;border-radius:99px}
+.quick-ref-grid::-webkit-scrollbar-track,.quick-logo-grid::-webkit-scrollbar-track,.quick-pastor-grid::-webkit-scrollbar-track,.church-image-grid::-webkit-scrollbar-track,.quick-event-logo-grid::-webkit-scrollbar-track{background:#151922;border-radius:99px}
 .event-logo-guide{position:relative;width:170px;aspect-ratio:4/5;border:1px solid var(--line);border-radius:12px;background:linear-gradient(145deg,#171b23,#0b0d11);margin-top:9px}
 .event-logo-guide:before{content:"ÁREA CENTRAL";position:absolute;left:20%;right:20%;top:8%;bottom:8%;border:1px dashed #333b49;border-radius:8px;color:#555f70;font-size:7px;display:grid;place-items:center}
 .event-logo-pos{position:absolute;width:34px;height:24px;border:1px solid #4b5567;background:#191d25;border-radius:6px;cursor:pointer}
@@ -385,10 +399,26 @@
 .asset-save-state{font-size:8px;color:var(--good);min-height:12px;margin-top:3px}
 .screen-save-status{margin-top:9px;font-size:10px;min-height:18px;color:var(--muted);text-align:center}
 .library-upload-progress{grid-column:1/-1}
-@media(max-width:600px){.my-church-panel{width:96vw!important;height:90dvh!important}.quick-ref-grid .quick-asset,.quick-logo-grid .quick-asset,.quick-pastor-grid .quick-asset,.church-image-grid .quick-asset,.quick-event-logo-grid .quick-asset{flex-basis:105px}}
+@media(max-width:600px){.my-church-panel{width:96vw!important;height:90dvh!important}}
+
+
+@media(max-width:900px){
+  .quick-shell,.quick-grid,.quick-grid>.card{min-width:0!important;max-width:100%!important}
+  .quick-ref-grid,.quick-logo-grid,.quick-pastor-grid,.church-image-grid,.quick-event-logo-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    max-height:320px;
+    width:100%;
+  }
+}
+@media(max-width:520px){
+  .quick-ref-grid,.quick-logo-grid,.quick-pastor-grid,.church-image-grid,.quick-event-logo-grid{
+    grid-template-columns:1fr!important;
+    max-height:300px;
+  }
+}
 
 </style>
-  <!-- ChurchDesign V0.28 — reliable uploads / event logo / stable church modal -->
+  <!-- ChurchDesign V0.28.1 — vertical asset scroll hotfix -->
 </head>
 <body>
   <div class="app-shell">
