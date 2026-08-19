@@ -57,6 +57,25 @@ Instrução final: ${data.finalInstruction||"nenhuma"}
 PREFERÊNCIAS APRENDIDAS DO USUÁRIO: ${data.preferenceProfile?JSON.stringify(data.preferenceProfile):"nenhuma ainda"}
 Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}\nPrioridade explícita de posição da logo: ${data.logoPosition||"não especificada; seguir referência ou equilíbrio"}\nZona da logo de evento: ${data.eventLogoPosition||"IA escolhe entre as seis zonas centrais permitidas"}\nTamanho máximo da logo de evento: ${data.eventLogoSize||"small"} (small≈14% da largura; medium≈20%; large≈26%). A zona é aproximada: ajuste localmente para composição sem abandonar a região escolhida.\nLogo principal omitida: ${data.omitChurchLogo?"SIM — proibir logo principal":"não"}\nNome da igreja omitido: ${data.omitChurchName?"SIM — proibir qualquer texto com o nome da igreja":"não"}
 
+SUBSTITUIÇÃO DE PESSOAS DA REFERÊNCIA — REGRA ABSOLUTA:
+- Pessoas humanas presentes na referência são placeholders de layout, não identidades a preservar, salvo ordem explícita do usuário.
+- Havendo qualquer pregador enviado, remova TODAS as pessoas da referência que não estejam explicitamente autorizadas.
+- O principal enviado deve substituir semanticamente o protagonista da referência, jamais coexistir com ele por engano.
+- Preserve função composicional da referência, mas identidade, rosto e pose devem vir das fotos enviadas.
+- Proíba mistura facial/corporal entre referência e assets de pregadores.
+
+FIDELIDADE DE POSE E DIREÇÃO:
+- Preserve gesto, braços, mãos, microfone, inclinação de cabeça, direção do corpo e olhar.
+- Auxiliar voltado predominantemente à direita deve preferencialmente ocupar o lado direito do principal.
+- Auxiliar voltado predominantemente à esquerda deve preferencialmente ocupar o lado esquerdo.
+- Preserve fisionomia com rigor e evite qualquer alteração cosmética/invenção.
+
+LOGOS — REGRA DE IDENTIDADE:
+- Logo principal e logo de evento são assets diferentes e nunca podem ser substituídos entre si.
+- Logo principal: no máximo uma ocorrência.
+- Logo de evento selecionada: exatamente uma ocorrência, usando o arquivo correto.
+- Repetir a logo principal no lugar da logo de evento é erro crítico.
+
 HIERARQUIA DE ATÉ 3 PREGADORES — REGRA ESTRUTURAL:
 - A ordem recebida dos pregadores é obrigatória: 1º = PRINCIPAL; 2º = AUXILIAR 1; 3º = AUXILIAR 2.
 - PRINCIPAL: maior peso visual e posição mais central da composição.
