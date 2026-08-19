@@ -32,6 +32,13 @@ Se público-alvo ou estilo estiverem especificados, verifique se a peça é coer
 Se não estiverem especificados, ignore esse critério.
 Erros criativos menores NÃO devem reprovar. Porém, violação de área segura de conteúdo essencial deve reprovar.
 
+OMISSÕES DA ARTE FILHA — PRIORIDADE ABSOLUTA:
+- Se userInstruction/finalInstruction pedir omitir pregador/pessoas, a arte final deve ter ZERO pregadores/pessoas principais, mesmo que a referência contenha uma pessoa.
+- Se pedir omitir logo, a arte final deve ter ZERO logos ou símbolos derivados da logo da referência.
+- Se pedir omitir foto da igreja, a fotografia da igreja presente na referência não deve permanecer.
+- Preservar a referência NUNCA supera uma omissão explícita do usuário.
+- A presença de um elemento explicitamente omitido é ERRO CRÍTICO.
+
 TIPOGRAFIA:
 - Toda tipografia deve estar integrada à arte final.
 - Conte ocorrências de data, hora, endereço, subtítulo e nomes.
@@ -65,10 +72,10 @@ Instrução: ${data.userInstruction||""}
 Instrução final: ${data.finalInstruction||""}
 
 Avalie de forma conservadora. Se reprovar, escreva correction_prompt curto e operacional. Se a complexidade estiver causando erro, mande SIMPLIFICAR a área problemática.`}];
-  for(const r of (data.references||[]).slice(0,2))if(r?.image)c.push({type:"input_text",text:"REFERÊNCIA DE DESIGN:"},{type:"input_image",image_url:r.image,detail:"high"});
-  for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(p?.image)c.push({type:"input_text",text:`FOTO ORIGINAL DA PESSOA ${i+1}. Nome esperado: ${p.name||'não informado'}`},{type:"input_image",image_url:p.image,detail:"high"});
-  if(data.assets?.churchImage?.image)c.push({type:"input_text",text:"FOTO DA IGREJA SELECIONADA — deve estar presente e reconhecível na arte:"},{type:"input_image",image_url:data.assets.churchImage.image,detail:"high"});
-  if(data.assets?.logo?.image)c.push({type:"input_text",text:"LOGO ORIGINAL:"},{type:"input_image",image_url:data.assets.logo.image,detail:"high"});
+  for(const r of (data.references||[]).slice(0,1))if(r?.image)c.push({type:"input_text",text:"REFERÊNCIA DE DESIGN:"},{type:"input_image",image_url:r.image,detail:"auto"});
+  for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(p?.image)c.push({type:"input_text",text:`FOTO ORIGINAL DA PESSOA ${i+1}. Nome esperado: ${p.name||'não informado'}`},{type:"input_image",image_url:p.image,detail:"auto"});
+  if(data.assets?.churchImage?.image&&!/omitir foto da igreja/i.test(`${data.userInstruction||""} ${data.finalInstruction||""}`))c.push({type:"input_text",text:"FOTO DA IGREJA SELECIONADA — deve estar presente e reconhecível na arte:"},{type:"input_image",image_url:data.assets.churchImage.image,detail:"auto"});
+  if(data.assets?.logo?.image)c.push({type:"input_text",text:"LOGO ORIGINAL:"},{type:"input_image",image_url:data.assets.logo.image,detail:"auto"});
   if(data.preTypographyImage)c.push({type:"input_text",text:"ARTE ANTES DA CONVERSÃO TIPOGRÁFICA:"},{type:"input_image",image_url:data.preTypographyImage,detail:"high"});
   c.push({type:"input_text",text:"ARTE GERADA A SER FISCALIZADA:"},{type:"input_image",image_url:data.generatedImage,detail:"high"});
   return c;
@@ -79,7 +86,7 @@ module.exports=async function handler(req,res){
   try{
     const data=req.body||{};
     const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
-      model:"gpt-5.6-sol",reasoning:{effort:"high"},prompt_cache_options:{mode:"explicit",ttl:"30m"},store:false,input:[{role:"user",content:content(data)}],
+      model:"gpt-5.6-sol",reasoning:{effort:"medium"},store:false,input:[{role:"user",content:content(data)}],
       text:{format:{type:"json_schema",name:"churchdesign_quality_review",strict:true,schema},verbosity:"low"}
     })});
     const requestId=r.headers.get("x-request-id")||null;const d=await r.json();if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.requestId=requestId;throw e;}
