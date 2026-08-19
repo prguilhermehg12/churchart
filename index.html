@@ -361,8 +361,34 @@
 .upload-live-item.done:after{content:"✓";position:absolute;right:4px;top:4px;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;background:#153b2a;color:var(--good);font-size:9px;font-weight:900}
 @media(max-width:600px){.upload-live-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.quick-format-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+
+/* V0.28 */
+.my-church-panel{width:min(980px,94vw)!important;height:min(760px,88dvh)!important;max-height:none!important;overflow:hidden!important;display:grid;grid-template-rows:auto 1fr}
+.my-church-panel .modal-body{overflow:auto;min-height:0}
+.my-church-panel .library-tabs{position:sticky;top:0;z-index:3;background:#0f1116;padding:2px 0 12px;margin-bottom:12px}
+.quick-ref-grid,.quick-logo-grid,.quick-pastor-grid,.church-image-grid,.quick-event-logo-grid{
+  display:flex!important;gap:9px!important;overflow-x:auto!important;overflow-y:hidden;padding:2px 2px 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch
+}
+.quick-ref-grid .quick-asset,.quick-logo-grid .quick-asset,.quick-pastor-grid .quick-asset,.church-image-grid .quick-asset,.quick-event-logo-grid .quick-asset{
+  flex:0 0 118px;scroll-snap-align:start
+}
+.quick-ref-grid::-webkit-scrollbar,.quick-logo-grid::-webkit-scrollbar,.quick-pastor-grid::-webkit-scrollbar,.church-image-grid::-webkit-scrollbar,.quick-event-logo-grid::-webkit-scrollbar{height:7px}
+.quick-ref-grid::-webkit-scrollbar-thumb,.quick-logo-grid::-webkit-scrollbar-thumb,.quick-pastor-grid::-webkit-scrollbar-thumb,.church-image-grid::-webkit-scrollbar-thumb,.quick-event-logo-grid::-webkit-scrollbar-thumb{background:#353b47;border-radius:99px}
+.event-logo-guide{position:relative;width:170px;aspect-ratio:4/5;border:1px solid var(--line);border-radius:12px;background:linear-gradient(145deg,#171b23,#0b0d11);margin-top:9px}
+.event-logo-guide:before{content:"ÁREA CENTRAL";position:absolute;left:20%;right:20%;top:8%;bottom:8%;border:1px dashed #333b49;border-radius:8px;color:#555f70;font-size:7px;display:grid;place-items:center}
+.event-logo-pos{position:absolute;width:34px;height:24px;border:1px solid #4b5567;background:#191d25;border-radius:6px;cursor:pointer}
+.event-logo-pos.selected{border-color:var(--accent);background:#381923;box-shadow:0 0 0 1px var(--accent)}
+.event-logo-pos[data-event-pos="left-top"]{left:24%;top:18%}.event-logo-pos[data-event-pos="right-top"]{right:24%;top:18%}
+.event-logo-pos[data-event-pos="left-middle"]{left:24%;top:44%}.event-logo-pos[data-event-pos="right-middle"]{right:24%;top:44%}
+.event-logo-pos[data-event-pos="left-bottom"]{left:24%;bottom:18%}.event-logo-pos[data-event-pos="right-bottom"]{right:24%;bottom:18%}
+.pastor-library-name{width:100%;margin-top:7px;background:#11141a;color:white;border:1px solid #292e38;border-radius:7px;padding:7px;font-size:9px}
+.asset-save-state{font-size:8px;color:var(--good);min-height:12px;margin-top:3px}
+.screen-save-status{margin-top:9px;font-size:10px;min-height:18px;color:var(--muted);text-align:center}
+.library-upload-progress{grid-column:1/-1}
+@media(max-width:600px){.my-church-panel{width:96vw!important;height:90dvh!important}.quick-ref-grid .quick-asset,.quick-logo-grid .quick-asset,.quick-pastor-grid .quick-asset,.church-image-grid .quick-asset,.quick-event-logo-grid .quick-asset{flex-basis:105px}}
+
 </style>
-  <!-- ChurchDesign V0.27 — direct Images API / economical inspector / persistent multi-upload -->
+  <!-- ChurchDesign V0.28 — reliable uploads / event logo / stable church modal -->
 </head>
 <body>
   <div class="app-shell">
@@ -396,7 +422,7 @@ lastMarked:null,
 currentDraftId:null,
 artDirection:null,
 mode:null,
-quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',dominantColorMode:'custom',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoPosition:'',logoAssetId:null,pastorAssetIds:[],pastorNames:{},churchImageAssetId:null,correction:''},
+quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',dominantColorMode:'custom',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoPosition:'',logoAssetId:null,eventLogoAssetId:null,eventLogoPosition:'',pastorAssetIds:[],pastorNames:{},churchImageAssetId:null,correction:''},
 quickResults:[],
 costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',actualStart:null,actualEnd:null,actualCost:null,requests:[],untrackedEstimate:0},
 library:{assets:[],generations:[],drafts:[],ratings:[],dbReady:false},
@@ -1161,8 +1187,29 @@ async function deleteDraftById(id){
 
 function apiJSON(action,options={}){const method=options.method||'GET';const churchId=String(state.user?.id||state.user?.email||'default').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80);const url=`/api/church-data?action=${encodeURIComponent(action)}`;return fetch(url,{method,headers:{'Content-Type':'application/json','x-church-id':churchId},body:method==='GET'?undefined:JSON.stringify(options.body||{})}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;});}
 async function bootstrapLibrary(){try{const data=await apiJSON('bootstrap');state.library.assets=data.assets||[];const savedLogos=state.library.assets.filter(a=>a.type==='logo');if(!state.finalConfig.logoAssetId&&savedLogos.length)state.finalConfig.logoAssetId=(savedLogos.find(a=>a.is_primary)||savedLogos[0]).id;state.library.generations=data.generations||[];state.library.drafts=data.drafts||[];state.library.ratings=data.ratings||[];state.library.dbReady=true;if(data.profile){state.church.name=data.profile.name||state.church.name;state.church.address=data.profile.address||state.church.address;state.church.screenConfig=data.profile.screen_config||state.church.screenConfig;state.projectTitle=state.church.name||'Nova arte';}const primary=state.library.assets.find(a=>a.type==='logo'&&a.is_primary)||state.library.assets.find(a=>a.type==='logo');if(primary&&!state.church.logo)state.church.logo=primary.url;render();}catch(e){console.warn('Banco não configurado:',e);state.library.dbReady=false;render();}}
-async function saveChurchProfile(){if(!state.library.dbReady)return;try{await apiJSON('save-profile',{method:'POST',body:{name:state.church.name,address:state.church.address,screenConfig:state.church.screenConfig}});}catch(e){console.warn(e)}}
-async function uploadLibraryAsset(file,type){try{if(type==='reference'&&state.library.assets.filter(a=>a.type==='reference').length>=20){alert('Limite de 20 referências por igreja. Remova uma referência antes de adicionar outra.');return null;}const isFont=type==='font';const dataUrl=isFont?await fileAsDataUrl(file):await optimizeImageFile(file,1800,type==='logo'?.95:.9);const meta=isFont?{family:file.name.replace(/\.[^.]+$/,'')}:{originalName:file.name};const d=await apiJSON('upload-asset',{method:'POST',body:{type,name:file.name,dataUrl,mimeType:file.type||guessMime(file.name),meta}});state.library.assets=[d.asset,...state.library.assets.filter(a=>a.id!==d.asset.id)];if(type==='font')return d.asset;}catch(e){console.error(e);alert('Não foi possível salvar no banco: '+e.message);return null;}}
+async function saveChurchProfile(){
+  if(!state.library.dbReady)return {ok:false,error:'Banco não conectado'};
+  try{
+    const d=await apiJSON('save-profile',{method:'POST',body:{name:state.church.name,address:state.church.address,screenConfig:state.church.screenConfig}});
+    return {ok:true,profile:d.profile||null};
+  }catch(e){console.warn(e);return {ok:false,error:e.message||'Erro ao salvar'};}
+}
+async function uploadLibraryAsset(file,type){
+  try{
+    const refCount=state.library.assets.filter(a=>a.type==='reference').length;
+    if(type==='reference'&&refCount>=20){alert('Limite de 20 referências por igreja. Remova uma referência antes de adicionar outra.');return null;}
+    const isFont=type==='font';
+    const dbType=type==='event_logo'?'graphic':type;
+    const dataUrl=isFont?await fileAsDataUrl(file):await optimizeImageFile(file,1800,(type==='logo'||type==='event_logo') ? .95 : .9);
+    const meta=isFont
+      ?{family:file.name.replace(/\.[^.]+$/,'')}
+      :{originalName:file.name,...(type==='event_logo'?{category:'event_logo'}:{})};
+    const d=await apiJSON('upload-asset',{method:'POST',body:{type:dbType,name:file.name,dataUrl,mimeType:file.type||guessMime(file.name),meta}});
+    if(!d.asset)throw new Error('O banco não retornou o asset salvo.');
+    state.library.assets=[d.asset,...state.library.assets.filter(a=>a.id!==d.asset.id)];
+    return d.asset;
+  }catch(e){console.error(e);alert('Não foi possível salvar no banco: '+e.message);return null;}
+}
 
 function uploadPreviewUrl(file){try{return URL.createObjectURL(file)}catch{return''}}
 async function uploadLibraryAssets(files,type,{container=null,onAsset=null,max=null}={}){
@@ -1189,6 +1236,16 @@ async function uploadLibraryAssets(files,type,{container=null,onAsset=null,max=n
   return saved;
 }
 
+async function updateLibraryAssetMeta(id,patch={}){
+  const asset=state.library.assets.find(a=>a.id===id);if(!asset)return null;
+  const meta={...(asset.meta||{}),...patch};
+  const d=await apiJSON('update-asset-meta',{method:'POST',body:{id,meta}});
+  if(d.asset){
+    state.library.assets=state.library.assets.map(a=>a.id===id?d.asset:a);
+    return d.asset;
+  }
+  return null;
+}
 async function deleteLibraryAsset(id){try{await apiJSON('delete-asset',{method:'DELETE',body:{id}});state.library.assets=state.library.assets.filter(a=>a.id!==id);openMyChurch();}catch(e){alert(e.message)}}
 async function persistGeneration(images){
   try{
@@ -1222,22 +1279,68 @@ function fontFamilyFor(role){const id=state.finalConfig.fontAssignments[role]||'
 function getSelectedLogo(){return state.library.assets.find(a=>a.id===state.finalConfig.logoAssetId)||null}function getSelectedPastor(){return state.library.assets.find(a=>a.id===state.finalConfig.pastorAssetId)||null}
 function previewFilterStyle(f){return f==='mono'?'filter:grayscale(1)':f==='faded'?'filter:grayscale(.35) saturate(.6) contrast(.9)':f==='chrome'?'filter:saturate(1.8) contrast(1.15)':f==='green'?'filter:hue-rotate(75deg) saturate(1.25)':f==='red'?'filter:sepia(.6) saturate(1.7) hue-rotate(330deg)':f==='blue'?'filter:sepia(.4) saturate(1.5) hue-rotate(165deg)':f==='warm'?'filter:sepia(.25) saturate(1.25)':f==='cool'?'filter:hue-rotate(175deg) saturate(1.05)':''}
 function canvasFilter(f){return f==='mono'?'grayscale(1)':f==='faded'?'grayscale(.35) saturate(.6) contrast(.9)':f==='chrome'?'saturate(1.8) contrast(1.15)':f==='green'?'sepia(.25) hue-rotate(65deg) saturate(1.2)':f==='red'?'sepia(.45) saturate(1.5) hue-rotate(325deg)':f==='blue'?'sepia(.3) saturate(1.4) hue-rotate(165deg)':f==='warm'?'sepia(.22) saturate(1.2)':f==='cool'?'hue-rotate(175deg) saturate(1.05)':'none'}
-function bindQuickUpload(id,type,done){const i=document.querySelector('#'+id);if(i)i.onchange=async e=>{const a=await uploadLibraryAsset(e.target.files[0],type);if(a&&done)done(a)}}
+function bindQuickUpload(id,type,done){
+  const i=document.querySelector('#'+id);if(!i)return;
+  i.onchange=async e=>{
+    let live=document.querySelector(`#${id}Live`);
+    if(!live){live=document.createElement('div');live.id=`${id}Live`;live.className='upload-live library-upload-progress';i.closest('label')?.insertAdjacentElement('afterend',live);}
+    const saved=await uploadLibraryAssets(e.target.files,type,{container:live,onAsset:async a=>{if(done)await done(a);}});
+    return saved;
+  };
+}
 function showNoPastorPopup(){const root=document.querySelector('#modalRoot');if(!root||document.querySelector('.modal-backdrop'))return;root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel" style="width:min(520px,94vw)"><div class="modal-head"><h2>Foto do pregador</h2><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><p style="color:var(--muted);font-size:12px">Nenhuma foto está salva em Minha Igreja. Envie uma agora para preservar a pessoa original.</p><label class="library-upload"><strong>Enviar foto agora</strong><span>JPG, PNG ou WEBP</span><input id="modalPastorUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>`;bindQuickUpload('modalPastorUpload','pastor',a=>{state.finalConfig.pastorAssetId=a.id;closeModal();screenAdjust()});}
 function closeModal(){document.querySelector('#modalRoot').innerHTML=''}
 window.openMyChurch=function(tab='pastor'){
-const root=document.querySelector('#modalRoot');
-const labels={pastor:'Pregadores',church:'Fotos da igreja',logo:'Logos',reference:'Referências',graphic:'Elementos PNG',font:'Fontes',screen:'Telão'};
-if(tab==='screen'){
-  const c=state.church.screenConfig||{preset:'16:9',width:1920,height:1080};
-  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel"><div class="modal-head"><div><h2>Minha Igreja</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Banco conectado':'Configure o banco para persistir'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="library-tabs">${Object.entries(labels).map(([k,v])=>`<button class="library-tab ${tab===k?'active':''}" onclick="openMyChurch('${k}')">${v}</button>`).join('')}</div><div class="card" style="box-shadow:none"><h3>Formato padrão do telão</h3><p style="margin-bottom:14px">Escolha o desenho que mais se parece com o telão da sua igreja. Essa proporção será usada nas adaptações “Criar arte telão”.</p><div class="screen-preset-grid">${screenPresets.map(p=>`<div class="screen-preset ${c.preset===p.id?'selected':''}" data-screen-preset="${p.id}"><div class="screen-sketch-wrap"><div class="screen-sketch" style="${screenSketchStyle(p.width,p.height)}"></div></div><strong>${p.label}</strong><small>${p.width} × ${p.height} • ${p.note}</small></div>`).join('')}</div><div class="grid2" style="margin-top:14px"><div class="field"><label>Largura personalizada</label><input id="screenWidth" type="number" min="320" max="7680" value="${c.width||1920}"></div><div class="field"><label>Altura personalizada</label><input id="screenHeight" type="number" min="320" max="4320" value="${c.height||1080}"></div></div><button id="saveScreenConfigBtn" class="btn primary" style="width:100%">Salvar configuração do telão</button></div></div></div></div>`;
-  document.querySelectorAll('[data-screen-preset]').forEach(el=>el.onclick=()=>{const p=screenPresets.find(x=>x.id===el.dataset.screenPreset);if(!p)return;state.church.screenConfig={preset:p.id,width:p.width,height:p.height};openMyChurch('screen');});
-  document.querySelector('#saveScreenConfigBtn').onclick=async()=>{state.church.screenConfig={preset:state.church.screenConfig?.preset||'personalizado',width:Number(document.querySelector('#screenWidth').value)||1920,height:Number(document.querySelector('#screenHeight').value)||1080};await saveChurchProfile();showMapNotice('Telão salvo','O formato será usado nas próximas adaptações.');openMyChurch('screen');};
-  return;
-}
-const assets=state.library.assets.filter(a=>a.type===tab);
-root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel"><div class="modal-head"><div><h2>Minha Igreja</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Banco conectado':'Configure o banco para persistir'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="library-tabs">${Object.entries(labels).map(([k,v])=>`<button class="library-tab ${tab===k?'active':''}" onclick="openMyChurch('${k}')">${v}</button>`).join('')}</div><div class="asset-grid">${assets.map(a=>`<div class="asset-card">${tab==='font'?`<div class="font-preview" style="font-family:${a.cssFamily||'sans-serif'}">Aa Igreja 19:30</div>`:`<img src="${a.url}">`}<strong>${esc(a.name)}</strong><small>${tab==='font'?'Fonte salva':'Asset protegido'}</small><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button></div>`).join('')}<label class="library-upload"><strong>+ Adicionar ${labels[tab]}</strong><span>${tab==='font'?'TTF, OTF, WOFF':'Arquivo será salvo no banco'}</span><input id="libraryUploadInput" type="file" ${tab==='font'?'accept=".ttf,.otf,.woff,.woff2,font/*"':'accept="image/*"'} hidden multiple></label></div></div></div></div>`;
-bindQuickUpload('libraryUploadInput',tab,()=>openMyChurch(tab));
+  const root=document.querySelector('#modalRoot');
+  const labels={pastor:'Pregadores',church:'Fotos da igreja',logo:'Logos',event_logo:'Logo de evento',reference:'Referências',graphic:'Elementos PNG',font:'Fontes',screen:'Telão'};
+  const tabs=`<div class="library-tabs">${Object.entries(labels).map(([k,v])=>`<button class="library-tab ${tab===k?'active':''}" onclick="openMyChurch('${k}')">${v}</button>`).join('')}</div>`;
+  const shell=(body)=>`<div class="modal-backdrop"><div class="modal-panel my-church-panel"><div class="modal-head"><div><h2>Minha Igreja</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Banco conectado':'Configure o banco para persistir'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body">${tabs}${body}</div></div></div>`;
+
+  if(tab==='screen'){
+    const c=state.church.screenConfig||{preset:'16:9',width:1920,height:1080};
+    root.innerHTML=shell(`<div class="card" style="box-shadow:none"><h3>Formato padrão do telão</h3><p style="margin-bottom:14px">Escolha o desenho que mais se parece com o telão da sua igreja. Essa proporção será usada nas adaptações “Criar arte telão”.</p><div class="screen-preset-grid">${screenPresets.map(p=>`<div class="screen-preset ${c.preset===p.id?'selected':''}" data-screen-preset="${p.id}"><div class="screen-sketch-wrap"><div class="screen-sketch" style="${screenSketchStyle(p.width,p.height)}"></div></div><strong>${p.label}</strong><small>${p.width} × ${p.height} • ${p.note}</small></div>`).join('')}</div><div class="grid2" style="margin-top:14px"><div class="field"><label>Largura personalizada</label><input id="screenWidth" type="number" min="320" max="7680" value="${c.width||1920}"></div><div class="field"><label>Altura personalizada</label><input id="screenHeight" type="number" min="320" max="4320" value="${c.height||1080}"></div></div><button id="saveScreenConfigBtn" class="btn primary" style="width:100%">Salvar configuração do telão</button><div id="screenSaveStatus" class="screen-save-status"></div></div>`);
+    document.querySelectorAll('[data-screen-preset]').forEach(el=>el.onclick=()=>{const p=screenPresets.find(x=>x.id===el.dataset.screenPreset);if(!p)return;state.church.screenConfig={preset:p.id,width:p.width,height:p.height};openMyChurch('screen');});
+    document.querySelector('#saveScreenConfigBtn').onclick=async()=>{
+      const btn=document.querySelector('#saveScreenConfigBtn'),st=document.querySelector('#screenSaveStatus');
+      btn.disabled=true;btn.textContent='Salvando...';if(st){st.textContent='Salvando configuração no banco...';st.style.color='var(--muted)';}
+      state.church.screenConfig={preset:state.church.screenConfig?.preset||'personalizado',width:Number(document.querySelector('#screenWidth').value)||1920,height:Number(document.querySelector('#screenHeight').value)||1080};
+      const result=await saveChurchProfile();
+      btn.disabled=false;btn.textContent='Salvar configuração do telão';
+      if(st){st.textContent=result.ok?'✓ Configuração do telão salva.':`Erro: ${result.error}`;st.style.color=result.ok?'var(--good)':'#ff9eac';}
+    };
+    return;
+  }
+
+  const isEventLogo=tab==='event_logo';
+  const assets=isEventLogo
+    ?state.library.assets.filter(a=>a.type==='graphic'&&a.meta?.category==='event_logo')
+    :tab==='graphic'
+      ?state.library.assets.filter(a=>a.type==='graphic'&&a.meta?.category!=='event_logo')
+      :state.library.assets.filter(a=>a.type===tab);
+
+  const cards=assets.map(a=>{
+    if(tab==='font')return `<div class="asset-card"><div class="font-preview" style="font-family:${a.cssFamily||'sans-serif'}">Aa Igreja 19:30</div><strong>${esc(a.name)}</strong><small>Fonte salva</small><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button></div>`;
+    if(tab==='pastor')return `<div class="asset-card"><img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong><small>Foto protegida</small><input class="pastor-library-name" data-pastor-library-name="${a.id}" value="${esc(a.meta?.displayName||'')}" placeholder="Nome do pregador"><div class="asset-save-state" data-pastor-save-state="${a.id}"></div><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button></div>`;
+    return `<div class="asset-card"><img src="${a.url}"><strong>${esc(a.name)}</strong><small>${isEventLogo?'Logo de evento protegida':'Asset protegido'}</small><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button></div>`;
+  }).join('');
+
+  root.innerHTML=shell(`<div class="asset-grid">${cards}<label class="library-upload"><strong>+ Adicionar ${labels[tab]}</strong><span>${tab==='font'?'TTF, OTF, WOFF':'Você pode selecionar vários arquivos'}</span><input id="libraryUploadInput" type="file" ${tab==='font'?'accept=".ttf,.otf,.woff,.woff2,font/*"':'accept="image/*"'} hidden multiple></label><div id="libraryUploadInputLive" class="upload-live library-upload-progress"></div></div>`);
+
+  bindQuickUpload('libraryUploadInput',tab,async()=>{});
+  const libInput=document.querySelector('#libraryUploadInput');
+  if(libInput){
+    const previous=libInput.onchange;
+    libInput.onchange=async e=>{await previous(e);setTimeout(()=>openMyChurch(tab),450);};
+  }
+
+  document.querySelectorAll('[data-pastor-library-name]').forEach(inp=>{
+    inp.onchange=async()=>{
+      const id=inp.dataset.pastorLibraryName,st=document.querySelector(`[data-pastor-save-state="${id}"]`);
+      if(st)st.textContent='Salvando...';
+      try{await updateLibraryAssetMeta(id,{displayName:inp.value.trim()});if(st)st.textContent='✓ Nome salvo';}
+      catch(e){if(st){st.textContent='Erro ao salvar';st.style.color='#ff9eac';}}
+    };
+  });
 }
 function builtinElementSVG(i){const kind=i%8;const s=['<circle cx="24" cy="24" r="16" fill="none" stroke="currentColor" stroke-width="3"/>','<path d="M8 40 L24 8 L40 40 Z" fill="none" stroke="currentColor" stroke-width="3"/>','<path d="M5 30 C14 10 34 48 43 18" fill="none" stroke="currentColor" stroke-width="3"/>','<path d="M8 12h32M8 24h32M8 36h32" stroke="currentColor" stroke-width="3"/>','<path d="M6 40L18 18l8 12 8-20 8 30z" fill="none" stroke="currentColor" stroke-width="3"/>','<path d="M24 6v36M6 24h36" stroke="currentColor" stroke-width="3"/>','<circle cx="16" cy="18" r="7"/><circle cx="32" cy="29" r="9" opacity=".55"/>','<path d="M8 35 Q24 5 40 35 Q24 20 8 35Z" fill="none" stroke="currentColor" stroke-width="3"/>'][kind];return `<svg viewBox="0 0 48 48" fill="currentColor" style="color:#9e8cff">${s}</svg>`}
 
@@ -1308,7 +1411,8 @@ async function selectedAssetPayload(){
   const pastors=[];
   for(const id of pastorIds){const a=state.library.assets.find(x=>x.id===id);if(a)pastors.push({id:a.id,name:state.quick?.pastorNames?.[a.id]||a.name||'',image:await prepareImageForAI(a.url,1400,.92)});}
   const churchAsset=state.quick?.churchImageAssetId?state.library.assets.find(a=>a.id===state.quick.churchImageAssetId):null;
-  return {logo:logo?{id:logo.id,name:logo.name,image:await prepareImageForAI(logo.url,1200,.98)}:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.92)}:null};
+  const eventLogo=state.quick?.eventLogoAssetId?state.library.assets.find(a=>a.id===state.quick.eventLogoAssetId):null;
+  return {logo:logo?{id:logo.id,name:logo.name,image:await prepareImageForAI(logo.url,1200,.98)}:null,eventLogo:eventLogo?{id:eventLogo.id,name:eventLogo.name,image:await prepareImageForAI(eventLogo.url,1200,.98),position:state.quick.eventLogoPosition||''}:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.92)}:null};
 }
 function exactContentFromLayers(){
   const out={title:'',subtitle:'',date:'',time:'',address:'',churchName:state.church.name||''};
@@ -1555,21 +1659,22 @@ async function quickPayload(variantLabel='Principal',correction='',signal=null){
   const pastorIds=Array.isArray(state.quick.pastorAssetIds)?state.quick.pastorAssetIds:[];
   const pastors=[];for(const id of pastorIds){const a=state.library.assets.find(x=>x.id===id);if(a)pastors.push({id:a.id,name:state.quick.pastorNames?.[a.id]||'',image:await prepareImageForAI(a.url,1400,.94)});}
   const churchAsset=state.quick.churchImageAssetId?state.library.assets.find(a=>a.id===state.quick.churchImageAssetId):null;
-  const assets={logo:logo?{id:logo.id,name:logo.name,image:await prepareImageForAI(logo.url,1200,.98)}:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.94)}:null};
+  const eventLogo=state.quick.eventLogoAssetId?state.library.assets.find(a=>a.id===state.quick.eventLogoAssetId):null;
+  const assets={logo:logo?{id:logo.id,name:logo.name,image:await prepareImageForAI(logo.url,1200,.98)}:null,eventLogo:eventLogo?{id:eventLogo.id,name:eventLogo.name,image:await prepareImageForAI(eventLogo.url,1200,.98),position:state.quick.eventLogoPosition||''}:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.94)}:null};
   const inspiration=inspirationCatalog.find(x=>x.id===state.quick.inspirationStyle)||inspirationCatalog[0];
   const refs=ref?[{image:ref,note:'Use esta arte como referência principal de composição, tipografia, paleta, recortes, textura e linguagem visual.'}]:[];
   const target=quickTargetSpec(state.quick.format),learned=computePreferenceProfile();
   const names=pastors.filter(p=>p.name).map(p=>p.name);
   const base={church:{name:state.church.name,address:state.quick.address||state.church.address,hasLogo:!!assets.logo},format:state.quick.format,reference:ref,references:refs,assets,target,
-    inspirationStyle:ref?null:{id:inspiration.id,name:inspiration.name,prompt:inspiration.prompt},audience:state.quick.audience?audienceLabel(state.quick.audience):null,designStyle:state.quick.designStyle?designStyleLabel(state.quick.designStyle):null,colorMode:state.quick.dominantColorMode||'custom',dominantColor:state.quick.dominantColor||null,logoPosition:state.quick.logoPosition||null,preferenceProfile:learned,
+    inspirationStyle:ref?null:{id:inspiration.id,name:inspiration.name,prompt:inspiration.prompt},audience:state.quick.audience?audienceLabel(state.quick.audience):null,designStyle:state.quick.designStyle?designStyleLabel(state.quick.designStyle):null,colorMode:state.quick.dominantColorMode||'custom',dominantColor:state.quick.dominantColor||null,logoPosition:state.quick.logoPosition||null,eventLogoPosition:state.quick.eventLogoPosition||null,preferenceProfile:learned,
     requiredContent:{title:state.quick.title,subtitle:state.quick.subtitle,date:state.quick.date,time:state.quick.time,address:state.quick.address||state.church.address,churchName:state.church.name,pastorNames:names},
-    instruction:`Modo rápido. ${state.quick.audience?`Público-alvo: ${audienceLabel(state.quick.audience)}. `:''}${state.quick.designStyle?`Estilo desejado: ${designStyleLabel(state.quick.designStyle)}. `:''}${!state.quick.designStyle&&learned?.designStyle?`Preferência aprendida do usuário: ${learned.designStyle}. `:''}${state.quick.dominantColorMode==='reference'?(ref?'PALETA: preserve a paleta predominante da referência; analise-a visualmente antes de definir cores. Não introduza uma nova cor dominante que descaracterize a referência.':'PALETA: não há referência disponível; escolha automaticamente uma paleta coerente com conteúdo, estilo e público.'):`Cor predominante escolhida pelo usuário: ${state.quick.dominantColor}.`} Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${ref?'':'Criação sem referência: use a direção visual '+inspiration.name+' — '+inspiration.prompt+'.'} SAFE FRAME RÍGIDO: mantenha TODO conteúdo essencial dentro dos 76% centrais do canvas, reservando 12% livres em cada borda. Nenhum texto, logo, rosto, nome, data, hora ou endereço pode tocar as bordas. ${churchAsset?'A FOTO DA IGREJA selecionada é OBRIGATÓRIA: use-a claramente como ambiente/fundo integrado, sem substituí-la por outra igreja.':'Se a referência já tiver pessoas adorando ou ambiente de igreja ao fundo, preserve essa atmosfera; não invente espaços vazios.'} ${correction||state.quick.correction||''}`,
+    instruction:`Modo rápido. ${state.quick.audience?`Público-alvo: ${audienceLabel(state.quick.audience)}. `:''}${state.quick.designStyle?`Estilo desejado: ${designStyleLabel(state.quick.designStyle)}. `:''}${!state.quick.designStyle&&learned?.designStyle?`Preferência aprendida do usuário: ${learned.designStyle}. `:''}${state.quick.dominantColorMode==='reference'?(ref?'PALETA: preserve a paleta predominante da referência; analise-a visualmente antes de definir cores. Não introduza uma nova cor dominante que descaracterize a referência.':'PALETA: não há referência disponível; escolha automaticamente uma paleta coerente com conteúdo, estilo e público.'):`Cor predominante escolhida pelo usuário: ${state.quick.dominantColor}.`} Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${ref?'':'Criação sem referência: use a direção visual '+inspiration.name+' — '+inspiration.prompt+'.'} SAFE FRAME RÍGIDO: mantenha TODO conteúdo essencial dentro dos 76% centrais do canvas, reservando 12% livres em cada borda. Nenhum texto, logo, rosto, nome, data, hora ou endereço pode tocar as bordas. ${churchAsset?'A FOTO DA IGREJA selecionada é OBRIGATÓRIA: use-a claramente como ambiente/fundo integrado, sem substituí-la por outra igreja.':'Se a referência já tiver pessoas adorando ou ambiente de igreja ao fundo, preserve essa atmosfera; não invente espaços vazios.'} ${eventLogo?'LOGO DE EVENTO OBRIGATÓRIA: use a logo original intacta uma única vez. Ela deve ficar dentro de uma das seis zonas centrais laterais permitidas (esquerda/direita × superior/meio/inferior), sem ocupar os cantos reservados à logo principal. '+(state.quick.eventLogoPosition?'Zona indicada pelo usuário: '+state.quick.eventLogoPosition+'.':'A IA escolhe estrategicamente a melhor das seis zonas permitidas.')+' Nunca sobreponha a logo do evento à logo principal, rosto, título ou informação essencial.':''} ${correction||state.quick.correction||''}`,
     finalInstruction:'SAFE FRAME OBRIGATÓRIO: conteúdo essencial dentro dos 76% centrais; 12% de margem livre em todos os lados. Elementos decorativos podem sangrar, conteúdo essencial jamais. Preserve contraste de logo: nunca logo clara sobre fundo claro nem logo escura sobre fundo escuro; crie placa/halo de contraste sem alterar a logo.',semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[]};
   base.artDirection=await requestArtDirection(base,signal);return base;
 }
 function screenQuickMode(){
   quickDefaultLogo();quickDefaultPastor();
-  const logos=state.library.assets.filter(a=>a.type==='logo'),pastors=state.library.assets.filter(a=>a.type==='pastor'),churchImages=state.library.assets.filter(a=>a.type==='church'),refs=state.library.assets.filter(a=>a.type==='reference').slice(0,20);
+  const logos=state.library.assets.filter(a=>a.type==='logo'),eventLogos=state.library.assets.filter(a=>a.type==='graphic'&&a.meta?.category==='event_logo'),pastors=state.library.assets.filter(a=>a.type==='pastor'),churchImages=state.library.assets.filter(a=>a.type==='church'),refs=state.library.assets.filter(a=>a.type==='reference');
   document.querySelector('.footer').style.display='none';document.querySelector('#mobileStepbar').style.display='none';
   document.querySelector('#eyebrow').textContent='MODO RÁPIDO';document.querySelector('#pageTitle').textContent='Crie em poucos campos';
   const selectedFormat=quickTargetSpec(state.quick.format);
@@ -1578,7 +1683,11 @@ function screenQuickMode(){
   <h3 style="margin-top:18px">Tamanho da arte</h3><p style="margin-bottom:9px">Telão usa a configuração salva em Minha Igreja.</p><div class="quick-format-grid">${quickFormats.map(f=>{const t=f.id==='screen'?targetSpec('screen'):f;return `<div class="quick-format-card ${state.quick.format===f.id?'selected':''}" data-qformat="${f.id}"><div class="quick-format-sketch"><i style="${formatSketchStyle(t.width,t.height)}"></i></div><strong>${f.label}</strong><small>${f.id==='screen'?`${t.width}×${t.height}`:`${f.width}×${f.height}`}</small></div>`}).join('')}</div></div>
   <div class="card"><h3>Direção visual</h3><div class="quick-mode-toggle"><button class="mini-btn ${state.quick.referenceMode==='upload'?'selected-result':''}" id="qUseReference" type="button">Usar referência</button><button class="mini-btn ${state.quick.referenceMode==='inspiration'?'selected-result':''}" id="qUseInspiration" type="button">Criar do zero</button></div>
   ${state.quick.referenceMode==='upload'?`<p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p><div class="quick-ref-grid">${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><label class="quick-upload-box" style="margin-top:10px"><strong>+ Subir referências</strong><span style="display:block;font-size:9px;color:var(--muted);margin-top:3px">JPG, PNG ou WEBP • pode selecionar várias</span><input id="qRefUpload" type="file" accept="image/*" multiple hidden></label><div id="qRefUploadLive" class="upload-live"></div>`:`<p>Banco de Inspiração interno. A IA usa a linguagem escolhida sem copiar uma peça específica.</p><div class="inspiration-grid">${inspirationCatalog.map(x=>`<div class="inspiration-card ${state.quick.inspirationStyle===x.id?'selected':''}" data-inspiration="${x.id}"><strong>${x.name}</strong><small>${x.prompt}</small></div>`).join('')}</div>`}
-  <h3 style="margin-top:18px">Logo</h3><div class="logo-position-wrap"><div class="field"><label>Prioridade de posição da logo</label><div class="logo-position-grid">${['top-left','top-center','top-right','bottom-left','bottom-center','bottom-right'].map(p=>`<button class="logo-position-cell ${state.quick.logoPosition===p?'selected':''}" data-logo-pos="${p}" type="button" aria-label="${p}"></button>`).join('')}</div><label class="logo-position-default"><input id="qLogoPositionDefault" type="checkbox" ${!state.quick.logoPosition?'checked':''}><span>Usar a posição da referência automaticamente</span></label></div></div><div class="quick-logo-grid">${logos.map(a=>`<div class="quick-asset ${state.quick.logoAssetId===a.id?'selected':''}" data-qlogo="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><h3 style="margin-top:18px">Pregadores (opcional)</h3><p style="margin-bottom:8px">Selecione um ou mais. Para cada selecionado, informe o nome que deve aparecer próximo à pessoa.</p><div class="quick-pastor-grid">${pastors.map(a=>`<div class="quick-asset ${(state.quick.pastorAssetIds||[]).includes(a.id)?'multi-selected':''}" data-qpastor="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong>${(state.quick.pastorAssetIds||[]).includes(a.id)?`<input class="pastor-name-input" data-pastor-name="${a.id}" value="${esc(state.quick.pastorNames?.[a.id]||'')}" placeholder="Nome na arte">`:''}</div>`).join('')}</div><h3 style="margin-top:18px">Imagem da igreja (opcional)</h3><p style="margin-bottom:8px">Se escolher uma foto, a IA deverá usá-la na composição do fundo/ambiente.</p><div class="church-image-grid">${churchImages.map(a=>`<div class="quick-asset ${state.quick.churchImageAssetId===a.id?'selected':''}" data-qchurch="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}<label class="library-upload"><strong>+ Foto da igreja</strong><span>Salvar em Minha Igreja</span><input id="qChurchUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>
+  <h3 style="margin-top:18px">Logo</h3><div class="logo-position-wrap"><div class="field"><label>Prioridade de posição da logo</label><div class="logo-position-grid">${['top-left','top-center','top-right','bottom-left','bottom-center','bottom-right'].map(p=>`<button class="logo-position-cell ${state.quick.logoPosition===p?'selected':''}" data-logo-pos="${p}" type="button" aria-label="${p}"></button>`).join('')}</div><label class="logo-position-default"><input id="qLogoPositionDefault" type="checkbox" ${!state.quick.logoPosition?'checked':''}><span>Usar a posição da referência automaticamente</span></label></div></div><div class="quick-logo-grid">${logos.map(a=>`<div class="quick-asset ${state.quick.logoAssetId===a.id?'selected':''}" data-qlogo="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div>
+
+  <h3 style="margin-top:18px">Logo de evento (opcional)</h3><p style="margin-bottom:8px">Use uma identidade específica do evento sem disputar espaço com a logo principal.</p><div class="quick-event-logo-grid">${eventLogos.map(a=>`<div class="quick-asset ${state.quick.eventLogoAssetId===a.id?'selected':''}" data-qeventlogo="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}<label class="library-upload" style="min-width:118px;min-height:110px"><strong>+ Logo de evento</strong><span>Salvar em Minha Igreja</span><input id="qEventLogoUpload" type="file" accept="image/*" hidden multiple></label></div>${state.quick.eventLogoAssetId?`<div style="margin-top:10px"><strong style="font-size:10px">Zona preferencial da logo de evento</strong><div class="event-logo-guide">${['left-top','right-top','left-middle','right-middle','left-bottom','right-bottom'].map(p=>`<button class="event-logo-pos ${state.quick.eventLogoPosition===p?'selected':''}" data-event-pos="${p}" type="button" title="${p}"></button>`).join('')}</div><label class="logo-position-default" style="max-width:250px"><input id="qEventLogoAuto" type="checkbox" ${!state.quick.eventLogoPosition?'checked':''}><span>IA escolhe entre as 6 zonas centrais</span></label></div>`:''}
+
+  <h3 style="margin-top:18px">Pregadores (opcional)</h3><p style="margin-bottom:4px">Selecione um ou mais. O nome salvo em Minha Igreja é preenchido automaticamente.</p><p style="margin-bottom:8px;font-size:9px;color:var(--muted)">Se quiser esta arte sem o nome, apague o campo. A alteração vale somente para esta sessão; em uma nova sessão o nome salvo volta automaticamente.</p><div class="quick-pastor-grid">${pastors.map(a=>`<div class="quick-asset ${(state.quick.pastorAssetIds||[]).includes(a.id)?'multi-selected':''}" data-qpastor="${a.id}"><img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong>${(state.quick.pastorAssetIds||[]).includes(a.id)?`<input class="pastor-name-input" data-pastor-name="${a.id}" value="${esc(Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||''))}" placeholder="Nome na arte">`:''}</div>`).join('')}</div><h3 style="margin-top:18px">Imagem da igreja (opcional)</h3><p style="margin-bottom:8px">Se escolher uma foto, a IA deverá usá-la na composição do fundo/ambiente.</p><div class="church-image-grid">${churchImages.map(a=>`<div class="quick-asset ${state.quick.churchImageAssetId===a.id?'selected':''}" data-qchurch="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}<label class="library-upload"><strong>+ Foto da igreja</strong><span>Salvar em Minha Igreja</span><input id="qChurchUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>
   <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE • ${selectedFormat.label}</button><div id="quickProgress" class="quick-progress"><div class="quick-progress-track"><i id="quickProgressBar"></i></div><div class="quick-progress-row"><span id="quickProgressText">Processando sua arte...</span><span id="quickProgressPct">0%</span></div></div><button id="quickCancel" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div>${costSupervisorHTML()}</div><div id="quickResultsWrap" style="margin-top:18px">${renderQuickResultsHTML()}${allArtworksHTML()}</div></div>`;
   const bind=(id,key)=>document.querySelector('#'+id).oninput=e=>state.quick[key]=e.target.value;bind('qTitle','title');bind('qSubtitle','subtitle');bind('qDate','date');bind('qTime','time');bind('qAddress','address');bind('qColor','dominantColor');
   const qcm=document.querySelector('#qColorMode');if(qcm)qcm.onchange=e=>{state.quick.dominantColorMode=e.target.value;const w=document.querySelector('#qColorPickerWrap');if(w)w.classList.toggle('hidden',e.target.value==='reference');};
@@ -1586,8 +1695,14 @@ function screenQuickMode(){
   document.querySelector('#qUseReference').onclick=()=>{state.quick.referenceMode='upload';screenQuickMode()};document.querySelector('#qUseInspiration').onclick=()=>{state.quick.referenceMode='inspiration';state.quick.reference=null;screenQuickMode()};
   document.querySelectorAll('[data-qformat]').forEach(el=>el.onclick=()=>{state.quick.format=el.dataset.qformat;screenQuickMode()});document.querySelectorAll('[data-inspiration]').forEach(el=>el.onclick=()=>{state.quick.inspirationStyle=el.dataset.inspiration;screenQuickMode()});
   document.querySelectorAll('[data-qref]').forEach(el=>el.onclick=()=>{const a=refs.find(x=>x.id===el.dataset.qref);state.quick.reference=a?.url||null;state.quick.referenceMode='upload';screenQuickMode()});document.querySelectorAll('[data-logo-pos]').forEach(el=>el.onclick=()=>{state.quick.logoPosition=el.dataset.logoPos;screenQuickMode()});const qlpd=document.querySelector('#qLogoPositionDefault');if(qlpd)qlpd.onchange=e=>{if(e.target.checked){state.quick.logoPosition='';screenQuickMode();}};
-  document.querySelectorAll('[data-qlogo]').forEach(el=>el.onclick=()=>{state.quick.logoAssetId=el.dataset.qlogo;screenQuickMode()});document.querySelectorAll('[data-qpastor]').forEach(el=>el.onclick=e=>{if(e.target.matches('input'))return;const id=el.dataset.qpastor;const arr=state.quick.pastorAssetIds||[];state.quick.pastorAssetIds=arr.includes(id)?arr.filter(x=>x!==id):[...arr,id];if(!state.quick.pastorAssetIds.includes(id))delete state.quick.pastorNames[id];screenQuickMode()});document.querySelectorAll('[data-pastor-name]').forEach(inp=>inp.oninput=e=>{e.stopPropagation();state.quick.pastorNames[inp.dataset.pastorName]=e.target.value;});document.querySelectorAll('[data-qchurch]').forEach(el=>el.onclick=()=>{state.quick.churchImageAssetId=state.quick.churchImageAssetId===el.dataset.qchurch?null:el.dataset.qchurch;screenQuickMode()});
-  const up=document.querySelector('#qRefUpload');if(up)up.onchange=async e=>{const files=[...(e.target.files||[])],live=document.querySelector('#qRefUploadLive');const saved=await uploadLibraryAssets(files,'reference',{container:live,max:20-state.library.assets.filter(a=>a.type==='reference').length,onAsset:async a=>{state.quick.reference=a.url;state.quick.referenceMode='upload';}});if(saved.length)setTimeout(()=>screenQuickMode(),350);};const cup=document.querySelector('#qChurchUpload');if(cup)cup.onchange=async e=>{for(const file of [...(e.target.files||[])]){const a=await uploadLibraryAsset(file,'church');if(a&&!state.quick.churchImageAssetId)state.quick.churchImageAssetId=a.id;}screenQuickMode();};
+  document.querySelectorAll('[data-qlogo]').forEach(el=>el.onclick=()=>{state.quick.logoAssetId=el.dataset.qlogo;screenQuickMode()});
+  document.querySelectorAll('[data-qeventlogo]').forEach(el=>el.onclick=()=>{state.quick.eventLogoAssetId=state.quick.eventLogoAssetId===el.dataset.qeventlogo?null:el.dataset.qeventlogo;if(!state.quick.eventLogoAssetId)state.quick.eventLogoPosition='';screenQuickMode()});
+  document.querySelectorAll('[data-event-pos]').forEach(el=>el.onclick=()=>{state.quick.eventLogoPosition=el.dataset.eventPos;screenQuickMode()});
+  const qela=document.querySelector('#qEventLogoAuto');if(qela)qela.onchange=e=>{if(e.target.checked){state.quick.eventLogoPosition='';screenQuickMode();}};
+  document.querySelectorAll('[data-qpastor]').forEach(el=>el.onclick=e=>{if(e.target.matches('input'))return;const id=el.dataset.qpastor;const arr=state.quick.pastorAssetIds||[];const adding=!arr.includes(id);state.quick.pastorAssetIds=adding?[...arr,id]:arr.filter(x=>x!==id);if(adding&&!Object.prototype.hasOwnProperty.call(state.quick.pastorNames,id)){const a=pastors.find(x=>x.id===id);state.quick.pastorNames[id]=a?.meta?.displayName||'';}if(!adding)delete state.quick.pastorNames[id];screenQuickMode()});document.querySelectorAll('[data-pastor-name]').forEach(inp=>inp.oninput=e=>{e.stopPropagation();state.quick.pastorNames[inp.dataset.pastorName]=e.target.value;});document.querySelectorAll('[data-qchurch]').forEach(el=>el.onclick=()=>{state.quick.churchImageAssetId=state.quick.churchImageAssetId===el.dataset.qchurch?null:el.dataset.qchurch;screenQuickMode()});
+  const up=document.querySelector('#qRefUpload');if(up)up.onchange=async e=>{const files=[...(e.target.files||[])],live=document.querySelector('#qRefUploadLive');const saved=await uploadLibraryAssets(files,'reference',{container:live,max:20-state.library.assets.filter(a=>a.type==='reference').length,onAsset:async a=>{state.quick.reference=a.url;state.quick.referenceMode='upload';}});if(saved.length)setTimeout(()=>screenQuickMode(),350);};
+  const cup=document.querySelector('#qChurchUpload');if(cup)cup.onchange=async e=>{let live=document.querySelector('#qChurchUploadLive');if(!live){live=document.createElement('div');live.id='qChurchUploadLive';live.className='upload-live';cup.closest('label')?.insertAdjacentElement('afterend',live);}const saved=await uploadLibraryAssets(e.target.files,'church',{container:live,onAsset:async a=>{if(!state.quick.churchImageAssetId)state.quick.churchImageAssetId=a.id;}});if(saved.length)setTimeout(()=>screenQuickMode(),350);};
+  const eul=document.querySelector('#qEventLogoUpload');if(eul)eul.onchange=async e=>{let live=document.querySelector('#qEventLogoUploadLive');if(!live){live=document.createElement('div');live.id='qEventLogoUploadLive';live.className='upload-live';eul.closest('label')?.insertAdjacentElement('afterend',live);}const saved=await uploadLibraryAssets(e.target.files,'event_logo',{container:live,onAsset:async a=>{if(!state.quick.eventLogoAssetId)state.quick.eventLogoAssetId=a.id;}});if(saved.length)setTimeout(()=>screenQuickMode(),350);};
   document.querySelector('#quickGenerate').onclick=()=>runQuickGeneration('Principal',0);document.querySelector('#quickCancel').onclick=()=>{cancelActiveProcess();document.querySelector('#quickStatus').textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');};bindQuickResultEvents();bindAllArtworksEvents();
 }
 
