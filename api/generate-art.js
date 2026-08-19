@@ -59,6 +59,7 @@ function collectInputImages(data){
   for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(isDataImage(p?.image))imgs.push({data:p.image,name:`pastor-${i+1}.png`});
   if(isDataImage(data.assets?.churchImage?.image))imgs.push({data:data.assets.churchImage.image,name:"church.png"});
   if(isDataImage(data.assets?.logo?.image))imgs.push({data:data.assets.logo.image,name:"logo.png"});
+  if(isDataImage(data.assets?.eventLogo?.image))imgs.push({data:data.assets.eventLogo.image,name:"event-logo.png"});
   return imgs;
 }
 function blueprint(data){const a=data.artDirection||{};return `Direção visual: ${a.visual_summary||""}
@@ -189,6 +190,7 @@ REGRAS DE FIDELIDADE:
 - COMPOSIÇÃO LIMPA: salvo quando a referência ou o usuário pedir explicitamente, nunca crie um cartaz/quadro menor flutuando dentro de outro fundo, moldura ou canvas. A arte deve ocupar o canvas inteiro.
 - Evite caixas, cartões, cápsulas, placas e contornos em torno de data, hora, endereço e textos; só use quando a referência ou instrução justificar claramente.
 - LOGO ORIGINAL: use uma única vez, limpa e intacta. Não coloque a logo dentro de caixa, card, placa, selo, cápsula ou fundo próprio, salvo referência/instrução explícita. Nunca extraia o símbolo da logo para repetir em outro ponto; nunca redesenhe, reescreva, reconstrua ou duplique partes da identidade visual.
+- LOGO DE EVENTO: quando fornecida, é um segundo asset protegido e diferente da logo principal. Use-a UMA única vez e intacta. Ela só pode ocupar uma das seis zonas laterais dentro dos 3/5 centrais do canvas: esquerda-superior, esquerda-meio, esquerda-inferior, direita-superior, direita-meio ou direita-inferior. Não use cantos extremos. Não sobreponha logo principal, rosto, título ou dados essenciais. A logo principal tem prioridade espacial. Se houver posição explícita, siga: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"IA escolhe a melhor das seis zonas permitidas"}.
 - Em TELÃO, prefira título centralizado quando não houver outro elemento visual principal. Havendo pregador/figura/ilustração solicitada, prefira composição lateral equilibrada: título de um lado e imagem do outro.
 - Se solicitado MODO ESCURO DE TELÃO, use predominância escura sobretudo no fundo, contraste alto e foto da igreja mais discreta/escurecida.
 
