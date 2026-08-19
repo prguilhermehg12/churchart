@@ -55,11 +55,14 @@ function dataUrlPart(dataUrl,name="image.png"){
 }
 function collectInputImages(data){
   const imgs=[];
-  for(const r of (data.references||[]).slice(0,3))if(isDataImage(r?.image))imgs.push({data:r.image,name:`reference-${imgs.length+1}.png`});
-  for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(isDataImage(p?.image))imgs.push({data:p.image,name:`pastor-${i+1}.png`});
-  if(isDataImage(data.assets?.churchImage?.image))imgs.push({data:data.assets.churchImage.image,name:"church.png"});
-  if(isDataImage(data.assets?.logo?.image))imgs.push({data:data.assets.logo.image,name:"logo.png"});
+  // Assets de identidade do usuário primeiro. A referência vem depois e é guia de layout/estilo.
+  for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).slice(0,3).entries())
+    if(isDataImage(p?.image))imgs.push({data:p.image,name:`${i===0?'principal':`auxiliar-${i}`}.png`});
   if(isDataImage(data.assets?.eventLogo?.image))imgs.push({data:data.assets.eventLogo.image,name:"event-logo.png"});
+  if(isDataImage(data.assets?.logo?.image))imgs.push({data:data.assets.logo.image,name:"church-logo.png"});
+  for(const [i,r] of (data.references||[]).slice(0,3).entries())
+    if(isDataImage(r?.image))imgs.push({data:r.image,name:`design-reference-${i+1}.png`});
+  if(isDataImage(data.assets?.churchImage?.image))imgs.push({data:data.assets.churchImage.image,name:"church-background.png"});
   return imgs;
 }
 function blueprint(data){const a=data.artDirection||{};return `Direção visual: ${a.visual_summary||""}
@@ -147,18 +150,23 @@ TIPOGRAFIA FINAL:
 PREGADOR:
 - O sistema aceita NO MÁXIMO 3 pregadores.
 - A ordem dos assets é semântica e obrigatória: PESSOA 1 = PRINCIPAL; PESSOA 2 = AUXILIAR 1; PESSOA 3 = AUXILIAR 2.
+- TODA PESSOA HUMANA NA ARTE DE REFERÊNCIA É PLACEHOLDER DE COMPOSIÇÃO E DEVE SER REMOVIDA quando houver pregadores enviados, salvo comando explícito para preservar uma pessoa da referência.
+- JAMAIS mantenha o pregador/modelo/pessoa original da referência no lugar do PRINCIPAL enviado pelo usuário.
+- Se a referência possui uma pessoa central, substitua semanticamente essa pessoa pelo PRINCIPAL enviado: preserve a FUNÇÃO/REGIÃO composicional, mas use a IDENTIDADE e, quando possível, a POSE do principal enviado.
+- Não misture rosto, cabelo, barba, roupa, corpo ou identidade entre referência e fotos enviadas.
 - O PRINCIPAL deve ter maior prioridade visual: posição mais central, escala igual ou maior e leitura imediata antes dos auxiliares.
 - Com 2 pessoas: mantenha o PRINCIPAL mais central/dominante e o AUXILIAR 1 em posição lateral secundária.
 - Com 3 pessoas: mantenha o PRINCIPAL no eixo ou região central dominante e distribua AUXILIAR 1 e AUXILIAR 2 nas laterais de forma equilibrada.
+- DIREÇÃO DOS AUXILIARES: auxiliar voltado/olhando para a direita → preferencialmente à DIREITA do principal; auxiliar voltado/olhando para a esquerda → preferencialmente à ESQUERDA do principal.
+- Preserve pose, gesto, braço levantado/abaixado, mãos, microfone, inclinação da cabeça e direção do olhar de cada foto enviada. Não neutralize poses expressivas.
+- Preserve fortemente a fisionomia. Não embeleze, rejuvenesça, envelheça ou invente traços.
 - Nunca troque rostos, nomes, funções ou hierarquia entre as pessoas.
 - Auxiliares podem ficar parcialmente atrás do principal quando a composição pedir profundidade, mas nunca devem cobrir o rosto do principal.
-- Com referência, replique primeiro o enquadramento da referência.
+- Com referência, replique primeiro o ENQUADRAMENTO e a função espacial, não a identidade humana.
 - Se a referência mostrar busto, peito ou cintura, não transforme em corpo inteiro.
 - Sem referência/instrução, priorize peito para cima ou cintura para cima.
 - Corpo inteiro apenas se referência/instrução justificar.
-- Preserve posição e escala relativa do pregador no canvas.
 - Preserve direção e função espacial de sombras, glows e brilhos.
-- Grandes letreiros/formas de fundo que estruturam a referência devem ser reproduzidos/adaptados, não omitidos por simplificação.
 
 REGRA DE CANVAS NATIVO — HARD CONSTRAINT:
 - O tamanho/proporção solicitados são o canvas real da arte.
@@ -196,6 +204,10 @@ REGRAS DE FIDELIDADE:
 - Integre pessoas, título e elementos em camadas, evitando aparência de formulário/cartões genéricos.
 - COMPOSIÇÃO LIMPA: salvo quando a referência ou o usuário pedir explicitamente, nunca crie um cartaz/quadro menor flutuando dentro de outro fundo, moldura ou canvas. A arte deve ocupar o canvas inteiro.
 - Evite caixas, cartões, cápsulas, placas e contornos em torno de data, hora, endereço e textos; só use quando a referência ou instrução justificar claramente.
+- LOGO PRINCIPAL DA IGREJA e LOGO DE EVENTO são IDENTIDADES DIFERENTES e NÃO INTERCAMBIÁVEIS.
+- A LOGO PRINCIPAL pode aparecer NO MÁXIMO UMA VEZ. É proibido repetir a logo principal para preencher o lugar da logo de evento.
+- Se LOGO DE EVENTO foi fornecida, ela é OBRIGATÓRIA e deve aparecer exatamente UMA VEZ, fiel ao arquivo enviado.
+- Nunca transforme a logo principal em logo de evento, nunca extraia seu símbolo para fazer uma segunda marca e nunca invente variações.
 - LOGO ORIGINAL: use uma única vez, limpa e intacta. Não coloque a logo dentro de caixa, card, placa, selo, cápsula ou fundo próprio, salvo referência/instrução explícita. Nunca extraia o símbolo da logo para repetir em outro ponto; nunca redesenhe, reescreva, reconstrua ou duplique partes da identidade visual.
 - LOGO DE EVENTO: quando fornecida, é um segundo asset protegido e diferente da logo principal. Use-a UMA única vez e intacta. Ela só pode ocupar uma das seis zonas laterais dentro dos 3/5 centrais do canvas: esquerda-superior, esquerda-meio, esquerda-inferior, direita-superior, direita-meio ou direita-inferior. Não use cantos extremos. Não sobreponha logo principal, rosto, título ou dados essenciais. A logo principal tem prioridade espacial. Se houver posição explícita, siga: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"IA escolhe a melhor das seis zonas permitidas"}. TAMANHO MÁXIMO: ${data.eventLogoSize||data.assets?.eventLogo?.size||"small"} — small ≈ 14% da largura do canvas; medium ≈ 20%; large ≈ 26%. Preserve a proporção original e não ultrapasse esse limite visual.
 - Em TELÃO, prefira título centralizado quando não houver outro elemento visual principal. Havendo pregador/figura/ilustração solicitada, prefira composição lateral equilibrada: título de um lado e imagem do outro.
