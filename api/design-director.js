@@ -23,6 +23,12 @@ Não use adjetivos genéricos. Use linguagem concreta de direção de arte. ANTE
 Se não estiverem especificados, não invente restrições e decida apenas pelas referências, conteúdo e contexto.
 Se estiverem especificados, eles são parte obrigatória da direção criativa e devem influenciar energia, tipografia, composição, acabamento e grau de ousadia.
 Não reduza esses estilos a estereótipos caricatos.
+REGRA DE ADAPTAÇÕES E OMISSÕES:
+- Em artes complementares, qualquer omissão explícita tem prioridade absoluta sobre a fidelidade à referência.
+- Se o usuário omitir pregador, recomponha o fundo sem nenhuma pessoa/pregador, mesmo que a arte-base contenha essa pessoa.
+- Se omitir logo ou foto da igreja, não preserve esses elementos apenas porque existem na referência.
+- Preserve a linguagem visual, não elementos explicitamente proibidos.
+
 REGRA DE TIPOGRAFIA FINAL:
 - A própria IA visual deve desenhar TODA a tipografia final.
 - Não há renderer externo de texto.
@@ -66,7 +72,7 @@ if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KE
 try{
 const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle)return res.status(400).json({error:"Envie uma referência ou escolha uma direção de inspiração."});
 const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
-model:"gpt-5.6-terra",reasoning:{effort:"medium"},prompt_cache_options:{mode:"explicit",ttl:"30m"},store:false,input:[{role:"user",content:buildContent(data)}],
+model:"gpt-5.6-terra",reasoning:{effort:"medium"},store:false,input:[{role:"user",content:buildContent(data)}],
 text:{format:{type:"json_schema",name:"churchdesign_art_direction",strict:true,schema},verbosity:"low"}
 })});
 const requestId=r.headers.get("x-request-id")||null;const d=await r.json();if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.requestId=requestId;throw e;}
