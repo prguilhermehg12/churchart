@@ -132,7 +132,7 @@ async function uploadDataUrl(dataUrl, path, mime) {
 module.exports = async function handler(req, res) {
   try {
     const action = req.query.action;
-    const churchId=String(req.headers['x-church-id']||req.query.church_id||'default').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80)||'default';
+    const churchId='default'; // V0.27.1: FK-safe until multi-church auth/migration is implemented
     cfg();
 
     if (action === "bootstrap") {
