@@ -132,23 +132,22 @@ async function uploadDataUrl(dataUrl, path, mime) {
 module.exports = async function handler(req, res) {
   try {
     const action = req.query.action;
+    const churchId=String(req.headers['x-church-id']||req.query.church_id||'default').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80)||'default';
     cfg();
 
     if (action === "bootstrap") {
-      const [profile, assets, generations, drafts, ratings] = await Promise.all([
-        rest("church_profile?id=eq.default&select=*"),
-        rest("church_assets?church_id=eq.default&select=*&order=created_at.desc"),
-        rest("church_generations?church_id=eq.default&select=*&order=created_at.desc&limit=12"),
-        rest("church_drafts?church_id=eq.default&select=*&order=updated_at.desc&limit=30"),
-        rest("church_art_ratings?church_id=eq.default&select=*&order=created_at.desc&limit=200")
+      const [profile, assets, generations, drafts] = await Promise.all([
+        rest(`church_profile?id=eq.${encodeURIComponent(churchId)}&select=*`),
+        rest(`church_assets?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=created_at.desc`),
+        rest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=created_at.desc&limit=12`),
+        rest(`church_drafts?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=updated_at.desc&limit=30`)
       ]);
 
       return res.json({
         profile: profile?.[0] || null,
         assets: assets || [],
         generations: generations || [],
-        drafts: drafts || [],
-        ratings: ratings || []
+        drafts: drafts || []
       });
     }
 
@@ -162,7 +161,7 @@ module.exports = async function handler(req, res) {
         },
         body: JSON.stringify([
           {
-            id: "default",
+            id: churchId,
             name: body.name || "",
             address: body.address || "",
             screen_config: body.screenConfig || {preset:"16:9",width:1920,height:1080}
@@ -182,7 +181,7 @@ module.exports = async function handler(req, res) {
       const type = safeName(body.type || "asset");
 
       const objectPath = [
-        "default",
+        churchId,
         type,
         `${id}-${originalName}`
       ].join("/");
@@ -201,7 +200,7 @@ module.exports = async function handler(req, res) {
         body: JSON.stringify([
           {
             id,
-            church_id: "default",
+            church_id: churchId,
             type: body.type || "graphic",
             name: body.name || "Asset",
             url: publicUrl,
@@ -242,7 +241,7 @@ module.exports = async function handler(req, res) {
       const id = crypto.randomUUID();
 
       const objectPath = [
-        "default",
+        churchId,
         "generations",
         `${Date.now()}-${id}.png`
       ].join("/");
@@ -266,7 +265,7 @@ module.exports = async function handler(req, res) {
         },
         body: JSON.stringify([
           {
-            church_id: "default",
+            church_id: churchId,
             format: body.format || "feed",
             images: body.images || []
           }
@@ -287,7 +286,7 @@ module.exports = async function handler(req, res) {
         headers: { Prefer: "resolution=merge-duplicates,return=representation" },
         body: JSON.stringify([{
           id,
-          church_id: "default",
+          church_id: churchId,
           title: body.title || "Esboço",
           data: body.data || {},
           updated_at: new Date().toISOString()
@@ -301,23 +300,6 @@ module.exports = async function handler(req, res) {
       if (!id) throw new Error("ID do esboço ausente.");
       await rest(`church_drafts?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
       return res.json({ ok: true });
-    }
-
-    if (action === "save-rating" && req.method === "POST") {
-      const body = req.body || {};
-      const rating = Math.max(1, Math.min(5, Number(body.rating) || 0));
-      if (!rating) throw new Error("Avaliação inválida.");
-      const data = await rest("church_art_ratings", {
-        method: "POST",
-        headers: { Prefer: "return=representation" },
-        body: JSON.stringify([{
-          id: crypto.randomUUID(), church_id: "default", rating,
-          format: body.format || "", design_style: body.designStyle || "",
-          audience: body.audience || "", inspiration_style: body.inspirationStyle || "",
-          effect: body.effect || "", meta: body.meta || {}
-        }])
-      });
-      return res.json({ rating: data?.[0] });
     }
 
     return res.status(400).json({
