@@ -57,6 +57,14 @@ Instrução final: ${data.finalInstruction||"nenhuma"}
 PREFERÊNCIAS APRENDIDAS DO USUÁRIO: ${data.preferenceProfile?JSON.stringify(data.preferenceProfile):"nenhuma ainda"}
 Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}\nPrioridade explícita de posição da logo: ${data.logoPosition||"não especificada; seguir referência ou equilíbrio"}\nZona da logo de evento: ${data.eventLogoPosition||"IA escolhe entre as seis zonas centrais permitidas"}\nTamanho máximo da logo de evento: ${data.eventLogoSize||"small"} (small≈14% da largura; medium≈20%; large≈26%). A zona é aproximada: ajuste localmente para composição sem abandonar a região escolhida.\nLogo principal omitida: ${data.omitChurchLogo?"SIM — proibir logo principal":"não"}\nNome da igreja omitido: ${data.omitChurchName?"SIM — proibir qualquer texto com o nome da igreja":"não"}
 
+HIERARQUIA DE ATÉ 3 PREGADORES — REGRA ESTRUTURAL:
+- A ordem recebida dos pregadores é obrigatória: 1º = PRINCIPAL; 2º = AUXILIAR 1; 3º = AUXILIAR 2.
+- PRINCIPAL: maior peso visual e posição mais central da composição.
+- AUXILIAR 1 e AUXILIAR 2: secundários, normalmente laterais, podendo ter escala menor.
+- Se houver 2 pregadores, não trate os dois como equivalentes se isso tirar a centralidade do PRINCIPAL.
+- Se houver 3, o PRINCIPAL deve formar o eixo dominante; os auxiliares equilibram os lados.
+- Preserve integralmente a identidade de cada pessoa e associe o nome correto à pessoa correta.
+
 REGRA ABSOLUTA DE CAMADAS — LOGO DE EVENTO × PREGADOR:
 A foto/recorte do pregador tem prioridade visual sobre a logo de evento.
 Se a logo de evento ocupar, tocar ou cruzar a área do pregador, a logo de evento DEVE permanecer atrás do pregador, parcialmente ocultada pelo recorte quando necessário.
