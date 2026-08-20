@@ -55,11 +55,10 @@ function dataUrlPart(dataUrl,name="image.png"){
 }
 function collectInputImages(data){
   const imgs=[];
-  // Assets de identidade do usuário primeiro. A referência vem depois e é guia de layout/estilo.
+  // V0.29: logos nunca entram no gerador visual.
+  // Pregadores continuam no fluxo atual; referências continuam como guia de design.
   for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).slice(0,3).entries())
     if(isDataImage(p?.image))imgs.push({data:p.image,name:`${i===0?'principal':`auxiliar-${i}`}.png`});
-  if(isDataImage(data.assets?.eventLogo?.image))imgs.push({data:data.assets.eventLogo.image,name:"event-logo.png"});
-  if(isDataImage(data.assets?.logo?.image))imgs.push({data:data.assets.logo.image,name:"church-logo.png"});
   for(const [i,r] of (data.references||[]).slice(0,3).entries())
     if(isDataImage(r?.image))imgs.push({data:r.image,name:`design-reference-${i+1}.png`});
   if(isDataImage(data.assets?.churchImage?.image))imgs.push({data:data.assets.churchImage.image,name:"church-background.png"});
@@ -73,6 +72,7 @@ Tipografia: ${JSON.stringify(a.typography||{})}
 Imagem: ${JSON.stringify(a.imagery||{})}
 Texturas: ${(a.textures||[]).join(", ")}
 Elementos: ${(a.graphic_elements||[]).join(", ")}
+Áreas reservadas para logos determinísticas: ${JSON.stringify(a.protected_assets||{})}
 Preservar: ${(a.preserve_rules||[]).join(" | ")}
 Evitar: ${(a.avoid_rules||[]).join(" | ")}
 Orientação especializada: ${a.generation_prompt||""}`;}
@@ -88,8 +88,28 @@ function prompt(data){
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
 
+${data.revisionMode==='delta-only'?`MODO CORREÇÃO CIRÚRGICA / DELTA ONLY:
+A primeira referência é a última versão e funciona como MOLDE BLOQUEADO.
+Altere SOMENTE: ${data.revisionInstruction||data.variantInstruction||'o ajuste explicitamente pedido'}.
+Todo elemento não mencionado deve permanecer visualmente igual: rostos, mãos, dedos, roupas, poses, textos, palavras de fundo, efeitos, cores, posições e composição. Logos permanecem ausentes do canvas generativo e serão recoladas deterministicamente depois.
+Não reinterprete áreas não solicitadas. Se precisar reconstruir uma pequena região, consulte os assets originais e preserve a identidade exata.
+`:''}
+ATIVOS SAGRADOS:
+Fotos de pregadores, logo da igreja e logo de evento são ativos independentes e invioláveis. Nunca misture símbolos, textos, membros, objetos ou identidades entre eles.
+Campo de nome vazio = nenhum texto ou placeholder para aquela pessoa.
+Camadas humanas não podem se fundir. Objetos de um auxiliar não podem atravessar para frente do principal.
+
+
 ${(data.references||[]).length?'Use as referências como referência real de DESIGN: composição, hierarquia, tratamento tipográfico, recortes, textura, paleta, profundidade e linguagem visual.':`CRIAÇÃO SEM REFERÊNCIA: desenvolva uma proposta original a partir desta direção: ${data.inspirationStyle?.name||''} — ${data.inspirationStyle?.prompt||''}. Não copie uma peça específica.`}
-NÃO crie uma base vazia para ser montada depois. Resolva a peça completa como um designer.
+NÃO crie uma base vazia para ser montada depois. Resolva a peça completa como um designer, EXCETO pelas logos oficiais, que serão coladas deterministicamente depois.
+
+LOGO-FREE CANVAS — HARD CONSTRAINT:
+- Gere ZERO logos, ZERO marcas, ZERO emblemas institucionais e ZERO versões reconstruídas de logos.
+- Se a referência contém qualquer logo, símbolo de igreja, wordmark, selo, marca de evento ou assinatura institucional, REMOVA completamente esse elemento e reconstrua naturalmente o fundo atrás dele.
+- Não copie símbolo, não deixe fantasma, não deixe marca d'água e não converta logo em texto.
+- Quando houver logo oficial selecionada para composição posterior, não escreva o nome da igreja como substituto da logo.
+- artDirection.protected_assets define áreas reservadas: mantenha-as limpas e com contraste suficiente para o PNG original.
+- Nunca desenhe placeholders "LOGO", caixas vazias, chamas, globos ou símbolos genéricos nesses espaços.
 
 ${blueprint(data)}
 
@@ -157,7 +177,8 @@ PREGADOR:
 - O PRINCIPAL deve ter maior prioridade visual: posição mais central, escala igual ou maior e leitura imediata antes dos auxiliares.
 - Com 2 pessoas: mantenha o PRINCIPAL mais central/dominante e o AUXILIAR 1 em posição lateral secundária.
 - Com 3 pessoas: mantenha o PRINCIPAL no eixo ou região central dominante e distribua AUXILIAR 1 e AUXILIAR 2 nas laterais de forma equilibrada.
-- DIREÇÃO DOS AUXILIARES: auxiliar voltado/olhando para a direita → preferencialmente à DIREITA do principal; auxiliar voltado/olhando para a esquerda → preferencialmente à ESQUERDA do principal.
+- DIREÇÃO DOS AUXILIARES: a equipe deve visualmente ABRIR PARA FORA do centro. Auxiliar à esquerda olha/orienta-se preferencialmente para a esquerda externa; auxiliar à direita, para a direita externa.
+- Primeiro escolha o lado pela orientação natural da foto. Se dois auxiliares olharem para o mesmo lado, é permitido FLIP HORIZONTAL integral de um deles, sem redesenhar rosto, mãos, roupa, microfone ou instrumento. Nunca espelhe logos/textos.
 - Preserve pose, gesto, braço levantado/abaixado, mãos, microfone, inclinação da cabeça e direção do olhar de cada foto enviada. Não neutralize poses expressivas.
 - Preserve fortemente a fisionomia. Não embeleze, rejuvenesça, envelheça ou invente traços.
 - Nunca troque rostos, nomes, funções ou hierarquia entre as pessoas.
@@ -167,6 +188,12 @@ PREGADOR:
 - Sem referência/instrução, priorize peito para cima ou cintura para cima.
 - Corpo inteiro apenas se referência/instrução justificar.
 - Preserve direção e função espacial de sombras, glows e brilhos.
+
+LOGOS OFICIAIS — PROIBIÇÃO FINAL:
+- Logo da igreja e logo de evento NÃO pertencem a esta geração.
+- Toda logo da referência deve desaparecer.
+- Preserve somente espaço negativo destinado ao compositor determinístico.
+- Não invente símbolo institucional ou marca substituta.
 
 REGRA DE CANVAS NATIVO — HARD CONSTRAINT:
 - O tamanho/proporção solicitados são o canvas real da arte.
