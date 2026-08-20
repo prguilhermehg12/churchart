@@ -46,13 +46,20 @@ TIPOGRAFIA:
 - Reprove texto sobreposto a outro texto a ponto de comprometer legibilidade.
 - Reprove informação obrigatória fora da safe area.\n
 
+- ATIVOS SAGRADOS — FALHA CRÍTICA: reprove fusão entre pregadores, transferência de microfone/mãos/roupa/objetos entre camadas, alteração relevante de rosto ou mistura entre logo da igreja e logo de evento.
+- CAMADA DO PRINCIPAL: nenhum elemento pertencente a auxiliar pode atravessar indevidamente para frente do principal.
+- NOME VAZIO: reprove qualquer “Pessoa N”, “Pastor”, “Pregador”, nome inferido ou placeholder.
+- LOGOS: nesta etapa, reprove qualquer presença de logo no canvas gerado. A fidelidade das marcas será garantida pelo compositor determinístico depois.
+- DELTA ONLY: reprove mudanças não solicitadas na versão-base, inclusive dedos/mãos, pose, rosto, palavras de fundo, logos, cores e efeitos.
+- DIREÇÃO: prefira auxiliares abrindo para fora do centro; flip horizontal integral é aceitável sem alteração de identidade.
+
 - SUBSTITUIÇÃO DE REFERÊNCIA — FALHA CRÍTICA: se existem fotos de pregadores enviadas, nenhuma pessoa humana original da arte de referência pode permanecer, salvo autorização explícita. Reprove imediatamente se o protagonista/pastor/modelo da referência continuar visível.
 - PRINCIPAL: confirme que a pessoa central/dominante é de fato a FOTO DO PREGADOR PRINCIPAL enviada, e não a pessoa da referência.
 - FISIONOMIA: compare rigorosamente cada rosto final às fotos originais. Mudança perceptível de identidade, mistura de traços ou alteração facial significativa é falha crítica.
 - POSE: preserve braço levantado/abaixado, gesto, microfone, orientação corporal e direção do olhar. Mudança injustificada de uma pose marcante deve reprovar.
 - POSICIONAMENTO DIRECIONAL: auxiliar orientado para a direita deve preferencialmente ficar do lado direito do principal; orientado para a esquerda, do lado esquerdo. Reprove quando a inversão prejudicar claramente a lógica visual e não houver justificativa da referência/instrução.
-- LOGO PRINCIPAL DUPLICADA: qualquer segunda ocorrência da logo principal, símbolo extraído ou variação inventada é falha crítica.
-- LOGO DE EVENTO: se selecionada, verifique se é a logo de evento correta. Reprove se estiver ausente ou se a logo principal tiver sido repetida no lugar dela.
+- CANVAS LOGO-FREE: nesta etapa, a imagem deve conter ZERO logos. Reprove qualquer logo, marca, emblema institucional, símbolo copiado da referência, wordmark ou marca de evento que tenha sobrevivido ou sido inventado.
+- NÃO reprove ausência das logos oficiais: elas serão compostas deterministicamente após este Fiscal.
 - HIERARQUIA DE PREGADORES: quando houver mais de um, PESSOA 1 é PRINCIPAL e precisa ter prioridade visual e posição mais central que os auxiliares. PESSOA 2 = AUXILIAR 1; PESSOA 3 = AUXILIAR 2.
 - Reprove se o principal for tratado como auxiliar periférico enquanto outro pregador ocupa claramente a posição central/dominante sem instrução explícita do usuário.
 - Reprove troca de identidade, nome ou papel entre os pregadores.
@@ -90,8 +97,7 @@ Avalie de forma conservadora. Se reprovar, escreva correction_prompt curto e ope
   for(const r of (data.references||[]).slice(0,1))if(r?.image)c.push({type:"input_text",text:"REFERÊNCIA DE DESIGN:"},{type:"input_image",image_url:r.image,detail:"auto"});
   for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(p?.image)c.push({type:"input_text",text:`FOTO ORIGINAL — ${i===0?'PREGADOR PRINCIPAL':`PREGADOR AUXILIAR ${i}`}. Nome esperado: ${p.name||'não informado'}`},{type:"input_image",image_url:p.image,detail:"auto"});
   if(data.assets?.churchImage?.image&&!/omitir foto da igreja/i.test(`${data.userInstruction||""} ${data.finalInstruction||""}`))c.push({type:"input_text",text:"FOTO DA IGREJA SELECIONADA — deve estar presente e reconhecível na arte:"},{type:"input_image",image_url:data.assets.churchImage.image,detail:"auto"});
-  if(data.assets?.logo?.image)c.push({type:"input_text",text:"LOGO ORIGINAL:"},{type:"input_image",image_url:data.assets.logo.image,detail:"auto"});
-  if(data.assets?.eventLogo?.image)c.push({type:"input_text",text:"LOGO DE EVENTO ORIGINAL — deve aparecer intacta uma única vez, em zona central lateral permitida e sem conflito com a logo principal:"},{type:"input_image",image_url:data.assets.eventLogo.image,detail:"auto"});
+  if(data.assets?.logo?.image||data.assets?.eventLogo?.image)c.push({type:"input_text",text:"LOGO-FREE STAGE: as logos oficiais serão coladas depois por código. Não exija a presença delas. Reprove, isto sim, qualquer logo, marca, emblema, wordmark ou símbolo institucional que o gerador tenha copiado/inventado no canvas."});
   if(data.preTypographyImage)c.push({type:"input_text",text:"ARTE ANTES DA CONVERSÃO TIPOGRÁFICA:"},{type:"input_image",image_url:data.preTypographyImage,detail:"high"});
   c.push({type:"input_text",text:"ARTE GERADA A SER FISCALIZADA:"},{type:"input_image",image_url:data.generatedImage,detail:"high"});
   return c;
