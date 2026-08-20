@@ -3,7 +3,7 @@ const RESPONSES_URL="https://api.openai.com/v1/responses";
 
 const schema={
 type:"object",additionalProperties:false,
-required:["visual_summary","style_tags","palette","composition","typography","imagery","textures","graphic_elements","preserve_rules","avoid_rules","generation_prompt"],
+required:["visual_summary","style_tags","palette","composition","typography","imagery","textures","graphic_elements","preserve_rules","avoid_rules","protected_assets","generation_prompt"],
 properties:{
 visual_summary:{type:"string"},
 style_tags:{type:"array",items:{type:"string"}},
@@ -13,6 +13,12 @@ typography:{type:"object",additionalProperties:false,required:["title","subtitle
 title:{type:"object",additionalProperties:false,required:["style","treatment","uppercase","rotation","scale","tracking","outline","outlineWidth","outlineColor","shadow","fill"],properties:{style:{type:"string"},treatment:{type:"string"},uppercase:{type:"boolean"},rotation:{type:"number"},scale:{type:"number"},tracking:{type:"number"},outline:{type:"boolean"},outlineWidth:{type:"number"},outlineColor:{type:"string"},shadow:{type:"number"},fill:{type:"string"}}},
 subtitle:{type:"string"},supporting:{type:"string"}}},
 imagery:{type:"object",additionalProperties:false,required:["pastor_treatment","cutout_required","background_strategy","illustration_mode","overlap_strategy"],properties:{pastor_treatment:{type:"string"},cutout_required:{type:"boolean"},background_strategy:{type:"string"},illustration_mode:{type:"string"},overlap_strategy:{type:"string"}}},
+protected_assets:{type:"object",additionalProperties:false,required:["church_logo_region","church_logo_width_pct","event_logo_region","event_logo_width_pct"],properties:{
+church_logo_region:{type:"string",enum:["top-left","top-center","top-right","bottom-left","bottom-center","bottom-right","none"]},
+church_logo_width_pct:{type:"number"},
+event_logo_region:{type:"string",enum:["left-top","right-top","left-middle","right-middle","left-bottom","right-bottom","none"]},
+event_logo_width_pct:{type:"number"}
+}},
 textures:{type:"array",items:{type:"string"}},graphic_elements:{type:"array",items:{type:"string"}},preserve_rules:{type:"array",items:{type:"string"}},avoid_rules:{type:"array",items:{type:"string"}},generation_prompt:{type:"string"}
 }};
 
@@ -48,7 +54,22 @@ REGRA DE FIDELIDADE GEOMÉTRICA:
 REGRA DE CANVAS NATIVO: o aspect ratio de destino é a própria composição. Nunca planeje uma arte em outra proporção para depois encaixá-la dentro do canvas. Proíba canvas interno, pôster dentro de pôster, barras, margens artificiais e cópia ampliada/desfocada da própria arte para preencher espaço, salvo referência/instrução explícita.
 REGRA DE CAMADAS: imagens da igreja pertencem ao BACKGROUND; pregadores recortados pertencem ao FOREGROUND. Pessoas/mãos/cabeças da foto de igreja nunca podem ficar visualmente por cima de pregadores.
 REGRA DE UNICIDADE SEMÂNTICA: cada campo (subtítulo, data, hora, endereço, nome de pregador) aparece no máximo uma vez, salvo pedido explícito.
-REGRA DE ENQUADRAMENTO HUMANO: por padrão preserve o corpo inteiro do pregador quando a foto permitir. Só recomende crop corporal quando a referência ou instrução justificar claramente. Prefira redimensionar/reorganizar a composição a cortar cabeça, mãos, braços, pernas ou tronco.\nREGRA DE COMPOSIÇÃO PROFISSIONAL: por padrão, não proponha poster-in-poster, quadro dentro de quadro, moldura externa artificial ou card central flutuando no canvas. Só faça isso se estiver claramente na referência ou for pedido. Evite UI-like boxes/cards/cápsulas em informações. Para LOGO, seja ainda mais rígido: uma única logo original, limpa, sem caixa/placa/selo/fundo próprio, sem duplicar símbolo, sem extrair ícone, sem redesenhar. Se houver LOGO DE EVENTO, trate-a como segundo asset protegido independente: uma única ocorrência, sem redesenho, dentro de uma das seis zonas laterais dos 3/5 centrais, nunca nos cantos extremos e nunca conflitando com logo principal, título ou pessoa. Em telão sem imagem principal, favoreça título centralizado. Com pregador/figura/ilustração, favoreça título em um lado e imagem no lado oposto.
+REGRA DE ENQUADRAMENTO HUMANO: por padrão preserve o corpo inteiro do pregador quando a foto permitir. Só recomende crop corporal quando a referência ou instrução justificar claramente. Prefira redimensionar/reorganizar a composição a cortar cabeça, mãos, braços, pernas ou tronco.\nREGRA DE COMPOSIÇÃO PROFISSIONAL: por padrão, não proponha poster-in-poster, quadro dentro de quadro, moldura externa artificial ou card central flutuando no canvas. Só faça isso se estiver claramente na referência ou for pedido. Evite UI-like boxes/cards/cápsulas em informações.
+
+ARQUITETURA DE LOGOS — REGRA ABSOLUTA:
+- A IA VISUAL NÃO desenhará, reconstruirá, copiará nem escreverá nenhuma logo.
+- Toda logo existente nas REFERÊNCIAS deve ser tratada como elemento a REMOVER da geração visual.
+- Seu trabalho é somente reservar espaço e indicar em protected_assets onde o compositor determinístico colará o PNG original depois.
+- Se houver logo da igreja e logo de evento, reserve áreas distintas.
+- Se o usuário escolheu posição explícita da logo da igreja, respeite-a.
+- Sem posição explícita, preserve apenas a REGIÃO da logo na referência, nunca a marca em si.
+- Para logo de evento, use uma das seis regiões centrais laterais e mantenha distância de pregadores, título e dados essenciais.
+- Como a logo será colada depois, NÃO planeje sobreposição com pregadores. Escolha um ponto limpo dentro da região.
+- church_logo_width_pct normalmente entre 12 e 26.
+- event_logo_width_pct respeita small≈14, medium≈20, large≈26.
+- Logo omitida/inexistente => região "none" e largura 0.
+
+Em telão sem imagem principal, favoreça título centralizado. Com pregador/figura/ilustração, favoreça título em um lado e imagem no lado oposto.
 Se houver pessoas visualmente recortadas, cutout_required=true.
 Se o título dominar a peça, especifique escala, rotação, outline, sombra e tracking. O Curador Tipográfico é conservador: respeite mode=AI quando houver risco de perda visual. Editabilidade nunca tem prioridade sobre fidelidade.
 Mapa semântico: ${JSON.stringify(data.semanticMap||[])}
@@ -56,6 +77,14 @@ Instrução: ${data.instruction||"nenhuma"}
 Instrução final: ${data.finalInstruction||"nenhuma"}
 PREFERÊNCIAS APRENDIDAS DO USUÁRIO: ${data.preferenceProfile?JSON.stringify(data.preferenceProfile):"nenhuma ainda"}
 Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}\nPrioridade explícita de posição da logo: ${data.logoPosition||"não especificada; seguir referência ou equilíbrio"}\nZona da logo de evento: ${data.eventLogoPosition||"IA escolhe entre as seis zonas centrais permitidas"}\nTamanho máximo da logo de evento: ${data.eventLogoSize||"small"} (small≈14% da largura; medium≈20%; large≈26%). A zona é aproximada: ajuste localmente para composição sem abandonar a região escolhida.\nLogo principal omitida: ${data.omitChurchLogo?"SIM — proibir logo principal":"não"}\nNome da igreja omitido: ${data.omitChurchName?"SIM — proibir qualquer texto com o nome da igreja":"não"}
+
+ATIVOS SAGRADOS / CAMADAS INDEPENDENTES:
+- Pregadores, logo da igreja e logo de evento são fontes de identidade invioláveis.
+- Proíba fusão, redesenho, troca de texto/símbolo, transferência de objetos ou mistura entre camadas.
+- Campo de nome vazio = SEM NOME / NÃO ESCREVER NADA.
+- Objetos de um auxiliar permanecem na camada do auxiliar e não atravessam para frente do principal.
+- Em delta-only, a versão anterior é molde bloqueado; autorize mudança somente no pedido explícito.
+- Auxiliares devem abrir visualmente para fora; se ambos olham para o mesmo lado, pode haver flip horizontal integral de um deles sem alterar identidade.
 
 SUBSTITUIÇÃO DE PESSOAS DA REFERÊNCIA — REGRA ABSOLUTA:
 - Pessoas humanas presentes na referência são placeholders de layout, não identidades a preservar, salvo ordem explícita do usuário.
@@ -71,10 +100,10 @@ FIDELIDADE DE POSE E DIREÇÃO:
 - Preserve fisionomia com rigor e evite qualquer alteração cosmética/invenção.
 
 LOGOS — REGRA DE IDENTIDADE:
-- Logo principal e logo de evento são assets diferentes e nunca podem ser substituídos entre si.
-- Logo principal: no máximo uma ocorrência.
-- Logo de evento selecionada: exatamente uma ocorrência, usando o arquivo correto.
-- Repetir a logo principal no lugar da logo de evento é erro crítico.
+- NÃO planeje logos como conteúdo gerado.
+- Logo principal e logo de evento serão coladas depois pelo compositor determinístico.
+- Planeje apenas região, escala e espaço negativo em protected_assets.
+- Logos presentes nas referências devem ser removidas, nunca preservadas ou reinterpretadas.
 
 HIERARQUIA DE ATÉ 3 PREGADORES — REGRA ESTRUTURAL:
 - A ordem recebida dos pregadores é obrigatória: 1º = PRINCIPAL; 2º = AUXILIAR 1; 3º = AUXILIAR 2.
@@ -84,11 +113,10 @@ HIERARQUIA DE ATÉ 3 PREGADORES — REGRA ESTRUTURAL:
 - Se houver 3, o PRINCIPAL deve formar o eixo dominante; os auxiliares equilibram os lados.
 - Preserve integralmente a identidade de cada pessoa e associe o nome correto à pessoa correta.
 
-REGRA ABSOLUTA DE CAMADAS — LOGO DE EVENTO × PREGADOR:
-A foto/recorte do pregador tem prioridade visual sobre a logo de evento.
-Se a logo de evento ocupar, tocar ou cruzar a área do pregador, a logo de evento DEVE permanecer atrás do pregador, parcialmente ocultada pelo recorte quando necessário.
-A logo de evento NUNCA pode aparecer sobre o rosto, cabelo, corpo, roupa, mãos ou qualquer parte visível do pregador.
-Não mova o pregador para acomodar a logo se isso prejudicar a composição baseada na referência; primeiro reposicione discretamente a logo dentro da zona escolhida e, se ainda houver conflito, mantenha-a atrás do pregador.
+REGRA DE RESERVA — LOGO DE EVENTO × PREGADOR:
+A logo de evento será colada deterministicamente depois. Portanto reserve uma área limpa que NÃO atravesse pregadores.
+Nunca planeje a região da logo sobre rosto, cabelo, corpo, roupa, mãos, microfone ou instrumento.
+Se a região escolhida conflitar, mantenha a região geral e desloque o ponto dentro dela até encontrar espaço livre.
 Estilo explicitamente escolhido: ${data.designStyle||"não especificado"}
 Modo de cor predominante: ${data.colorMode||"não especificado"}
 Cor manual, se houver: ${data.dominantColor||"não especificada"}
