@@ -314,6 +314,14 @@ module.exports = async function handler(req, res) {
       return res.json({ok:true});
     }
 
+    if (action === "update-asset-meta" && req.method === "POST") {
+      const body=req.body||{},id=body.id;if(!id)throw new Error("ID do asset ausente.");
+      const rows=await rest(`church_assets?id=eq.${encodeURIComponent(id)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`),current=rows?.[0];if(!current)throw new Error("Asset não encontrado.");
+      const nextMeta={...(current.meta||current.metadata||{}),...(body.meta||{})};
+      try{const updated=await rest(`church_assets?id=eq.${encodeURIComponent(id)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify({meta:nextMeta})});return res.json({asset:updated?.[0]||current,metadataPersisted:true});}
+      catch(e){return res.json({asset:current,metadataPersisted:false,warning:"A tabela church_assets ainda não possui coluna meta."});}
+    }
+
     if (action === "save-draft" && req.method === "POST") {
       const body = req.body || {};
       const id = body.id || crypto.randomUUID();
