@@ -1,5 +1,9 @@
 module.exports.config={maxDuration:60};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
+function jobCfg(){const raw=process.env.SUPABASE_URL,key=process.env.SUPABASE_SECRET_KEY;if(!raw||!key)return null;return{url:raw.replace(/\/+$/,""),key};}
+async function jobRest(path,opts={}){const c=jobCfg();if(!c)return null;const r=await fetch(`${c.url}/rest/v1/${path}`,{...opts,headers:{apikey:c.key,Authorization:`Bearer ${c.key}`,"Content-Type":"application/json",...(opts.headers||{})}});const text=await r.text();if(!r.ok)throw new Error(`Checkpoint ${r.status}: ${text.slice(0,160)}`);return text?JSON.parse(text):null;}
+async function persistJobCheckpoint(jobId,patch={}){if(!jobId)return;try{const churchId=patch.jobChurchId||"default";delete patch.jobChurchId;const rows=await jobRest(`church_drafts?id=eq.${encodeURIComponent(jobId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`);const current=rows?.[0]?.data||{};const next={...current,kind:"generation_job",...patch,updatedAt:new Date().toISOString()};await jobRest("church_drafts?on_conflict=id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify([{id:jobId,church_id:churchId,title:"__GENERATION_JOB__",data:next,updated_at:new Date().toISOString()}])});}catch(e){console.error("Generation checkpoint",e);}}
+
 
 const schema={
 type:"object",additionalProperties:false,
@@ -24,6 +28,15 @@ textures:{type:"array",items:{type:"string"}},graphic_elements:{type:"array",ite
 
 function buildContent(data){
 const c=[{type:"input_text",text:`Você é um DIRETOR DE ARTE SÊNIOR especializado em cartazes contemporâneos de igreja, conferências, música e social media.
+
+CONTRATO DE REFERÊNCIA — STYLE ONLY / ZERO SEMANTIC INHERITANCE:
+- A referência fornece SOMENTE composição, hierarquia, proporções, estilo tipográfico, tratamento das fontes, textura, iluminação, recortes, geometria, ritmo visual, profundidade, tratamento fotográfico e paleta quando permitido pela escolha de cor do usuário.
+- NUNCA transporte palavras, números, datas, horários, endereços, nomes de culto, nomes de igreja, slogans, frases, logos, marcas ou qualquer conteúdo legível da referência.
+- Uma palavra grande na referência significa apenas “massa tipográfica grande nesta região”; o texto real vem EXCLUSIVAMENTE dos campos atuais.
+- Se a referência contém SEGUNDA, DOMINGO, CELEBRAÇÃO, nome de igreja ou qualquer outro texto, descarte esse conteúdo.
+- Se colorMode="custom", a cor do usuário tem prioridade sobre a referência.
+- O gerador visual NÃO receberá a referência externa na geração inicial; por isso descreva o design com precisão suficiente no blueprint, sem conteúdo semântico.
+
 Analise tecnicamente as referências e devolva um blueprint de produção. Foque em composição, hierarquia, recortes, collage, sobreposição, profundidade, fotografia, tipografia display, escala, rotação, contornos, sombras, paleta, textura, grão, halftone, papel, chrome, blur, gradientes, shapes, ritmo e espaço negativo.
 Não use adjetivos genéricos. Use linguagem concreta de direção de arte. ANTES de definir composição, tipografia, paleta e complexidade, consulte os campos explícitos de PÚBLICO-ALVO e ESTILO.
 Se não estiverem especificados, não invente restrições e decida apenas pelas referências, conteúdo e contexto.
@@ -76,6 +89,8 @@ Mapa semântico: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.instruction||"nenhuma"}
 Instrução final: ${data.finalInstruction||"nenhuma"}
 PREFERÊNCIAS APRENDIDAS DO USUÁRIO: ${data.preferenceProfile?JSON.stringify(data.preferenceProfile):"nenhuma ainda"}
+TEXTOS AUTORIZADOS DA ARTE ATUAL: ${JSON.stringify([data.requiredContent?.title,data.requiredContent?.subtitle,data.requiredContent?.date,data.requiredContent?.time,data.requiredContent?.address,data.requiredContent?.churchName,...(data.requiredContent?.pastorNames||[])].filter(Boolean))}
+QUALQUER OUTRO TEXTO LEGÍVEL VINDO DA REFERÊNCIA É PROIBIDO.
 Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}\nPrioridade explícita de posição da logo: ${data.logoPosition||"não especificada; seguir referência ou equilíbrio"}\nZona da logo de evento: ${data.eventLogoPosition||"IA escolhe entre as seis zonas centrais permitidas"}\nTamanho máximo da logo de evento: ${data.eventLogoSize||"small"} (small≈14% da largura; medium≈20%; large≈26%). A zona é aproximada: ajuste localmente para composição sem abandonar a região escolhida.\nLogo principal omitida: ${data.omitChurchLogo?"SIM — proibir logo principal":"não"}\nNome da igreja omitido: ${data.omitChurchName?"SIM — proibir qualquer texto com o nome da igreja":"não"}
 
 ATIVOS SAGRADOS / CAMADAS INDEPENDENTES:
@@ -139,6 +154,7 @@ text:{format:{type:"json_schema",name:"churchdesign_art_direction",strict:true,s
 const requestId=r.headers.get("x-request-id")||null;const d=await r.json();if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.requestId=requestId;throw e;}
 const text=outputText(d);if(!text)throw new Error("Diretor de Arte não devolveu blueprint.");
 let artDirection;try{artDirection=JSON.parse(text)}catch{throw new Error("Blueprint inválido.");}
-return res.status(200).json({success:true,artDirection,meta:{model:'gpt-5.6-terra',usage:d.usage||null,requestId,endpoint:'responses'}});
+await persistJobCheckpoint(data.jobId,{jobChurchId:data.jobChurchId,status:"DIRECTED",artDirection,directorMeta:{model:"gpt-5.6-terra",usage:d.usage||null,requestId,endpoint:"responses"}});
+return res.status(200).json({success:true,endpointType:'design-director',artDirection,meta:{model:'gpt-5.6-terra',usage:d.usage||null,requestId,endpoint:'responses'}});
 }catch(e){console.error("ChurchDesign Design Director",e);return res.status(500).json({error:e.message||"Erro no Diretor de Arte."});}
 };
