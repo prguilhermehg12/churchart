@@ -458,7 +458,7 @@
 .pastor-order-pill b{color:white}
 
 </style>
-  <!-- ChurchDesign V0.29.0 — deterministic official logos / generative logo-free canvas -->
+  <!-- ChurchDesign V0.30.0 — resumable paid pipeline / style-only references / deterministic guard -->
 </head>
 <body>
   <div class="app-shell">
@@ -495,7 +495,7 @@ mode:null,
 quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',dominantColorMode:'custom',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoPosition:'',logoAssetId:null,omitChurchLogo:false,omitChurchName:false,eventLogoAssetId:null,eventLogoPosition:'',eventLogoSize:'small',pastorAssetIds:[],pastorNames:{},churchImageAssetId:null,correction:''},
 quickResults:[],
 costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',actualStart:null,actualEnd:null,actualCost:null,requests:[],untrackedEstimate:0},
-library:{assets:[],generations:[],drafts:[],ratings:[],dbReady:false},
+library:{assets:[],generations:[],drafts:[],jobs:[],ratings:[],dbReady:false},
 user:{email:'pr.guilhermehg12@gmail.com',plan:'studio',credits:null,isAdmin:true},
 finalConfig:{
 logoAssetId:null,
@@ -1256,7 +1256,16 @@ async function deleteDraftById(id){
 }
 
 function apiJSON(action,options={}){const method=options.method||'GET';const churchId=String(state.user?.id||state.user?.email||'default').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80);const url=`/api/church-data?action=${encodeURIComponent(action)}`;return fetch(url,{method,headers:{'Content-Type':'application/json','x-church-id':churchId},body:method==='GET'?undefined:JSON.stringify(options.body||{})}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;});}
-async function bootstrapLibrary(){try{const data=await apiJSON('bootstrap');state.library.assets=data.assets||[];const savedLogos=state.library.assets.filter(a=>a.type==='logo');if(!state.finalConfig.logoAssetId&&savedLogos.length)state.finalConfig.logoAssetId=(savedLogos.find(a=>a.is_primary)||savedLogos[0]).id;state.library.generations=data.generations||[];state.library.drafts=data.drafts||[];state.library.ratings=data.ratings||[];state.library.dbReady=true;if(data.profile){state.church.name=data.profile.name||state.church.name;state.church.address=data.profile.address||state.church.address;state.church.screenConfig=data.profile.screen_config||state.church.screenConfig;state.projectTitle=state.church.name||'Nova arte';}const primary=state.library.assets.find(a=>a.type==='logo'&&a.is_primary)||state.library.assets.find(a=>a.type==='logo');if(primary&&!state.church.logo)state.church.logo=primary.url;render();}catch(e){console.warn('Banco não configurado:',e);state.library.dbReady=false;render();}}
+async function saveGenerationJob(id,status,data={}){const r=await apiJSON('save-job',{method:'POST',body:{id,status,data:{...data,status}}});const job=r.job;if(job)state.library.jobs=[job,...(state.library.jobs||[]).filter(x=>x.id!==job.id)];return job;}
+function quickJobSnapshot(label,variationIndex,correction,replaceIndex){let lockedBaseSourceUrl=null;if(replaceIndex!==null){const parent=state.quickResults?.[replaceIndex];const latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent;lockedBaseSourceUrl=latest?.baseDataUrl||latest?.sourceUrl||null;}return{mode:'quick',label,variationIndex,correction,replaceIndex,quick:JSON.parse(JSON.stringify(state.quick)),church:JSON.parse(JSON.stringify(state.church)),lockedBaseSourceUrl,createdAt:new Date().toISOString()};}
+function restoreQuickJobSnapshot(s={}){if(s.church)state.church={...state.church,...s.church};if(s.quick)state.quick={...state.quick,...s.quick};}
+function incompleteGenerationJobs(){return(state.library.jobs||[]).filter(j=>j?.data?.kind==='generation_job'&&!['DONE','CANCELLED'].includes(j.data.status));}
+function renderGenerationRecoveryNotice(){document.querySelectorAll('[data-generation-recovery]').forEach(x=>x.remove());const jobs=incompleteGenerationJobs();if(!jobs.length)return;const host=document.querySelector('#quickResultsWrap')||document.querySelector('#content')||document.querySelector('.content');if(!host)return;const box=document.createElement('div');box.dataset.generationRecovery='1';box.className='card';box.style.cssText='border-color:#665b24;margin-bottom:12px';box.innerHTML=`<h3>Arte interrompida encontrada</h3><p>O último estágio concluído foi salvo. Continue sem repetir etapas já pagas.</p>${jobs.slice(0,4).map(j=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:9px 0"><div><strong>${esc(j.data?.snapshot?.label||'Arte')}</strong><small style="display:block;color:var(--muted)">Checkpoint: ${esc(j.data.status||'CREATED')}</small></div><button class="mini-btn" data-resume-job="${j.id}">Continuar arte</button></div>`).join('')}`;host.prepend(box);box.querySelectorAll('[data-resume-job]').forEach(b=>b.onclick=()=>resumeGenerationJob(b.dataset.resumeJob));}
+async function refreshJobs(){try{const d=await apiJSON('bootstrap');state.library.jobs=d.jobs||[];renderGenerationRecoveryNotice();}catch{}}
+async function resumeGenerationJob(id){const job=(state.library.jobs||[]).find(x=>x.id===id);if(!job)return alert('Job não encontrado.');const d=job.data||{},s=d.snapshot||{};if(s.mode!=='quick')return alert('Checkpoint incompatível.');restoreQuickJobSnapshot(s);screenQuickMode();await new Promise(r=>setTimeout(r,30));return runQuickGeneration(s.label||'Principal',Number(s.variationIndex)||0,s.correction||'',s.replaceIndex??null,{id:job.id,data:d});}
+function clientPipelineGuard(payload={}){const p={...payload,assets:{...(payload.assets||{})}};if((p.assets.pastors||[]).length>3)throw new Error('Guardião: máximo de 3 pregadores.');p.allowedTexts=[p.requiredContent?.title,p.requiredContent?.subtitle,p.requiredContent?.date,p.requiredContent?.time,p.requiredContent?.address,p.requiredContent?.churchName,...(p.requiredContent?.pastorNames||[])].map(x=>String(x||'').trim()).filter(Boolean);p.referenceSemanticPolicy='style-only';if(p.mode==='primary'&&!p.revisionMode)p.referenceRole='director-only';return p;}
+
+async function bootstrapLibrary(){try{const data=await apiJSON('bootstrap');state.library.assets=data.assets||[];const savedLogos=state.library.assets.filter(a=>a.type==='logo');if(!state.finalConfig.logoAssetId&&savedLogos.length)state.finalConfig.logoAssetId=(savedLogos.find(a=>a.is_primary)||savedLogos[0]).id;state.library.generations=data.generations||[];state.library.drafts=data.drafts||[];state.library.jobs=data.jobs||[];state.library.ratings=data.ratings||[];state.library.dbReady=true;if(data.profile){state.church.name=data.profile.name||state.church.name;state.church.address=data.profile.address||state.church.address;state.church.screenConfig=data.profile.screen_config||state.church.screenConfig;state.projectTitle=state.church.name||'Nova arte';}const primary=state.library.assets.find(a=>a.type==='logo'&&a.is_primary)||state.library.assets.find(a=>a.type==='logo');if(primary&&!state.church.logo)state.church.logo=primary.url;render();setTimeout(renderGenerationRecoveryNotice,80);}catch(e){console.warn('Banco não configurado:',e);state.library.dbReady=false;render();}}
 async function saveChurchProfile(){
   if(!state.library.dbReady)return {ok:false,error:'Banco não conectado'};
   try{
@@ -1548,14 +1557,24 @@ async function callQualityInspector(payload,signal=null){
     };
   }
 }
-async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null){
-  let lastReview=null,lastImage=null;
+async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null,resumeState=null){
+  payload=clientPipelineGuard(payload);
+  let lastReview=resumeState?.review||null,lastImage=resumeState?.image||null;
+  let startAttempt=0;
+  if(lastImage&&lastReview){
+    const technical=!!(lastReview?.technicalFailure||lastReview?._meta?.technicalFailure);
+    const hard=!!lastReview.critical_error||(lastReview.gross_errors||[]).some(x=>/rosto|data|hor[aá]rio|endere[cç]o|duplic|borda|canvas|crop|corpo inteiro|sobrepos|texto inventado|allowlist/i.test(String(x)));
+    if(lastReview.approved||technical||!hard||maxCorrections<1)return {...lastImage,review:lastReview,resumedFromCheckpoint:true};
+    startAttempt=1; // continua do retry, sem repetir a primeira imagem já paga
+  }
   const retryInstructions=[
     '',
     'Corrija apenas os erros objetivos apontados pelo fiscal. Preserve o restante da composição. Se houver risco de degradar rosto, logo ou tipografia, simplifique.'
   ];
 
-  for(let attempt=0;attempt<=maxCorrections;attempt++){
+  if(lastImage&&!lastReview){const review=await callQualityInspector({generatedImage:lastImage.url,references:payload.references||[],assets:payload.assets||{},requiredContent:payload.requiredContent||{},semanticMap:payload.semanticMap||[],userInstruction:payload.instruction||'',finalInstruction:payload.finalInstruction||'',artDirection:payload.artDirection||null,audience:payload.audience||null,designStyle:payload.designStyle||null,logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,omitChurchLogo:payload.omitChurchLogo||false,omitChurchName:payload.omitChurchName||false,allowedTexts:payload.allowedTexts||[],jobId:payload.jobId||null,nativeCanvasRequired:true,churchImageMustBeBackground:true},signal);return {...lastImage,review,resumedFromCheckpoint:true};}
+
+  for(let attempt=startAttempt;attempt<=maxCorrections;attempt++){
     const qualityCorrection=[
       retryInstructions[Math.min(attempt,retryInstructions.length-1)],
       lastReview?.correction_prompt||''
@@ -1589,7 +1608,7 @@ async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null)
       artDirection:payload.artDirection||null,
       audience:payload.audience||null,
       designStyle:payload.designStyle||null,
-      logoPosition:payload.logoPosition||null,nativeCanvasRequired:true,churchImageMustBeBackground:true,typographyBlueprint:payload.artDirection?.typographyBlueprint||null
+      logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,omitChurchLogo:payload.omitChurchLogo||false,omitChurchName:payload.omitChurchName||false,allowedTexts:payload.allowedTexts||[],jobId:payload.jobId||null,nativeCanvasRequired:true,churchImageMustBeBackground:true,typographyBlueprint:payload.artDirection?.typographyBlueprint||null
     },signal);
 
     lastReview=review;
@@ -1640,7 +1659,7 @@ async function requestArtDirection(base,signal=null){
     body:JSON.stringify({
       references:base.references||[],semanticMap:base.semanticMap||[],church:base.church||{},
       instruction:base.instruction||'',finalInstruction:base.finalInstruction||'',
-      effects:base.effects||[],format:base.format,target:base.target||primaryTargetSpec(),inspirationStyle:base.inspirationStyle||null,audience:base.audience||null,designStyle:base.designStyle||null,preferenceProfile:base.preferenceProfile||null||null
+      effects:base.effects||[],format:base.format,target:base.target||primaryTargetSpec(),inspirationStyle:base.inspirationStyle||null,audience:base.audience||null,designStyle:base.designStyle||null,preferenceProfile:base.preferenceProfile||null||null,requiredContent:base.requiredContent||{},colorMode:base.colorMode||null,dominantColor:base.dominantColor||null,logoPosition:base.logoPosition||null,eventLogoPosition:base.eventLogoPosition||null,eventLogoSize:base.eventLogoSize||null,omitChurchLogo:base.omitChurchLogo||false,jobId:base.jobId||null
     }),signal
   });
   const text=await r.text();let data;
@@ -1723,7 +1742,7 @@ function quickDefaultPastor(){
   if(!Array.isArray(state.quick.pastorAssetIds))state.quick.pastorAssetIds=[];
   if(!state.quick.pastorNames||typeof state.quick.pastorNames!=='object')state.quick.pastorNames={};
 }
-async function quickPayload(variantLabel='Principal',correction='',signal=null){
+async function quickPayload(variantLabel='Principal',correction='',signal=null,jobId=null,resumeArtDirection=null){
   const ref=state.quick.reference?await prepareImageForAI(state.quick.reference,1400,.9):null;
   const logo=state.library.assets.find(a=>a.id===state.quick.logoAssetId);
   const pastorIds=(Array.isArray(state.quick.pastorAssetIds)?state.quick.pastorAssetIds:[]).slice(0,3);
@@ -1732,11 +1751,11 @@ async function quickPayload(variantLabel='Principal',correction='',signal=null){
   const eventLogo=state.quick.eventLogoAssetId?state.library.assets.find(a=>a.id===state.quick.eventLogoAssetId):null;
   const assets={logo:(logo&&!state.quick.omitChurchLogo)?{id:logo.id,name:logo.name,sourceUrl:logo.url,image:await prepareImageForAI(logo.url,1200,.98)}:null,eventLogo:eventLogo?{id:eventLogo.id,name:eventLogo.name,sourceUrl:eventLogo.url,image:await prepareImageForAI(eventLogo.url,1200,.98),position:state.quick.eventLogoPosition||'',size:state.quick.eventLogoSize||'small'}:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.94)}:null};
   const inspiration=inspirationCatalog.find(x=>x.id===state.quick.inspirationStyle)||inspirationCatalog[0];
-  const refs=ref?[{image:ref,note:'Use esta arte como referência principal de composição, tipografia, paleta, recortes, textura e linguagem visual.'}]:[];
+  const refs=ref?[{image:ref,note:'STYLE ONLY: extraia composição, hierarquia, proporções, estilo tipográfico, textura, recortes e linguagem visual. NÃO reutilize palavra, número, logo, slogan, data, endereço, nome ou conteúdo semântico.'}]:[];
   const target=quickTargetSpec(state.quick.format),learned=computePreferenceProfile();
   const names=pastors.filter(p=>p.name).map(p=>p.name);
   const pastorHierarchy=pastors.length?`HIERARQUIA DE PREGADORES OBRIGATÓRIA: ${pastors.map((p,i)=>`${p.role}: ${p.name?`NOME EXATO = ${p.name}`:'SEM NOME — NÃO ESCREVER RÓTULO, PLACEHOLDER, FUNÇÃO OU NOME'}`).join(' | ')}. O PRINCIPAL é sempre a pessoa de maior prioridade visual, deve ficar numa posição mais central e geralmente maior. AUXILIAR 1 e AUXILIAR 2 são secundários, preferencialmente distribuídos nas laterais ou atrás do eixo do principal, sem encobri-lo. Nunca troque a identidade/ordem entre as pessoas.`:'';
-  const base={church:{name:state.church.name,address:state.quick.address||state.church.address,hasLogo:!!assets.logo},format:state.quick.format,reference:ref,references:refs,assets,target,
+  const base={jobId,church:{name:state.church.name,address:state.quick.address||state.church.address,hasLogo:!!assets.logo},format:state.quick.format,reference:ref,references:refs,assets,target,
     inspirationStyle:ref?null:{id:inspiration.id,name:inspiration.name,prompt:inspiration.prompt},audience:state.quick.audience?audienceLabel(state.quick.audience):null,designStyle:state.quick.designStyle?designStyleLabel(state.quick.designStyle):null,colorMode:state.quick.dominantColorMode||'custom',dominantColor:state.quick.dominantColor||null,logoPosition:state.quick.logoPosition||null,omitChurchLogo:!!state.quick.omitChurchLogo,omitChurchName:!!state.quick.omitChurchName,eventLogoPosition:state.quick.eventLogoPosition||null,eventLogoSize:state.quick.eventLogoSize||'small',preferenceProfile:learned,
     requiredContent:{title:state.quick.title,subtitle:state.quick.subtitle,date:state.quick.date,time:state.quick.time,address:state.quick.address||state.church.address,churchName:(assets.logo&&!state.quick.omitChurchLogo)?'':(state.quick.omitChurchName?'':state.church.name),pastorNames:names},
     instruction:`Modo rápido. ${pastorHierarchy}
@@ -1784,8 +1803,8 @@ LOGOS — IDENTIDADES NÃO INTERCAMBIÁVEIS:
 - É PROIBIDO repetir a logo principal no lugar da logo de evento.
 - É PROIBIDO duplicar, extrair símbolo, redesenhar ou criar segunda versão da logo principal.
 ${state.quick.audience?`Público-alvo: ${audienceLabel(state.quick.audience)}. `:''}${state.quick.designStyle?`Estilo desejado: ${designStyleLabel(state.quick.designStyle)}. `:''}${!state.quick.designStyle&&learned?.designStyle?`Preferência aprendida do usuário: ${learned.designStyle}. `:''}${state.quick.dominantColorMode==='reference'?(ref?'PALETA: preserve a paleta predominante da referência; analise-a visualmente antes de definir cores. Não introduza uma nova cor dominante que descaracterize a referência.':'PALETA: não há referência disponível; escolha automaticamente uma paleta coerente com conteúdo, estilo e público.'):`Cor predominante escolhida pelo usuário: ${state.quick.dominantColor}.`} Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${ref?'':'Criação sem referência: use a direção visual '+inspiration.name+' — '+inspiration.prompt+'.'} SAFE FRAME RÍGIDO: mantenha TODO conteúdo essencial dentro dos 76% centrais do canvas, reservando 12% livres em cada borda. Nenhum texto, logo, rosto, nome, data, hora ou endereço pode tocar as bordas. ${churchAsset?'A FOTO DA IGREJA selecionada é OBRIGATÓRIA: use-a claramente como ambiente/fundo integrado, sem substituí-la por outra igreja.':'Se a referência já tiver pessoas adorando ou ambiente de igreja ao fundo, preserve essa atmosfera; não invente espaços vazios.'} LOGO-FREE CANVAS OBRIGATÓRIO: NÃO desenhe a logo da igreja, NÃO desenhe a logo de evento e REMOVA completamente qualquer logo existente na referência. Não crie símbolos substitutos, marcas d'água ou nomes institucionais para ocupar o lugar das logos. ${state.quick.omitChurchName?'OMITA também o NOME DA IGREJA em qualquer forma textual.':''} ${assets.logo?'Reserve uma área limpa e de bom contraste para a logo oficial da igreja, que será colada depois por código.':''} ${eventLogo?'Reserve uma área limpa para a LOGO DE EVENTO dentro da zona '+(state.quick.eventLogoPosition||'escolhida pelo Diretor')+'. Não coloque pregadores, rostos, mãos, título ou dados essenciais nessa área, pois o PNG original será colado depois por código.':''} ${correction||state.quick.correction||''}`,
-    finalInstruction:'SAFE FRAME OBRIGATÓRIO: conteúdo essencial dentro dos 76% centrais; 12% de margem livre em todos os lados. Elementos decorativos podem sangrar, conteúdo essencial jamais. Preserve contraste de logo: nunca logo clara sobre fundo claro nem logo escura sobre fundo escuro; crie placa/halo de contraste sem alterar a logo.',semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[]};
-  base.artDirection=await requestArtDirection(base,signal);return base;
+    finalInstruction:'SAFE FRAME OBRIGATÓRIO: conteúdo essencial dentro dos 76% centrais; 12% de margem livre em todos os lados. Elementos decorativos podem sangrar, conteúdo essencial jamais.',semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[]};
+  base.artDirection=resumeArtDirection||await requestArtDirection(base,signal);return clientPipelineGuard(base);
 }
 function screenQuickMode(){
   quickDefaultLogo();quickDefaultPastor();
@@ -1974,6 +1993,8 @@ async function drawExactOfficialLogo(ctx,canvas,asset,kind,region,widthPct){
 }
 async function composeOfficialLogos(baseDataUrl,payload,target){
   const hasChurch=!!payload.assets?.logo&&!payload.omitChurchLogo,hasEvent=!!payload.assets?.eventLogo;
+  if(hasChurch&&!payload.assets.logo.sourceUrl&&!payload.assets.logo.image)throw new Error('Guardião: arquivo original da logo da igreja ausente.');
+  if(hasEvent&&!payload.assets.eventLogo.sourceUrl&&!payload.assets.eventLogo.image)throw new Error('Guardião: arquivo original da logo de evento ausente.');
   if(!hasChurch&&!hasEvent)return baseDataUrl;
   const base=await loadImageSafe(baseDataUrl),c=document.createElement('canvas');
   c.width=Number(target?.width)||base.naturalWidth||base.width;c.height=Number(target?.height)||base.naturalHeight||base.height;
@@ -1998,7 +2019,7 @@ async function normalizeArtworkToTarget(image,payload,target,signal=null){
   const normalized=await resizeToTarget(raw,target);
   const baseDataUrl=normalized.dataUrl;
   const finalDataUrl=await composeOfficialLogos(baseDataUrl,payload,target);
-  return {image,dataUrl:finalDataUrl,baseDataUrl,recomposed:false,aspectRatioFallback:normalized.aspectRatioFallback||false};
+  return {image,dataUrl:finalDataUrl,baseDataUrl,logosComposed:true,recomposed:false,aspectRatioFallback:normalized.aspectRatioFallback||false};
 }
 
 async function resizeToTarget(dataUrl,target){
@@ -2022,12 +2043,12 @@ async function resizeToTarget(dataUrl,target){
 
   return {dataUrl:c.toDataURL('image/png'),aspectRatioFallback};
 }
-async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null){scrollToGenerationPanel();if(label==='Principal'&&replaceIndex===null)beginCostSession('Modo Rápido • primeira arte');const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent='Processando sua arte...';try{const payload=await quickPayload(label,correction,signal);
+async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null,resumeJob=null){scrollToGenerationPanel();if(label==='Principal'&&replaceIndex===null&&!resumeJob)beginCostSession('Modo Rápido • primeira arte');const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent=resumeJob?'Retomando do último checkpoint...':'Processando sua arte...';const jobId=resumeJob?.id||crypto.randomUUID(),prior=resumeJob?.data||{},snapshot=prior.snapshot||quickJobSnapshot(label,variationIndex,correction,replaceIndex);if(!resumeJob)await saveGenerationJob(jobId,'CREATED',{snapshot});try{const payload=await quickPayload(label,correction,signal,jobId,prior.artDirection||null);
     if(replaceIndex!==null){
       applyLogoCorrectionIntent(payload,correction);
       const parent=state.quickResults[replaceIndex];
       const latest=(parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent);
-      const logoFreeSource=latest?.baseDataUrl||latest?.sourceUrl||latest?.dataUrl;
+      const logoFreeSource=latest?.baseDataUrl||latest?.sourceUrl||latest?.dataUrl||snapshot.lockedBaseSourceUrl;
       if(logoFreeSource){
         const lockedBase=await prepareImageForAI(logoFreeSource,1600,.96);
         payload.reference=lockedBase;
@@ -2038,7 +2059,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
         payload.variantInstruction=`CORREÇÃO CIRÚRGICA: altere SOMENTE: ${correction||'o ajuste solicitado'}. Todo elemento não mencionado está BLOQUEADO e deve permanecer visualmente igual à versão-base.`;
       }
     }
-    setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;if(!payload.variantInstruction)payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual.`;setQuickProgress(48,'Criando sua arte...');const autoCorrections=(replaceIndex===null&&variationIndex===0)?1:0;const image=await generateWithInvisibleReview(payload,autoCorrections,signal);setQuickProgress(88,'Finalizando...');
+    setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;if(!payload.variantInstruction)payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual.`;setQuickProgress(48,'Criando sua arte...');const autoCorrections=(replaceIndex===null&&variationIndex===0)?1:0;const image=await generateWithInvisibleReview(payload,autoCorrections,signal,{image:prior.image||null,review:prior.review||null});setQuickProgress(88,'Finalizando...');
     const normalized=await normalizeArtworkToTarget(image,payload,payload.target,signal);
     const finalImage=normalized.image;
     const dataUrl=normalized.dataUrl;
@@ -2046,7 +2067,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
       const original=state.quickResults[replaceIndex];
       original.corrections=original.corrections||[];
       original.corrections.push({...result,id:crypto.randomUUID(),label:`${original.label} • corrigida`});
-    }setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>'+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível concluir.</strong><br>${esc(e.message)}`;}finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}}
+    }await saveGenerationJob(jobId,'DONE',{snapshot,image:{label:image.label||label,url:image.url,modelUsed:image.modelUsed,meta:image.meta||null},review:image.review||null,final:{sourceUrl:(finalImage||image).url,target:payload.target}});setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>'+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Conexão interrompida ou etapa pendente.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">O último checkpoint salvo será reaproveitado. Use “Continuar arte”.</span>`;setTimeout(refreshJobs,1200);}finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}}
 async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,sourceKey=null){
   scrollToGenerationPanel();
   const parent=state.quickResults[sourceIndex];if(!parent)return;
