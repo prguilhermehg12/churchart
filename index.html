@@ -52,6 +52,19 @@
 @media(max-width:650px){.gallery-grid{grid-template-columns:1fr}.selected-bar{align-items:flex-start;flex-direction:column}}
 
 
+
+/* V0.30.7 — Galeria persistente */
+.sidebar-library-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:-8px 0 16px}
+.sidebar-library-actions .my-church-btn{margin:0}
+.gallery-btn{width:100%;border:1px solid #3a4354;background:#131820;color:#eef2f8;border-radius:11px;padding:11px 10px;text-align:left;font-weight:800;cursor:pointer}.gallery-btn:hover{border-color:#6a7891;background:#19202a}
+.gallery-modal-panel{width:min(1280px,97vw)!important}
+.gallery-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:15px}.gallery-toolbar input{min-width:min(340px,80vw)}
+.persistent-gallery-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.persistent-gallery-card{border:1px solid var(--line);background:#0c0f14;border-radius:14px;overflow:hidden;min-width:0}.persistent-gallery-card>img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;background:#080a0e}.persistent-gallery-card.is-wide>img{aspect-ratio:16/9}.persistent-gallery-card.is-story>img{aspect-ratio:9/16}
+.persistent-gallery-body{padding:10px}.persistent-gallery-body strong,.persistent-gallery-body small{display:block}.persistent-gallery-body strong{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.persistent-gallery-body small{font-size:8px;color:var(--muted);margin-top:3px}
+.gallery-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.gallery-child-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:7px}.gallery-child-actions button{font-size:8px}.gallery-lineage{font-size:8px;color:#8993a3;margin-top:7px;padding-top:7px;border-top:1px solid var(--line)}
+@media(max-width:1050px){.persistent-gallery-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:800px){.persistent-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.persistent-gallery-grid{grid-template-columns:1fr}.sidebar-library-actions{grid-template-columns:1fr}}
+
 /* V0.7 — Minha Igreja, fidelidade, fontes e elementos */
 .my-church-btn{width:100%;margin:-8px 0 16px;border:1px solid var(--line);background:#151820;color:#e9edf5;border-radius:11px;padding:11px 12px;text-align:left;font-weight:800;cursor:pointer}.my-church-btn:hover{border-color:#4a5263;background:#1b1f27}
 .modal-backdrop{position:fixed;inset:0;z-index:3000;background:rgba(4,5,8,.82);backdrop-filter:blur(8px);display:grid;place-items:center;padding:24px}.modal-panel{width:min(1100px,96vw);max-height:90vh;overflow:auto;background:#0f1116;border:1px solid #303641;border-radius:18px;box-shadow:0 30px 100px rgba(0,0,0,.55)}.modal-head{position:sticky;top:0;z-index:2;background:#0f1116;border-bottom:1px solid var(--line);padding:18px 20px;display:flex;justify-content:space-between;gap:16px;align-items:center}.modal-head h2{margin:0;font-size:20px}.modal-body{padding:20px}.close-modal{border:1px solid var(--line);background:#191c23;color:white;width:34px;height:34px;border-radius:9px;cursor:pointer}
@@ -458,14 +471,17 @@
 .pastor-order-pill b{color:white}
 
 </style>
-  <!-- ChurchDesign V0.30.3 — persistent logo variants in My Church -->
+  <!-- ChurchDesign V0.30.7 — persistent gallery / generation recipes / resumable child art -->
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand"><div class="brand-mark">C</div><div><strong>ChurchDesign</strong><span>AI Design Studio</span></div></div>
       <div class="project-mini"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></div>
-      <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
+      <div class="sidebar-library-actions">
+        <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
+        <button class="gallery-btn" type="button" onclick="openGallery()">▦ Galeria</button>
+      </div>
       <nav id="stepNav"></nav>
     </aside>
 
@@ -496,6 +512,8 @@ quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantCol
 quickResults:[],
 costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',actualStart:null,actualEnd:null,actualCost:null,requests:[],untrackedEstimate:0},
 library:{assets:[],generations:[],drafts:[],jobs:[],ratings:[],dbReady:false},
+gallerySeed:null,
+gallerySavedIds:[],
 user:{email:'pr.guilhermehg12@gmail.com',plan:'studio',credits:null,isAdmin:true},
 finalConfig:{
 logoAssetId:null,
@@ -1137,7 +1155,7 @@ function screenResults(){
     };
   }
   async function callGenerate(payload,signal){const r=await fetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,220)||`Resposta inválida (${r.status})`);}if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);return data;}
-  async function persistOne(im){try{const galleryCopy=await prepareImageForAI(im.dataUrl,1400,.82);const d=await apiJSON('upload-generation',{method:'POST',body:{label:im.label,format:state.format,dataUrl:galleryCopy}});return {label:im.label,url:d.url};}catch(e){console.warn(e);return null;}}
+  async function persistOne(im){try{const galleryCopy=await prepareImageForAI(im.dataUrl,1400,.82);const d=await apiJSON('upload-generation',{method:'POST',body:{label:im.label,format:state.format,dataUrl:galleryCopy}});return {galleryId:im.id||crypto.randomUUID(),label:im.label,url:d.url,kind:'principal',format:state.format,target:primaryTargetSpec(),recipe:{recipeVersion:2,pipelineVersion:'0.30.7',kind:'principal',format:state.format,target:primaryTargetSpec(),church:JSON.parse(JSON.stringify(state.church||{})),artDirection:state.artDirection||null,instruction:state.instruction||'',requiredContent:exactContentFromLayers(),assets:compactGalleryAssets(await selectedAssetPayload())}};}catch(e){console.warn(e);return null;}}
   function renderArtDirection(ad){
     if(!ad)return;artDirectorPanel?.classList.add('show');
     if(artDirectorStatus)artDirectorStatus.textContent='Blueprint visual concluído e aplicado às propostas.';
@@ -1151,25 +1169,28 @@ const artDirection=await requestArtDirection(base,globalSignal);renderArtDirecti
 for(let i=0;i<variantSpecs.length;i++){if(stopRequested)break;const v=variantSpecs[i],row=seq.querySelector(`[data-seq="${i}"]`);row.classList.add('active');status.textContent=`${i+1}/3 — Gerando ${v.label}...`;currentController=new AbortController();try{const d=await generateWithInvisibleReview({...base,mode:'primary',variantId:v.id,variantLabel:v.label,variantInstruction:state.finalConfig.variants[v.id],target:primaryTargetSpec()},i===0?1:0,globalSignal);
           const normalized=await normalizeArtworkToTarget(d,{...base,mode:'primary',variantId:v.id,variantLabel:v.label,variantInstruction:state.finalConfig.variants[v.id],target:primaryTargetSpec()},primaryTargetSpec(),globalSignal);
           const finalImage=normalized.image,finalData=normalized.dataUrl;
-          const im={label:v.label,dataUrl:finalData,baseUrl:(finalImage||d).url,modelUsed:d.modelUsed,review:d.review};appendResult(im);const persisted=await persistOne(im);if(persisted)saved.push(persisted);row.classList.remove('active');row.classList.add('done');}catch(e){row.classList.remove('active');if(stopRequested||e.name==='AbortError')break;row.classList.add('fail');throw e;}finally{currentController=null;}}if(saved.length){const g=await apiJSON('save-generation',{method:'POST',body:{format:state.format,images:saved}});state.library.generations=[g.generation,...state.library.generations];renderGallery();}status.innerHTML=stopRequested?'<strong style="color:var(--good)">✓ Processo interrompido por você. As propostas prontas foram mantidas.</strong>':`<strong style="color:var(--good)">✓ ${currentImages.length} proposta(s) finalizada(s).</strong>`;}catch(e){status.innerHTML=`<strong style="color:#ff9eac">A geração foi interrompida.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">As propostas que já apareceram continuam disponíveis.</span>`;}finally{if(loader)loader.classList.remove('show');btn.disabled=false;btn.textContent='✦ GERAR NOVAMENTE';currentController=null;activeProcessController=null;if(cancelBtn)cancelBtn.style.display='none';}}
+          const im={label:v.label,dataUrl:finalData,baseUrl:(finalImage||d).url,modelUsed:d.modelUsed,review:d.review};appendResult(im);const persisted=await persistOne(im);if(persisted){im.galleryId=persisted.galleryId;saved.push(persisted);}row.classList.remove('active');row.classList.add('done');}catch(e){row.classList.remove('active');if(stopRequested||e.name==='AbortError')break;row.classList.add('fail');throw e;}finally{currentController=null;}}if(saved.length){const g=await apiJSON('save-generation',{method:'POST',body:{format:state.format,images:saved}});state.library.generations=[g.generation,...state.library.generations];renderGallery();}status.innerHTML=stopRequested?'<strong style="color:var(--good)">✓ Processo interrompido por você. As propostas prontas foram mantidas.</strong>':`<strong style="color:var(--good)">✓ ${currentImages.length} proposta(s) finalizada(s).</strong>`;}catch(e){status.innerHTML=`<strong style="color:#ff9eac">A geração foi interrompida.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">As propostas que já apareceram continuam disponíveis.</span>`;}finally{if(loader)loader.classList.remove('show');btn.disabled=false;btn.textContent='✦ GERAR NOVAMENTE';currentController=null;activeProcessController=null;if(cancelBtn)cancelBtn.style.display='none';}}
   if(cancelBtn)cancelBtn.onclick=()=>{stopRequested=true;cancelActiveProcess();status.textContent='Processamento cancelado.';};
   stopBtn.onclick=()=>{stopRequested=true;stopBtn.disabled=true;stopBtn.textContent='Parando...';if(currentController)currentController.abort();};
   function selectedKeep(i,f){const box=document.querySelector(`[data-keep-box="${i}-${f}"]`);if(!box)return ['all'];const vals=[...box.querySelectorAll('[data-keep].active')].map(x=>x.dataset.keep);return vals.length?vals:['all'];}
-  async function generateOneAdaptation(i,format,redesign=false){const source=currentImages[i];if(!source)return;const target=targetSpec(format),keep=selectedKeep(i,format),list=document.querySelector(`#adaptList-${i}`);const tempId=`adapt-${i}-${format}-${Date.now()}`;list.insertAdjacentHTML('beforeend',`<div class="adaptation-card" id="${tempId}"><div style="width:68px;height:45px;border-radius:7px;background:#171a20;display:grid;place-items:center"><div class="loader-orb" style="width:22px;height:22px"></div></div><div class="adaptation-info"><strong>${target.label}</strong><small>Gerando ${target.width} × ${target.height}...</small></div></div>`);try{const ref=await prepareImageForAI(source.baseUrl||source.dataUrl,1280,.78);const d=await generateWithInvisibleReview({mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},0);const normalized=await normalizeArtworkToTarget(d,{mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},target);const finalData=normalized.dataUrl;const card=document.getElementById(tempId);card.className=`adaptation-card ${format==='story'?'story':''}`;card.innerHTML=`<img src="${finalData}"><div class="adaptation-info"><strong>${target.label} • ${target.width} × ${target.height}</strong><small>${redesign?'Layout redesenhado':'Adaptação concluída'} • ${keep.includes('all')?'Tudo mantido':keep.join(', ')}</small></div><div class="adaptation-actions"><button class="mini-btn download-btn" type="button" data-adapt-download>↓ Baixar</button><button class="mini-btn" type="button" data-adapt-redraw>↻ Redesenhar</button></div>`;card.querySelector('[data-adapt-download]').onclick=()=>downloadDataUrl(finalData,`${buildDownloadName(source.label).replace('.png','')}-${format}.png`);card.querySelector('[data-adapt-redraw]').onclick=()=>generateOneAdaptation(i,format,true);}catch(e){const card=document.getElementById(tempId);if(card)card.innerHTML=`<div></div><div class="adaptation-info"><strong style="color:#ff9eac">${target.label}: falhou</strong><small>${esc(e.message)}</small></div><div class="adaptation-actions"><button class="mini-btn" type="button" data-retry>Repetir</button></div>`;card?.querySelector('[data-retry]')?.addEventListener('click',()=>generateOneAdaptation(i,format,redesign));}}
+  async function generateOneAdaptation(i,format,redesign=false){const source=currentImages[i];if(!source)return;const target=targetSpec(format),keep=selectedKeep(i,format),list=document.querySelector(`#adaptList-${i}`);const tempId=`adapt-${i}-${format}-${Date.now()}`;list.insertAdjacentHTML('beforeend',`<div class="adaptation-card" id="${tempId}"><div style="width:68px;height:45px;border-radius:7px;background:#171a20;display:grid;place-items:center"><div class="loader-orb" style="width:22px;height:22px"></div></div><div class="adaptation-info"><strong>${target.label}</strong><small>Gerando ${target.width} × ${target.height}...</small></div></div>`);try{const ref=await prepareImageForAI(source.baseUrl||source.dataUrl,1280,.78);const d=await generateWithInvisibleReview({mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},0);const normalized=await normalizeArtworkToTarget(d,{mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},target);const finalData=normalized.dataUrl;
+    const detailedChild={id:crypto.randomUUID(),label:`${source.label} • ${target.label}`,format,target,dataUrl:finalData,baseDataUrl:normalized.baseDataUrl,sourceUrl:d.url,artDirection:state.artDirection,requiredContent:exactContentFromLayers(),assets:await selectedAssetPayload(),instruction:state.instruction};
+    await persistGalleryArtwork(detailedChild,{kind:'arte filha',parentArtworkId:source.galleryId||null,sourceArtworkId:source.galleryId||null,format});
+    const card=document.getElementById(tempId);card.className=`adaptation-card ${format==='story'?'story':''}`;card.innerHTML=`<img src="${finalData}"><div class="adaptation-info"><strong>${target.label} • ${target.width} × ${target.height}</strong><small>${redesign?'Layout redesenhado':'Adaptação concluída'} • ${keep.includes('all')?'Tudo mantido':keep.join(', ')}</small></div><div class="adaptation-actions"><button class="mini-btn download-btn" type="button" data-adapt-download>↓ Baixar</button><button class="mini-btn" type="button" data-adapt-redraw>↻ Redesenhar</button></div>`;card.querySelector('[data-adapt-download]').onclick=()=>downloadDataUrl(finalData,`${buildDownloadName(source.label).replace('.png','')}-${format}.png`);card.querySelector('[data-adapt-redraw]').onclick=()=>generateOneAdaptation(i,format,true);}catch(e){const card=document.getElementById(tempId);if(card)card.innerHTML=`<div></div><div class="adaptation-info"><strong style="color:#ff9eac">${target.label}: falhou</strong><small>${esc(e.message)}</small></div><div class="adaptation-actions"><button class="mini-btn" type="button" data-retry>Repetir</button></div>`;card?.querySelector('[data-retry]')?.addEventListener('click',()=>generateOneAdaptation(i,format,redesign));}}
   async function generateAdaptationsFor(i){const formats=['screen','youtube','story'].filter(f=>document.querySelector(`[data-adapt-toggle="${i}-${f}"]`)?.classList.contains('active'));if(!formats.length)return showMapNotice('Selecione um formato','Marque Telão, YouTube e/ou Stories.');for(const f of formats)await generateOneAdaptation(i,f,false);}
   btn.onclick=generatePrimary;renderGallery();
 }
 function fileToUrl(file,cb){if(!file)return;const r=new FileReader();r.onload=()=>cb(r.result);r.readAsDataURL(file)}
 
-async function optimizeImageFile(file,maxDim=1600,quality=.88){
+async function optimizeImageFile(file,maxDim=1600,quality=.88,preserveAlpha=false){
   if(!file)return null;
   const raw=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file);});
   if(file.type==='image/png'&&file.size<900000)return raw;
   const img=await loadImage(raw);
   const scale=Math.min(1,maxDim/Math.max(img.naturalWidth,img.naturalHeight));
   const w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));
-  const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
-  return c.toDataURL('image/jpeg',quality);
+  const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.clearRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+  return preserveAlpha?c.toDataURL('image/png'):c.toDataURL('image/jpeg',quality);
 }
 function loadImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src;});}
 async function overlayLogoOnImage(baseDataUrl,logoDataUrl,layer){
@@ -1264,7 +1285,7 @@ function incompleteGenerationJobs(){return(state.library.jobs||[]).filter(j=>j?.
 function renderGenerationRecoveryNotice(){document.querySelectorAll('[data-generation-recovery]').forEach(x=>x.remove());const jobs=incompleteGenerationJobs();if(!jobs.length)return;const host=document.querySelector('#quickResultsWrap')||document.querySelector('#content')||document.querySelector('.content');if(!host)return;const box=document.createElement('div');box.dataset.generationRecovery='1';box.className='card';box.style.cssText='border-color:#665b24;margin-bottom:12px';box.innerHTML=`<h3>Arte interrompida encontrada</h3><p>O último estágio concluído foi salvo. Continue sem repetir etapas já pagas.</p>${jobs.slice(0,4).map(j=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:9px 0"><div><strong>${esc(j.data?.snapshot?.label||'Arte')}</strong><small style="display:block;color:var(--muted)">Checkpoint: ${esc(j.data.status||'CREATED')}</small></div>${isRecoverableJobStatus(j.data.status)?`<button class="mini-btn" data-resume-job="${j.id}">Continuar arte</button>`:`<span style="font-size:8px;color:#ffb0bc">Bloqueado: ${esc(j.data.error||'erro estrutural')}</span>`}</div>`).join('')}`;host.prepend(box);box.querySelectorAll('[data-resume-job]').forEach(b=>b.onclick=()=>resumeGenerationJob(b.dataset.resumeJob));}
 async function refreshJobs(){try{const d=await apiJSON('bootstrap');state.library.jobs=d.jobs||[];renderGenerationRecoveryNotice();}catch{}}
 async function resumeGenerationJob(id){const job=(state.library.jobs||[]).find(x=>x.id===id);if(!job)return alert('Job não encontrado.');const d=job.data||{},s=d.snapshot||{};if(!isRecoverableJobStatus(d.status))return alert('Este job foi bloqueado porque repetir a etapa poderia gastar créditos sem corrigir a causa.');if(s.mode!=='quick')return alert('Checkpoint incompatível.');restoreQuickJobSnapshot(s);screenQuickMode();await new Promise(r=>setTimeout(r,30));return runQuickGeneration(s.label||'Principal',Number(s.variationIndex)||0,s.correction||'',s.replaceIndex??null,{id:job.id,data:d});}
-function clientPipelineGuard(payload={}){const p={...payload,assets:{...(payload.assets||{})}};if((p.assets.pastors||[]).length>3)throw new Error('Guardião: máximo de 3 pregadores.');p.allowedTexts=[p.requiredContent?.title,p.requiredContent?.subtitle,p.requiredContent?.date,p.requiredContent?.time,p.requiredContent?.address,p.requiredContent?.churchName,...(p.requiredContent?.pastorNames||[])].map(x=>String(x||'').trim()).filter(Boolean);p.referenceSemanticPolicy='style-only';p.jobChurchId=currentChurchId();if(p.mode==='primary'&&!p.revisionMode)p.referenceRole='director-only';return p;}
+function clientPipelineGuard(payload={}){const p={...payload,assets:{...(payload.assets||{})}};if((p.assets.pastors||[]).length>3)throw new Error('Guardião: máximo de 3 pregadores.');p.allowedTexts=[p.requiredContent?.title,p.requiredContent?.subtitle,p.requiredContent?.date,p.requiredContent?.time,p.requiredContent?.address,p.requiredContent?.churchName,...(p.requiredContent?.pastorNames||[])].map(x=>String(x||'').trim()).filter(Boolean);p.referenceSemanticPolicy='style-only';p.jobChurchId=currentChurchId();if(p.mode==='primary'&&!p.revisionMode&&!p.referenceRole)p.referenceRole='director-only';return p;}
 
 
 function logoVariantGroup(a){const m=a?.meta||a?.metadata||a?.data||{};return m.logoGroupId||m.variantGroupId||a?.id||null}
@@ -1280,7 +1301,9 @@ async function uploadLogoContrastVariant(primary,kind='church',file=null){
     });
   }
   if(!file)return null;
-  const variant=await uploadLibraryAsset(file,kind==='event'?'event_logo':'logo',{
+  const cropped=await cropImageBeforeUpload(file,kind==='event'?'event_logo':'logo');
+  if(!cropped)return null;
+  const variant=await uploadLibraryAsset(cropped,kind==='event'?'event_logo':'logo',{
     logoGroupId:gid,logoVariantRole:'contrast',variantOf:primary.id||null
   });
   if(!variant)return null;
@@ -1307,11 +1330,20 @@ async function ensureLogoContrastVariant(asset,kind='church'){
 }
 
 async function imageAverageLuminance(src){const im=await loadImage(src),cv=document.createElement('canvas'),x=cv.getContext('2d',{willReadFrequently:true});cv.width=cv.height=48;x.drawImage(im,0,0,48,48);const d=x.getImageData(0,0,48,48).data;let s=0,n=0;for(let i=0;i<d.length;i+=16){if(d[i+3]<30)continue;s+=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;n++}return n?s/n:.5}
-function logoZoneCandidates(p='top-left'){const m={'top-left':[[.045,.045],[.065,.055],[.045,.09]],'top-right':[[.955,.045],[.935,.055],[.955,.09]],'bottom-left':[[.045,.955],[.065,.935],[.045,.90]],'bottom-right':[[.955,.955],[.935,.935],[.955,.90]],'left-upper':[[.08,.28],[.10,.34],[.12,.40]],'left-center':[[.08,.48],[.11,.52],[.13,.44]],'left-lower':[[.08,.70],[.10,.64],[.12,.60]],'right-upper':[[.92,.28],[.90,.34],[.88,.40]],'right-center':[[.92,.48],[.89,.52],[.87,.44]],'right-lower':[[.92,.70],[.90,.64],[.88,.60]]};return m[p]||m['top-left']}
-async function resolveLogoPlacement(src,p,size=.06){const im=await loadImage(src),cv=document.createElement('canvas'),x=cv.getContext('2d',{willReadFrequently:true});cv.width=im.width;cv.height=im.height;x.drawImage(im,0,0);let best=null;for(const [i,c] of logoZoneCandidates(p).entries()){let w=im.width*size,h=w*.55,px=c[0]*im.width,py=c[1]*im.height;if(/right/.test(p))px-=w;if(/bottom/.test(p))py-=h;px=Math.max(8,Math.min(im.width-w-8,px));py=Math.max(8,Math.min(im.height-h-8,py));const d=x.getImageData(px|0,py|0,Math.max(1,w|0),Math.max(1,h|0)).data;let s=0,n=0;for(let k=0;k<d.length;k+=64){s+=(.2126*d[k]+.7152*d[k+1]+.0722*d[k+2])/255;n++}const lum=n?s/n:.5,score=1-i*.12+Math.abs(lum-.5)*.08;if(!best||score>best.score)best={x:px,y:py,w,h,backgroundLum:lum,score}}return best}
-async function chooseLogoVariant(a,b,bg){if(!b)return a;const[A,B]=await Promise.all([imageAverageLuminance(a.sourceUrl||a.image),imageAverageLuminance(b.sourceUrl||b.image)]);return Math.abs(B-bg)>Math.abs(A-bg)?b:a}
-function isLogoOnlyCorrection(t=''){const s=String(t).toLowerCase();return !!s.trim()&&/logo|logomarca|marca/.test(s)&&!/fundo|pregador|rosto|mão|mao|dedo|título|titulo|fonte|texto|cenário|cenario|imagem inteira|layout/.test(s)}
-async function bootstrapLibrary(){try{const data=await apiJSON('bootstrap');state.library.assets=data.assets||[];const savedLogos=state.library.assets.filter(a=>a.type==='logo');if(!state.finalConfig.logoAssetId&&savedLogos.length)state.finalConfig.logoAssetId=(savedLogos.find(a=>a.is_primary)||savedLogos[0]).id;state.library.generations=data.generations||[];state.library.drafts=data.drafts||[];state.library.jobs=data.jobs||[];state.library.ratings=data.ratings||[];state.library.dbReady=true;if(data.profile){state.church.name=data.profile.name||state.church.name;state.church.address=data.profile.address||state.church.address;state.church.screenConfig=data.profile.screen_config||state.church.screenConfig;state.projectTitle=state.church.name||'Nova arte';}const primary=state.library.assets.find(a=>a.type==='logo'&&a.is_primary)||state.library.assets.find(a=>a.type==='logo');if(primary&&!state.church.logo)state.church.logo=primary.url;render();setTimeout(renderGenerationRecoveryNotice,80);}catch(e){console.warn('Banco não configurado:',e);state.library.dbReady=false;render();}}
+function logoZoneCandidates(position='top-left',kind='church'){
+  const p=normalizeLogoRegion(position,kind),m={'top-left':[[.045,.045],[.065,.055],[.045,.09],[.09,.045]],'top-center':[[.50,.045],[.50,.075],[.43,.055],[.57,.055]],'top-right':[[.955,.045],[.935,.055],[.955,.09],[.91,.045]],'bottom-left':[[.045,.955],[.065,.935],[.045,.90]],'bottom-center':[[.50,.955],[.50,.925],[.43,.945],[.57,.945]],'bottom-right':[[.955,.955],[.935,.935],[.955,.90]],'left-top':[[.10,.30],[.13,.34],[.16,.38],[.19,.31]],'left-middle':[[.10,.50],[.14,.50],[.18,.47],[.18,.55]],'left-bottom':[[.10,.70],[.13,.66],[.16,.62],[.19,.70]],'right-top':[[.90,.30],[.87,.34],[.84,.38],[.81,.31]],'right-middle':[[.90,.50],[.86,.50],[.82,.47],[.82,.55]],'right-bottom':[[.90,.70],[.87,.66],[.84,.62],[.81,.70]]};
+  return m[p]||m[kind==='church'?'top-left':'right-middle'];
+}
+function regionPixelMetrics(ctx,x,y,w,h){const sx=Math.max(0,Math.floor(x)),sy=Math.max(0,Math.floor(y)),sw=Math.max(1,Math.min(ctx.canvas.width-sx,Math.floor(w))),sh=Math.max(1,Math.min(ctx.canvas.height-sy,Math.floor(h))),d=ctx.getImageData(sx,sy,sw,sh).data;let lum=0,lum2=0,edges=0,n=0,prev=null;for(let i=0;i<d.length;i+=32){if(d[i+3]<20)continue;const l=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;lum+=l;lum2+=l*l;if(prev!==null)edges+=Math.abs(l-prev);prev=l;n++}if(!n)return{luminance:.5,complexity:1};const avg=lum/n,variance=Math.max(0,lum2/n-avg*avg);return{luminance:avg,complexity:Math.min(1,(edges/Math.max(1,n-1))*2.5+variance*2.5)}}
+async function resolveLogoPlacement(src,position,sizeFraction=.14,kind='church',{forceRelocation=false}={}){
+  const im=await loadImage(src),cv=document.createElement('canvas'),ctx=cv.getContext('2d',{willReadFrequently:true});cv.width=im.width;cv.height=im.height;ctx.drawImage(im,0,0);
+  const reg=normalizeLogoRegion(position,kind),size=Math.max(.06,Math.min(.32,Number(sizeFraction)||.14));let best=null;
+  for(const [i,c] of logoZoneCandidates(reg,kind).entries()){let w=Math.max(40,im.width*size),h=Math.max(24,w*.42),x=c[0]*im.width,y=c[1]*im.height;if(/right/.test(reg))x-=w;if(/bottom/.test(reg))y-=h;if(reg==='top-center'||reg==='bottom-center')x-=w/2;if(/middle/.test(reg))y-=h/2;x=Math.max(im.width*.025,Math.min(im.width-w-im.width*.025,x));y=Math.max(im.height*.025,Math.min(im.height-h-im.height*.025,y));const mt=regionPixelMetrics(ctx,x,y,w,h),score=1-i*.18-(forceRelocation&&i===0?.75:0)-mt.complexity*.58+Math.abs(mt.luminance-.5)*.08;if(!best||score>best.score)best={x,y,w,h,backgroundLum:mt.luminance,complexity:mt.complexity,score,region:reg,candidateIndex:i}}
+  return best;
+}
+async function chooseLogoVariant(a,b,bg){if(!b)return a;const[A,B]=await Promise.all([imageAverageLuminance(logoAssetSource(a)),imageAverageLuminance(logoAssetSource(b))]);return Math.abs(B-bg)>Math.abs(A-bg)?b:a}
+
+async function bootstrapLibrary(){try{const data=await apiJSON('bootstrap');state.library.assets=data.assets||[];const savedLogos=state.library.assets.filter(a=>a.type==='logo');if(!state.finalConfig.logoAssetId&&savedLogos.length)state.finalConfig.logoAssetId=(savedLogos.find(a=>a.is_primary)||savedLogos[0]).id;state.library.generations=data.generations||[];state.gallerySavedIds=allPersistentGalleryItems().map(x=>x.galleryId).filter(Boolean);state.library.drafts=data.drafts||[];state.library.jobs=data.jobs||[];state.library.ratings=data.ratings||[];state.library.dbReady=true;if(data.profile){state.church.name=data.profile.name||state.church.name;state.church.address=data.profile.address||state.church.address;state.church.screenConfig=data.profile.screen_config||state.church.screenConfig;state.projectTitle=state.church.name||'Nova arte';}const primary=state.library.assets.find(a=>a.type==='logo'&&a.is_primary)||state.library.assets.find(a=>a.type==='logo');if(primary&&!state.church.logo)state.church.logo=primary.url;render();setTimeout(renderGenerationRecoveryNotice,80);}catch(e){console.warn('Banco não configurado:',e);state.library.dbReady=false;render();}}
 async function saveChurchProfile(){
   if(!state.library.dbReady)return {ok:false,error:'Banco não conectado'};
   try{
@@ -1319,13 +1351,105 @@ async function saveChurchProfile(){
     return {ok:true,profile:d.profile||null};
   }catch(e){console.warn(e);return {ok:false,error:e.message||'Erro ao salvar'};}
 }
+
+function cropDefaultAspect(type,img){
+  if(type==='pastor')return 4/5;
+  if(type==='logo'||type==='event_logo'||type==='graphic')return img.naturalWidth/img.naturalHeight;
+  return img.naturalWidth/img.naturalHeight;
+}
+function cropAspectOptions(type,img){
+  const original=img.naturalWidth/img.naturalHeight;
+  const base=[['original','Original',original],['square','1:1',1],['fourfive','4:5',4/5],['story','9:16',9/16],['wide','16:9',16/9]];
+  if(type==='logo'||type==='event_logo'||type==='graphic')return [base[0],base[1],base[4]];
+  return base;
+}
+function croppedCanvasToFile(canvas,original,type){
+  const preserveAlpha=type==='logo'||type==='event_logo'||type==='graphic'||original.type==='image/png';
+  const mime=preserveAlpha?'image/png':'image/jpeg';
+  const ext=preserveAlpha?'png':'jpg';
+  return new Promise(resolve=>canvas.toBlob(blob=>{
+    const stem=(original.name||'imagem').replace(/\.[^.]+$/,'');
+    resolve(new File([blob],`${stem}-cropped.${ext}`,{type:mime,lastModified:Date.now()}));
+  },mime,preserveAlpha?undefined:.94));
+}
+async function cropImageBeforeUpload(file,type){
+  if(!file||!String(file.type||'').startsWith('image/'))return file;
+  const raw=await fileAsDataUrl(file),img=await loadImage(raw);
+  const aspects=cropAspectOptions(type,img);
+  return await new Promise(resolve=>{
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:#050609e8;z-index:100000;display:grid;place-items:center;padding:16px';
+    overlay.innerHTML=`<div class="card" style="width:min(760px,96vw);max-height:94vh;overflow:auto;padding:18px">
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px">
+        <div><h3 style="margin:0">Recortar imagem</h3><p style="color:var(--muted);margin:4px 0 0">Arraste a imagem para reposicionar e use o zoom. O arquivo só será enviado depois da confirmação.</p></div>
+        <button class="mini-btn" data-crop-skip>Usar original</button>
+      </div>
+      <div data-crop-stage style="position:relative;margin:auto;background:#111;overflow:hidden;touch-action:none;border-radius:12px;max-width:640px;height:min(58vh,520px);display:grid;place-items:center">
+        <canvas data-crop-preview style="width:100%;height:100%;display:block"></canvas>
+        <div data-crop-frame style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px #0008;pointer-events:none"></div>
+      </div>
+      <div style="display:grid;gap:10px;margin-top:14px">
+        <div class="field"><label>Formato do recorte</label><div style="display:flex;gap:7px;flex-wrap:wrap">${aspects.map((a,i)=>`<button type="button" class="mini-btn ${i===0?'active':''}" data-crop-aspect="${a[0]}" data-ratio="${a[2]}">${a[1]}</button>`).join('')}</div></div>
+        <div class="field"><label>Zoom</label><input data-crop-zoom type="range" min="1" max="3.5" step=".01" value="1" style="width:100%"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end"><button class="mini-btn" data-crop-cancel>Cancelar</button><button class="btn primary" data-crop-confirm>Usar este recorte</button></div>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+    const stage=overlay.querySelector('[data-crop-stage]'),canvas=overlay.querySelector('[data-crop-preview]'),frame=overlay.querySelector('[data-crop-frame]'),ctx=canvas.getContext('2d');
+    let ratio=aspects[0][2],zoom=1,offsetX=0,offsetY=0,drag=false,lastX=0,lastY=0,frameRect=null,baseScale=1;
+
+    function stageSize(){const r=stage.getBoundingClientRect();canvas.width=Math.max(1,Math.round(r.width*devicePixelRatio));canvas.height=Math.max(1,Math.round(r.height*devicePixelRatio));canvas.style.width=r.width+'px';canvas.style.height=r.height+'px';return{w:r.width,h:r.height,dpr:devicePixelRatio}}
+    function calcFrame(w,h){
+      const margin=28,maxW=w-margin*2,maxH=h-margin*2;let fw=maxW,fh=fw/ratio;
+      if(fh>maxH){fh=maxH;fw=fh*ratio}
+      return{x:(w-fw)/2,y:(h-fh)/2,w:fw,h:fh};
+    }
+    function clampOffsets(w,h){
+      const drawW=img.naturalWidth*baseScale*zoom,drawH=img.naturalHeight*baseScale*zoom,cx=w/2+offsetX,cy=h/2+offsetY;
+      const minX=frameRect.x+frameRect.w-drawW/2,maxX=frameRect.x+drawW/2;
+      const minY=frameRect.y+frameRect.h-drawH/2,maxY=frameRect.y+drawH/2;
+      const targetX=Math.max(minX,Math.min(maxX,cx)),targetY=Math.max(minY,Math.min(maxY,cy));
+      offsetX=targetX-w/2;offsetY=targetY-h/2;
+    }
+    function render(resetScale=false){
+      const s=stageSize();frameRect=calcFrame(s.w,s.h);
+      frame.style.left=frameRect.x+'px';frame.style.top=frameRect.y+'px';frame.style.width=frameRect.w+'px';frame.style.height=frameRect.h+'px';
+      baseScale=Math.max(frameRect.w/img.naturalWidth,frameRect.h/img.naturalHeight);
+      clampOffsets(s.w,s.h);
+      ctx.setTransform(s.dpr,0,0,s.dpr,0,0);ctx.clearRect(0,0,s.w,s.h);ctx.fillStyle='#111';ctx.fillRect(0,0,s.w,s.h);
+      const dw=img.naturalWidth*baseScale*zoom,dh=img.naturalHeight*baseScale*zoom;
+      ctx.drawImage(img,s.w/2+offsetX-dw/2,s.h/2+offsetY-dh/2,dw,dh);
+    }
+    function pointerDown(e){drag=true;lastX=e.clientX;lastY=e.clientY;stage.setPointerCapture?.(e.pointerId)}
+    function pointerMove(e){if(!drag)return;offsetX+=e.clientX-lastX;offsetY+=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;render()}
+    function pointerUp(){drag=false}
+    stage.addEventListener('pointerdown',pointerDown);stage.addEventListener('pointermove',pointerMove);stage.addEventListener('pointerup',pointerUp);stage.addEventListener('pointercancel',pointerUp);
+    overlay.querySelector('[data-crop-zoom]').oninput=e=>{zoom=Number(e.target.value)||1;render()};
+    overlay.querySelectorAll('[data-crop-aspect]').forEach(b=>b.onclick=()=>{overlay.querySelectorAll('[data-crop-aspect]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ratio=Number(b.dataset.ratio)||ratio;offsetX=0;offsetY=0;zoom=1;overlay.querySelector('[data-crop-zoom]').value='1';render()});
+    const finish=v=>{overlay.remove();resolve(v)};
+    overlay.querySelector('[data-crop-skip]').onclick=()=>finish(file);
+    overlay.querySelector('[data-crop-cancel]').onclick=()=>finish(null);
+    overlay.querySelector('[data-crop-confirm]').onclick=async()=>{
+      const s=stage.getBoundingClientRect(),fr=frameRect;
+      const drawW=img.naturalWidth*baseScale*zoom,drawH=img.naturalHeight*baseScale*zoom;
+      const drawX=s.width/2+offsetX-drawW/2,drawY=s.height/2+offsetY-drawH/2;
+      const sx=(fr.x-drawX)/drawW*img.naturalWidth,sy=(fr.y-drawY)/drawH*img.naturalHeight,sw=fr.w/drawW*img.naturalWidth,sh=fr.h/drawH*img.naturalHeight;
+      const maxOut=2200,outW=Math.max(1,Math.round(Math.min(maxOut,sw))),outH=Math.max(1,Math.round(outW/ratio));
+      const out=document.createElement('canvas');out.width=outW;out.height=outH;const ox=out.getContext('2d');ox.imageSmoothingEnabled=true;ox.imageSmoothingQuality='high';ox.clearRect(0,0,outW,outH);ox.drawImage(img,sx,sy,sw,sh,0,0,outW,outH);
+      finish(await croppedCanvasToFile(out,file,type));
+    };
+    requestAnimationFrame(()=>render(true));
+  });
+}
+
 async function uploadLibraryAsset(file,type,extraMeta={}){
   try{
     const refCount=state.library.assets.filter(a=>a.type==='reference').length;
     if(type==='reference'&&refCount>=20){alert('Limite de 20 referências por igreja. Remova uma referência antes de adicionar outra.');return null;}
     const isFont=type==='font';
     const dbType=type==='event_logo'?'graphic':type;
-    const dataUrl=isFont?await fileAsDataUrl(file):await optimizeImageFile(file,1800,(type==='logo'||type==='event_logo') ? .95 : .9);
+    const preserveAlpha=type==='logo'||type==='event_logo'||type==='graphic'||file.type==='image/png';
+    const dataUrl=isFont?await fileAsDataUrl(file):await optimizeImageFile(file,1800,(type==='logo'||type==='event_logo') ? .95 : .9,preserveAlpha);
     const meta=isFont
       ?{family:file.name.replace(/\.[^.]+$/,''),...extraMeta}
       :{originalName:file.name,...(type==='event_logo'?{category:'event_logo'}:{}),...extraMeta};
@@ -1347,10 +1471,14 @@ async function uploadLibraryAssets(files,type,{container=null,onAsset=null,max=n
   }
   const saved=[];
   for(let i=0;i<list.length;i++){
-    const f=list[i],count=live?.querySelector('[data-upload-count]'),name=live?.querySelector('[data-upload-name]'),bar=live?.querySelector('[data-upload-bar]');
+    const originalFile=list[i],count=live?.querySelector('[data-upload-count]'),name=live?.querySelector('[data-upload-name]'),bar=live?.querySelector('[data-upload-bar]');
+    if(count)count.textContent=`Preparando ${i+1}/${list.length}`;
+    if(name)name.textContent=type==='font'?originalFile.name:`Recorte ${i+1}/${list.length} • ${originalFile.name}`;
+    if(bar)bar.style.width=`${Math.round((i/list.length)*100)}%`;
+    const f=type==='font'?originalFile:await cropImageBeforeUpload(originalFile,type);
+    if(!f){live?.querySelector(`[data-upload-item="${i}"]`)?.classList.add('cancelled');continue;}
     if(count)count.textContent=`Upload ${i+1}/${list.length}`;
     if(name)name.textContent=f.name;
-    if(bar)bar.style.width=`${Math.round((i/list.length)*100)}%`;
     const a=await uploadLibraryAsset(f,type);
     if(a){saved.push(a);live?.querySelector(`[data-upload-item="${i}"]`)?.classList.add('done');if(onAsset)await onAsset(a,i);}
     if(bar)bar.style.width=`${Math.round(((i+1)/list.length)*100)}%`;
@@ -1415,6 +1543,85 @@ function bindQuickUpload(id,type,done){
 }
 function showNoPastorPopup(){const root=document.querySelector('#modalRoot');if(!root||document.querySelector('.modal-backdrop'))return;root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel" style="width:min(520px,94vw)"><div class="modal-head"><h2>Foto do pregador</h2><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><p style="color:var(--muted);font-size:12px">Nenhuma foto está salva em Minha Igreja. Envie uma agora para preservar a pessoa original.</p><label class="library-upload"><strong>Enviar foto agora</strong><span>JPG, PNG ou WEBP</span><input id="modalPastorUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>`;bindQuickUpload('modalPastorUpload','pastor',a=>{state.finalConfig.pastorAssetId=a.id;closeModal();screenAdjust()});}
 function closeModal(){document.querySelector('#modalRoot').innerHTML=''}
+
+function compactGalleryAsset(a){
+  if(!a)return null;
+  const lib=a.id?(state.library.assets||[]).find(x=>x.id===a.id):null;
+  return{id:a.id||null,name:a.name||lib?.name||'',role:a.role||null,rank:a.rank??null,sourceUrl:a.sourceUrl||a.url||lib?.url||null,meta:{...(lib?.meta||{}),...(a.meta||{})}};
+}
+function compactGalleryAssets(assets={}){return{logo:compactGalleryAsset(assets.logo),eventLogo:compactGalleryAsset(assets.eventLogo),pastor:compactGalleryAsset(assets.pastor),pastors:(assets.pastors||[]).map(compactGalleryAsset),churchImage:compactGalleryAsset(assets.churchImage)}}
+function galleryQuickSnapshot(){const q=JSON.parse(JSON.stringify(state.quick||{}));if(String(q.reference||'').startsWith('data:'))q.reference=null;return q}
+function makeGenerationRecipe(artwork,extra={}){
+  return{recipeVersion:2,pipelineVersion:'0.30.7',createdAt:new Date().toISOString(),kind:extra.kind||artwork.kind||'principal',parentArtworkId:extra.parentArtworkId||artwork.parentArtworkId||null,sourceArtworkId:extra.sourceArtworkId||artwork.sourceArtworkId||null,quick:galleryQuickSnapshot(),church:JSON.parse(JSON.stringify(state.church||{})),artDirection:artwork.artDirection||state.artDirection||null,requiredContent:artwork.requiredContent||null,assets:compactGalleryAssets(artwork.assets||{}),instruction:artwork.instruction||'',logoPosition:artwork.logoPosition??state.quick.logoPosition??null,eventLogoPosition:artwork.eventLogoPosition??state.quick.eventLogoPosition??null,eventLogoSize:artwork.eventLogoSize??state.quick.eventLogoSize??null,target:artwork.target||null,format:extra.format||artwork.format||artwork.target?.id||state.quick.format||state.format||'feed',basedOnKey:extra.basedOnKey||artwork.basedOnKey||null,basedOnLabel:extra.basedOnLabel||artwork.basedOnLabel||null};
+}
+async function uploadGalleryImage(dataUrl,label,format){
+  if(!dataUrl)return null;if(/^https?:\/\//.test(String(dataUrl)))return dataUrl;
+  const copy=await prepareImageForAI(dataUrl,1800,.92),d=await apiJSON('upload-generation',{method:'POST',body:{label,format,dataUrl:copy}});return d.url||null;
+}
+async function persistGalleryArtwork(artwork,extra={}){
+  if(!artwork)return null;const galleryId=artwork.galleryId||artwork.id||crypto.randomUUID();if(state.gallerySavedIds.includes(galleryId)&&!extra.force)return null;
+  try{
+    const format=extra.format||artwork.format||artwork.target?.id||state.quick.format||state.format||'feed',finalUrl=await uploadGalleryImage(artwork.dataUrl||artwork.url,artwork.label||'Arte',format);
+    if(!finalUrl)throw new Error('A imagem final não pôde ser salva.');
+    const baseCandidate=artwork.baseDataUrl||artwork.baseUrl||null,baseUrl=baseCandidate?await uploadGalleryImage(baseCandidate,`${artwork.label||'Arte'} — base logo-free`,format):null,recipe=makeGenerationRecipe(artwork,{...extra,format});
+    const item={galleryId,label:artwork.label||'Arte',url:finalUrl,baseUrl:baseUrl||null,kind:recipe.kind,format,target:artwork.target||recipe.target||null,parentArtworkId:recipe.parentArtworkId||null,sourceArtworkId:recipe.sourceArtworkId||null,recipe,createdAt:new Date().toISOString()};
+    const d=await apiJSON('save-generation',{method:'POST',body:{format,images:[item]}});
+    if(d.generation){state.library.generations=[d.generation,...(state.library.generations||[])];state.gallerySavedIds.push(galleryId)}
+    return item;
+  }catch(e){console.warn('Galeria: falha ao persistir arte',e);return null}
+}
+function allPersistentGalleryItems(){
+  const out=[];for(const g of(state.library.generations||[]))for(const im of(g.images||[]))out.push({...im,generationId:g.id||null,createdAt:im.createdAt||g.created_at||g.createdAt||null,format:im.format||g.format||'feed',galleryId:im.galleryId||`${g.id||'legacy'}:${im.label||'arte'}:${im.url||''}`});
+  const seen=new Set();return out.filter(x=>{const k=x.galleryId||x.url;if(seen.has(k))return false;seen.add(k);return true});
+}
+function findGalleryItem(id){return allPersistentGalleryItems().find(x=>String(x.galleryId)===String(id))||null}
+function galleryFormatClass(item){const f=String(item.format||item.target?.id||'').toLowerCase();return/story|9:16/.test(f)?'is-story':/youtube|screen|wide|16:9/.test(f)?'is-wide':''}
+function restoreRecipeToQuick(recipe,{asReference=false}={}){
+  if(!recipe)return false;if(recipe.church)state.church={...state.church,...JSON.parse(JSON.stringify(recipe.church))};if(recipe.quick)state.quick={...state.quick,...JSON.parse(JSON.stringify(recipe.quick))};if(recipe.artDirection)state.artDirection=JSON.parse(JSON.stringify(recipe.artDirection));
+  if(asReference){state.quick.title='';state.quick.subtitle='';state.quick.date='';state.quick.time='';state.quick.correction=''}return true;
+}
+
+async function hydrateGalleryAssets(saved={}){
+  async function one(a,{ai=false,max=1400,q=.94}={}){
+    if(!a)return null;
+    const lib=a.id?(state.library.assets||[]).find(x=>x.id===a.id):null;
+    const source=a.sourceUrl||a.url||lib?.url||null;
+    const out={...a,name:a.name||lib?.name||'',sourceUrl:source,url:source,meta:{...(lib?.meta||{}),...(a.meta||{})}};
+    if(ai&&source)out.image=await prepareImageForAI(source,max,q);
+    else if(a.image)out.image=a.image;
+    return out;
+  }
+  const pastors=[];
+  for(const p of(saved.pastors||[]))pastors.push(await one(p,{ai:true,max:1400,q:.94}));
+  const churchImage=await one(saved.churchImage,{ai:true,max:1600,q:.94});
+  const logo=await one(saved.logo,{ai:false}),eventLogo=await one(saved.eventLogo,{ai:false});
+  return{logo,eventLogo,pastor:pastors[0]||null,pastors,churchImage};
+}
+function galleryItemToQuickResult(item){
+  const r=item.recipe||{};return{id:item.galleryId||crypto.randomUUID(),galleryId:item.galleryId||null,label:item.label||'Arte da galeria',dataUrl:item.url,baseDataUrl:item.baseUrl||item.url,sourceUrl:item.baseUrl||item.url,target:item.target||r.target||quickTargetSpec(item.format||r.format||'feed'),artDirection:r.artDirection||null,requiredContent:r.requiredContent||{},assets:r.assets||{},instruction:r.instruction||'',logoPosition:r.logoPosition??null,eventLogoPosition:r.eventLogoPosition??null,eventLogoSize:r.eventLogoSize??null,adaptations:[],corrections:[],correction:''};
+}
+function useGalleryAsReference(id){
+  const item=findGalleryItem(id);if(!item)return alert('Arte não encontrada na Galeria.');const recipe=item.recipe||null;if(recipe)restoreRecipeToQuick(recipe,{asReference:true});
+  state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:recipe?.artDirection||null,recipe};state.quick.reference=item.baseUrl||item.url;state.quick.referenceMode='gallery';state.quickResults=[];closeModal();screenQuickMode();
+}
+function reopenGalleryProject(id){
+  const item=findGalleryItem(id);if(!item)return alert('Arte não encontrada na Galeria.');if(!item.recipe)return useGalleryAsReference(id);restoreRecipeToQuick(item.recipe,{asReference:false});
+  state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:item.recipe.artDirection||null,recipe:item.recipe};state.quickResults=[galleryItemToQuickResult(item)];closeModal();screenQuickMode();
+}
+function startGalleryChild(id,format){
+  const item=findGalleryItem(id);if(!item)return alert('Arte não encontrada na Galeria.');if(item.recipe)restoreRecipeToQuick(item.recipe,{asReference:false});
+  state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:item.recipe?.artDirection||null,recipe:item.recipe||null};state.quickResults=[galleryItemToQuickResult(item)];closeModal();screenQuickMode();setTimeout(()=>openQuickAdaptConfig(0,format,'main:0'),80);
+}
+window.openGallery=function(query=''){
+  const root=document.querySelector('#modalRoot'),items=allPersistentGalleryItems(),q=String(query||'').trim().toLowerCase(),filtered=q?items.filter(x=>`${x.label||''} ${x.kind||''} ${x.format||''}`.toLowerCase().includes(q)):items;
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel gallery-modal-panel"><div class="modal-head"><div><h2>Galeria</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Artes e receitas salvas':'Banco não conectado'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="gallery-toolbar"><div><strong>${items.length} arte(s)</strong><small style="display:block;color:var(--muted);margin-top:3px">Reabra projetos ou crie artes filhas sem começar do zero.</small></div><input id="gallerySearch" placeholder="Buscar na Galeria" value="${esc(query||'')}"></div>${filtered.length?`<div class="persistent-gallery-grid">${filtered.map(x=>`<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}"><div class="persistent-gallery-body"><strong>${esc(x.label||'Arte')}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}</small><div class="gallery-actions"><button class="mini-btn download-btn" data-gallery-download="${x.galleryId}">↓ Baixar</button><button class="mini-btn" data-gallery-reference="${x.galleryId}">Usar como referência</button><button class="mini-btn" data-gallery-reopen="${x.galleryId}">${x.recipe?'Reabrir projeto':'Reusar arte'}</button></div><div class="gallery-child-actions"><button class="mini-btn" data-gallery-child="${x.galleryId}|youtube">YouTube</button><button class="mini-btn" data-gallery-child="${x.galleryId}|screen">Telão</button><button class="mini-btn" data-gallery-child="${x.galleryId}|story">Stories</button></div>${x.parentArtworkId||x.sourceArtworkId?`<div class="gallery-lineage">Derivada de uma arte anterior</div>`:''}</div></div>`).join('')}</div>`:`<div class="gallery-empty">Nenhuma arte encontrada.</div>`}</div></div></div>`;
+  const search=root.querySelector('#gallerySearch');if(search)search.onchange=()=>openGallery(search.value);
+  root.querySelectorAll('[data-gallery-download]').forEach(b=>b.onclick=()=>{const x=findGalleryItem(b.dataset.galleryDownload);if(x)downloadDataUrl(x.url,`churchdesign-${(x.label||'arte').toLowerCase().replace(/\s+/g,'-')}.png`,{label:x.label})});
+  root.querySelectorAll('[data-gallery-reference]').forEach(b=>b.onclick=()=>useGalleryAsReference(b.dataset.galleryReference));
+  root.querySelectorAll('[data-gallery-reopen]').forEach(b=>b.onclick=()=>reopenGalleryProject(b.dataset.galleryReopen));
+  root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=()=>{const [id,f]=b.dataset.galleryChild.split('|');startGalleryChild(id,f)});
+};
+
 window.openMyChurch=function(tab='pastor'){
   const root=document.querySelector('#modalRoot');
   const labels={pastor:'Pregadores',church:'Fotos da igreja',logo:'Logos',event_logo:'Logo de evento',reference:'Referências',graphic:'Elementos PNG',font:'Fontes',screen:'Telão'};
@@ -1568,7 +1775,7 @@ async function selectedAssetPayload(){
   for(const [rank,id] of pastorIds.entries()){const a=state.library.assets.find(x=>x.id===id);if(a)pastors.push({id:a.id,name:(Object.prototype.hasOwnProperty.call(state.quick?.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||'')),role:rank===0?'PRINCIPAL':`AUXILIAR ${rank}`,rank,image:await prepareImageForAI(a.url,1400,.92)});}
   const churchAsset=state.quick?.churchImageAssetId?state.library.assets.find(a=>a.id===state.quick.churchImageAssetId):null;
   const eventLogo=state.quick?.eventLogoAssetId?state.library.assets.find(a=>a.id===state.quick.eventLogoAssetId):null;
-  return {logo:(logo&&!state.quick.omitChurchLogo)?{id:logo.id,name:logo.name,sourceUrl:logo.url,image:await prepareImageForAI(logo.url,1200,.98)}:null,eventLogo:eventLogo?{id:eventLogo.id,name:eventLogo.name,sourceUrl:eventLogo.url,image:await prepareImageForAI(eventLogo.url,1200,.98),position:state.quick.eventLogoPosition||'',size:state.quick.eventLogoSize||'small'}:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.92)}:null};
+  return {logo:(logo&&!state.quick.omitChurchLogo)?{id:logo.id,name:logo.name,sourceUrl:logo.url,url:logo.url,meta:{...(logo.meta||{})}}:null,eventLogo:eventLogo?{id:eventLogo.id,name:eventLogo.name,sourceUrl:eventLogo.url,url:eventLogo.url,meta:{...(eventLogo.meta||{})},position:state.quick.eventLogoPosition||'',size:state.quick.eventLogoSize||'small'}:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.92)}:null};
 }
 function exactContentFromLayers(){
   const out={title:'',subtitle:'',date:'',time:'',address:'',churchName:state.church.name||''};
@@ -1832,6 +2039,76 @@ function quickDefaultPastor(){
   if(!Array.isArray(state.quick.pastorAssetIds))state.quick.pastorAssetIds=[];
   if(!state.quick.pastorNames||typeof state.quick.pastorNames!=='object')state.quick.pastorNames={};
 }
+
+const CHURCHDESIGN_CRITICAL_FUNCTIONS=['quickPayload','runQuickGeneration','requestArtDirection','generateWithInvisibleReview','normalizeArtworkToTarget','composeOfficialLogos','prepareImageForAI','remoteToDataUrl','clientPipelineGuard','safeCheckpoint','uploadLibraryAsset','cropImageBeforeUpload'];
+function assertChurchDesignIntegrity(){
+  const missing=[];
+  for(const n of CHURCHDESIGN_CRITICAL_FUNCTIONS){let ok=false;try{ok=typeof eval(n)==='function'}catch{}if(!ok)missing.push(n)}
+  if(missing.length)throw new EndpointContractError('integrity',`Instalação incompleta: ${missing.join(', ')}. Nenhuma chamada paga foi iniciada.`,{missing});
+  return true;
+}
+function logoAssetSource(a){return a?.sourceUrl||a?.url||a?.image||null}
+function normalizeLogoRegion(region,kind='church'){
+  const r=String(region||'').toLowerCase().trim(),a={'left-upper':'left-top','left-center':'left-middle','left-lower':'left-bottom','right-upper':'right-top','right-center':'right-middle','right-lower':'right-bottom','upper-left':'top-left','upper-right':'top-right','lower-left':'bottom-left','lower-right':'bottom-right'},v=a[r]||r;
+  if(kind==='church')return ['top-left','top-center','top-right','bottom-left','bottom-center','bottom-right'].includes(v)?v:'top-left';
+  return ['left-top','left-middle','left-bottom','right-top','right-middle','right-bottom'].includes(v)?v:'right-middle';
+}
+function eventLogoSizeFraction(size){if(typeof size==='number'&&Number.isFinite(size))return size>1?Math.max(.06,Math.min(.32,size/100)):Math.max(.06,Math.min(.32,size));return({small:.14,medium:.20,large:.26})[String(size||'small').toLowerCase()]||.14}
+function churchLogoSizeFraction(size){if(typeof size==='number'&&Number.isFinite(size))return size>1?Math.max(.08,Math.min(.30,size/100)):Math.max(.08,Math.min(.30,size));return .18}
+function parseLogoCorrectionIntent(text=''){
+  const s=String(text||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');if(!/logo|logomarca|marca/.test(s))return null;
+  const intent={logoOnly:true,event:{mentioned:/logo.{0,18}evento|evento.{0,18}logo/.test(s),remove:false,move:false,position:null},church:{mentioned:/logo.{0,18}(igreja|principal)|igreja.{0,18}logo/.test(s),remove:false,move:false,position:null}};
+  const explicitNonLogo=/(mude|troque|remova|retire|apague|altere|corrija|aumente|diminua|reposicione)\s+(o |a )?(fundo|titulo|texto|fonte|pregador|rosto|mao|dedo|roupa|corpo|foto)\b/.test(s);
+  if(explicitNonLogo)return null;
+  const del=/remova|remover|apague|apagar|omita|omitir|exclua|excluir/;
+  if(intent.event.mentioned){intent.event.remove=new RegExp(`(?:${del.source}).{0,28}(?:logo.{0,12}evento|evento.{0,12}logo)`).test(s);intent.event.move=/mova|mover|reposicion|afaste|tire/.test(s)&&!intent.event.remove}
+  if(intent.church.mentioned){intent.church.remove=new RegExp(`(?:${del.source}).{0,28}(?:logo.{0,12}(?:igreja|principal)|igreja.{0,12}logo)`).test(s);intent.church.move=/mova|mover|reposicion|coloque|colocar|ponha|insira|adicione/.test(s)&&!intent.church.remove}
+  if(intent.event.mentioned&&/(logo.{0,24}(de cima|sobre).{0,24}(braco|pregador|rosto))|((braco|pregador|rosto).{0,24}logo)/.test(s)){intent.event.remove=false;intent.event.move=true}
+  if(intent.church.mentioned&&/(logo.{0,24}(de cima|sobre).{0,24}(braco|pregador|rosto))|((braco|pregador|rosto).{0,24}logo)/.test(s)){intent.church.remove=false;intent.church.move=true}
+  const top=/\b(em cima|no topo|parte de cima|superior)\b/.test(s),bottom=/\b(em baixo|embaixo|rodape|inferior)\b/.test(s),left=/\b(esquerda|lado esquerdo|canto esquerdo)\b/.test(s),right=/\b(direita|lado direito|canto direito)\b/.test(s);
+  if(intent.church.mentioned){if(top&&left)intent.church.position='top-left';else if(top&&right)intent.church.position='top-right';else if(top)intent.church.position='top-center';else if(bottom&&left)intent.church.position='bottom-left';else if(bottom&&right)intent.church.position='bottom-right';else if(bottom)intent.church.position='bottom-center'}
+  if(intent.event.mentioned){if(top&&left)intent.event.position='left-top';else if(top&&right)intent.event.position='right-top';else if(bottom&&left)intent.event.position='left-bottom';else if(bottom&&right)intent.event.position='right-bottom';else if(left)intent.event.position='left-middle';else if(right)intent.event.position='right-middle'}
+  return intent;
+}
+
+function isLogoOnlyCorrection(text=''){return !!parseLogoCorrectionIntent(text)?.logoOnly}
+function applyParsedLogoIntent(payload,intent){
+  if(!intent)return payload;
+  const p={...payload,assets:{...(payload.assets||{})}};
+  if(intent.event.mentioned){
+    if(intent.event.remove)p.assets.eventLogo=null;
+    if(intent.event.position)p.eventLogoPosition=intent.event.position;
+    if(intent.event.move&&!intent.event.position)p.forceEventLogoRelocation=true;
+  }
+  if(intent.church.mentioned){
+    if(intent.church.remove)p.assets.logo=null;
+    if(intent.church.position)p.logoPosition=intent.church.position;
+    if(intent.church.move&&!intent.church.position)p.forceChurchLogoRelocation=true;
+  }
+  return p;
+}
+async function preflightQuickGeneration({correction='',replaceIndex=null}={}){
+  assertChurchDesignIntegrity();
+  const logo=state.quick.logoAssetId?state.library.assets.find(a=>a.id===state.quick.logoAssetId):null,eventLogo=state.quick.eventLogoAssetId?state.library.assets.find(a=>a.id===state.quick.eventLogoAssetId):null,ids=(state.quick.pastorAssetIds||[]).slice(0,3);
+  if(ids.some(id=>!state.library.assets.find(a=>a.id===id)))throw new Error('Preflight: foto de pregador selecionada não está disponível.');
+  if(logo&&!logoAssetSource(logo))throw new Error('Preflight: arquivo original da logo da igreja não está acessível.');
+  if(eventLogo&&!logoAssetSource(eventLogo))throw new Error('Preflight: arquivo original da logo de evento não está acessível.');
+  const target=quickTargetSpec(state.quick.format);if(!Number(target?.width)||!Number(target?.height))throw new Error('Preflight: dimensões de saída inválidas.');
+  if(logo&&!state.quick.omitChurchLogo)await ensureLogoContrastVariant(logo,'church');
+  if(eventLogo&&!state.quick.omitEventLogo)await ensureLogoContrastVariant(eventLogo,'event');
+  return{target,logo,eventLogo,intent:correction&&replaceIndex!==null?parseLogoCorrectionIntent(correction):null};
+}
+function churchDesignRuntimeSelfTest(){
+  const r={version:'0.30.6',ok:true,functions:{},checks:[]};
+  for(const n of CHURCHDESIGN_CRITICAL_FUNCTIONS){let ok=false;try{ok=typeof eval(n)==='function'}catch{}r.functions[n]=ok;if(!ok)r.ok=false}
+  const x=parseLogoCorrectionIntent('tire a logo do evento de cima do braço do pregador e coloque a logo da igreja em cima'),sem=!!x?.logoOnly&&x.event?.move&&!x.event?.remove&&x.church?.position==='top-center';
+  r.checks.push({name:'logo-correction-semantics',ok:sem,value:x});if(!sem)r.ok=false;
+  const sizes=eventLogoSizeFraction('small')===.14&&eventLogoSizeFraction('medium')===.20&&eventLogoSizeFraction('large')===.26;r.checks.push({name:'logo-size-map',ok:sizes});if(!sizes)r.ok=false;
+  const zones=normalizeLogoRegion('right-center','event')==='right-middle'&&normalizeLogoRegion('left-upper','event')==='left-top';r.checks.push({name:'zone-aliases',ok:zones});if(!zones)r.ok=false;
+  console.table(r.checks);console.log('ChurchDesign self-test',r);return r;
+}
+window.churchDesignRuntimeSelfTest=churchDesignRuntimeSelfTest;
+
 async function quickPayload(variantLabel='Principal',correction='',signal=null,jobId=null,resumeArtDirection=null){
   const ref=state.quick.reference?await prepareImageForAI(state.quick.reference,1400,.9):null;
   const logo=state.library.assets.find(a=>a.id===state.quick.logoAssetId);
@@ -1839,15 +2116,13 @@ async function quickPayload(variantLabel='Principal',correction='',signal=null,j
   const pastors=[];for(const [rank,id] of pastorIds.entries()){const a=state.library.assets.find(x=>x.id===id);if(a)pastors.push({id:a.id,name:(Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||'')),role:rank===0?'PRINCIPAL':`AUXILIAR ${rank}`,rank,image:await prepareImageForAI(a.url,1400,.94)});}
   const churchAsset=state.quick.churchImageAssetId?state.library.assets.find(a=>a.id===state.quick.churchImageAssetId):null;
   const eventLogo=state.quick.eventLogoAssetId?state.library.assets.find(a=>a.id===state.quick.eventLogoAssetId):null;
-  const assets={logo:(logo&&!state.quick.omitChurchLogo)?{id:logo.id,name:logo.name,sourceUrl:logo.url,image:await prepareImageForAI(logo.url,1200,.98)}:null,eventLogo:eventLogo?{id:eventLogo.id,name:eventLogo.name,sourceUrl:eventLogo.url,image:await prepareImageForAI(eventLogo.url,1200,.98),position:state.quick.eventLogoPosition||'',size:state.quick.eventLogoSize||'small'}:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.94)}:null};
+  const assets={logo:(logo&&!state.quick.omitChurchLogo)?{id:logo.id,name:logo.name,sourceUrl:logo.url,url:logo.url,meta:{...(logo.meta||{})}}:null,eventLogo:eventLogo?{id:eventLogo.id,name:eventLogo.name,sourceUrl:eventLogo.url,url:eventLogo.url,meta:{...(eventLogo.meta||{})},position:state.quick.eventLogoPosition||'',size:state.quick.eventLogoSize||'small'}:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.94)}:null};
   const inspiration=inspirationCatalog.find(x=>x.id===state.quick.inspirationStyle)||inspirationCatalog[0];
-  const refs=ref?[{image:ref,note:'STYLE ONLY: extraia composição, hierarquia, proporções, estilo tipográfico, textura, recortes e linguagem visual. NÃO reutilize palavra, número, logo, slogan, data, endereço, nome ou conteúdo semântico.'}]:[];
+  const refs=ref?[{image:ref,note:'STYLE ONLY / DESIGN DNA: extraia SOMENTE composição, hierarquia, proporções, escala do pregador, estilo/peso tipográfico, textura, recortes, geometria, sombras, brilhos, profundidade e linguagem visual. NÃO reutilize palavra, número, slogan, data, horário, endereço, nome, logo, símbolo institucional ou conteúdo semântico. Cores só inspiram quando o usuário não definiu cor.'}]:[];
   const target=quickTargetSpec(state.quick.format),learned=computePreferenceProfile();
   const names=pastors.filter(p=>p.name).map(p=>p.name);
   const pastorHierarchy=pastors.length?`HIERARQUIA DE PREGADORES OBRIGATÓRIA: ${pastors.map((p,i)=>`${p.role}: ${p.name?`NOME EXATO = ${p.name}`:'SEM NOME — NÃO ESCREVER RÓTULO, PLACEHOLDER, FUNÇÃO OU NOME'}`).join(' | ')}. O PRINCIPAL é sempre a pessoa de maior prioridade visual, deve ficar numa posição mais central e geralmente maior. AUXILIAR 1 e AUXILIAR 2 são secundários, preferencialmente distribuídos nas laterais ou atrás do eixo do principal, sem encobri-lo. Nunca troque a identidade/ordem entre as pessoas.`:'';
-  if(assets.logo&&!state.quick.omitChurchLogo)await ensureLogoContrastVariant(assets.logo,'church');
-if(assets.eventLogo&&!state.quick.omitEventLogo)await ensureLogoContrastVariant(assets.eventLogo,'event');
-const base={jobId,church:{name:state.church.name,address:state.quick.address||state.church.address,hasLogo:!!assets.logo},format:state.quick.format,reference:ref,references:refs,assets,target,
+  const base={jobId,church:{name:state.church.name,address:state.quick.address||state.church.address,hasLogo:!!assets.logo},format:state.quick.format,reference:ref,references:refs,assets,target,
     inspirationStyle:ref?null:{id:inspiration.id,name:inspiration.name,prompt:inspiration.prompt},audience:state.quick.audience?audienceLabel(state.quick.audience):null,designStyle:state.quick.designStyle?designStyleLabel(state.quick.designStyle):null,colorMode:state.quick.dominantColorMode||'custom',dominantColor:state.quick.dominantColor||null,logoPosition:state.quick.logoPosition||null,omitChurchLogo:!!state.quick.omitChurchLogo,omitChurchName:!!state.quick.omitChurchName,eventLogoPosition:state.quick.eventLogoPosition||null,eventLogoSize:state.quick.eventLogoSize||'small',preferenceProfile:learned,
     requiredContent:{title:state.quick.title,subtitle:state.quick.subtitle,date:state.quick.date,time:state.quick.time,address:state.quick.address||state.church.address,churchName:(assets.logo&&!state.quick.omitChurchLogo)?'':(state.quick.omitChurchName?'':state.church.name),pastorNames:names},
     instruction:`Modo rápido. ${pastorHierarchy}
@@ -1896,7 +2171,10 @@ LOGOS — IDENTIDADES NÃO INTERCAMBIÁVEIS:
 - É PROIBIDO duplicar, extrair símbolo, redesenhar ou criar segunda versão da logo principal.
 ${state.quick.audience?`Público-alvo: ${audienceLabel(state.quick.audience)}. `:''}${state.quick.designStyle?`Estilo desejado: ${designStyleLabel(state.quick.designStyle)}. `:''}${!state.quick.designStyle&&learned?.designStyle?`Preferência aprendida do usuário: ${learned.designStyle}. `:''}${state.quick.dominantColorMode==='reference'?(ref?'PALETA: preserve a paleta predominante da referência; analise-a visualmente antes de definir cores. Não introduza uma nova cor dominante que descaracterize a referência.':'PALETA: não há referência disponível; escolha automaticamente uma paleta coerente com conteúdo, estilo e público.'):`Cor predominante escolhida pelo usuário: ${state.quick.dominantColor}.`} Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${ref?'':'Criação sem referência: use a direção visual '+inspiration.name+' — '+inspiration.prompt+'.'} SAFE FRAME RÍGIDO: mantenha TODO conteúdo essencial dentro dos 76% centrais do canvas, reservando 12% livres em cada borda. Nenhum texto, logo, rosto, nome, data, hora ou endereço pode tocar as bordas. ${churchAsset?'A FOTO DA IGREJA selecionada é OBRIGATÓRIA: use-a claramente como ambiente/fundo integrado, sem substituí-la por outra igreja.':'Se a referência já tiver pessoas adorando ou ambiente de igreja ao fundo, preserve essa atmosfera; não invente espaços vazios.'} LOGO-FREE CANVAS OBRIGATÓRIO: NÃO desenhe a logo da igreja, NÃO desenhe a logo de evento e REMOVA completamente qualquer logo existente na referência. Não crie símbolos substitutos, marcas d'água ou nomes institucionais para ocupar o lugar das logos. ${state.quick.omitChurchName?'OMITA também o NOME DA IGREJA em qualquer forma textual.':''} ${assets.logo?'Reserve uma área limpa e de bom contraste para a logo oficial da igreja, que será colada depois por código.':''} ${eventLogo?'Reserve uma área limpa para a LOGO DE EVENTO dentro da zona '+(state.quick.eventLogoPosition||'escolhida pelo Diretor')+'. Não coloque pregadores, rostos, mãos, título ou dados essenciais nessa área, pois o PNG original será colado depois por código.':''} ${correction||state.quick.correction||''}`,
     finalInstruction:'SAFE FRAME OBRIGATÓRIO: conteúdo essencial dentro dos 76% centrais; 12% de margem livre em todos os lados. Elementos decorativos podem sangrar, conteúdo essencial jamais.',semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[]};
-  base.artDirection=resumeArtDirection||await requestArtDirection(base,signal);return clientPipelineGuard(base);
+  const seed=state.gallerySeed;
+  if(seed?.sourceArtworkId&&seed?.sourceUrl){base.reference=await prepareImageForAI(seed.sourceUrl,1600,.94);base.references=[{image:base.reference,note:'ARTE INTERNA DO CHURCHDESIGN. Use como working base; preserve o DNA visual, mas os textos atuais continuam soberanos.'}];base.referenceRole='working-base';base.gallerySourceArtworkId=seed.sourceArtworkId}
+  base.artDirection=resumeArtDirection||seed?.artDirection||await requestArtDirection(base,signal);
+  return clientPipelineGuard(base);
 }
 function screenQuickMode(){
   quickDefaultLogo();quickDefaultPastor();
@@ -2007,8 +2285,8 @@ function bindAllArtworksEvents(){
 function quickReferenceCandidates(){
   const items=[];
   (state.quickResults||[]).forEach((r,i)=>{
-    items.push({key:`main:${i}`,parentIndex:i,kind:'principal',label:r.label||`Arte ${i+1}`,dataUrl:r.dataUrl,baseDataUrl:r.baseDataUrl,sourceUrl:r.sourceUrl||r.baseDataUrl||r.dataUrl,target:r.target,artDirection:r.artDirection,requiredContent:r.requiredContent,assets:r.assets,instruction:r.instruction});
-    (r.corrections||[]).forEach((c,j)=>items.push({key:`correction:${i}:${j}`,parentIndex:i,correctionIndex:j,kind:'correção',label:`${r.label||`Arte ${i+1}`} • Correção ${j+1}`,dataUrl:c.dataUrl,baseDataUrl:c.baseDataUrl,sourceUrl:c.sourceUrl||c.baseDataUrl||c.dataUrl,target:c.target||r.target,artDirection:c.artDirection||r.artDirection,requiredContent:c.requiredContent||r.requiredContent,assets:c.assets||r.assets,instruction:c.instruction||r.instruction}));
+    items.push({key:`main:${i}`,id:r.id,galleryId:r.galleryId||null,parentIndex:i,kind:'principal',label:r.label||`Arte ${i+1}`,dataUrl:r.dataUrl,baseDataUrl:r.baseDataUrl,sourceUrl:r.sourceUrl||r.baseDataUrl||r.dataUrl,target:r.target,artDirection:r.artDirection,requiredContent:r.requiredContent,assets:r.assets,instruction:r.instruction,logoPosition:r.logoPosition,eventLogoPosition:r.eventLogoPosition,eventLogoSize:r.eventLogoSize});
+    (r.corrections||[]).forEach((c,j)=>items.push({key:`correction:${i}:${j}`,id:c.id,galleryId:c.galleryId||null,parentIndex:i,correctionIndex:j,kind:'correção',label:`${r.label||`Arte ${i+1}`} • Correção ${j+1}`,dataUrl:c.dataUrl,baseDataUrl:c.baseDataUrl,sourceUrl:c.sourceUrl||c.baseDataUrl||c.dataUrl,target:c.target||r.target,artDirection:c.artDirection||r.artDirection,requiredContent:c.requiredContent||r.requiredContent,assets:c.assets||r.assets,instruction:c.instruction||r.instruction,logoPosition:c.logoPosition??r.logoPosition,eventLogoPosition:c.eventLogoPosition??r.eventLogoPosition,eventLogoSize:c.eventLogoSize??r.eventLogoSize}));
   });
   return items;
 }
@@ -2083,22 +2361,19 @@ async function drawExactOfficialLogo(ctx,canvas,asset,kind,region,widthPct){
   const b=logoBoxForRegion(kind,region,widthPct,iw,ih,canvas.width,canvas.height);
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(img,b.x,b.y,b.w,b.h);ctx.restore();
 }
+async function auditLogoPlacement({canvas,selectedAsset,placement,kind}){if(!selectedAsset||!placement)return{ok:false,reason:`${kind}: dados ausentes`};const src=logoAssetSource(selectedAsset);if(!src)return{ok:false,reason:`${kind}: arquivo inacessível`};const logoLum=await imageAverageLuminance(src),contrast=Math.abs(logoLum-placement.backgroundLum),inside=placement.x>=0&&placement.y>=0&&placement.x+placement.w<=canvas.width&&placement.y+placement.h<=canvas.height;if(!inside)return{ok:false,reason:`${kind}: fora do canvas`};if(contrast<.13)return{ok:false,reason:`${kind}: contraste insuficiente`,contrast};if(placement.complexity>.80)return{ok:false,reason:`${kind}: região congestionada`,complexity:placement.complexity};return{ok:true,contrast,complexity:placement.complexity,region:placement.region}}
 async function composeOfficialLogos(baseDataUrl,payload,target){
- const church=payload.assets?.logo||null,event=payload.assets?.eventLogo||null,hasChurch=!!church&&!payload.omitChurchLogo,hasEvent=!!event&&!payload.omitEventLogo;if(!hasChurch&&!hasEvent)return baseDataUrl;
- const cv=document.createElement('canvas'),ctx=cv.getContext('2d'),base=await loadImage(baseDataUrl);cv.width=base.width;cv.height=base.height;ctx.drawImage(base,0,0);
- async function place(primary,kind,pos,size){const p=await resolveLogoPlacement(baseDataUrl,pos,size),selected=await chooseLogoVariant(primary,findLogoContrastVariant(primary),p.backgroundLum),src=selected?.sourceUrl||selected?.image||primary.sourceUrl||primary.image;if(!src)throw new Error(`Guardião: arquivo original da logo ${kind} ausente.`);const logo=await loadImage(src),ar=logo.naturalWidth/logo.naturalHeight||1;let w=p.w,h=w/ar;if(h>cv.height*.16){h=cv.height*.16;w=h*ar}let x=p.x,y=p.y;if(/right/.test(pos))x=Math.max(8,Math.min(cv.width-w-8,p.x+p.w-w));if(/bottom/.test(pos))y=Math.max(8,Math.min(cv.height-h-8,p.y+p.h-h));ctx.drawImage(logo,x,y,w,h)}
- if(hasChurch)await place(church,'da igreja',payload.logoPosition||'top-left',Number(payload.churchLogoSizePct||.06));if(hasEvent)await place(event,'de evento',payload.eventLogoPosition||'right-center',Number(payload.eventLogoSizePct||payload.eventLogoSize||.06));return cv.toDataURL('image/png',1);
+  const church=payload.assets?.logo||null,event=payload.assets?.eventLogo||null,hasChurch=!!church&&!payload.omitChurchLogo,hasEvent=!!event&&!payload.omitEventLogo;
+  if(!hasChurch&&!hasEvent)return{dataUrl:baseDataUrl,placements:[],audit:{ok:true,expected:0,applied:0}};
+  const base=await loadImage(baseDataUrl),cv=document.createElement('canvas'),ctx=cv.getContext('2d');cv.width=base.width;cv.height=base.height;ctx.drawImage(base,0,0);const placements=[];
+  async function place(primary,kind,preferred,sizeFraction,opts={}){if(!logoAssetSource(primary))throw new Error(`Guardião: arquivo original da logo ${kind} ausente.`);const p=await resolveLogoPlacement(baseDataUrl,preferred,sizeFraction,kind==='da igreja'?'church':'event',opts),selected=await chooseLogoVariant(primary,findLogoContrastVariant(primary),p.backgroundLum),src=logoAssetSource(selected)||logoAssetSource(primary);if(!src)throw new Error(`Guardião: variante da logo ${kind} sem arquivo.`);const logo=await loadImage(src),ar=(logo.naturalWidth||logo.width)/(logo.naturalHeight||logo.height)||1;let w=p.w,h=w/ar;if(h>cv.height*.18){h=cv.height*.18;w=h*ar}let x=p.x,y=p.y,reg=p.region;if(/right/.test(reg))x=Math.max(cv.width*.025,Math.min(cv.width-w-cv.width*.025,p.x+p.w-w));if(/bottom/.test(reg))y=Math.max(cv.height*.025,Math.min(cv.height-h-cv.height*.025,p.y+p.h-h));if(reg==='top-center'||reg==='bottom-center')x=Math.max(cv.width*.025,Math.min(cv.width-w-cv.width*.025,p.x+(p.w-w)/2));ctx.drawImage(logo,x,y,w,h);const fp={...p,x,y,w,h},check=await auditLogoPlacement({canvas:cv,selectedAsset:selected||primary,placement:fp,kind});placements.push({kind,assetId:primary.id,variantId:selected?.id||primary.id,selectedVariant:logoVariantRole(selected||primary),...fp,audit:check})}
+  if(hasChurch)await place(church,'da igreja',normalizeLogoRegion(payload.logoPosition||'top-left','church'),churchLogoSizeFraction(payload.churchLogoSizePct||.18),{forceRelocation:!!payload.forceChurchLogoRelocation});
+  if(hasEvent)await place(event,'de evento',normalizeLogoRegion(payload.eventLogoPosition||'right-middle','event'),eventLogoSizeFraction(payload.eventLogoSize||payload.eventLogoSizePct||'small'),{forceRelocation:!!payload.forceEventLogoRelocation});
+  const expected=(hasChurch?1:0)+(hasEvent?1:0),failed=placements.filter(x=>!x.audit?.ok),auditResult={ok:placements.length===expected&&!failed.length,expected,applied:placements.length,failed};if(!auditResult.ok)throw new Error(`Guardião pós-composição: ${failed.map(x=>x.audit?.reason).filter(Boolean).join('; ')||`esperadas ${expected}, aplicadas ${placements.length}`}.`);
+  return{dataUrl:cv.toDataURL('image/png',1),placements,audit:auditResult};
 }
 
-async function normalizeArtworkToTarget(image,payload,target,signal=null){
-  // V0.25: o GPT Image 2 recebe o aspect ratio nativo no backend.
-  // Esta etapa NUNCA dispara nova geração. Uma imagem já paga sempre segue para entrega.
-  const raw=await remoteToDataUrl(image.url);
-  const normalized=await resizeToTarget(raw,target);
-  const baseDataUrl=normalized.dataUrl;
-  const finalDataUrl=await composeOfficialLogos(baseDataUrl,payload,target);
-  return {image,dataUrl:finalDataUrl,baseDataUrl,logosComposed:true,recomposed:false,aspectRatioFallback:normalized.aspectRatioFallback||false};
-}
+async function normalizeArtworkToTarget(image,payload,target,signal=null){const raw=await remoteToDataUrl(image.url),normalized=await resizeToTarget(raw,target),baseDataUrl=normalized.dataUrl,logoComposition=await composeOfficialLogos(baseDataUrl,payload,target);return{image,dataUrl:logoComposition.dataUrl,baseDataUrl,logosComposed:!!logoComposition.audit?.ok,logoPlacements:logoComposition.placements||[],logoAudit:logoComposition.audit||null,recomposed:false,aspectRatioFallback:normalized.aspectRatioFallback||false}}
 
 async function resizeToTarget(dataUrl,target){
   const img=await loadImageSafe(dataUrl);
@@ -2121,9 +2396,12 @@ async function resizeToTarget(dataUrl,target){
 
   return {dataUrl:c.toDataURL('image/png'),aspectRatioFallback};
 }
-async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null,resumeJob=null){scrollToGenerationPanel();
-if(correction&&replaceIndex!==null&&isLogoOnlyCorrection(correction)){const parent=state.quickResults?.[replaceIndex],latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent,baseLogoFree=latest?.baseDataUrl||latest?.sourceUrl||null;if(baseLogoFree){const payload=await quickPayload(label,correction,null,null,state.artDirection||null),recomposed=await composeOfficialLogos(baseLogoFree,payload,payload.target||primaryTargetSpec()),item={...(latest||{}),label:label||latest?.label||'Correção',dataUrl:recomposed,sourceUrl:recomposed,baseDataUrl:baseLogoFree,logoOnlyCorrection:true,review:{approved:true,score:100,gross_errors:[]}};if(!parent.corrections)parent.corrections=[];parent.corrections.push(item);renderQuickResults();return}}
-if(label==='Principal'&&replaceIndex===null&&!resumeJob)beginCostSession('Modo Rápido • primeira arte');const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent=resumeJob?'Retomando do último checkpoint...':'Processando sua arte...';const jobId=resumeJob?.id||crypto.randomUUID(),prior=resumeJob?.data||{},snapshot=prior.snapshot||quickJobSnapshot(label,variationIndex,correction,replaceIndex);if(!resumeJob)await safeCheckpoint(jobId,'CREATED',{snapshot});try{
+function applyLogoCorrectionIntent(payload,text=''){const intent=parseLogoCorrectionIntent(text);return intent?applyParsedLogoIntent(payload,intent):payload;}
+async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null,resumeJob=null){
+  scrollToGenerationPanel();let preflight;
+  try{preflight=await preflightQuickGeneration({correction,replaceIndex});}catch(e){const status=document.querySelector('#quickStatus');if(status)status.innerHTML=`<strong style="color:#ff9eac">Preflight bloqueou a geração.</strong><br>${esc(e.message)}<br><span style="color:#ffd875">Nenhuma chamada paga foi iniciada.</span>`;return;}
+  if(preflight.intent&&replaceIndex!==null){const parent=state.quickResults?.[replaceIndex],latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent,baseLogoFree=latest?.baseDataUrl||latest?.sourceUrl||null;if(baseLogoFree){let payload=await quickPayload(label,correction,null,null,state.artDirection||null);payload=applyParsedLogoIntent(payload,preflight.intent);const composition=await composeOfficialLogos(baseLogoFree,payload,payload.target||primaryTargetSpec()),item={...(latest||{}),id:crypto.randomUUID(),label:label||latest?.label||'Correção de logos',dataUrl:composition.dataUrl,sourceUrl:composition.dataUrl,baseDataUrl:baseLogoFree,logoPlacements:composition.placements,logoAudit:composition.audit,logoOnlyCorrection:true,review:{approved:true,score:100,gross_errors:[],logoOnly:true}};if(!parent.corrections)parent.corrections=[];parent.corrections.push(item);const saved=await persistGalleryArtwork(item,{kind:'correção',parentArtworkId:parent.galleryId||parent.id||null,sourceArtworkId:latest.galleryId||latest.id||null,format:item.target?.id||state.quick.format});if(saved)item.galleryId=saved.galleryId;renderQuickResults();return;}}
+  if(label==='Principal'&&replaceIndex===null&&!resumeJob)beginCostSession('Modo Rápido • primeira arte');const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent=resumeJob?'Retomando do último checkpoint...':'Processando sua arte...';const jobId=resumeJob?.id||crypto.randomUUID(),prior=resumeJob?.data||{},snapshot=prior.snapshot||quickJobSnapshot(label,variationIndex,correction,replaceIndex);if(!resumeJob)await safeCheckpoint(jobId,'CREATED',{snapshot});try{
     if(resumeJob&&prior.status==='DIRECTED'&&!prior.artDirection)throw new EndpointContractError('checkpoint','Checkpoint DIRECTED incompleto. Não repetiremos o Diretor automaticamente.',{status:prior.status});
     const payload=await quickPayload(label,correction,signal,jobId,prior.artDirection||null);
     if(replaceIndex!==null){
@@ -2145,11 +2423,11 @@ if(label==='Principal'&&replaceIndex===null&&!resumeJob)beginCostSession('Modo R
     const normalized=await normalizeArtworkToTarget(image,payload,payload.target,signal);
     const finalImage=normalized.image;
     const dataUrl=normalized.dataUrl;
-    const result={id:crypto.randomUUID(),label,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:(finalImage||image).url,target:payload.target,artDirection:payload.artDirection,requiredContent:payload.requiredContent,assets:payload.assets,instruction:payload.instruction,logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,adaptations:[],correction:''};if(replaceIndex===null)state.quickResults.push(result);else{
-      const original=state.quickResults[replaceIndex];
-      original.corrections=original.corrections||[];
-      original.corrections.push({...result,id:crypto.randomUUID(),label:`${original.label} • corrigida`});
-    }await safeCheckpoint(jobId,'DONE',{snapshot,image:{label:image.label||label,url:image.url,modelUsed:image.modelUsed,meta:image.meta||null},review:image.review||null,final:{sourceUrl:(finalImage||image).url,target:payload.target}});setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>'+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}catch(e){
+    const result={id:crypto.randomUUID(),label,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:(finalImage||image).url,target:payload.target,artDirection:payload.artDirection,requiredContent:payload.requiredContent,assets:payload.assets,instruction:payload.instruction,logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,adaptations:[],correction:''};
+    let galleryCandidate=result,galleryKind=variationIndex>0?'variação':'principal',galleryParent=null,gallerySource=state.gallerySeed?.sourceArtworkId||null;
+    if(replaceIndex===null)state.quickResults.push(result);else{const original=state.quickResults[replaceIndex];original.corrections=original.corrections||[];galleryCandidate={...result,id:crypto.randomUUID(),label:`${original.label} • corrigida`};original.corrections.push(galleryCandidate);galleryKind='correção';galleryParent=original.galleryId||original.id||null;gallerySource=original.galleryId||original.id||gallerySource}
+    const savedGallery=await persistGalleryArtwork(galleryCandidate,{kind:galleryKind,parentArtworkId:galleryParent,sourceArtworkId:gallerySource,format:payload.target?.id||state.quick.format,basedOnKey:payload.gallerySourceArtworkId||null});if(savedGallery)galleryCandidate.galleryId=savedGallery.galleryId;state.gallerySeed=null;
+    await safeCheckpoint(jobId,'DONE',{snapshot,image:{label:image.label||label,url:image.url,modelUsed:image.modelUsed,meta:image.meta||null},review:image.review||null,final:{sourceUrl:(finalImage||image).url,target:payload.target}});setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>'+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}catch(e){
     if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}
     else if(e instanceof EndpointContractError){await safeCheckpoint(jobId,'BROKEN_ENDPOINT',{snapshot,nonRetryable:true,error:e.message,endpoint:e.endpoint,details:e.details||{}});if(status)status.innerHTML=`<strong style="color:#ff9eac">Configuração de API incompatível.</strong><br>${esc(e.message)}<br><span style="color:#ffd875">Novas tentativas foram bloqueadas para não repetir custo.</span>`;}
     else if(status)status.innerHTML=`<strong style="color:#ff9eac">Conexão interrompida ou etapa pendente.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">O checkpoint é apenas proteção: a geração normal não será reiniciada por ele.</span>`;
@@ -2165,7 +2443,7 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const sourceRef=await prepareImageForAI(source.baseDataUrl||source.sourceUrl||source.dataUrl,1400,.9);
     const required={...(source.requiredContent||parent.requiredContent||{})};
     omit.forEach(k=>{if(k==='pastorNames')required.pastorNames=[];else required[k]='';});
-    const assets={...(source.assets||parent.assets||{})};
+    const assets=await hydrateGalleryAssets(source.assets||parent.assets||{});
     if(omit.includes('logo'))assets.logo=null;
     if(omit.includes('eventLogo'))assets.eventLogo=null;
     const originalPastors=[...(assets.pastors||[])];
@@ -2198,7 +2476,8 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     const normalized=await normalizeArtworkToTarget(image,payload,target,signal);
     const dataUrl=normalized.dataUrl;
     parent.adaptations=parent.adaptations||[];
-    parent.adaptations.push({id:crypto.randomUUID(),format:formatId,target,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:image.url,omit,basedOnKey:source.key,basedOnLabel:source.label});
+    const child={id:crypto.randomUUID(),label:`${source.label} • ${target.label}`,format:formatId,target,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:image.url,omit,basedOnKey:source.key,basedOnLabel:source.label,artDirection:source.artDirection||parent.artDirection,requiredContent:required,assets,instruction:source.instruction||parent.instruction,logoPosition:payload.logoPosition,eventLogoPosition:payload.eventLogoPosition,eventLogoSize:payload.eventLogoSize};
+    parent.adaptations.push(child);const savedChild=await persistGalleryArtwork(child,{kind:'arte filha',parentArtworkId:parent.galleryId||parent.id||null,sourceArtworkId:source.galleryId||source.id||parent.galleryId||parent.id||null,format:formatId,basedOnKey:source.key,basedOnLabel:source.label});if(savedChild)child.galleryId=savedChild.galleryId;
     setQuickProgress(100,'Pronto');
     if(status)status.innerHTML='<strong style="color:var(--good)">✓ Nova versão pronta.</strong>';
     const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();
