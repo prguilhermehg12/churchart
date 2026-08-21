@@ -143,11 +143,15 @@ module.exports = async function handler(req, res) {
         rest(`church_drafts?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=updated_at.desc&limit=30`)
       ]);
 
+      const allDrafts=drafts||[];
+      const jobs=allDrafts.filter(x=>x?.data?.kind==="generation_job");
+      const userDrafts=allDrafts.filter(x=>x?.data?.kind!=="generation_job");
       return res.json({
         profile: profile?.[0] || null,
         assets: assets || [],
         generations: generations || [],
-        drafts: drafts || []
+        drafts: userDrafts,
+        jobs
       });
     }
 
@@ -289,6 +293,26 @@ module.exports = async function handler(req, res) {
       });
     }
 
+
+    if (action === "save-job" && req.method === "POST") {
+      const body=req.body||{},id=body.id||crypto.randomUUID();
+      const rows=await rest(`church_drafts?id=eq.${encodeURIComponent(id)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`);
+      const current=rows?.[0]?.data||{};
+      const next={...current,kind:"generation_job",...(body.data||{}),status:body.status||body.data?.status||current.status||"CREATED",updatedAt:new Date().toISOString()};
+      const data=await rest("church_drafts?on_conflict=id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify([{id,church_id:churchId,title:"__GENERATION_JOB__",data:next,updated_at:new Date().toISOString()}])});
+      return res.json({job:data?.[0]||null});
+    }
+    if (action === "get-job" && req.method === "GET") {
+      const id=req.query.id;if(!id)throw new Error("ID do job ausente.");
+      const rows=await rest(`church_drafts?id=eq.${encodeURIComponent(id)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`);
+      const job=rows?.[0]||null;if(!job||job?.data?.kind!=="generation_job")return res.status(404).json({error:"Job não encontrado."});
+      return res.json({job});
+    }
+    if (action === "delete-job" && req.method === "DELETE") {
+      const id=req.body?.id;if(!id)throw new Error("ID do job ausente.");
+      await rest(`church_drafts?id=eq.${encodeURIComponent(id)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"DELETE"});
+      return res.json({ok:true});
+    }
 
     if (action === "save-draft" && req.method === "POST") {
       const body = req.body || {};
