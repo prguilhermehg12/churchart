@@ -18,6 +18,11 @@ async function saveBase64ToStorage(base64,label="art"){
   const text=await r.text();if(!r.ok)throw new Error(`Falha ao salvar arte: ${text.slice(0,180)}`);
   return`${c.url}/storage/v1/object/public/${encodeURIComponent(BUCKET)}/${encodePath(path)}`;
 }
+async function jobRest(path,opts={}){const c=cfg();const r=await fetch(`${c.url}/rest/v1/${path}`,{...opts,headers:{apikey:c.key,Authorization:`Bearer ${c.key}`,"Content-Type":"application/json",...(opts.headers||{})}});const text=await r.text();if(!r.ok)throw new Error(`Checkpoint ${r.status}: ${text.slice(0,160)}`);return text?JSON.parse(text):null;}
+async function persistJobCheckpoint(jobId,patch={}){if(!jobId)return;try{const churchId="default";const rows=await jobRest(`church_drafts?id=eq.${encodeURIComponent(jobId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`);const current=rows?.[0]?.data||{};const next={...current,kind:"generation_job",...patch,updatedAt:new Date().toISOString()};await jobRest("church_drafts?on_conflict=id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify([{id:jobId,church_id:churchId,title:"__GENERATION_JOB__",data:next,updated_at:new Date().toISOString()}])});}catch(e){console.error("Generation checkpoint",e);}}
+function allowedTexts(data={}){const c=data.requiredContent||{};return[c.title,c.subtitle,c.date,c.time,c.address,c.churchName,...(c.pastorNames||[])].map(x=>String(x||"").trim()).filter(Boolean);}
+function pipelineGuard(input={}){const data={...input,assets:{...(input.assets||{})}};delete data.assets.logo;delete data.assets.eventLogo;delete data.assets.event_logo;const pastors=(data.assets.pastors||[data.assets.pastor].filter(Boolean)).slice(0,3);data.assets.pastors=pastors;data.assets.pastor=pastors[0]||null;data.allowedTexts=allowedTexts(data);data.referenceSemanticPolicy="style-only";return data;}
+
 function modelSize(target={}){
   // GPT Image 2 aceita WIDTHxHEIGHT arbitrário, desde que:
   // - ambos sejam múltiplos de 16
@@ -59,8 +64,10 @@ function collectInputImages(data){
   // Pregadores continuam no fluxo atual; referências continuam como guia de design.
   for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).slice(0,3).entries())
     if(isDataImage(p?.image))imgs.push({data:p.image,name:`${i===0?'principal':`auxiliar-${i}`}.png`});
-  for(const [i,r] of (data.references||[]).slice(0,3).entries())
-    if(isDataImage(r?.image))imgs.push({data:r.image,name:`design-reference-${i+1}.png`});
+  if(data.revisionMode==="delta-only"||data.mode==="adaptation"||data.referenceRole==="working-base"){
+    for(const [i,r] of (data.references||[]).slice(0,1).entries())
+      if(isDataImage(r?.image))imgs.push({data:r.image,name:`working-base-${i+1}.png`});
+  }
   if(isDataImage(data.assets?.churchImage?.image))imgs.push({data:data.assets.churchImage.image,name:"church-background.png"});
   return imgs;
 }
@@ -72,7 +79,7 @@ Tipografia: ${JSON.stringify(a.typography||{})}
 Imagem: ${JSON.stringify(a.imagery||{})}
 Texturas: ${(a.textures||[]).join(", ")}
 Elementos: ${(a.graphic_elements||[]).join(", ")}
-Áreas reservadas para logos determinísticas: ${JSON.stringify(a.protected_assets||{})}
+Zonas geométricas neutras de respiro (não desenhe caixas, rótulos ou placeholders): ${JSON.stringify(a.protected_assets||{})}
 Preservar: ${(a.preserve_rules||[]).join(" | ")}
 Evitar: ${(a.avoid_rules||[]).join(" | ")}
 Orientação especializada: ${a.generation_prompt||""}`;}
@@ -115,6 +122,13 @@ ${blueprint(data)}
 
 CONTEÚDO QUE DEVE APARECER EXATAMENTE:
 ${texts||"Sem textos obrigatórios."}
+
+TEXT ALLOWLIST — HARD CONSTRAINT:
+Os ÚNICOS textos legíveis permitidos são: ${JSON.stringify(data.allowedTexts||[])}.
+Não invente slogans, chamadas, nomes de culto, nomes de igreja, palavras de fundo, datas, números ou frases.
+Não copie qualquer texto da referência original, porque ela é STYLE-ONLY.
+Se quiser reproduzir uma massa tipográfica da referência, use somente um texto autorizado ou geometria abstrata NÃO legível.
+Qualquer palavra legível fora da allowlist é erro crítico.
 
 IGREJA: ${data.church?.name||""}
 PÚBLICO-ALVO ESCOLHIDO: ${data.audience||"não especificado"}\nPOSIÇÃO PRIORITÁRIA DA LOGO: ${data.logoPosition||"seguir referência / automática"}
@@ -253,7 +267,7 @@ ${data.safeMode?`MODO SEGURO OBRIGATÓRIO:
 - não deforme o rosto;
 - não estilize a pessoa de forma que altere sua identidade;
 - trate a foto do pregador como fotografia real recortada/encaixada;
-- preserve logo sem redesenhar;
+- não gere nenhuma logo ou marca;
 - use tipografia forte porém simples;
 - não use distorções em textos obrigatórios;
 - todos os dados precisam estar legíveis e corretos;
@@ -302,9 +316,12 @@ module.exports=async function handler(req,res){
   if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
   if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY não configurada."});
   try{
-    const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle&&!data.artDirection)return res.status(400).json({error:"Forneça uma referência ou uma direção de inspiração."});
+    const raw=req.body||{},data=pipelineGuard(raw);
+    if(!data.inspirationStyle&&!data.artDirection&&data.revisionMode!=="delta-only"&&data.mode!=="adaptation")return res.status(400).json({error:"Direção visual ausente."});
     const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
     const url=await saveBase64ToStorage(generated.base64,label);
-    return res.status(200).json({success:true,image:{label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.usage||null,requestId:generated.requestId||null,endpoint:generated.endpoint,size:generated.size}}});
+    const image={label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.usage||null,requestId:generated.requestId||null,endpoint:generated.endpoint,size:generated.size}};
+    await persistJobCheckpoint(raw.jobId,{status:"IMAGE_GENERATED",image,generatorMeta:image.meta});
+    return res.status(200).json({success:true,image});
   }catch(e){console.error("ChurchDesign V0.28.4 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
 };
