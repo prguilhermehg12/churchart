@@ -458,7 +458,7 @@
 .pastor-order-pill b{color:white}
 
 </style>
-  <!-- ChurchDesign V0.30.2 — logo variants / post-art placement / logo-only correction -->
+  <!-- ChurchDesign V0.30.3 — persistent logo variants in My Church -->
 </head>
 <body>
   <div class="app-shell">
@@ -1022,7 +1022,7 @@ function screenReplace(){
   populateReplaceCrops();
 }
 function screenAdjust(){
-  const logos=state.library.assets.filter(a=>a.type==='logo');
+  const logos=state.library.assets.filter(a=>a.type==='logo'&&logoVariantRole(a)!=='contrast');
   const pastors=state.library.assets.filter(a=>a.type==='pastor');
   const graphics=state.library.assets.filter(a=>a.type==='graphic');
   const fonts=state.library.assets.filter(a=>a.type==='font');
@@ -1270,13 +1270,42 @@ function clientPipelineGuard(payload={}){const p={...payload,assets:{...(payload
 function logoVariantGroup(a){const m=a?.meta||a?.metadata||a?.data||{};return m.logoGroupId||m.variantGroupId||a?.id||null}
 function logoVariantRole(a){const m=a?.meta||a?.metadata||a?.data||{};return m.logoVariantRole||m.variantRole||'primary'}
 function findLogoContrastVariant(a){if(!a)return null;const g=logoVariantGroup(a);return(state.library.assets||[]).find(x=>x.id!==a.id&&logoVariantGroup(x)===g&&logoVariantRole(x)==='contrast')||null}
-async function ensureLogoContrastVariant(asset,kind='church'){
- if(!asset||findLogoContrastVariant(asset)||asset.__riskSingleVariant)return true;
- return new Promise(resolve=>{const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:#000b;z-index:99999;display:grid;place-items:center;padding:18px';
- ov.innerHTML=`<div class="card" style="max-width:430px;width:100%;padding:20px"><h3>Adicione uma variante da logo</h3><p style="color:var(--muted);line-height:1.5">Para garantir boa visibilidade em fundos claros ou escuros, recomendamos cadastrar uma segunda versão da mesma logo.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px"><button class="mini-btn" data-add>Selecionar agora</button><button class="mini-btn" data-risk>Arriscar somente com uma</button></div><input data-file type="file" accept="image/*" hidden></div>`;document.body.appendChild(ov);
- const close=v=>{ov.remove();resolve(v)};ov.querySelector('[data-risk]').onclick=()=>{asset.__riskSingleVariant=true;close(true)};ov.querySelector('[data-add]').onclick=()=>ov.querySelector('[data-file]').click();
- ov.querySelector('[data-file]').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const image=await fileToDataUrl(f),gid=logoVariantGroup(asset)||crypto.randomUUID();const saved=await saveAssetToLibrary({type:kind==='event'?'event_logo':'logo',name:`${asset.name||'Logo'} — variante de contraste`,image,meta:{logoGroupId:gid,logoVariantRole:'contrast',variantOf:asset.id||null}});try{await apiJSON('update-asset-meta',{method:'POST',body:{id:asset.id,meta:{logoGroupId:gid,logoVariantRole:'primary'}}})}catch{}if(saved?.asset)state.library.assets=[saved.asset,...(state.library.assets||[])];asset.meta={...(asset.meta||{}),logoGroupId:gid,logoVariantRole:'primary'};close(true)}catch(err){alert('Não foi possível salvar a variante: '+err.message)}};});
+async function uploadLogoContrastVariant(primary,kind='church',file=null){
+  if(!primary)return null;
+  const gid=logoVariantGroup(primary)||primary.id||crypto.randomUUID();
+  if(!file){
+    file=await new Promise(resolve=>{
+      const input=document.createElement('input');input.type='file';input.accept='image/*';
+      input.onchange=()=>resolve(input.files?.[0]||null);input.click();
+    });
+  }
+  if(!file)return null;
+  const variant=await uploadLibraryAsset(file,kind==='event'?'event_logo':'logo',{
+    logoGroupId:gid,logoVariantRole:'contrast',variantOf:primary.id||null
+  });
+  if(!variant)return null;
+  const updated=await updateLibraryAssetMeta(primary.id,{logoGroupId:gid,logoVariantRole:'primary'});
+  if(updated)primary=updated;
+  return variant;
 }
+async function ensureLogoContrastVariant(asset,kind='church'){
+  if(!asset||findLogoContrastVariant(asset)||asset.__riskSingleVariant)return true;
+  return await new Promise(resolve=>{
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:#000b;z-index:99999;display:grid;place-items:center;padding:18px';
+    ov.innerHTML=`<div class="card" style="max-width:430px;width:100%;padding:20px"><h3>Adicione uma variante da logo</h3><p style="color:var(--muted);line-height:1.5">Para garantir boa visibilidade em fundos claros ou escuros, recomendamos cadastrar uma segunda versão da mesma logo.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px"><button class="mini-btn" data-add>Selecionar agora</button><button class="mini-btn" data-risk>Arriscar somente com uma</button></div></div>`;
+    document.body.appendChild(ov);
+    const close=v=>{ov.remove();resolve(v)};
+    ov.querySelector('[data-risk]').onclick=()=>{asset.__riskSingleVariant=true;close(true)};
+    ov.querySelector('[data-add]').onclick=async()=>{
+      try{
+        const saved=await uploadLogoContrastVariant(asset,kind);
+        if(saved)close(true);
+      }catch(err){alert('Não foi possível salvar a variante: '+err.message)}
+    };
+  });
+}
+
 async function imageAverageLuminance(src){const im=await loadImage(src),cv=document.createElement('canvas'),x=cv.getContext('2d',{willReadFrequently:true});cv.width=cv.height=48;x.drawImage(im,0,0,48,48);const d=x.getImageData(0,0,48,48).data;let s=0,n=0;for(let i=0;i<d.length;i+=16){if(d[i+3]<30)continue;s+=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;n++}return n?s/n:.5}
 function logoZoneCandidates(p='top-left'){const m={'top-left':[[.045,.045],[.065,.055],[.045,.09]],'top-right':[[.955,.045],[.935,.055],[.955,.09]],'bottom-left':[[.045,.955],[.065,.935],[.045,.90]],'bottom-right':[[.955,.955],[.935,.935],[.955,.90]],'left-upper':[[.08,.28],[.10,.34],[.12,.40]],'left-center':[[.08,.48],[.11,.52],[.13,.44]],'left-lower':[[.08,.70],[.10,.64],[.12,.60]],'right-upper':[[.92,.28],[.90,.34],[.88,.40]],'right-center':[[.92,.48],[.89,.52],[.87,.44]],'right-lower':[[.92,.70],[.90,.64],[.88,.60]]};return m[p]||m['top-left']}
 async function resolveLogoPlacement(src,p,size=.06){const im=await loadImage(src),cv=document.createElement('canvas'),x=cv.getContext('2d',{willReadFrequently:true});cv.width=im.width;cv.height=im.height;x.drawImage(im,0,0);let best=null;for(const [i,c] of logoZoneCandidates(p).entries()){let w=im.width*size,h=w*.55,px=c[0]*im.width,py=c[1]*im.height;if(/right/.test(p))px-=w;if(/bottom/.test(p))py-=h;px=Math.max(8,Math.min(im.width-w-8,px));py=Math.max(8,Math.min(im.height-h-8,py));const d=x.getImageData(px|0,py|0,Math.max(1,w|0),Math.max(1,h|0)).data;let s=0,n=0;for(let k=0;k<d.length;k+=64){s+=(.2126*d[k]+.7152*d[k+1]+.0722*d[k+2])/255;n++}const lum=n?s/n:.5,score=1-i*.12+Math.abs(lum-.5)*.08;if(!best||score>best.score)best={x:px,y:py,w,h,backgroundLum:lum,score}}return best}
@@ -1290,7 +1319,7 @@ async function saveChurchProfile(){
     return {ok:true,profile:d.profile||null};
   }catch(e){console.warn(e);return {ok:false,error:e.message||'Erro ao salvar'};}
 }
-async function uploadLibraryAsset(file,type){
+async function uploadLibraryAsset(file,type,extraMeta={}){
   try{
     const refCount=state.library.assets.filter(a=>a.type==='reference').length;
     if(type==='reference'&&refCount>=20){alert('Limite de 20 referências por igreja. Remova uma referência antes de adicionar outra.');return null;}
@@ -1298,8 +1327,8 @@ async function uploadLibraryAsset(file,type){
     const dbType=type==='event_logo'?'graphic':type;
     const dataUrl=isFont?await fileAsDataUrl(file):await optimizeImageFile(file,1800,(type==='logo'||type==='event_logo') ? .95 : .9);
     const meta=isFont
-      ?{family:file.name.replace(/\.[^.]+$/,'')}
-      :{originalName:file.name,...(type==='event_logo'?{category:'event_logo'}:{})};
+      ?{family:file.name.replace(/\.[^.]+$/,''),...extraMeta}
+      :{originalName:file.name,...(type==='event_logo'?{category:'event_logo'}:{}),...extraMeta};
     const d=await apiJSON('upload-asset',{method:'POST',body:{type:dbType,name:file.name,dataUrl,mimeType:file.type||guessMime(file.name),meta}});
     if(!d.asset)throw new Error('O banco não retornou o asset salvo.');
     state.library.assets=[d.asset,...state.library.assets.filter(a=>a.id!==d.asset.id)];
@@ -1408,16 +1437,32 @@ window.openMyChurch=function(tab='pastor'){
   }
 
   const isEventLogo=tab==='event_logo';
-  const assets=isEventLogo
+  const rawAssets=isEventLogo
     ?state.library.assets.filter(a=>a.type==='graphic'&&a.meta?.category==='event_logo')
     :tab==='graphic'
       ?state.library.assets.filter(a=>a.type==='graphic'&&a.meta?.category!=='event_logo')
       :state.library.assets.filter(a=>a.type===tab);
+  const assets=(tab==='logo'||isEventLogo)
+    ?rawAssets.filter(a=>logoVariantRole(a)!=='contrast')
+    :rawAssets;
 
   const cards=assets.map(a=>{
     if(tab==='font')return `<div class="asset-card"><div class="font-preview" style="font-family:${a.cssFamily||'sans-serif'}">Aa Igreja 19:30</div><strong>${esc(a.name)}</strong><small>Fonte salva</small><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button></div>`;
     if(tab==='pastor')return `<div class="asset-card"><img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong><small>Foto protegida</small><input class="pastor-library-name" data-pastor-library-name="${a.id}" value="${esc(a.meta?.displayName||'')}" placeholder="Nome do pregador"><div class="asset-save-state" data-pastor-save-state="${a.id}"></div><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button></div>`;
-    return `<div class="asset-card"><img src="${a.url}"><strong>${esc(a.name)}</strong><small>${isEventLogo?'Logo de evento protegida':'Asset protegido'}</small><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button></div>`;
+    if(tab==='logo'||isEventLogo){
+      const variant=findLogoContrastVariant(a);
+      return `<div class="asset-card logo-identity-card" style="align-items:stretch">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="min-width:0"><img src="${a.url}" style="width:100%;height:100px;object-fit:contain"><small style="display:block;margin-top:4px">Principal</small></div>
+          ${variant?`<div style="min-width:0"><img src="${variant.url}" style="width:100%;height:100px;object-fit:contain"><small style="display:block;margin-top:4px">Contraste</small></div>`:`<button class="mini-btn" data-add-logo-variant="${a.id}" data-logo-variant-kind="${isEventLogo?'event':'church'}" style="min-height:100px">+ Adicionar variante</button>`}
+        </div>
+        <strong style="margin-top:8px">${esc(a.name)}</strong>
+        <small>${variant?'✓ Variante de contraste cadastrada':'Recomendado: cadastre uma versão clara/escura alternativa'}</small>
+        ${variant?`<button class="mini-btn" data-change-logo-variant="${a.id}" data-logo-variant-kind="${isEventLogo?'event':'church'}">Alterar variante</button>`:''}
+        <button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button>
+      </div>`;
+    }
+    return `<div class="asset-card"><img src="${a.url}"><strong>${esc(a.name)}</strong><small>Asset protegido</small><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button></div>`;
   }).join('');
 
   root.innerHTML=shell(`<div class="asset-grid">${cards}<label class="library-upload"><strong>+ Adicionar ${labels[tab]}</strong><span>${tab==='font'?'TTF, OTF, WOFF':'Você pode selecionar vários arquivos'}</span><input id="libraryUploadInput" type="file" ${tab==='font'?'accept=".ttf,.otf,.woff,.woff2,font/*"':'accept="image/*"'} hidden multiple></label><div id="libraryUploadInputLive" class="upload-live library-upload-progress"></div></div>`);
@@ -1428,6 +1473,21 @@ window.openMyChurch=function(tab='pastor'){
     const previous=libInput.onchange;
     libInput.onchange=async e=>{await previous(e);setTimeout(()=>openMyChurch(tab),450);};
   }
+
+  document.querySelectorAll('[data-add-logo-variant],[data-change-logo-variant]').forEach(btn=>{
+    btn.onclick=async e=>{
+      e.stopPropagation();
+      const id=btn.dataset.addLogoVariant||btn.dataset.changeLogoVariant;
+      const primary=state.library.assets.find(a=>a.id===id);if(!primary)return;
+      const kind=btn.dataset.logoVariantKind||'church';
+      const old=findLogoContrastVariant(primary);
+      const uploaded=await uploadLogoContrastVariant(primary,kind);
+      if(uploaded&&old){
+        try{await apiJSON('delete-asset',{method:'DELETE',body:{id:old.id}});state.library.assets=state.library.assets.filter(a=>a.id!==old.id)}catch(e){console.warn('Não foi possível remover variante antiga',e)}
+      }
+      if(uploaded)openMyChurch(kind==='event'?'event_logo':'logo');
+    };
+  });
 
   document.querySelectorAll('[data-pastor-library-name]').forEach(inp=>{
     inp.onchange=async()=>{
@@ -1840,7 +1900,7 @@ ${state.quick.audience?`Público-alvo: ${audienceLabel(state.quick.audience)}. `
 }
 function screenQuickMode(){
   quickDefaultLogo();quickDefaultPastor();
-  const logos=state.library.assets.filter(a=>a.type==='logo'),eventLogos=state.library.assets.filter(a=>(a.type==='graphic'&&a.meta?.category==='event_logo')||a.type==='event_logo'),pastors=state.library.assets.filter(a=>a.type==='pastor'),churchImages=state.library.assets.filter(a=>a.type==='church'),refs=state.library.assets.filter(a=>a.type==='reference');
+  const logos=state.library.assets.filter(a=>a.type==='logo'&&logoVariantRole(a)!=='contrast'),eventLogos=state.library.assets.filter(a=>((a.type==='graphic'&&a.meta?.category==='event_logo')||a.type==='event_logo')&&logoVariantRole(a)!=='contrast'),pastors=state.library.assets.filter(a=>a.type==='pastor'),churchImages=state.library.assets.filter(a=>a.type==='church'),refs=state.library.assets.filter(a=>a.type==='reference');
   document.querySelector('.footer').style.display='none';document.querySelector('#mobileStepbar').style.display='none';
   document.querySelector('#eyebrow').textContent='MODO RÁPIDO';document.querySelector('#pageTitle').textContent='Crie em poucos campos';
   const selectedFormat=quickTargetSpec(state.quick.format);
