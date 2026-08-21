@@ -1,3 +1,4 @@
+// ChurchDesign V0.30.7 — persistent gallery history
 const BUCKET = "churchart-assets";
 
 function cfg() {
@@ -139,7 +140,7 @@ module.exports = async function handler(req, res) {
       const [profile, assets, generations, drafts] = await Promise.all([
         rest(`church_profile?id=eq.${encodeURIComponent(churchId)}&select=*`),
         rest(`church_assets?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=created_at.desc`),
-        rest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=created_at.desc&limit=12`),
+        rest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=created_at.desc&limit=100`),
         rest(`church_drafts?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=updated_at.desc&limit=30`)
       ]);
 
