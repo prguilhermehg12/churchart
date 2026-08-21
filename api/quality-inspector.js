@@ -2,7 +2,7 @@ module.exports.config={maxDuration:60};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
 function jobCfg(){const raw=process.env.SUPABASE_URL,key=process.env.SUPABASE_SECRET_KEY;if(!raw||!key)return null;return{url:raw.replace(/\/+$/,""),key};}
 async function jobRest(path,opts={}){const c=jobCfg();if(!c)return null;const r=await fetch(`${c.url}/rest/v1/${path}`,{...opts,headers:{apikey:c.key,Authorization:`Bearer ${c.key}`,"Content-Type":"application/json",...(opts.headers||{})}});const text=await r.text();if(!r.ok)throw new Error(`Checkpoint ${r.status}: ${text.slice(0,160)}`);return text?JSON.parse(text):null;}
-async function persistJobCheckpoint(jobId,patch={}){if(!jobId)return;try{const churchId="default";const rows=await jobRest(`church_drafts?id=eq.${encodeURIComponent(jobId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`);const current=rows?.[0]?.data||{};const next={...current,kind:"generation_job",...patch,updatedAt:new Date().toISOString()};await jobRest("church_drafts?on_conflict=id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify([{id:jobId,church_id:churchId,title:"__GENERATION_JOB__",data:next,updated_at:new Date().toISOString()}])});}catch(e){console.error("Generation checkpoint",e);}}
+async function persistJobCheckpoint(jobId,patch={}){if(!jobId)return;try{const churchId=patch.jobChurchId||"default";delete patch.jobChurchId;const rows=await jobRest(`church_drafts?id=eq.${encodeURIComponent(jobId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`);const current=rows?.[0]?.data||{};const next={...current,kind:"generation_job",...patch,updatedAt:new Date().toISOString()};await jobRest("church_drafts?on_conflict=id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify([{id:jobId,church_id:churchId,title:"__GENERATION_JOB__",data:next,updated_at:new Date().toISOString()}])});}catch(e){console.error("Generation checkpoint",e);}}
 
 const schema={type:"object",additionalProperties:false,required:["approved","critical_error","score","human_fidelity","logo_fidelity","content_accuracy","reference_coherence","typography_conversion_safe","typography_score","typography_reason","gross_errors","correction_prompt"],properties:{
 approved:{type:"boolean"},critical_error:{type:"boolean"},score:{type:"number"},
@@ -135,7 +135,7 @@ module.exports=async function handler(req,res){
     // hard gates
     if(!review.technicalFailure&&(review.human_fidelity<82||review.logo_fidelity<88||review.content_accuracy<90))review.approved=false;
     if(!review.technicalFailure&&(review.human_fidelity<65||review.logo_fidelity<70||review.content_accuracy<75))review.critical_error=true;
-    await persistJobCheckpoint(data.jobId,{status:"INSPECTED",review,inspectorMeta:{model:"gpt-5.6-sol",usage:d.usage||null,requestId,endpoint:"responses"}});
-    return res.status(200).json({success:true,review,meta:{model:'gpt-5.6-sol',usage:d.usage||null,requestId,endpoint:'responses'}});
+    await persistJobCheckpoint(data.jobId,{jobChurchId:data.jobChurchId,status:"INSPECTED",review,inspectorMeta:{model:"gpt-5.6-sol",usage:d.usage||null,requestId,endpoint:"responses"}});
+    return res.status(200).json({success:true,endpointType:'quality-inspector',review,meta:{model:'gpt-5.6-sol',usage:d.usage||null,requestId,endpoint:'responses'}});
   }catch(e){console.error("ChurchDesign quality inspector",e);return res.status(500).json({error:e.message||"Erro no fiscal."});}
 };
