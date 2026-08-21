@@ -1,5 +1,9 @@
 module.exports.config={maxDuration:60};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
+function jobCfg(){const raw=process.env.SUPABASE_URL,key=process.env.SUPABASE_SECRET_KEY;if(!raw||!key)return null;return{url:raw.replace(/\/+$/,""),key};}
+async function jobRest(path,opts={}){const c=jobCfg();if(!c)return null;const r=await fetch(`${c.url}/rest/v1/${path}`,{...opts,headers:{apikey:c.key,Authorization:`Bearer ${c.key}`,"Content-Type":"application/json",...(opts.headers||{})}});const text=await r.text();if(!r.ok)throw new Error(`Checkpoint ${r.status}: ${text.slice(0,160)}`);return text?JSON.parse(text):null;}
+async function persistJobCheckpoint(jobId,patch={}){if(!jobId)return;try{const churchId="default";const rows=await jobRest(`church_drafts?id=eq.${encodeURIComponent(jobId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`);const current=rows?.[0]?.data||{};const next={...current,kind:"generation_job",...patch,updatedAt:new Date().toISOString()};await jobRest("church_drafts?on_conflict=id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify([{id:jobId,church_id:churchId,title:"__GENERATION_JOB__",data:next,updated_at:new Date().toISOString()}])});}catch(e){console.error("Generation checkpoint",e);}}
+
 const schema={type:"object",additionalProperties:false,required:["approved","critical_error","score","human_fidelity","logo_fidelity","content_accuracy","reference_coherence","typography_conversion_safe","typography_score","typography_reason","gross_errors","correction_prompt"],properties:{
 approved:{type:"boolean"},critical_error:{type:"boolean"},score:{type:"number"},
 human_fidelity:{type:"number"},logo_fidelity:{type:"number"},content_accuracy:{type:"number"},reference_coherence:{type:"number"},typography_conversion_safe:{type:"boolean"},typography_score:{type:"number"},typography_reason:{type:"string"},
@@ -21,6 +25,9 @@ ERROS CRÍTICOS que reprovam:
 - logo colocada dentro de caixa/card/placa/selo/fundo próprio sem que isso exista claramente na referência ou tenha sido pedido;
 - símbolo, ícone ou qualquer parte da logo repetido em outro ponto da arte, ou mais de uma instância da identidade visual sem pedido explícito;
 - título/data/horário/endereço obrigatórios errados, inventados ou ausentes;
+- QUALQUER texto legível que não esteja na allowlist atual;
+- qualquer palavra, slogan, nome, data, número ou frase herdada semanticamente da referência;
+- qualquer placeholder visual como “reservado para logo”, “logo aqui”, caixa/rótulo de logo ou marca inventada;
 - erro grosseiro de posicionamento quando o usuário especificou uma região;
 - arte quebrada, ilegível ou com artefatos severos;
 - composição artificial de cartaz/quadro menor dentro de outro fundo/moldura sem que isso faça parte da referência ou instrução;
@@ -89,6 +96,8 @@ TIPOGRAFIA FINAL:
 - Compare a linguagem tipográfica com a referência; diferença significativa sem justificativa reduz a fidelidade.
 Público-alvo escolhido: ${data.audience||"não especificado"}
 Estilo escolhido: ${data.designStyle||"não especificado"}\nPosição prioritária da logo: ${data.logoPosition||"seguir referência / automática"}\nPosição/zona da logo de evento: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"automática entre seis zonas centrais"}\nTamanho máximo da logo de evento: ${data.eventLogoSize||data.assets?.eventLogo?.size||"small"} (small≈14% da largura; medium≈20%; large≈26%)\nOmitir logo principal: ${data.omitChurchLogo?"SIM":"não"}\nOmitir nome da igreja: ${data.omitChurchName?"SIM":"não"}
+TEXTOS AUTORIZADOS (ALLOWLIST): ${JSON.stringify(data.allowedTexts||[data.requiredContent?.title,data.requiredContent?.subtitle,data.requiredContent?.date,data.requiredContent?.time,data.requiredContent?.address,data.requiredContent?.churchName,...(data.requiredContent?.pastorNames||[])].filter(Boolean))}
+REGRA: qualquer outro texto legível é inventado/herdado e deve reprovar.
 Mapa/posições: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.userInstruction||""}
 Instrução final: ${data.finalInstruction||""}
@@ -126,6 +135,7 @@ module.exports=async function handler(req,res){
     // hard gates
     if(!review.technicalFailure&&(review.human_fidelity<82||review.logo_fidelity<88||review.content_accuracy<90))review.approved=false;
     if(!review.technicalFailure&&(review.human_fidelity<65||review.logo_fidelity<70||review.content_accuracy<75))review.critical_error=true;
+    await persistJobCheckpoint(data.jobId,{status:"INSPECTED",review,inspectorMeta:{model:"gpt-5.6-sol",usage:d.usage||null,requestId,endpoint:"responses"}});
     return res.status(200).json({success:true,review,meta:{model:'gpt-5.6-sol',usage:d.usage||null,requestId,endpoint:'responses'}});
   }catch(e){console.error("ChurchDesign quality inspector",e);return res.status(500).json({error:e.message||"Erro no fiscal."});}
 };
