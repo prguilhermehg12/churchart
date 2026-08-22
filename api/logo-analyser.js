@@ -1,4 +1,4 @@
-// ChurchDesign V0.31.5 — conservative semantic occupancy analyzer + diagnostics
+// ChurchDesign V0.31.6 — conservative semantic occupancy analyzer + explicit failure diagnostics
 module.exports.config={maxDuration:60};
 
 const RESPONSES_URL="https://api.openai.com/v1/responses";
@@ -147,6 +147,14 @@ Objetivo: permitir que um programa coloque logos sem cobrir pessoa, rosto, mão,
     });
   }catch(e){
     console.error("ChurchDesign Logo Analyzer",e);
-    return res.status(500).json({error:e.message||"Erro no analisador de ocupação."});
+    return res.status(500).json({
+      error:e.message||"Erro no analisador de ocupação.",
+      diagnostic:{
+        stage:"logo-analyzer",
+        name:e?.name||"Error",
+        message:e?.message||String(e),
+        model:process.env.LOGO_ANALYZER_MODEL||"gpt-5.6-terra"
+      }
+    });
   }
 };
