@@ -480,7 +480,7 @@
 .pastor-order-pill b{color:white}
 
 </style>
-  <!-- ChurchDesign V0.31.2 — fullscreen preview / post-art smart logo placement / gallery delete -->
+  <!-- ChurchDesign V0.31.3 — immutable base plate / occupancy map / pure logo solver -->
 </head>
 <body>
   <div class="app-shell">
@@ -1183,7 +1183,7 @@ for(let i=0;i<variantSpecs.length;i++){if(stopRequested)break;const v=variantSpe
   stopBtn.onclick=()=>{stopRequested=true;stopBtn.disabled=true;stopBtn.textContent='Parando...';if(currentController)currentController.abort();};
   function selectedKeep(i,f){const box=document.querySelector(`[data-keep-box="${i}-${f}"]`);if(!box)return ['all'];const vals=[...box.querySelectorAll('[data-keep].active')].map(x=>x.dataset.keep);return vals.length?vals:['all'];}
   async function generateOneAdaptation(i,format,redesign=false){const source=currentImages[i];if(!source)return;const target=targetSpec(format),keep=selectedKeep(i,format),list=document.querySelector(`#adaptList-${i}`);const tempId=`adapt-${i}-${format}-${Date.now()}`;list.insertAdjacentHTML('beforeend',`<div class="adaptation-card" id="${tempId}"><div style="width:68px;height:45px;border-radius:7px;background:#171a20;display:grid;place-items:center"><div class="loader-orb" style="width:22px;height:22px"></div></div><div class="adaptation-info"><strong>${target.label}</strong><small>Gerando ${target.width} × ${target.height}...</small></div></div>`);try{const ref=await prepareImageForAI(source.baseUrl||source.dataUrl,1280,.78);const d=await generateWithInvisibleReview({mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},0);const normalized=await normalizeArtworkToTarget(d,{mode:'adaptation',format,reference:ref,references:[{image:ref,note:'Preserve claramente o estilo e a identidade visual desta proposta.'}],target,keep,redesign,sourceLabel:source.label,instruction:state.instruction,finalInstruction:state.finalInstruction,effects:state.finalConfig.effects,artDirection:state.artDirection,semanticMap:state.layers.map(l=>({type:l.type,x:l.x,y:l.y,w:l.w,h:l.h,replacement:l.replacement||''})),assets:await selectedAssetPayload(),requiredContent:exactContentFromLayers()},target);const finalData=normalized.dataUrl;
-    const detailedChild={id:crypto.randomUUID(),label:`${source.label} • ${target.label}`,format,target,dataUrl:finalData,baseDataUrl:normalized.baseDataUrl,sourceUrl:d.url,artDirection:state.artDirection,requiredContent:exactContentFromLayers(),assets:await selectedAssetPayload(),instruction:state.instruction};
+    const detailedChild={id:crypto.randomUUID(),label:`${source.label} • ${target.label}`,format,target,dataUrl:finalData,baseDataUrl:normalized.baseDataUrl,sourceUrl:d.url,artDirection:state.artDirection,requiredContent:exactContentFromLayers(),assets:await selectedAssetPayload(),instruction:state.instruction,occupancy:normalized.occupancy||null,logoPlan:normalized.logoPlan||null,logoReceipt:normalized.logoReceipt||null,logoDegradations:normalized.logoDegradations||[]};
     await persistGalleryArtwork(detailedChild,{kind:'arte filha',parentArtworkId:source.galleryId||null,sourceArtworkId:source.galleryId||null,format});
     const card=document.getElementById(tempId);card.className=`adaptation-card ${format==='story'?'story':''}`;card.innerHTML=`<img src="${finalData}"><div class="adaptation-info"><strong>${target.label} • ${target.width} × ${target.height}</strong><small>${redesign?'Layout redesenhado':'Adaptação concluída'} • ${keep.includes('all')?'Tudo mantido':keep.join(', ')}</small></div><div class="adaptation-actions"><button class="mini-btn download-btn" type="button" data-adapt-download>↓ Baixar</button><button class="mini-btn" type="button" data-adapt-redraw>↻ Redesenhar</button></div>`;card.querySelector('[data-adapt-download]').onclick=()=>downloadDataUrl(finalData,`${buildDownloadName(source.label).replace('.png','')}-${format}.png`);card.querySelector('[data-adapt-redraw]').onclick=()=>generateOneAdaptation(i,format,true);}catch(e){const card=document.getElementById(tempId);if(card)card.innerHTML=`<div></div><div class="adaptation-info"><strong style="color:#ff9eac">${target.label}: falhou</strong><small>${esc(e.message)}</small></div><div class="adaptation-actions"><button class="mini-btn" type="button" data-retry>Repetir</button></div>`;card?.querySelector('[data-retry]')?.addEventListener('click',()=>generateOneAdaptation(i,format,redesign));}}
   async function generateAdaptationsFor(i){const formats=['screen','youtube','story'].filter(f=>document.querySelector(`[data-adapt-toggle="${i}-${f}"]`)?.classList.contains('active'));if(!formats.length)return showMapNotice('Selecione um formato','Marque Telão, YouTube e/ou Stories.');for(const f of formats)await generateOneAdaptation(i,f,false);}
@@ -1344,58 +1344,226 @@ async function imageAverageLuminance(src){
   let d;try{d=x.getImageData(0,0,48,48).data}catch(e){throw new Error('Não foi possível analisar o contraste da logo com segurança. A imagem remota não foi convertida para uma cópia local.')}
   let s=0,n=0;for(let i=0;i<d.length;i+=16){if(d[i+3]<30)continue;s+=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;n++}return n?s/n:.5;
 }
-function logoZoneCandidates(position='top-left',kind='church'){
-  const p=normalizeLogoRegion(position,kind);
-  if(kind==='church'){
-    const m={
-      'top-left':[[.055,.055],[.08,.065],[.055,.11]],
-      'top-center':[[.50,.055],[.50,.09],[.42,.065],[.58,.065]],
-      'top-right':[[.945,.055],[.92,.065],[.945,.11]],
-      'bottom-left':[[.055,.945],[.08,.925],[.055,.89]],
-      'bottom-center':[[.50,.945],[.50,.91],[.42,.935],[.58,.935]],
-      'bottom-right':[[.945,.945],[.92,.925],[.945,.89]]
-    };
-    return m[p]||m['top-left'];
-  }
-  // Evento: seis zonas dentro dos 3/5 centrais. Os valores são CENTROS candidatos,
-  // não cantos; mantemos distância das bordas e oferecemos alternativas locais.
-  const m={
-    'left-top':[[.27,.31],[.32,.31],[.27,.36],[.34,.36],[.23,.35]],
-    'left-middle':[[.27,.50],[.32,.50],[.27,.45],[.32,.56],[.23,.53]],
-    'left-bottom':[[.27,.69],[.32,.69],[.27,.64],[.34,.64],[.23,.66]],
-    'right-top':[[.73,.31],[.68,.31],[.73,.36],[.66,.36],[.77,.35]],
-    'right-middle':[[.73,.50],[.68,.50],[.73,.45],[.68,.56],[.77,.53]],
-    'right-bottom':[[.73,.69],[.68,.69],[.73,.64],[.66,.64],[.77,.66]]
+
+/*
+LOGO PIPELINE V0.31.3 — INVARIANTS
+INV-1: baseDataUrl is the immutable base plate. Logo code never regenerates it.
+INV-2: solveLogoPlan is pure JSON -> JSON. No network, canvas or randomness.
+INV-3: CHURCH and EVENT are typed slots. A slot may be omitted, never substituted.
+INV-4: any logo-pipeline exception degrades to the base plate; it never rejects an artwork.
+*/
+const LOGO_CRITICAL_TYPES=new Set(["person","face","hand","microphone","instrument","text_title","text_subtitle","text_date","text_address","text_other","graphic_focus"]);
+const LOGO_INFLATE={
+  person:.010,face:.026,hand:.018,microphone:.018,instrument:.012,
+  text_title:.022,text_subtitle:.018,text_date:.018,text_address:.018,text_other:.012,graphic_focus:.014
+};
+function nclamp(v,a=0,b=1){v=Number(v);return Number.isFinite(v)?Math.max(a,Math.min(b,v)):a}
+function normalizedOccupancy(raw={},target={}){
+  const regions=(raw.regions||[]).map(r=>({
+    type:String(r.type||"graphic_focus"),
+    x0:nclamp((Number(r.x0)||0)/1000),y0:nclamp((Number(r.y0)||0)/1000),
+    x1:nclamp((Number(r.x1)||0)/1000),y1:nclamp((Number(r.y1)||0)/1000),
+    confidence:nclamp(r.confidence,0,1)
+  })).filter(r=>r.x1>r.x0&&r.y1>r.y0&&r.confidence>=.25);
+  const tg=raw.toneGrid||raw.tone_grid||{};
+  const cols=8,rows=10,input=Array.isArray(tg.values)?tg.values:[];
+  return{
+    version:1,width:Number(target.width)||1080,height:Number(target.height)||1350,
+    regions,toneGrid:{cols,rows,values:Array.from({length:cols*rows},(_,i)=>nclamp((input[i]??50)/100,0,1))},
+    degraded:!!raw.degraded,degradations:[...(raw.degradations||[])]
   };
-  return m[p]||m['right-middle'];
 }
-function regionPixelMetrics(ctx,x,y,w,h){
-  const sx=Math.max(0,Math.floor(x)),sy=Math.max(0,Math.floor(y)),sw=Math.max(1,Math.min(ctx.canvas.width-sx,Math.floor(w))),sh=Math.max(1,Math.min(ctx.canvas.height-sy,Math.floor(h)));
-  let d;try{d=ctx.getImageData(sx,sy,sw,sh).data}catch(e){console.warn('Logo planner: leitura de pixels indisponível; usando posicionamento conservador.',e);return{luminance:.5,complexity:.45,pixelReadUnavailable:true}}
-  let lum=0,lum2=0,edges=0,n=0,prev=null;for(let i=0;i<d.length;i+=32){if(d[i+3]<20)continue;const l=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;lum+=l;lum2+=l*l;if(prev!==null)edges+=Math.abs(l-prev);prev=l;n++}if(!n)return{luminance:.5,complexity:.45};const avg=lum/n,variance=Math.max(0,lum2/n-avg*avg);return{luminance:avg,complexity:Math.min(1,(edges/Math.max(1,n-1))*2.5+variance*2.5)}
+function fallbackOccupancy(target={},reason="analyzer-unavailable"){
+  return normalizedOccupancy({regions:[],toneGrid:{values:Array(80).fill(50)},degraded:true,degradations:[reason]},target);
 }
-async function resolveLogoPlacement(src,position,sizeFraction=.14,kind='church',{forceRelocation=false}={}){
-  const safeSrc=String(src||'').startsWith('data:image/')||String(src||'').startsWith('blob:')?src:await remoteToDataUrl(src);
-  const im=await loadImage(safeSrc),reg=normalizeLogoRegion(position,kind),size=Math.max(.06,Math.min(.30,Number(sizeFraction)||.14));
-  const cv=document.createElement('canvas'),ctx=cv.getContext('2d',{willReadFrequently:true});cv.width=im.width;cv.height=im.height;ctx.drawImage(im,0,0);
-  let best=null;
-  for(const [i,c] of logoZoneCandidates(reg,kind).entries()){
-    let w=Math.max(40,im.width*size),h=Math.max(24,w*.42);
-    let x=c[0]*im.width-w/2,y=c[1]*im.height-h/2;
-    x=Math.max(im.width*.035,Math.min(im.width-w-im.width*.035,x));
-    y=Math.max(im.height*.035,Math.min(im.height-h-im.height*.035,y));
-    let metrics={luminance:.5,complexity:.5,pixelReadUnavailable:true};
-    try{metrics=regionPixelMetrics(ctx,x,y,w,h)}catch(e){console.warn('Logo planner local fallback',e)}
-    // proximidade da zona escolhida vale mais; dentro dela, escolha a área visualmente mais calma.
-    const relocationPenalty=(forceRelocation&&i===0?.65:0);
-    const score=1-(i*.07)-relocationPenalty-(metrics.complexity||.5)*.78;
-    if(!best||score>best.score)best={x,y,w,h,backgroundLum:metrics.luminance??.5,complexity:metrics.complexity??.5,score,region:reg,candidateIndex:i,localAnalysis:!metrics.pixelReadUnavailable};
+async function analyzeLogoOccupancy(baseDataUrl,target,signal=null){
+  try{
+    const image=await prepareImageForAI(baseDataUrl,1280,.84);
+    const r=await fetch('/api/logo-analyzer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image,target}),signal});
+    const text=await r.text();let data;
+    try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,180)||`Logo Analyzer: resposta inválida (${r.status})`)}
+    if(!r.ok)throw new Error(data.error||`Logo Analyzer: erro ${r.status}`);
+    if(data.meta)recordOpenAIRequest('Logo Analyzer',data.meta);
+    return normalizedOccupancy(data.occupancy||{},target);
+  }catch(e){
+    console.warn('Logo Analyzer indisponível; usando fallback geométrico.',e);
+    return fallbackOccupancy(target,'semantic-analyzer-failed');
+  }
+}
+function rectArea(r){return Math.max(0,r.x1-r.x0)*Math.max(0,r.y1-r.y0)}
+function rectIntersection(a,b){
+  const x0=Math.max(a.x0,b.x0),y0=Math.max(a.y0,b.y0),x1=Math.min(a.x1,b.x1),y1=Math.min(a.y1,b.y1);
+  return Math.max(0,x1-x0)*Math.max(0,y1-y0);
+}
+function inflateRect(r,p=.01){
+  return{x0:nclamp(r.x0-p),y0:nclamp(r.y0-p),x1:nclamp(r.x1+p),y1:nclamp(r.y1+p)};
+}
+function candidateHitsCritical(rect,occ,extraAvoid=[]){
+  const blockers=[
+    ...(occ.regions||[]).filter(r=>LOGO_CRITICAL_TYPES.has(r.type)).map(r=>inflateRect(r,LOGO_INFLATE[r.type]??.012)),
+    ...(extraAvoid||[])
+  ];
+  return blockers.some(b=>rectIntersection(rect,b)>0.000001);
+}
+function preferredLogoZone(slot,position){
+  const kind=slot==='CHURCH'?'church':'event',p=normalizeLogoRegion(position,kind);
+  const map={
+    'top-left':{x0:.035,y0:.035,x1:.38,y1:.27},'top-center':{x0:.31,y0:.035,x1:.69,y1:.27},'top-right':{x0:.62,y0:.035,x1:.965,y1:.27},
+    'bottom-left':{x0:.035,y0:.73,x1:.38,y1:.965},'bottom-center':{x0:.31,y0:.73,x1:.69,y1:.965},'bottom-right':{x0:.62,y0:.73,x1:.965,y1:.965},
+    'left-top':{x0:.10,y0:.18,x1:.49,y1:.43},'left-middle':{x0:.10,y0:.34,x1:.49,y1:.66},'left-bottom':{x0:.10,y0:.57,x1:.49,y1:.82},
+    'right-top':{x0:.51,y0:.18,x1:.90,y1:.43},'right-middle':{x0:.51,y0:.34,x1:.90,y1:.66},'right-bottom':{x0:.51,y0:.57,x1:.90,y1:.82}
+  };
+  return map[p]||map[slot==='CHURCH'?'top-left':'right-middle'];
+}
+function expandZone(z,amount){
+  return{x0:nclamp(z.x0-amount,.035,.965),y0:nclamp(z.y0-amount,.035,.965),x1:nclamp(z.x1+amount,.035,.965),y1:nclamp(z.y1+amount,.035,.965)};
+}
+function averageToneInRect(occ,rect){
+  const g=occ.toneGrid||{},cols=g.cols||8,rows=g.rows||10,vals=g.values||[];
+  let sum=0,n=0;
+  for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
+    const cell={x0:col/cols,y0:row/rows,x1:(col+1)/cols,y1:(row+1)/rows};
+    if(rectIntersection(rect,cell)>0){sum+=nclamp(vals[row*cols+col]??.5);n++}
+  }
+  return n?sum/n:.5;
+}
+function chooseVariantFromTone(pref,tone){
+  const variants=(pref.variants||[]).filter(v=>v&&v.assetId);
+  if(!variants.length)return null;
+  if(variants.length===1)return variants[0];
+  let best=variants[0],bestContrast=-1;
+  for(const v of variants){
+    const lum=Number.isFinite(v.luminance)?v.luminance:.5;
+    const contrast=Math.abs(lum-tone);
+    if(contrast>bestContrast){best=v;bestContrast=contrast}
   }
   return best;
 }
-async function chooseLogoVariant(primary,contrast,backgroundLum){
-  if(!contrast)return primary;try{const[a,b]=await Promise.all([imageAverageLuminance(logoAssetSource(primary)),imageAverageLuminance(logoAssetSource(contrast))]);return Math.abs(b-backgroundLum)>Math.abs(a-backgroundLum)?contrast:primary}catch(e){console.warn('Contraste automático indisponível; usando a logo principal.',e);return primary}
+function logoCandidateRects(zone,wNorm,hNorm,step=.025){
+  const out=[];
+  const minX=zone.x0,maxX=zone.x1-wNorm,minY=zone.y0,maxY=zone.y1-hNorm;
+  if(maxX<minX||maxY<minY)return out;
+  const anchorX=(zone.x0+zone.x1-wNorm)/2,anchorY=(zone.y0+zone.y1-hNorm)/2;
+  for(let y=minY;y<=maxY+.0001;y+=step)for(let x=minX;x<=maxX+.0001;x+=step){
+    out.push({x0:x,y0:y,x1:x+wNorm,y1:y+hNorm,anchorDistance:Math.hypot(x-anchorX,y-anchorY)});
+  }
+  out.sort((a,b)=>a.anchorDistance-b.anchorDistance||a.y0-b.y0||a.x0-b.x0);
+  return out;
 }
+function solveLogoSlot(occ,pref,occupied=[]){
+  if(!pref||pref.visible===false||!pref.assetId)return{slot:pref?.slot||'UNKNOWN',omitted:true,reason:'not-requested'};
+  const W=occ.width||1080,H=occ.height||1350,ar=Math.max(.08,Number(pref.aspectRatio)||1);
+  let wNorm=nclamp(pref.widthNorm,.06,.26),hNorm=wNorm*(W/H)/ar;
+  if(hNorm>.24){const scale=.24/hNorm;wNorm*=scale;hNorm=.24}
+  const preferred=preferredLogoZone(pref.slot,pref.position);
+  const search=[
+    {zone:preferred,zoneHonored:true,level:0},
+    {zone:expandZone(preferred,.05),zoneHonored:false,level:1},
+    {zone:expandZone(preferred,.11),zoneHonored:false,level:2},
+    {zone:{x0:.04,y0:.04,x1:.96,y1:.96},zoneHonored:false,level:3}
+  ];
+  const extraAvoid=[...occupied,...(pref.extraAvoid||[])];
+  for(const phase of search){
+    let best=null;
+    for(const rect of logoCandidateRects(phase.zone,wNorm,hNorm,.025)){
+      if(candidateHitsCritical(rect,occ,extraAvoid))continue;
+      const tone=averageToneInRect(occ,rect),variant=chooseVariantFromTone(pref,tone);
+      const variantContrast=variant?Math.abs((Number.isFinite(variant.luminance)?variant.luminance:.5)-tone):0;
+      const edgeMargin=Math.min(rect.x0,rect.y0,1-rect.x1,1-rect.y1);
+      const score=100-(rect.anchorDistance*42)+(variantContrast*28)+(edgeMargin*12)-(phase.level*9);
+      if(!best||score>best.score)best={rect,tone,variant,score,zoneHonored:phase.zoneHonored,searchLevel:phase.level};
+    }
+    if(best)return{
+      slot:pref.slot,assetId:pref.assetId,variantAssetId:best.variant?.assetId||pref.assetId,
+      variantRole:best.variant?.role||'primary',rect:best.rect,zoneHonored:best.zoneHonored,
+      requestedPosition:pref.position,searchLevel:best.searchLevel,score:best.score,omitted:false
+    };
+  }
+  return{slot:pref.slot,assetId:pref.assetId,omitted:true,reason:'no-safe-space',requestedPosition:pref.position};
+}
+function solveLogoPlan(occupancy,preferences={}){
+  const occ=occupancy||fallbackOccupancy(preferences.target||{},'missing-occupancy'),placements=[],occupied=[],degradations=[...(occ.degradations||[])];
+  for(const slot of ['CHURCH','EVENT']){
+    const p=solveLogoSlot(occ,preferences[slot],occupied);
+    placements.push(p);
+    if(!p.omitted)occupied.push(p.rect);
+    else if(preferences[slot]?.visible!==false)degradations.push(`${slot}:${p.reason}`);
+  }
+  return{version:1,placements,degradations};
+}
+async function localLogoLuminance(asset){
+  if(!asset)return .5;
+  if(Number.isFinite(asset?.meta?.meanLuminance))return nclamp(asset.meta.meanLuminance);
+  try{return nclamp(await imageAverageLuminance(logoAssetSource(asset)))}
+  catch(e){console.warn('Luminância da logo indisponível; usando valor neutro.',e);return .5}
+}
+async function logoPreferenceFor(slot,asset,payload,target){
+  if(!asset)return{slot,visible:false,assetId:null};
+  const src=logoAssetSource(asset);if(!src)return{slot,visible:false,assetId:asset.id||null,unresolved:true};
+  let aspectRatio=1;
+  try{const img=await loadImageSafe(src);aspectRatio=(img.naturalWidth||img.width)/(img.naturalHeight||img.height)||1}catch(e){console.warn('Aspect ratio da logo indisponível',e)}
+  const contrast=findLogoContrastVariant(asset);
+  const variants=[
+    {assetId:asset.id,role:'primary',source:src,luminance:await localLogoLuminance(asset)}
+  ];
+  if(contrast&&logoAssetSource(contrast))variants.push({assetId:contrast.id,role:'contrast',source:logoAssetSource(contrast),luminance:await localLogoLuminance(contrast)});
+  const isChurch=slot==='CHURCH';
+  const widthNorm=isChurch?churchLogoSizeFraction(payload.churchLogoSizePct||.16):eventLogoSizeFraction(payload.eventLogoSize||payload.eventLogoSizePct||'small');
+  const extraAvoid=[];
+  if(!isChurch&&payload.forceEventLogoRelocation&&payload.previousLogoPlan){
+    const old=(payload.previousLogoPlan.placements||[]).find(x=>x.slot==='EVENT'&&!x.omitted);
+    if(old?.rect)extraAvoid.push(inflateRect(old.rect,.025));
+  }
+  if(isChurch&&payload.forceChurchLogoRelocation&&payload.previousLogoPlan){
+    const old=(payload.previousLogoPlan.placements||[]).find(x=>x.slot==='CHURCH'&&!x.omitted);
+    if(old?.rect)extraAvoid.push(inflateRect(old.rect,.025));
+  }
+  return{
+    slot,visible:true,assetId:asset.id,aspectRatio,widthNorm,variants,extraAvoid,
+    position:isChurch?normalizeLogoRegion(payload.logoPosition||'top-left','church'):normalizeLogoRegion(payload.eventLogoPosition||'right-middle','event')
+  };
+}
+async function buildLogoPreferences(payload,target){
+  const church=payload.assets?.logo||null,event=payload.assets?.eventLogo||null;
+  return{
+    target,
+    CHURCH:await logoPreferenceFor('CHURCH',church&&!payload.omitChurchLogo?church:null,payload,target),
+    EVENT:await logoPreferenceFor('EVENT',event&&!payload.omitEventLogo?event:null,payload,target)
+  };
+}
+function assetForPlannedPlacement(pref,placement){
+  if(!pref||!placement||placement.omitted)return null;
+  if(String(placement.assetId)!==String(pref.assetId))return null;
+  const variant=(pref.variants||[]).find(v=>String(v.assetId)===String(placement.variantAssetId));
+  return variant||pref.variants?.[0]||null;
+}
+async function renderLogoPlan(baseDataUrl,plan,preferences){
+  const base=await loadImage(baseDataUrl),cv=document.createElement('canvas'),ctx=cv.getContext('2d');
+  cv.width=base.width;cv.height=base.height;ctx.drawImage(base,0,0);
+  const receipt=[],degradations=[...(plan.degradations||[])];
+  for(const placement of plan.placements||[]){
+    if(placement.omitted){receipt.push({slot:placement.slot,omitted:true,reason:placement.reason||'omitted'});continue}
+    const pref=preferences[placement.slot],variant=assetForPlannedPlacement(pref,placement);
+    if(!variant?.source){receipt.push({slot:placement.slot,omitted:true,reason:'asset-unresolved'});degradations.push(`${placement.slot}:asset-unresolved`);continue}
+    try{
+      const img=await loadImageSafe(variant.source),r=placement.rect;
+      const x=Math.round(r.x0*cv.width),y=Math.round(r.y0*cv.height),w=Math.max(1,Math.round((r.x1-r.x0)*cv.width));
+      const ratio=(img.naturalWidth||img.width)/(img.naturalHeight||img.height)||1,h=Math.max(1,Math.round(w/ratio));
+      if(x<0||y<0||x+w>cv.width||y+h>cv.height){receipt.push({slot:placement.slot,omitted:true,reason:'out-of-canvas'});degradations.push(`${placement.slot}:out-of-canvas`);continue}
+      ctx.drawImage(img,x,y,w,h);
+      receipt.push({slot:placement.slot,expectedAssetId:pref.assetId,actualAssetId:variant.assetId,variantRole:variant.role,x,y,width:w,height:h,omitted:false});
+    }catch(e){
+      console.warn(`Falha ao compor ${placement.slot}`,e);
+      receipt.push({slot:placement.slot,omitted:true,reason:'compose-failed'});degradations.push(`${placement.slot}:compose-failed`);
+    }
+  }
+  return{dataUrl:cv.toDataURL('image/png',1),receipt,degradations};
+}
+
+
+
+
+
 
 async function bootstrapLibrary(){try{const data=await apiJSON('bootstrap');state.library.assets=data.assets||[];const savedLogos=state.library.assets.filter(a=>a.type==='logo');if(!state.finalConfig.logoAssetId&&savedLogos.length)state.finalConfig.logoAssetId=(savedLogos.find(a=>a.is_primary)||savedLogos[0]).id;state.library.generations=data.generations||[];state.gallerySavedIds=allPersistentGalleryItems().map(x=>x.galleryId).filter(Boolean);state.library.drafts=data.drafts||[];state.library.ratings=data.ratings||[];state.library.dbReady=true;if(data.profile){state.church.name=data.profile.name||state.church.name;state.church.address=data.profile.address||state.church.address;state.church.screenConfig=data.profile.screen_config||state.church.screenConfig;state.projectTitle=state.church.name||'Nova arte';}const primary=state.library.assets.find(a=>a.type==='logo'&&a.is_primary)||state.library.assets.find(a=>a.type==='logo');if(primary&&!state.church.logo)state.church.logo=primary.url;render();}catch(e){console.warn('Banco não configurado:',e);state.library.dbReady=false;render();}}
 async function saveChurchProfile(){
@@ -1619,7 +1787,7 @@ function compactGalleryAsset(a){
 function compactGalleryAssets(assets={}){return{logo:compactGalleryAsset(assets.logo),eventLogo:compactGalleryAsset(assets.eventLogo),pastor:compactGalleryAsset(assets.pastor),pastors:(assets.pastors||[]).map(compactGalleryAsset),churchImage:compactGalleryAsset(assets.churchImage)}}
 function galleryQuickSnapshot(){const q=JSON.parse(JSON.stringify(state.quick||{}));if(String(q.reference||'').startsWith('data:'))q.reference=null;return q}
 function makeGenerationRecipe(artwork,extra={}){
-  return{recipeVersion:2,pipelineVersion:'0.30.7',createdAt:new Date().toISOString(),kind:extra.kind||artwork.kind||'principal',parentArtworkId:extra.parentArtworkId||artwork.parentArtworkId||null,sourceArtworkId:extra.sourceArtworkId||artwork.sourceArtworkId||null,quick:galleryQuickSnapshot(),church:JSON.parse(JSON.stringify(state.church||{})),artDirection:artwork.artDirection||state.artDirection||null,requiredContent:artwork.requiredContent||null,assets:compactGalleryAssets(artwork.assets||{}),instruction:artwork.instruction||'',logoPosition:artwork.logoPosition??state.quick.logoPosition??null,eventLogoPosition:artwork.eventLogoPosition??state.quick.eventLogoPosition??null,eventLogoSize:artwork.eventLogoSize??state.quick.eventLogoSize??null,target:artwork.target||null,format:extra.format||artwork.format||artwork.target?.id||state.quick.format||state.format||'feed',basedOnKey:extra.basedOnKey||artwork.basedOnKey||null,basedOnLabel:extra.basedOnLabel||artwork.basedOnLabel||null};
+  return{recipeVersion:3,pipelineVersion:'0.31.3',createdAt:new Date().toISOString(),kind:extra.kind||artwork.kind||'principal',parentArtworkId:extra.parentArtworkId||artwork.parentArtworkId||null,sourceArtworkId:extra.sourceArtworkId||artwork.sourceArtworkId||null,quick:galleryQuickSnapshot(),church:JSON.parse(JSON.stringify(state.church||{})),artDirection:artwork.artDirection||state.artDirection||null,requiredContent:artwork.requiredContent||null,assets:compactGalleryAssets(artwork.assets||{}),instruction:artwork.instruction||'',logoPosition:artwork.logoPosition??state.quick.logoPosition??null,eventLogoPosition:artwork.eventLogoPosition??state.quick.eventLogoPosition??null,eventLogoSize:artwork.eventLogoSize??state.quick.eventLogoSize??null,target:artwork.target||null,format:extra.format||artwork.format||artwork.target?.id||state.quick.format||state.format||'feed',occupancy:artwork.occupancy||null,logoPlan:artwork.logoPlan||null,logoReceipt:artwork.logoReceipt||null,logoDegradations:artwork.logoDegradations||[],basedOnKey:extra.basedOnKey||artwork.basedOnKey||null,basedOnLabel:extra.basedOnLabel||artwork.basedOnLabel||null};
 }
 async function uploadGalleryImage(dataUrl,label,format){
   if(!dataUrl)return null;if(/^https?:\/\//.test(String(dataUrl)))return dataUrl;
@@ -1665,7 +1833,7 @@ async function hydrateGalleryAssets(saved={}){
   return{logo,eventLogo,pastor:pastors[0]||null,pastors,churchImage};
 }
 function galleryItemToQuickResult(item){
-  const r=item.recipe||{};return{id:item.galleryId||crypto.randomUUID(),galleryId:item.galleryId||null,label:item.label||'Arte da galeria',dataUrl:item.url,baseDataUrl:item.baseUrl||item.url,sourceUrl:item.baseUrl||item.url,target:item.target||r.target||quickTargetSpec(item.format||r.format||'feed'),artDirection:r.artDirection||null,requiredContent:r.requiredContent||{},assets:r.assets||{},instruction:r.instruction||'',logoPosition:r.logoPosition??null,eventLogoPosition:r.eventLogoPosition??null,eventLogoSize:r.eventLogoSize??null,adaptations:[],corrections:[],correction:''};
+  const r=item.recipe||{};return{id:item.galleryId||crypto.randomUUID(),galleryId:item.galleryId||null,label:item.label||'Arte da galeria',dataUrl:item.url,baseDataUrl:item.baseUrl||item.url,sourceUrl:item.baseUrl||item.url,target:item.target||r.target||quickTargetSpec(item.format||r.format||'feed'),artDirection:r.artDirection||null,requiredContent:r.requiredContent||{},assets:r.assets||{},instruction:r.instruction||'',logoPosition:r.logoPosition??null,eventLogoPosition:r.eventLogoPosition??null,eventLogoSize:r.eventLogoSize??null,occupancy:r.occupancy||null,logoPlan:r.logoPlan||null,logoReceipt:r.logoReceipt||null,logoDegradations:r.logoDegradations||[],adaptations:[],corrections:[],correction:''};
 }
 function useGalleryAsReference(id){
   const item=findGalleryItem(id);if(!item)return alert('Arte não encontrada na Galeria.');const recipe=item.recipe||null;if(recipe)restoreRecipeToQuick(recipe,{asReference:true});
@@ -2275,8 +2443,8 @@ function bindAllArtworksEvents(){
 function quickReferenceCandidates(){
   const items=[];
   (state.quickResults||[]).forEach((r,i)=>{
-    items.push({key:`main:${i}`,id:r.id,galleryId:r.galleryId||null,parentIndex:i,kind:'principal',label:r.label||`Arte ${i+1}`,dataUrl:r.dataUrl,baseDataUrl:r.baseDataUrl,sourceUrl:r.sourceUrl||r.baseDataUrl||r.dataUrl,target:r.target,artDirection:r.artDirection,requiredContent:r.requiredContent,assets:r.assets,instruction:r.instruction,logoPosition:r.logoPosition,eventLogoPosition:r.eventLogoPosition,eventLogoSize:r.eventLogoSize});
-    (r.corrections||[]).forEach((c,j)=>items.push({key:`correction:${i}:${j}`,id:c.id,galleryId:c.galleryId||null,parentIndex:i,correctionIndex:j,kind:'correção',label:`${r.label||`Arte ${i+1}`} • Correção ${j+1}`,dataUrl:c.dataUrl,baseDataUrl:c.baseDataUrl,sourceUrl:c.sourceUrl||c.baseDataUrl||c.dataUrl,target:c.target||r.target,artDirection:c.artDirection||r.artDirection,requiredContent:c.requiredContent||r.requiredContent,assets:c.assets||r.assets,instruction:c.instruction||r.instruction,logoPosition:c.logoPosition??r.logoPosition,eventLogoPosition:c.eventLogoPosition??r.eventLogoPosition,eventLogoSize:c.eventLogoSize??r.eventLogoSize}));
+    items.push({key:`main:${i}`,id:r.id,galleryId:r.galleryId||null,parentIndex:i,kind:'principal',label:r.label||`Arte ${i+1}`,dataUrl:r.dataUrl,baseDataUrl:r.baseDataUrl,sourceUrl:r.sourceUrl||r.baseDataUrl||r.dataUrl,target:r.target,artDirection:r.artDirection,requiredContent:r.requiredContent,assets:r.assets,instruction:r.instruction,logoPosition:r.logoPosition,eventLogoPosition:r.eventLogoPosition,eventLogoSize:r.eventLogoSize,occupancy:r.occupancy||null,logoPlan:r.logoPlan||null,logoReceipt:r.logoReceipt||null});
+    (r.corrections||[]).forEach((c,j)=>items.push({key:`correction:${i}:${j}`,id:c.id,galleryId:c.galleryId||null,parentIndex:i,correctionIndex:j,kind:'correção',label:`${r.label||`Arte ${i+1}`} • Correção ${j+1}`,dataUrl:c.dataUrl,baseDataUrl:c.baseDataUrl,sourceUrl:c.sourceUrl||c.baseDataUrl||c.dataUrl,target:c.target||r.target,artDirection:c.artDirection||r.artDirection,requiredContent:c.requiredContent||r.requiredContent,assets:c.assets||r.assets,instruction:c.instruction||r.instruction,logoPosition:c.logoPosition??r.logoPosition,eventLogoPosition:c.eventLogoPosition??r.eventLogoPosition,eventLogoSize:c.eventLogoSize??r.eventLogoSize,occupancy:c.occupancy||r.occupancy||null,logoPlan:c.logoPlan||r.logoPlan||null,logoReceipt:c.logoReceipt||r.logoReceipt||null}));
   });
   return items;
 }
@@ -2354,21 +2522,51 @@ async function drawExactOfficialLogo(ctx,canvas,asset,kind,region,widthPct){
   const b=logoBoxForRegion(kind,region,widthPct,iw,ih,canvas.width,canvas.height);
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(img,b.x,b.y,b.w,b.h);ctx.restore();
 }
-async function auditLogoPlacement({canvas,selectedAsset,placement,kind}){
-  if(!selectedAsset||!placement)return{ok:false,reason:`${kind}: dados ausentes`};if(!logoAssetSource(selectedAsset))return{ok:false,reason:`${kind}: arquivo inacessível`};const inside=placement.x>=0&&placement.y>=0&&placement.x+placement.w<=canvas.width&&placement.y+placement.h<=canvas.height;return inside?{ok:true,geometryOnly:true,region:placement.region}:{ok:false,reason:`${kind}: fora do canvas`};
-}
-async function composeOfficialLogos(baseDataUrl,payload,target){
-  const church=payload.assets?.logo||null,event=payload.assets?.eventLogo||null,hasChurch=!!church&&!payload.omitChurchLogo,hasEvent=!!event&&!payload.omitEventLogo;
-  if(!hasChurch&&!hasEvent)return{dataUrl:baseDataUrl,placements:[],audit:{ok:true,expected:0,applied:0}};
-  const base=await loadImage(baseDataUrl),cv=document.createElement('canvas'),ctx=cv.getContext('2d');cv.width=base.width;cv.height=base.height;ctx.drawImage(base,0,0);const placements=[];
-  async function place(primary,kind,preferred,sizeFraction,opts={}){if(!logoAssetSource(primary))throw new Error(`Guardião: arquivo original da logo ${kind} ausente.`);const p=await resolveLogoPlacement(baseDataUrl,preferred,sizeFraction,kind==='da igreja'?'church':'event',opts),selected=await chooseLogoVariant(primary,findLogoContrastVariant(primary),p.backgroundLum),src=logoAssetSource(selected)||logoAssetSource(primary);if(!src)throw new Error(`Guardião: variante da logo ${kind} sem arquivo.`);const logo=await loadImageSafe(src),ar=(logo.naturalWidth||logo.width)/(logo.naturalHeight||logo.height)||1;let w=p.w,h=w/ar;if(h>cv.height*.18){h=cv.height*.18;w=h*ar}let x=p.x,y=p.y,reg=p.region;if(/right/.test(reg))x=Math.max(cv.width*.025,Math.min(cv.width-w-cv.width*.025,p.x+p.w-w));if(/bottom/.test(reg))y=Math.max(cv.height*.025,Math.min(cv.height-h-cv.height*.025,p.y+p.h-h));if(reg==='top-center'||reg==='bottom-center')x=Math.max(cv.width*.025,Math.min(cv.width-w-cv.width*.025,p.x+(p.w-w)/2));ctx.drawImage(logo,x,y,w,h);const fp={...p,x,y,w,h},check=await auditLogoPlacement({canvas:cv,selectedAsset:selected||primary,placement:fp,kind});placements.push({kind,assetId:primary.id,variantId:selected?.id||primary.id,selectedVariant:logoVariantRole(selected||primary),...fp,audit:check})}
-  if(hasChurch)await place(church,'da igreja',normalizeLogoRegion(payload.logoPosition||'top-left','church'),churchLogoSizeFraction(payload.churchLogoSizePct||.18),{forceRelocation:!!payload.forceChurchLogoRelocation});
-  if(hasEvent)await place(event,'de evento',normalizeLogoRegion(payload.eventLogoPosition||'right-middle','event'),eventLogoSizeFraction(payload.eventLogoSize||payload.eventLogoSizePct||'small'),{forceRelocation:!!payload.forceEventLogoRelocation});
-  const expected=(hasChurch?1:0)+(hasEvent?1:0),failed=placements.filter(x=>!x.audit?.ok),auditResult={ok:placements.length===expected&&!failed.length,expected,applied:placements.length,failed};
-  return{dataUrl:cv.toDataURL('image/png',1),placements,audit:auditResult};
+
+async function composeOfficialLogos(baseDataUrl,payload,target,options={}){
+  const church=payload.assets?.logo||null,event=payload.assets?.eventLogo||null;
+  const expected=(church&&!payload.omitChurchLogo?1:0)+(event&&!payload.omitEventLogo?1:0);
+  if(!expected)return{dataUrl:baseDataUrl,placements:[],receipt:[],occupancy:options.occupancy||fallbackOccupancy(target,'no-logos'),logoPlan:{version:1,placements:[],degradations:[]},audit:{ok:true,expected:0,applied:0},degradations:[]};
+
+  try{
+    const occupancy=options.occupancy||await analyzeLogoOccupancy(baseDataUrl,target,options.signal||null);
+    const preferences=await buildLogoPreferences(payload,target);
+    const logoPlan=solveLogoPlan(occupancy,preferences);
+    const rendered=await renderLogoPlan(baseDataUrl,logoPlan,preferences);
+    const applied=rendered.receipt.filter(r=>!r.omitted).length;
+    const audit={
+      ok:applied===expected,
+      expected,applied,
+      slots:rendered.receipt.map(r=>({slot:r.slot,expectedAssetId:r.expectedAssetId||null,actualAssetId:r.actualAssetId||null,omitted:!!r.omitted,reason:r.reason||null}))
+    };
+    return{dataUrl:rendered.dataUrl,placements:logoPlan.placements,receipt:rendered.receipt,occupancy,logoPlan,audit,degradations:rendered.degradations};
+  }catch(e){
+    console.error('Logo pipeline bulkhead: entregando base plate intacta.',e);
+    return{
+      dataUrl:baseDataUrl,placements:[],receipt:[],
+      occupancy:options.occupancy||fallbackOccupancy(target,'logo-pipeline-exception'),
+      logoPlan:{version:1,placements:[],degradations:['exception']},
+      audit:{ok:false,expected,applied:0,error:e.message||'logo-pipeline-exception'},
+      degradations:['exception']
+    };
+  }
 }
 
-async function normalizeArtworkToTarget(image,payload,target,signal=null){const raw=await remoteToDataUrl(image.url),normalized=await resizeToTarget(raw,target),baseDataUrl=normalized.dataUrl,logoComposition=await composeOfficialLogos(baseDataUrl,payload,target);return{image,dataUrl:logoComposition.dataUrl,baseDataUrl,logosComposed:!!logoComposition.audit?.ok,logoPlacements:logoComposition.placements||[],logoAudit:logoComposition.audit||null,recomposed:false,aspectRatioFallback:normalized.aspectRatioFallback||false}}
+async function normalizeArtworkToTarget(image,payload,target,signal=null){
+  const raw=await remoteToDataUrl(image.url),normalized=await resizeToTarget(raw,target),baseDataUrl=normalized.dataUrl;
+  const logoComposition=await composeOfficialLogos(baseDataUrl,payload,target,{signal});
+  return{
+    image,dataUrl:logoComposition.dataUrl,baseDataUrl,
+    logosComposed:!!logoComposition.audit?.ok,
+    logoPlacements:logoComposition.placements||[],
+    logoReceipt:logoComposition.receipt||[],
+    logoAudit:logoComposition.audit||null,
+    occupancy:logoComposition.occupancy||null,
+    logoPlan:logoComposition.logoPlan||null,
+    logoDegradations:logoComposition.degradations||[],
+    recomposed:false,aspectRatioFallback:normalized.aspectRatioFallback||false
+  };
+}
 
 async function resizeToTarget(dataUrl,target){
   const img=await loadImageSafe(dataUrl);
@@ -2405,7 +2603,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
 
   if(preflight.intent&&replaceIndex!==null){
     const parent=state.quickResults?.[replaceIndex],latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent,baseLogoFree=latest?.baseDataUrl||latest?.sourceUrl||null;
-    if(baseLogoFree){let payload=await quickPayload(label,correction,null);payload=applyParsedLogoIntent(payload,preflight.intent);const composition=await composeOfficialLogos(baseLogoFree,payload,payload.target||primaryTargetSpec());const item={...(latest||{}),id:crypto.randomUUID(),label:label||latest?.label||'Correção de logos',dataUrl:composition.dataUrl,sourceUrl:composition.dataUrl,baseDataUrl:baseLogoFree,logoPlacements:composition.placements,logoAudit:composition.audit,logoOnlyCorrection:true,review:{approved:true,score:100,gross_errors:[],logoOnly:true}};if(!parent.corrections)parent.corrections=[];parent.corrections.push(item);const saved=await persistGalleryArtwork(item,{kind:'correção',parentArtworkId:parent.galleryId||parent.id||null,sourceArtworkId:latest.galleryId||latest.id||null,format:item.target?.id||state.quick.format});if(saved)item.galleryId=saved.galleryId;renderQuickResults();return;}
+    if(baseLogoFree){let payload=await quickPayload(label,correction,null);payload=applyParsedLogoIntent(payload,preflight.intent);payload.previousLogoPlan=latest?.logoPlan||null;const composition=await composeOfficialLogos(baseLogoFree,payload,payload.target||primaryTargetSpec(),{occupancy:latest?.occupancy||null});const item={...(latest||{}),id:crypto.randomUUID(),label:label||latest?.label||'Correção de logos',dataUrl:composition.dataUrl,sourceUrl:composition.dataUrl,baseDataUrl:baseLogoFree,logoPlacements:composition.placements,logoReceipt:composition.receipt||[],logoAudit:composition.audit,occupancy:composition.occupancy||latest?.occupancy||null,logoPlan:composition.logoPlan||null,logoDegradations:composition.degradations||[],logoOnlyCorrection:true,review:{approved:true,score:100,gross_errors:[],logoOnly:true}};if(!parent.corrections)parent.corrections=[];parent.corrections.push(item);const saved=await persistGalleryArtwork(item,{kind:'correção',parentArtworkId:parent.galleryId||parent.id||null,sourceArtworkId:latest.galleryId||latest.id||null,format:item.target?.id||state.quick.format});if(saved)item.galleryId=saved.galleryId;renderQuickResults();return;}
   }
 
   if(label==='Principal'&&replaceIndex===null)beginCostSession('Modo Rápido • primeira arte');
@@ -2416,7 +2614,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
     setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;if(!payload.variantInstruction)payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual.`;
     setQuickProgress(48,'Criando sua arte...');const autoCorrections=(replaceIndex===null&&variationIndex===0)?1:0;const image=await generateWithInvisibleReview(payload,autoCorrections,signal);
     setQuickProgress(88,'Finalizando...');const normalized=await normalizeArtworkToTarget(image,payload,payload.target,signal),finalImage=normalized.image,dataUrl=normalized.dataUrl;
-    const result={id:crypto.randomUUID(),label,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:(finalImage||image).url,target:payload.target,artDirection:payload.artDirection,requiredContent:payload.requiredContent,assets:payload.assets,instruction:payload.instruction,logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,adaptations:[],correction:''};
+    const result={id:crypto.randomUUID(),label,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:(finalImage||image).url,target:payload.target,artDirection:payload.artDirection,requiredContent:payload.requiredContent,assets:payload.assets,instruction:payload.instruction,logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,occupancy:normalized.occupancy||null,logoPlan:normalized.logoPlan||null,logoReceipt:normalized.logoReceipt||null,logoDegradations:normalized.logoDegradations||[],adaptations:[],correction:''};
     let galleryCandidate=result,galleryKind=variationIndex>0?'variação':'principal',galleryParent=null,gallerySource=state.gallerySeed?.sourceArtworkId||null;
     if(replaceIndex===null)state.quickResults.push(result);else{const original=state.quickResults[replaceIndex];original.corrections=original.corrections||[];galleryCandidate={...result,id:crypto.randomUUID(),label:`${original.label} • corrigida`};original.corrections.push(galleryCandidate);galleryKind='correção';galleryParent=original.galleryId||original.id||null;gallerySource=original.galleryId||original.id||gallerySource}
     const savedGallery=await persistGalleryArtwork(galleryCandidate,{kind:galleryKind,parentArtworkId:galleryParent,sourceArtworkId:gallerySource,format:payload.target?.id||state.quick.format,basedOnKey:payload.gallerySourceArtworkId||null});if(savedGallery)galleryCandidate.galleryId=savedGallery.galleryId;state.gallerySeed=null;
@@ -2467,7 +2665,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     const normalized=await normalizeArtworkToTarget(image,payload,target,signal);
     const dataUrl=normalized.dataUrl;
     parent.adaptations=parent.adaptations||[];
-    const child={id:crypto.randomUUID(),label:`${source.label} • ${target.label}`,format:formatId,target,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:image.url,omit,basedOnKey:source.key,basedOnLabel:source.label,artDirection:source.artDirection||parent.artDirection,requiredContent:required,assets,instruction:source.instruction||parent.instruction,logoPosition:payload.logoPosition,eventLogoPosition:payload.eventLogoPosition,eventLogoSize:payload.eventLogoSize};
+    const child={id:crypto.randomUUID(),label:`${source.label} • ${target.label}`,format:formatId,target,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:image.url,omit,basedOnKey:source.key,basedOnLabel:source.label,artDirection:source.artDirection||parent.artDirection,requiredContent:required,assets,instruction:source.instruction||parent.instruction,logoPosition:payload.logoPosition,eventLogoPosition:payload.eventLogoPosition,eventLogoSize:payload.eventLogoSize,occupancy:normalized.occupancy||null,logoPlan:normalized.logoPlan||null,logoReceipt:normalized.logoReceipt||null,logoDegradations:normalized.logoDegradations||[]};
     parent.adaptations.push(child);const savedChild=await persistGalleryArtwork(child,{kind:'arte filha',parentArtworkId:parent.galleryId||parent.id||null,sourceArtworkId:source.galleryId||source.id||parent.galleryId||parent.id||null,format:formatId,basedOnKey:source.key,basedOnLabel:source.label});if(savedChild)child.galleryId=savedChild.galleryId;
     setQuickProgress(100,'Pronto');
     if(status)status.innerHTML='<strong style="color:var(--good)">✓ Nova versão pronta.</strong>';
