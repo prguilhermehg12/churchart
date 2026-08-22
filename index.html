@@ -54,6 +54,33 @@
 
 
 
+
+/* V0.31.5 — diagnóstico visual de logos */
+.logo-diagnostic-overlay{position:fixed;inset:0;z-index:130000;background:rgba(3,5,8,.96);display:flex;flex-direction:column;padding:12px}
+.logo-diagnostic-head{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#fff;margin-bottom:10px}
+.logo-diagnostic-head h3{margin:0;font-size:14px}
+.logo-diagnostic-actions{display:flex;gap:7px;flex-wrap:wrap}
+.logo-diagnostic-body{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(320px,.8fr);gap:12px;min-height:0;flex:1}
+.logo-diagnostic-stage-wrap{min-height:0;display:flex;align-items:center;justify-content:center;overflow:auto;border:1px solid #2c3543;border-radius:12px;background:#080b10;padding:10px}
+.logo-diagnostic-stage{position:relative;display:inline-block;line-height:0;max-width:100%;max-height:100%}
+.logo-diagnostic-stage img{display:block;max-width:100%;max-height:82vh;width:auto;height:auto}
+.logo-diag-box{position:absolute;box-sizing:border-box;border:2px solid currentColor;background:rgba(255,255,255,.02);pointer-events:none}
+.logo-diag-box span{position:absolute;left:0;top:0;transform:translateY(-100%);font:700 9px/1.2 system-ui,sans-serif;background:#090d13e8;color:inherit;padding:3px 5px;border-radius:5px 5px 0 0;white-space:nowrap}
+.logo-diag-person{color:#ff6679}.logo-diag-face{color:#ff9b66}.logo-diag-hand{color:#ffc766}.logo-diag-microphone,.logo-diag-instrument{color:#d58cff}
+.logo-diag-text_title,.logo-diag-text_subtitle,.logo-diag-text_date,.logo-diag-text_address,.logo-diag-text_other{color:#68c5ff}
+.logo-diag-graphic_focus{color:#88e28f}
+.logo-diag-plan{color:#fff;border-style:dashed;border-width:3px;background:rgba(255,255,255,.07)}
+.logo-diag-plan-event{color:#f2a6ff}.logo-diag-plan-church{color:#fff08d}
+.logo-diagnostic-panel{min-height:0;overflow:auto;border:1px solid #2c3543;border-radius:12px;background:#0d1118;padding:12px;color:#e9eef7}
+.logo-diagnostic-panel h4{margin:0 0 7px;font-size:11px}
+.logo-diagnostic-panel pre{white-space:pre-wrap;word-break:break-word;background:#080b10;border:1px solid #252e3c;border-radius:9px;padding:9px;font-size:9px;line-height:1.45;max-height:38vh;overflow:auto}
+.logo-diag-summary{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+.logo-diag-chip{border:1px solid #2b3544;border-radius:9px;padding:7px;background:#111722}
+.logo-diag-chip strong{display:block;font-size:9px}.logo-diag-chip small{display:block;margin-top:2px;color:#9ba7b8;font-size:8px}
+.logo-diag-warning{border:1px solid #70533d;background:#231a12;color:#ffd19c;border-radius:9px;padding:8px;margin-bottom:9px;font-size:9px;line-height:1.4}
+.logo-diag-good{border:1px solid #315e47;background:#102019;color:#a8e6bd;border-radius:9px;padding:8px;margin-bottom:9px;font-size:9px;line-height:1.4}
+@media(max-width:900px){.logo-diagnostic-body{grid-template-columns:1fr}.logo-diagnostic-panel{max-height:42vh}}
+
 /* V0.31.2 — visualização em tela cheia */
 .art-fullscreen-overlay{position:fixed;inset:0;z-index:120000;background:rgba(0,0,0,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px}
 .art-fullscreen-toolbar{width:min(96vw,1600px);display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;color:#fff}
@@ -480,7 +507,7 @@
 .pastor-order-pill b{color:white}
 
 </style>
-  <!-- ChurchDesign V0.31.3 — immutable base plate / occupancy map / pure logo solver -->
+  <!-- ChurchDesign V0.31.5 — fail-closed logo placement + visible diagnostics -->
 </head>
 <body>
   <div class="app-shell">
@@ -1354,8 +1381,8 @@ INV-4: any logo-pipeline exception degrades to the base plate; it never rejects 
 */
 const LOGO_CRITICAL_TYPES=new Set(["person","face","hand","microphone","instrument","text_title","text_subtitle","text_date","text_address","text_other","graphic_focus"]);
 const LOGO_INFLATE={
-  person:.010,face:.026,hand:.018,microphone:.018,instrument:.012,
-  text_title:.022,text_subtitle:.018,text_date:.018,text_address:.018,text_other:.012,graphic_focus:.014
+  person:.045,face:.045,hand:.035,microphone:.030,instrument:.025,
+  text_title:.030,text_subtitle:.025,text_date:.025,text_address:.025,text_other:.020,graphic_focus:.020
 };
 function nclamp(v,a=0,b=1){v=Number(v);return Number.isFinite(v)?Math.max(a,Math.min(b,v)):a}
 function normalizedOccupancy(raw={},target={}){
@@ -1370,21 +1397,36 @@ function normalizedOccupancy(raw={},target={}){
   return{
     version:1,width:Number(target.width)||1080,height:Number(target.height)||1350,
     regions,toneGrid:{cols,rows,values:Array.from({length:cols*rows},(_,i)=>nclamp((input[i]??50)/100,0,1))},
-    degraded:!!raw.degraded,degradations:[...(raw.degradations||[])]
+    degraded:!!raw.degraded,degradations:[...(raw.degradations||[])],
+    semanticUnavailable:!!raw.semanticUnavailable,
+    diagnostics:raw.diagnostics?JSON.parse(JSON.stringify(raw.diagnostics)):null,
+    analyzerNotes:Array.isArray(raw.notes)?raw.notes.slice(0,20):[]
   };
 }
 function fallbackOccupancy(target={},reason="analyzer-unavailable"){
-  return normalizedOccupancy({regions:[],toneGrid:{values:Array(80).fill(50)},degraded:true,degradations:[reason]},target);
+  const occ=normalizedOccupancy({regions:[],toneGrid:{values:Array(80).fill(50)},degraded:true,degradations:[reason]},target);
+  occ.semanticUnavailable=true;
+  return occ;
 }
-async function analyzeLogoOccupancy(baseDataUrl,target,signal=null){
+async function analyzeLogoOccupancy(baseDataUrl,target,signal=null,expectations={}){
   try{
     const image=await prepareImageForAI(baseDataUrl,1280,.84);
-    const r=await fetch('/api/logo-analyzer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image,target}),signal});
+    const r=await fetch('/api/logo-analyzer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image,target,expectations}),signal});
     const text=await r.text();let data;
     try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,180)||`Logo Analyzer: resposta inválida (${r.status})`)}
     if(!r.ok)throw new Error(data.error||`Logo Analyzer: erro ${r.status}`);
     if(data.meta)recordOpenAIRequest('Logo Analyzer',data.meta);
-    return normalizedOccupancy(data.occupancy||{},target);
+    const occ=normalizedOccupancy(data.occupancy||{},target);
+    const people=(occ.regions||[]).filter(r=>r.type==='person'||r.type==='face');
+    const textRegions=(occ.regions||[]).filter(r=>String(r.type).startsWith('text_'));
+    if(Number(expectations.pastorCount||0)>0&&!people.length)throw new Error('Logo Analyzer não detectou o pregador esperado.');
+    if(expectations.hasText===true&&!textRegions.length)throw new Error('Logo Analyzer não detectou nenhum bloco de texto esperado.');
+    if(!(occ.regions||[]).length)throw new Error('Logo Analyzer retornou mapa sem regiões semânticas.');
+    occ.semanticUnavailable=false;
+    if(data.occupancy?.diagnostics)occ.diagnostics=JSON.parse(JSON.stringify(data.occupancy.diagnostics));
+    if(Array.isArray(data.occupancy?.notes))occ.analyzerNotes=data.occupancy.notes.slice(0,20);
+    occ.analyzerMeta=data.meta?{model:data.meta.model||null,requestId:data.meta.requestId||null,endpoint:data.meta.endpoint||null}:null;
+    return occ;
   }catch(e){
     console.warn('Logo Analyzer indisponível; usando fallback geométrico.',e);
     return fallbackOccupancy(target,'semantic-analyzer-failed');
@@ -1483,13 +1525,21 @@ function solveLogoSlot(occ,pref,occupied=[]){
 }
 function solveLogoPlan(occupancy,preferences={}){
   const occ=occupancy||fallbackOccupancy(preferences.target||{},'missing-occupancy'),placements=[],occupied=[],degradations=[...(occ.degradations||[])];
+  if(occ.semanticUnavailable||occ.degraded){
+    for(const slot of ['CHURCH','EVENT']){
+      const pref=preferences[slot];
+      placements.push({slot,assetId:pref?.assetId||null,omitted:true,reason:'occupancy-unavailable',requestedPosition:pref?.position||null});
+      if(pref?.visible!==false)degradations.push(`${slot}:occupancy-unavailable`);
+    }
+    return{version:1,placements,degradations,failClosed:true};
+  }
   for(const slot of ['CHURCH','EVENT']){
     const p=solveLogoSlot(occ,preferences[slot],occupied);
     placements.push(p);
-    if(!p.omitted)occupied.push(p.rect);
+    if(!p.omitted)occupied.push(inflateRect(p.rect,.018));
     else if(preferences[slot]?.visible!==false)degradations.push(`${slot}:${p.reason}`);
   }
-  return{version:1,placements,degradations};
+  return{version:1,placements,degradations,failClosed:false};
 }
 async function localLogoLuminance(asset){
   if(!asset)return .5;
@@ -1767,6 +1817,106 @@ function showNoPastorPopup(){const root=document.querySelector('#modalRoot');if(
 function closeModal(){document.querySelector('#modalRoot').innerHTML=''}
 
 
+
+function logoDiagnosticData(artwork={}){
+  const occ=artwork.occupancy||null,plan=artwork.logoPlan||null,receipt=artwork.logoReceipt||null;
+  return{
+    label:artwork.label||'Arte',
+    target:artwork.target||null,
+    baseDataUrl:artwork.baseDataUrl||artwork.baseUrl||artwork.sourceUrl||artwork.dataUrl||artwork.url||null,
+    finalDataUrl:artwork.dataUrl||artwork.url||null,
+    occupancy:occ,
+    logoPlan:plan,
+    logoReceipt:receipt,
+    logoDegradations:artwork.logoDegradations||[],
+    requested:{
+      churchLogoPosition:artwork.logoPosition??null,
+      eventLogoPosition:artwork.eventLogoPosition??null,
+      eventLogoSize:artwork.eventLogoSize??null
+    }
+  };
+}
+function diagnosticStatus(diag){
+  const occ=diag.occupancy||{},plan=diag.logoPlan||{};
+  if(!diag.occupancy)return{level:'warning',text:'Sem OCCUPANCY salvo. Esta arte não possui diagnóstico semântico.'};
+  if(occ.semanticUnavailable||occ.degraded||plan.failClosed)return{level:'warning',text:'FAIL-CLOSED: o mapa semântico ficou indisponível/incompleto; o sistema deve omitir logos em vez de posicioná-las às cegas.'};
+  const regions=occ.regions||[];
+  const people=regions.filter(r=>['person','face'].includes(r.type)).length;
+  const texts=regions.filter(r=>String(r.type||'').startsWith('text_')).length;
+  return{level:'good',text:`Analyzer ativo: ${regions.length} região(ões), ${people} região(ões) humanas e ${texts} bloco(s) de texto detectado(s).`};
+}
+function diagnosticBoxHTML(rect,type,label,extraClass=''){
+  if(!rect)return'';
+  const x0=nclamp(rect.x0),y0=nclamp(rect.y0),x1=nclamp(rect.x1),y1=nclamp(rect.y1);
+  return `<div class="logo-diag-box logo-diag-${esc(type||'graphic_focus')} ${extraClass}" style="left:${x0*100}%;top:${y0*100}%;width:${Math.max(0,(x1-x0)*100)}%;height:${Math.max(0,(y1-y0)*100)}%"><span>${esc(label||type||'região')}</span></div>`;
+}
+function diagnosticOverlayHTML(diag){
+  const occ=diag.occupancy||{},regions=occ.regions||[],plan=diag.logoPlan||{placements:[]};
+  const semantic=regions.map((r,i)=>diagnosticBoxHTML(r,r.type,`${r.type} ${Math.round((r.confidence||0)*100)}%`)).join('');
+  const placements=(plan.placements||[]).map(p=>{
+    if(p.omitted||!p.rect)return'';
+    const cls=p.slot==='EVENT'?'logo-diag-plan-event':'logo-diag-plan-church';
+    return diagnosticBoxHTML(p.rect,'plan',`${p.slot} → ${p.zoneHonored?'zona pedida':'zona alternativa'}`,cls);
+  }).join('');
+  return semantic+placements;
+}
+function downloadLogoDiagnostic(diag){
+  const clone=JSON.parse(JSON.stringify(diag||{}));
+  if(clone.baseDataUrl&&String(clone.baseDataUrl).startsWith('data:'))clone.baseDataUrl='[BASE_DATA_URL OMITTED FROM DIAGNOSTIC EXPORT]';
+  if(clone.finalDataUrl&&String(clone.finalDataUrl).startsWith('data:'))clone.finalDataUrl='[FINAL_DATA_URL OMITTED FROM DIAGNOSTIC EXPORT]';
+  const blob=new Blob([JSON.stringify(clone,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`churchdesign-logo-diagnostic-${Date.now()}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function openLogoDiagnostic(artwork={}){
+  const diag=logoDiagnosticData(artwork),src=diag.baseDataUrl||diag.finalDataUrl;
+  if(!src)return alert('Esta arte não possui imagem-base para diagnóstico.');
+  const old=document.querySelector('.logo-diagnostic-overlay');if(old)old.remove();
+  const status=diagnosticStatus(diag),occ=diag.occupancy||{},plan=diag.logoPlan||{},receipt=diag.logoReceipt||[];
+  const regionCounts={};for(const r of occ.regions||[])regionCounts[r.type]=(regionCounts[r.type]||0)+1;
+  const placed=(plan.placements||[]).filter(p=>!p.omitted).length,omitted=(plan.placements||[]).filter(p=>p.omitted).length;
+  const panelJSON={
+    requested:diag.requested,
+    occupancy:{
+      degraded:!!occ.degraded,
+      semanticUnavailable:!!occ.semanticUnavailable,
+      diagnostics:occ.diagnostics||null,
+      analyzerMeta:occ.analyzerMeta||null,
+      analyzerNotes:occ.analyzerNotes||[],
+      regionCounts,
+      regions:occ.regions||[]
+    },
+    logoPlan:plan,
+    logoReceipt:receipt,
+    logoDegradations:diag.logoDegradations||[]
+  };
+  const ov=document.createElement('div');ov.className='logo-diagnostic-overlay';
+  ov.innerHTML=`<div class="logo-diagnostic-head"><div><h3>Diagnóstico de logos — ${esc(diag.label)}</h3><small style="color:#9ba7b8">BASE PLATE + mapa do Analyzer + decisão do solver</small></div><div class="logo-diagnostic-actions"><button class="mini-btn" data-diag-copy>Copiar JSON</button><button class="mini-btn" data-diag-download>Baixar JSON</button><button class="art-fullscreen-close" data-diag-close>✕ Fechar</button></div></div>
+    <div class="logo-diagnostic-body">
+      <div class="logo-diagnostic-stage-wrap"><div class="logo-diagnostic-stage"><img src="${src}" alt="Base logo-free"><div data-diag-boxes>${diagnosticOverlayHTML(diag)}</div></div></div>
+      <div class="logo-diagnostic-panel">
+        <div class="logo-diag-${status.level}">${esc(status.text)}</div>
+        <div class="logo-diag-summary">
+          <div class="logo-diag-chip"><strong>REGIÕES</strong><small>${(occ.regions||[]).length} detectadas</small></div>
+          <div class="logo-diag-chip"><strong>PLANO</strong><small>${placed} aplicada(s) • ${omitted} omitida(s)</small></div>
+          <div class="logo-diag-chip"><strong>ANALYZER</strong><small>${occ.analyzerMeta?.model||'sem meta'}</small></div>
+          <div class="logo-diag-chip"><strong>FAIL-CLOSED</strong><small>${plan.failClosed?'SIM':'não'}</small></div>
+        </div>
+        <h4>O que o sistema realmente usou</h4>
+        <pre data-diag-json>${esc(JSON.stringify(panelJSON,null,2))}</pre>
+      </div>
+    </div>`;
+  const close=()=>ov.remove();
+  ov.querySelector('[data-diag-close]').onclick=close;
+  ov.querySelector('[data-diag-download]').onclick=()=>downloadLogoDiagnostic(diag);
+  ov.querySelector('[data-diag-copy]').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(panelJSON,null,2));const b=ov.querySelector('[data-diag-copy]');b.textContent='Copiado ✓';setTimeout(()=>b.textContent='Copiar JSON',1400)}catch{alert('Não foi possível copiar automaticamente. Use o JSON exibido no painel.')}};
+  const img=ov.querySelector('.logo-diagnostic-stage img');
+  img.onload=()=>{const boxes=ov.querySelector('[data-diag-boxes]');boxes.style.position='absolute';boxes.style.inset='0';};
+  ov.onclick=e=>{if(e.target===ov)close()};
+  const key=e=>{if(e.key==='Escape'){document.removeEventListener('keydown',key);close()}};
+  document.addEventListener('keydown',key);
+  document.body.appendChild(ov);
+}
+
 function openArtworkFullscreen(src,label='Arte'){
   if(!src)return;
   const old=document.querySelector('.art-fullscreen-overlay');if(old)old.remove();
@@ -1787,7 +1937,7 @@ function compactGalleryAsset(a){
 function compactGalleryAssets(assets={}){return{logo:compactGalleryAsset(assets.logo),eventLogo:compactGalleryAsset(assets.eventLogo),pastor:compactGalleryAsset(assets.pastor),pastors:(assets.pastors||[]).map(compactGalleryAsset),churchImage:compactGalleryAsset(assets.churchImage)}}
 function galleryQuickSnapshot(){const q=JSON.parse(JSON.stringify(state.quick||{}));if(String(q.reference||'').startsWith('data:'))q.reference=null;return q}
 function makeGenerationRecipe(artwork,extra={}){
-  return{recipeVersion:3,pipelineVersion:'0.31.3',createdAt:new Date().toISOString(),kind:extra.kind||artwork.kind||'principal',parentArtworkId:extra.parentArtworkId||artwork.parentArtworkId||null,sourceArtworkId:extra.sourceArtworkId||artwork.sourceArtworkId||null,quick:galleryQuickSnapshot(),church:JSON.parse(JSON.stringify(state.church||{})),artDirection:artwork.artDirection||state.artDirection||null,requiredContent:artwork.requiredContent||null,assets:compactGalleryAssets(artwork.assets||{}),instruction:artwork.instruction||'',logoPosition:artwork.logoPosition??state.quick.logoPosition??null,eventLogoPosition:artwork.eventLogoPosition??state.quick.eventLogoPosition??null,eventLogoSize:artwork.eventLogoSize??state.quick.eventLogoSize??null,target:artwork.target||null,format:extra.format||artwork.format||artwork.target?.id||state.quick.format||state.format||'feed',occupancy:artwork.occupancy||null,logoPlan:artwork.logoPlan||null,logoReceipt:artwork.logoReceipt||null,logoDegradations:artwork.logoDegradations||[],basedOnKey:extra.basedOnKey||artwork.basedOnKey||null,basedOnLabel:extra.basedOnLabel||artwork.basedOnLabel||null};
+  return{recipeVersion:4,pipelineVersion:'0.31.5',createdAt:new Date().toISOString(),kind:extra.kind||artwork.kind||'principal',parentArtworkId:extra.parentArtworkId||artwork.parentArtworkId||null,sourceArtworkId:extra.sourceArtworkId||artwork.sourceArtworkId||null,quick:galleryQuickSnapshot(),church:JSON.parse(JSON.stringify(state.church||{})),artDirection:artwork.artDirection||state.artDirection||null,requiredContent:artwork.requiredContent||null,assets:compactGalleryAssets(artwork.assets||{}),instruction:artwork.instruction||'',logoPosition:artwork.logoPosition??state.quick.logoPosition??null,eventLogoPosition:artwork.eventLogoPosition??state.quick.eventLogoPosition??null,eventLogoSize:artwork.eventLogoSize??state.quick.eventLogoSize??null,target:artwork.target||null,format:extra.format||artwork.format||artwork.target?.id||state.quick.format||state.format||'feed',occupancy:artwork.occupancy||null,logoPlan:artwork.logoPlan||null,logoReceipt:artwork.logoReceipt||null,logoDegradations:artwork.logoDegradations||[],basedOnKey:extra.basedOnKey||artwork.basedOnKey||null,basedOnLabel:extra.basedOnLabel||artwork.basedOnLabel||null};
 }
 async function uploadGalleryImage(dataUrl,label,format){
   if(!dataUrl)return null;if(/^https?:\/\//.test(String(dataUrl)))return dataUrl;
@@ -1849,10 +1999,11 @@ function startGalleryChild(id,format){
 }
 window.openGallery=function(query=''){
   const root=document.querySelector('#modalRoot'),items=allPersistentGalleryItems(),q=String(query||'').trim().toLowerCase(),filtered=q?items.filter(x=>`${x.label||''} ${x.kind||''} ${x.format||''}`.toLowerCase().includes(q)):items;
-  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel gallery-modal-panel"><div class="modal-head"><div><h2>Galeria</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Artes e receitas salvas':'Banco não conectado'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="gallery-toolbar"><div><strong>${items.length} arte(s)</strong><small style="display:block;color:var(--muted);margin-top:3px">Reabra projetos ou crie artes filhas sem começar do zero.</small></div><input id="gallerySearch" placeholder="Buscar na Galeria" value="${esc(query||'')}"></div>${filtered.length?`<div class="persistent-gallery-grid">${filtered.map(x=>`<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}"><div class="persistent-gallery-body"><strong>${esc(x.label||'Arte')}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}</small><div class="gallery-actions"><button class="mini-btn download-btn" data-gallery-download="${x.galleryId}">↓ Baixar</button><button class="mini-btn" data-gallery-fullscreen="${x.galleryId}">⛶ Tela cheia</button><button class="mini-btn" data-gallery-reference="${x.galleryId}">Usar como referência</button><button class="mini-btn" data-gallery-reopen="${x.galleryId}">${x.recipe?'Reabrir projeto':'Reusar arte'}</button><button class="mini-btn" data-gallery-delete="${x.galleryId}" style="border-color:#69333d;color:#ff9eac">Excluir</button></div><div class="gallery-child-actions"><button class="mini-btn" data-gallery-child="${x.galleryId}|youtube">YouTube</button><button class="mini-btn" data-gallery-child="${x.galleryId}|screen">Telão</button><button class="mini-btn" data-gallery-child="${x.galleryId}|story">Stories</button></div>${x.parentArtworkId||x.sourceArtworkId?`<div class="gallery-lineage">Derivada de uma arte anterior</div>`:''}</div></div>`).join('')}</div>`:`<div class="gallery-empty">Nenhuma arte encontrada.</div>`}</div></div></div>`;
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel gallery-modal-panel"><div class="modal-head"><div><h2>Galeria</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Artes e receitas salvas':'Banco não conectado'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="gallery-toolbar"><div><strong>${items.length} arte(s)</strong><small style="display:block;color:var(--muted);margin-top:3px">Reabra projetos ou crie artes filhas sem começar do zero.</small></div><input id="gallerySearch" placeholder="Buscar na Galeria" value="${esc(query||'')}"></div>${filtered.length?`<div class="persistent-gallery-grid">${filtered.map(x=>`<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}"><div class="persistent-gallery-body"><strong>${esc(x.label||'Arte')}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}</small><div class="gallery-actions"><button class="mini-btn download-btn" data-gallery-download="${x.galleryId}">↓ Baixar</button><button class="mini-btn" data-gallery-fullscreen="${x.galleryId}">⛶ Tela cheia</button><button class="mini-btn" data-gallery-diagnostic="${x.galleryId}">◎ Diagnóstico logos</button><button class="mini-btn" data-gallery-reference="${x.galleryId}">Usar como referência</button><button class="mini-btn" data-gallery-reopen="${x.galleryId}">${x.recipe?'Reabrir projeto':'Reusar arte'}</button><button class="mini-btn" data-gallery-delete="${x.galleryId}" style="border-color:#69333d;color:#ff9eac">Excluir</button></div><div class="gallery-child-actions"><button class="mini-btn" data-gallery-child="${x.galleryId}|youtube">YouTube</button><button class="mini-btn" data-gallery-child="${x.galleryId}|screen">Telão</button><button class="mini-btn" data-gallery-child="${x.galleryId}|story">Stories</button></div>${x.parentArtworkId||x.sourceArtworkId?`<div class="gallery-lineage">Derivada de uma arte anterior</div>`:''}</div></div>`).join('')}</div>`:`<div class="gallery-empty">Nenhuma arte encontrada.</div>`}</div></div></div>`;
   const search=root.querySelector('#gallerySearch');if(search)search.onchange=()=>openGallery(search.value);
   root.querySelectorAll('[data-gallery-download]').forEach(b=>b.onclick=()=>{const x=findGalleryItem(b.dataset.galleryDownload);if(x)downloadDataUrl(x.url,`churchdesign-${(x.label||'arte').toLowerCase().replace(/\s+/g,'-')}.png`,{label:x.label})});
   root.querySelectorAll('[data-gallery-fullscreen]').forEach(b=>b.onclick=()=>{const x=findGalleryItem(b.dataset.galleryFullscreen);if(x)openArtworkFullscreen(x.url,x.label||'Arte')});
+  root.querySelectorAll('[data-gallery-diagnostic]').forEach(b=>b.onclick=()=>{const x=findGalleryItem(b.dataset.galleryDiagnostic);if(!x)return;const a=galleryItemToQuickResult(x);openLogoDiagnostic(a)});
   root.querySelectorAll('[data-gallery-delete]').forEach(b=>b.onclick=async()=>{const x=findGalleryItem(b.dataset.galleryDelete);if(!x)return;if(!confirm(`Excluir "${x.label||'esta arte'}" da Galeria?`))return;b.disabled=true;b.textContent='Excluindo...';try{await apiJSON('delete-gallery-item',{method:'DELETE',body:{generationId:x.generationId,galleryId:x.galleryId}});state.library.generations=(state.library.generations||[]).map(g=>{if(g.id!==x.generationId)return g;return{...g,images:(g.images||[]).filter(im=>(im.galleryId||'')!==x.galleryId)}}).filter(g=>(g.images||[]).length);state.gallerySavedIds=(state.gallerySavedIds||[]).filter(id=>id!==x.galleryId);openGallery()}catch(e){alert('Não foi possível excluir: '+e.message);b.disabled=false;b.textContent='Excluir'}});
   root.querySelectorAll('[data-gallery-reference]').forEach(b=>b.onclick=()=>useGalleryAsReference(b.dataset.galleryReference));
   root.querySelectorAll('[data-gallery-reopen]').forEach(b=>b.onclick=()=>reopenGalleryProject(b.dataset.galleryReopen));
@@ -2413,20 +2564,21 @@ function logoPositionInstruction(pos){
 function collectAllQuickArtworks(){
   const out=[];
   (state.quickResults||[]).forEach((r,i)=>{
-    out.push({id:`main-${r.id||i}`,label:r.label||`Arte ${i+1}`,kind:'principal',dataUrl:r.dataUrl,target:r.target});
-    (r.adaptations||[]).forEach(a=>out.push({id:`adapt-${a.id}`,label:`${r.label} • ${a.target?.label||a.format}`,kind:'complementar',dataUrl:a.dataUrl,target:a.target}));
-    (r.corrections||[]).forEach((c,j)=>out.push({id:`corr-${c.id||j}`,label:`${r.label} • Correção ${j+1}`,kind:'corrigida',dataUrl:c.dataUrl,target:c.target||r.target}));
+    out.push({id:`main-${r.id||i}`,label:r.label||`Arte ${i+1}`,kind:'principal',dataUrl:r.dataUrl,baseDataUrl:r.baseDataUrl,target:r.target,occupancy:r.occupancy||null,logoPlan:r.logoPlan||null,logoReceipt:r.logoReceipt||null,logoDegradations:r.logoDegradations||[],logoPosition:r.logoPosition,eventLogoPosition:r.eventLogoPosition,eventLogoSize:r.eventLogoSize});
+    (r.adaptations||[]).forEach(a=>out.push({id:`adapt-${a.id}`,label:`${r.label} • ${a.target?.label||a.format}`,kind:'complementar',dataUrl:a.dataUrl,baseDataUrl:a.baseDataUrl,target:a.target,occupancy:a.occupancy||null,logoPlan:a.logoPlan||null,logoReceipt:a.logoReceipt||null,logoDegradations:a.logoDegradations||[],logoPosition:a.logoPosition,eventLogoPosition:a.eventLogoPosition,eventLogoSize:a.eventLogoSize}));
+    (r.corrections||[]).forEach((c,j)=>out.push({id:`corr-${c.id||j}`,label:`${r.label} • Correção ${j+1}`,kind:'corrigida',dataUrl:c.dataUrl,baseDataUrl:c.baseDataUrl,target:c.target||r.target,occupancy:c.occupancy||r.occupancy||null,logoPlan:c.logoPlan||null,logoReceipt:c.logoReceipt||null,logoDegradations:c.logoDegradations||[],logoPosition:c.logoPosition??r.logoPosition,eventLogoPosition:c.eventLogoPosition??r.eventLogoPosition,eventLogoSize:c.eventLogoSize??r.eventLogoSize}));
   });
   return out;
 }
 function allArtworksHTML(){
   const arts=collectAllQuickArtworks();if(!arts.length)return '';
-  return `<div class="card all-artworks-shell"><div class="all-artworks-head"><div><h3 style="margin:0">Todas as artes</h3><p style="margin:4px 0 0;color:var(--muted);font-size:9px">Principal, complementares, variações e correções no mesmo carrossel.</p></div>${arts.length>=2?`<button class="mini-btn download-all-btn" id="downloadAllArtworks" type="button">↓ Baixar tudo</button>`:''}</div><div class="all-artworks-carousel">${arts.map((a,i)=>`<div class="all-artwork-card"><img src="${a.dataUrl}"><div class="all-artwork-body"><strong>${esc(a.label)}</strong><small>${a.target?.width||''}${a.target?.width?'×':''}${a.target?.height||''} • ${a.kind}</small><div class="quick-actions" style="margin-top:8px"><button class="mini-btn download-btn" data-all-art-download="${i}" type="button">↓ Baixar</button><button class="mini-btn" data-all-art-fullscreen="${i}" type="button">⛶ Tela cheia</button></div></div></div>`).join('')}</div></div>`;
+  return `<div class="card all-artworks-shell"><div class="all-artworks-head"><div><h3 style="margin:0">Todas as artes</h3><p style="margin:4px 0 0;color:var(--muted);font-size:9px">Principal, complementares, variações e correções no mesmo carrossel.</p></div>${arts.length>=2?`<button class="mini-btn download-all-btn" id="downloadAllArtworks" type="button">↓ Baixar tudo</button>`:''}</div><div class="all-artworks-carousel">${arts.map((a,i)=>`<div class="all-artwork-card"><img src="${a.dataUrl}"><div class="all-artwork-body"><strong>${esc(a.label)}</strong><small>${a.target?.width||''}${a.target?.width?'×':''}${a.target?.height||''} • ${a.kind}</small><div class="quick-actions" style="margin-top:8px"><button class="mini-btn download-btn" data-all-art-download="${i}" type="button">↓ Baixar</button><button class="mini-btn" data-all-art-fullscreen="${i}" type="button">⛶ Tela cheia</button><button class="mini-btn" data-all-art-diagnostic="${i}" type="button">◎ Diagnóstico</button></div></div></div>`).join('')}</div></div>`;
 }
 function bindAllArtworksEvents(){
   const arts=collectAllQuickArtworks();
   document.querySelectorAll('[data-all-art-download]').forEach(b=>b.onclick=()=>{const a=arts[+b.dataset.allArtDownload];if(a)downloadDataUrl(a.dataUrl,`churchdesign-${(a.label||'arte').toLowerCase().replace(/\s+/g,'-')}.png`,{label:a.label});});
   document.querySelectorAll('[data-all-art-fullscreen]').forEach(b=>b.onclick=()=>{const a=arts[+b.dataset.allArtFullscreen];if(a)openArtworkFullscreen(a.dataUrl,a.label||'Arte');});
+  document.querySelectorAll('[data-all-art-diagnostic]').forEach(b=>b.onclick=()=>{const a=arts[+b.dataset.allArtDiagnostic];if(a)openLogoDiagnostic(a);});
   const all=document.querySelector('#downloadAllArtworks');
   if(all)all.onclick=async()=>{
     all.disabled=true;all.textContent='Baixando...';
@@ -2460,8 +2612,8 @@ function preferredQuickReferenceKey(parentIndex){
 
 function renderQuickResultsHTML(){if(!state.quickResults.length)return '';return `<div class="card"><h3>Artes desta criação</h3><p style="margin-bottom:10px">Cada versão pode ser usada diretamente como base das artes filhas.</p><div class="quick-results-row">${state.quickResults.map((r,i)=>quickResultCardHTML(r,i)).join('')}</div></div>`;}
 function versionAdaptButtons(sourceKey,parentIndex){return ['story','youtube','screen','square','wide16','fourthree','threetwo'].map(f=>{const t=quickTargetSpec(f);return `<button class="quick-adapt-btn" data-qadapt-source="${parentIndex}|${sourceKey}|${f}" type="button">${t.label}</button>`}).join('');}
-function correctionVersionHTML(c,parentIndex,j){const key=`correction:${parentIndex}:${j}`;return `<div class="quick-correction-version" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><img src="${c.dataUrl}" style="width:100%;border-radius:10px"><h4 style="margin-top:8px">${esc(c.label||`Correção ${j+1}`)}</h4><div class="quick-actions"><button class="mini-btn download-btn" data-qdownload-correction="${parentIndex}-${j}">↓ Baixar</button><button class="mini-btn" data-qfullscreen-correction="${parentIndex}-${j}">⛶ Tela cheia</button></div><strong style="font-size:9px">Criar outro tamanho a partir DESTA versão</strong><div class="quick-adapt-grid">${versionAdaptButtons(key,parentIndex)}</div><div id="quickAdaptConfig-${parentIndex}-correction-${j}"></div></div>`;}
-function quickResultCardHTML(r,i){const key=`main:${i}`;return `<div class="quick-result-card" id="quickResultCard-${i}"><img src="${r.dataUrl}"><div class="quick-result-body"><h4>${esc(r.label)} • ${esc(r.target.label)}</h4><div class="quick-actions"><button class="mini-btn download-btn" data-qdownload="${i}">↓ Baixar</button><button class="mini-btn" data-qfullscreen="${i}">⛶ Tela cheia</button>${i===state.quickResults.length-1&&i<2?`<button class="mini-btn" data-qvariation="${i+1}">Gerar variação ${i+1}</button>`:''}<button class="mini-btn" data-qreload="${i}">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:8px"><label>Correção desta arte</label><textarea data-qcorrection="${i}">${esc(r.correction||'')}</textarea></div><strong style="font-size:9px">Criar outro tamanho a partir DESTA versão</strong><div class="quick-adapt-grid">${versionAdaptButtons(key,i)}</div><div id="quickAdaptConfig-${i}"></div>${(r.corrections||[]).map((c,j)=>correctionVersionHTML(c,i,j)).join('')}<div class="quick-adaptations" id="quickAdaptations-${i}">${(r.adaptations||[]).map(a=>quickAdaptationHTML(a,i)).join('')}</div></div></div>`;}
+function correctionVersionHTML(c,parentIndex,j){const key=`correction:${parentIndex}:${j}`;return `<div class="quick-correction-version" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><img src="${c.dataUrl}" style="width:100%;border-radius:10px"><h4 style="margin-top:8px">${esc(c.label||`Correção ${j+1}`)}</h4><div class="quick-actions"><button class="mini-btn download-btn" data-qdownload-correction="${parentIndex}-${j}">↓ Baixar</button><button class="mini-btn" data-qfullscreen-correction="${parentIndex}-${j}">⛶ Tela cheia</button><button class="mini-btn" data-qdiagnostic-correction="${parentIndex}-${j}">◎ Diagnóstico logos</button></div><strong style="font-size:9px">Criar outro tamanho a partir DESTA versão</strong><div class="quick-adapt-grid">${versionAdaptButtons(key,parentIndex)}</div><div id="quickAdaptConfig-${parentIndex}-correction-${j}"></div></div>`;}
+function quickResultCardHTML(r,i){const key=`main:${i}`;return `<div class="quick-result-card" id="quickResultCard-${i}"><img src="${r.dataUrl}"><div class="quick-result-body"><h4>${esc(r.label)} • ${esc(r.target.label)}</h4><div class="quick-actions"><button class="mini-btn download-btn" data-qdownload="${i}">↓ Baixar</button><button class="mini-btn" data-qfullscreen="${i}">⛶ Tela cheia</button><button class="mini-btn" data-qdiagnostic="${i}">◎ Diagnóstico logos</button>${i===state.quickResults.length-1&&i<2?`<button class="mini-btn" data-qvariation="${i+1}">Gerar variação ${i+1}</button>`:''}<button class="mini-btn" data-qreload="${i}">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:8px"><label>Correção desta arte</label><textarea data-qcorrection="${i}">${esc(r.correction||'')}</textarea></div><strong style="font-size:9px">Criar outro tamanho a partir DESTA versão</strong><div class="quick-adapt-grid">${versionAdaptButtons(key,i)}</div><div id="quickAdaptConfig-${i}"></div>${(r.corrections||[]).map((c,j)=>correctionVersionHTML(c,i,j)).join('')}<div class="quick-adaptations" id="quickAdaptations-${i}">${(r.adaptations||[]).map(a=>quickAdaptationHTML(a,i)).join('')}</div></div></div>`;}
 function openQuickAdaptConfig(i,f,explicitSourceKey=null){
   const target=quickTargetSpec(f),defaultKey=explicitSourceKey||preferredQuickReferenceKey(i);
   const cm=defaultKey.match(/^correction:(\d+):(\d+)$/);
@@ -2476,12 +2628,14 @@ function openQuickAdaptConfig(i,f,explicitSourceKey=null){
     runQuickAdaptation(i,f,omit,darkScreen,sourceKey);
   };
 }
-function quickAdaptationHTML(a,parentIndex){return `<div class="quick-adapt-item ${a.format==='story'?'story':''}"><img src="${a.dataUrl}"><div style="min-width:0;flex:1"><strong style="font-size:9px">${esc(a.target.label)}</strong><small style="display:block;font-size:8px;color:var(--muted)">${a.target.width}×${a.target.height}${a.basedOnLabel?` • base: ${esc(a.basedOnLabel)}`:''}</small></div><button class="mini-btn" data-qadapt-fullscreen data-qadapt-parent="${parentIndex}" data-qadapt-id="${a.id}" type="button">⛶</button><button class="mini-btn download-btn" data-qadapt-download data-qadapt-parent="${parentIndex}" data-qadapt-id="${a.id}" type="button">↓ Baixar</button></div>`;}
+function quickAdaptationHTML(a,parentIndex){return `<div class="quick-adapt-item ${a.format==='story'?'story':''}"><img src="${a.dataUrl}"><div style="min-width:0;flex:1"><strong style="font-size:9px">${esc(a.target.label)}</strong><small style="display:block;font-size:8px;color:var(--muted)">${a.target.width}×${a.target.height}${a.basedOnLabel?` • base: ${esc(a.basedOnLabel)}`:''}</small></div><button class="mini-btn" data-qadapt-fullscreen data-qadapt-parent="${parentIndex}" data-qadapt-id="${a.id}" type="button">⛶</button><button class="mini-btn" data-qadapt-diagnostic data-qadapt-parent="${parentIndex}" data-qadapt-id="${a.id}" type="button">◎</button><button class="mini-btn download-btn" data-qadapt-download data-qadapt-parent="${parentIndex}" data-qadapt-id="${a.id}" type="button">↓ Baixar</button></div>`;}
 function bindQuickResultEvents(){
   document.querySelectorAll('[data-qadapt-source]').forEach(btn=>btn.onclick=()=>{const [i,key,f]=btn.dataset.qadaptSource.split('|');openQuickAdaptConfig(+i,f,key)});
   document.querySelectorAll('[data-qdownload-correction]').forEach(btn=>btn.onclick=()=>{const [i,j]=btn.dataset.qdownloadCorrection.split('-').map(Number);const a=state.quickResults?.[i]?.corrections?.[j];if(a)downloadDataUrl(a.dataUrl,`${slug(a.label||'churchdesign-correction')}.png`);});
   document.querySelectorAll('[data-qfullscreen-correction]').forEach(btn=>btn.onclick=()=>{const [i,j]=btn.dataset.qfullscreenCorrection.split('-').map(Number);const a=state.quickResults?.[i]?.corrections?.[j];if(a)openArtworkFullscreen(a.dataUrl,a.label||`Correção ${j+1}`);});
   document.querySelectorAll('[data-qfullscreen]').forEach(btn=>btn.onclick=()=>{const a=state.quickResults?.[+btn.dataset.qfullscreen];if(a)openArtworkFullscreen(a.dataUrl,a.label||'Arte');});
+  document.querySelectorAll('[data-qdiagnostic]').forEach(btn=>btn.onclick=()=>{const a=state.quickResults?.[+btn.dataset.qdiagnostic];if(a)openLogoDiagnostic(a);});
+  document.querySelectorAll('[data-qdiagnostic-correction]').forEach(btn=>btn.onclick=()=>{const [i,j]=btn.dataset.qdiagnosticCorrection.split('-').map(Number);const a=state.quickResults?.[i]?.corrections?.[j];if(a)openLogoDiagnostic(a);});
 
   document.querySelectorAll('[data-qdownload]').forEach(b=>b.onclick=()=>{const r=state.quickResults[+b.dataset.qdownload];downloadDataUrl(r.dataUrl,`churchdesign-${r.label.toLowerCase().replace(/\s+/g,'-')}.png`,{label:r.label,format:r.target?.id||state.quick.format,target:r.target,designStyle:state.quick.designStyle,audience:state.quick.audience,inspirationStyle:state.quick.inspirationStyle,effect:state.quick.effect})});
   document.querySelectorAll('[data-qvariation]').forEach(b=>b.onclick=()=>{scrollToGenerationPanel();runQuickGeneration(`Variação ${b.dataset.qvariation}`,Number(b.dataset.qvariation))});
@@ -2489,6 +2643,7 @@ function bindQuickResultEvents(){
   document.querySelectorAll('[data-qadapt]').forEach(b=>b.onclick=()=>{const [i,f]=b.dataset.qadapt.split('-');openQuickAdaptConfig(Number(i),f)});
   document.querySelectorAll('[data-qadapt-download]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.qadaptParent),id=b.dataset.qadaptId,a=state.quickResults[i]?.adaptations?.find(x=>x.id===id);if(a)downloadDataUrl(a.dataUrl,`churchdesign-${a.target.id}.png`,{label:a.target.label,format:a.target.id,target:a.target,designStyle:state.quick.designStyle,audience:state.quick.audience,inspirationStyle:state.quick.inspirationStyle,effect:state.quick.effect})});
   document.querySelectorAll('[data-qadapt-fullscreen]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.qadaptParent),id=b.dataset.qadaptId,a=state.quickResults[i]?.adaptations?.find(x=>x.id===id);if(a)openArtworkFullscreen(a.dataUrl,a.label||a.target?.label||'Arte filha');});
+  document.querySelectorAll('[data-qadapt-diagnostic]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.qadaptParent),id=b.dataset.qadaptId,a=state.quickResults[i]?.adaptations?.find(x=>x.id===id);if(a)openLogoDiagnostic(a);});
 }
 function setQuickProgress(pct,text){const wrap=document.querySelector('#quickProgress'),bar=document.querySelector('#quickProgressBar'),label=document.querySelector('#quickProgressText'),num=document.querySelector('#quickProgressPct');if(!wrap)return;wrap.classList.toggle('show',pct>0&&pct<100);if(bar)bar.style.width=`${pct}%`;if(label)label.textContent=text||'Processando sua arte...';if(num)num.textContent=`${pct}%`;}
 
@@ -2529,7 +2684,12 @@ async function composeOfficialLogos(baseDataUrl,payload,target,options={}){
   if(!expected)return{dataUrl:baseDataUrl,placements:[],receipt:[],occupancy:options.occupancy||fallbackOccupancy(target,'no-logos'),logoPlan:{version:1,placements:[],degradations:[]},audit:{ok:true,expected:0,applied:0},degradations:[]};
 
   try{
-    const occupancy=options.occupancy||await analyzeLogoOccupancy(baseDataUrl,target,options.signal||null);
+    const pastorCount=(payload.assets?.pastors||[]).filter(Boolean).length||(payload.assets?.pastor?1:0);
+    const rc=payload.requiredContent||{};
+    const hasText=!![rc.title,rc.subtitle,rc.date,rc.time,rc.address,payload.instruction].filter(Boolean).length;
+    let occupancy=options.occupancy||null;
+    if(occupancy?.semanticUnavailable||occupancy?.degraded)occupancy=null;
+    occupancy=occupancy||await analyzeLogoOccupancy(baseDataUrl,target,options.signal||null,{pastorCount,hasText});
     const preferences=await buildLogoPreferences(payload,target);
     const logoPlan=solveLogoPlan(occupancy,preferences);
     const rendered=await renderLogoPlan(baseDataUrl,logoPlan,preferences);
@@ -2618,7 +2778,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
     let galleryCandidate=result,galleryKind=variationIndex>0?'variação':'principal',galleryParent=null,gallerySource=state.gallerySeed?.sourceArtworkId||null;
     if(replaceIndex===null)state.quickResults.push(result);else{const original=state.quickResults[replaceIndex];original.corrections=original.corrections||[];galleryCandidate={...result,id:crypto.randomUUID(),label:`${original.label} • corrigida`};original.corrections.push(galleryCandidate);galleryKind='correção';galleryParent=original.galleryId||original.id||null;gallerySource=original.galleryId||original.id||gallerySource}
     const savedGallery=await persistGalleryArtwork(galleryCandidate,{kind:galleryKind,parentArtworkId:galleryParent,sourceArtworkId:gallerySource,format:payload.target?.id||state.quick.format,basedOnKey:payload.gallerySourceArtworkId||null});if(savedGallery)galleryCandidate.galleryId=savedGallery.galleryId;state.gallerySeed=null;
-    setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>'+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();
+    setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>'+((normalized.logoPlan?.failClosed||normalized.occupancy?.semanticUnavailable)?'<span style="display:block;font-size:8px;color:#ffd19c;margin-top:3px">⚠ Diagnóstico: o posicionador entrou em fail-closed. Abra “Diagnóstico logos”.</span>':'')+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();
   }catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível concluir.</strong><br>${esc(e.message)}`;}
   finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}
 }
