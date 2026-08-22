@@ -1,4 +1,4 @@
-// ChurchDesign V0.31.2 — resilient library + gallery item delete
+// ChurchDesign V0.31.7 — strict tenant isolation / no default fallback
 // ChurchDesign V0.30.9 — unified checkpoint persistence and historical merge
 const BUCKET = "churchart-assets";
 
@@ -131,10 +131,29 @@ async function uploadDataUrl(dataUrl, path, mime) {
   return storagePublicUrl(path);
 }
 
+
+async function ensureChurchProfile(churchId){
+  if(!churchId||churchId==="default")throw new Error("Tenant inválido: church_id não pode ser default.");
+  const rows=await rest(`church_profile?id=eq.${encodeURIComponent(churchId)}&select=*`);
+  if(rows?.length)return rows[0];
+  const created=await rest("church_profile?on_conflict=id",{
+    method:"POST",
+    headers:{Prefer:"resolution=merge-duplicates,return=representation"},
+    body:JSON.stringify([{
+      id:churchId,
+      name:"",
+      address:"",
+      screen_config:{preset:"16:9",width:1920,height:1080}
+    }])
+  });
+  return created?.[0]||null;
+}
+
 module.exports = async function handler(req, res) {
   try {
     const action = req.query.action;
-    const churchId=String(req.headers['x-church-id']||'default').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)||'default';
+    const churchId=String(req.headers['x-church-id']||'').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80);
+    if(!churchId||churchId==="default")return res.status(401).json({error:"Tenant não identificado. Faça login novamente."});
     cfg();
 
     if (action === "bootstrap") {
@@ -151,37 +170,25 @@ module.exports = async function handler(req, res) {
         "assets"
       );
 
-      // Historical versions sometimes wrote assets using church_id="default".
-      // Only use that legacy scope when the current church has no assets at all.
-      let assets=assetsCurrent||[];
-      let legacyAssetsRecovered=false;
-      if(!assets.length&&churchId!=="default"){
-        const legacy=await safeRest(
-          `church_assets?church_id=eq.default&select=*&order=created_at.desc`,
-          "legacy assets"
-        );
-        if(legacy?.length){assets=legacy;legacyAssetsRecovered=true}
-      }
+      // Produção multi-tenant: nunca consulte outro tenant, nem "default".
+      const assets=assetsCurrent||[];
 
-      const [profileCurrent,generations,drafts]=await Promise.all([
+      const [profileCurrent,generationsCurrent,drafts]=await Promise.all([
         safeRest(`church_profile?id=eq.${encodeURIComponent(churchId)}&select=*`,"profile"),
         safeRest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=created_at.desc&limit=100`,"gallery"),
         safeRest(`church_drafts?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=updated_at.desc&limit=60`,"drafts")
       ]);
 
-      let profile=profileCurrent||[];
-      if(!profile.length&&churchId!=="default"){
-        profile=await safeRest(`church_profile?id=eq.default&select=*`,"legacy profile");
-      }
+      const generations=[...(generationsCurrent||[])];
 
+      const profile=profileCurrent||[];
       const userDrafts=(drafts||[]).filter(x=>x?.title!=="__GENERATION_JOB__"&&x?.data?.kind!=="generation_job");
       return res.json({
         profile:profile?.[0]||null,
         assets:assets||[],
         generations:generations||[],
         drafts:userDrafts,
-        bootstrapWarnings:warnings,
-        legacyAssetsRecovered
+        bootstrapWarnings:warnings
       });
     }
 
@@ -302,25 +309,30 @@ module.exports = async function handler(req, res) {
     }
 
     if (action === "save-generation" && req.method === "POST") {
-      const body = req.body || {};
+      const body=req.body||{};
+      if(!Array.isArray(body.images)||!body.images.length)throw new Error("Nenhuma imagem enviada para a Galeria.");
 
-      const data = await rest("church_generations", {
-        method: "POST",
-        headers: {
-          Prefer: "return=representation"
-        },
-        body: JSON.stringify([
-          {
-            church_id: churchId,
-            format: body.format || "feed",
-            images: body.images || []
-          }
-        ])
-      });
+      // church_generations pode possuir FK para church_profile.
+      // Garanta o pai antes do INSERT, inclusive para contas que migraram do escopo "default".
+      await ensureChurchProfile(churchId);
 
-      return res.json({
-        generation: data?.[0]
-      });
+      let data;
+      try{
+        data=await rest("church_generations",{
+          method:"POST",headers:{Prefer:"return=representation"},
+          body:JSON.stringify([{church_id:churchId,format:body.format||"feed",images:body.images}])
+        });
+      }catch(e){
+        // Uma única repetição local do INSERT após revalidar o pai; não há chamada de IA aqui.
+        await ensureChurchProfile(churchId);
+        data=await rest("church_generations",{
+          method:"POST",headers:{Prefer:"return=representation"},
+          body:JSON.stringify([{church_id:churchId,format:body.format||"feed",images:body.images}])
+        });
+      }
+
+      if(!data?.[0])throw new Error("Supabase não confirmou o salvamento da geração.");
+      return res.json({generation:data[0],persisted:true});
     }
 
     if (action === "delete-gallery-item" && req.method === "DELETE") {
