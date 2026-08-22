@@ -1,4 +1,4 @@
-// ChurchDesign V0.31.1 — resilient My Church bootstrap; no generation checkpoints
+// ChurchDesign V0.31.2 — resilient library + gallery item delete
 // ChurchDesign V0.30.9 — unified checkpoint persistence and historical merge
 const BUCKET = "churchart-assets";
 
@@ -321,6 +321,27 @@ module.exports = async function handler(req, res) {
       return res.json({
         generation: data?.[0]
       });
+    }
+
+    if (action === "delete-gallery-item" && req.method === "DELETE") {
+      const body=req.body||{};
+      const generationId=body.generationId;
+      const galleryId=body.galleryId;
+      if(!generationId||!galleryId)throw new Error("generationId e galleryId são obrigatórios.");
+
+      const rows=await rest(`church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`);
+      const generation=rows?.[0];
+      if(!generation)return res.json({ok:true,alreadyMissing:true});
+
+      const remaining=(generation.images||[]).filter(im=>String(im?.galleryId||"")!==String(galleryId));
+      if(remaining.length){
+        await rest(`church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}`,{
+          method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify({images:remaining})
+        });
+      }else{
+        await rest(`church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"DELETE"});
+      }
+      return res.json({ok:true});
     }
 
 
