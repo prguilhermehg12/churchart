@@ -471,7 +471,7 @@
 .pastor-order-pill b{color:white}
 
 </style>
-  <!-- ChurchDesign V0.30.9 — unified checkpoints / historical recovery / canvas hardening -->
+  <!-- ChurchDesign V0.31.0 — linear generation rollback / no checkpoints / stable finalization -->
 </head>
 <body>
   <div class="app-shell">
@@ -511,7 +511,7 @@ mode:null,
 quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',dominantColorMode:'custom',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoPosition:'',logoAssetId:null,omitChurchLogo:false,omitChurchName:false,eventLogoAssetId:null,eventLogoPosition:'',eventLogoSize:'small',pastorAssetIds:[],pastorNames:{},churchImageAssetId:null,correction:''},
 quickResults:[],
 costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',actualStart:null,actualEnd:null,actualCost:null,requests:[],untrackedEstimate:0},
-library:{assets:[],generations:[],drafts:[],jobs:[],ratings:[],dbReady:false},
+library:{assets:[],generations:[],drafts:[],ratings:[],dbReady:false},
 gallerySeed:null,
 gallerySavedIds:[],
 user:{email:'pr.guilhermehg12@gmail.com',plan:'studio',credits:null,isAdmin:true},
@@ -1278,33 +1278,14 @@ async function deleteDraftById(id){
 
 function currentChurchId(){return String(state.user?.id||state.user?.email||'default').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80);}
 function apiJSON(action,options={}){const method=options.method||'GET';const churchId=currentChurchId();const url=`/api/church-data?action=${encodeURIComponent(action)}`;return fetch(url,{method,headers:{'Content-Type':'application/json','x-church-id':churchId},body:method==='GET'?undefined:JSON.stringify(options.body||{})}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;});}
-async function saveGenerationJob(id,status,data={}){const r=await apiJSON('save-job',{method:'POST',body:{id,status,data:{...data,status}}});const job=r.job;if(job)state.library.jobs=[job,...(state.library.jobs||[]).filter(x=>x.id!==job.id)];return job;}
-function quickJobSnapshot(label,variationIndex,correction,replaceIndex){let lockedBaseSourceUrl=null;if(replaceIndex!==null){const parent=state.quickResults?.[replaceIndex];const latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent;lockedBaseSourceUrl=latest?.baseDataUrl||latest?.sourceUrl||null;}return{mode:'quick',label,variationIndex,correction,replaceIndex,quick:JSON.parse(JSON.stringify(state.quick)),church:JSON.parse(JSON.stringify(state.church)),lockedBaseSourceUrl,createdAt:new Date().toISOString()};}
-function restoreQuickJobSnapshot(s={}){if(s.church)state.church={...state.church,...s.church};if(s.quick)state.quick={...state.quick,...s.quick};}
-function incompleteGenerationJobs(){
-  const jobs=(state.library.jobs||[]).filter(j=>j?.data?.kind==='generation_job'&&!['DONE','CANCELLED'].includes(j.data.status)).filter(j=>Date.now()-new Date(j.updated_at||j.data?.updatedAt||0).getTime()<86400000);
-  const seen=new Set();
-  return jobs.filter(j=>{
-    const s=j.data?.snapshot||{},key=[s.mode,s.label,s.variationIndex,s.replaceIndex,j.data?.status,j.data?.image?.url||''].join('|');
-    if(seen.has(key))return false;seen.add(key);return true;
-  });
-}
-function renderGenerationRecoveryNotice(){document.querySelectorAll('[data-generation-recovery]').forEach(x=>x.remove());const jobs=incompleteGenerationJobs();if(!jobs.length)return;const host=document.querySelector('#quickResultsWrap')||document.querySelector('#content')||document.querySelector('.content');if(!host)return;const box=document.createElement('div');box.dataset.generationRecovery='1';box.className='card';box.style.cssText='border-color:#665b24;margin-bottom:12px';box.innerHTML=`<h3>Arte interrompida encontrada</h3><p>O último estágio concluído foi salvo. Continue sem repetir etapas já pagas.</p>${jobs.slice(0,4).map(j=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:9px 0"><div><strong>${esc(j.data?.snapshot?.label||'Arte')}</strong><small style="display:block;color:var(--muted)">Checkpoint: ${esc(j.data.status||'CREATED')} ${j.data.status==='INSPECTED'?`• imagem ${j.data.image?.url?'✓':'×'} • fiscal ${typeof j.data.review?.approved==='boolean'?'✓':'×'}`:''}</small></div>${isRecoverableJobStatus(j.data.status)?`<button class="mini-btn" data-resume-job="${j.id}">Continuar arte</button>`:`<span style="font-size:8px;color:#ffb0bc">Bloqueado: ${esc(j.data.error||'erro estrutural')}</span>`}</div>`).join('')}`;host.prepend(box);box.querySelectorAll('[data-resume-job]').forEach(b=>b.onclick=()=>resumeGenerationJob(b.dataset.resumeJob,b));}
-async function refreshJobs(){try{const d=await apiJSON('bootstrap');state.library.jobs=d.jobs||[];renderGenerationRecoveryNotice();}catch{}}
-async function resumeGenerationJob(id,button=null){
-  const job=(state.library.jobs||[]).find(x=>x.id===id);if(!job)return alert('Job não encontrado.');
-  const d=job.data||{},s=d.snapshot||{};
-  if(!isRecoverableJobStatus(d.status))return alert('Este job foi bloqueado porque repetir a etapa poderia gastar créditos sem corrigir a causa.');
-  if(s.mode!=='quick')return alert('Checkpoint incompatível.');
-  if(button){button.disabled=true;button.dataset.originalText=button.textContent;button.textContent='Retomando...'}
-  try{
-    restoreQuickJobSnapshot(s);screenQuickMode();await new Promise(r=>setTimeout(r,80));
-    return await runQuickGeneration(s.label||'Principal',Number(s.variationIndex)||0,s.correction||'',s.replaceIndex??null,{id:job.id,data:d});
-  }finally{
-    if(button&&document.body.contains(button)){button.disabled=false;button.textContent=button.dataset.originalText||'Continuar arte'}
-  }
-}
-function clientPipelineGuard(payload={}){const p={...payload,assets:{...(payload.assets||{})}};if((p.assets.pastors||[]).length>3)throw new Error('Guardião: máximo de 3 pregadores.');p.allowedTexts=[p.requiredContent?.title,p.requiredContent?.subtitle,p.requiredContent?.date,p.requiredContent?.time,p.requiredContent?.address,p.requiredContent?.churchName,...(p.requiredContent?.pastorNames||[])].map(x=>String(x||'').trim()).filter(Boolean);p.referenceSemanticPolicy='style-only';p.jobChurchId=currentChurchId();if(p.mode==='primary'&&!p.revisionMode&&!p.referenceRole)p.referenceRole='director-only';return p;}
+
+
+
+
+
+
+
+function clientPipelineGuard(payload={}){const p={...payload,assets:{...(payload.assets||{})}};if((p.assets.pastors||[]).length>3)throw new Error('Guardião: máximo de 3 pregadores.');p.allowedTexts=[p.requiredContent?.title,p.requiredContent?.subtitle,p.requiredContent?.date,p.requiredContent?.time,p.requiredContent?.address,p.requiredContent?.churchName,...(p.requiredContent?.pastorNames||[])].map(x=>String(x||'').trim()).filter(Boolean);p.referenceSemanticPolicy='style-only';if(p.mode==='primary'&&!p.revisionMode&&!p.referenceRole)p.referenceRole='director-only';return p;}
 
 
 function logoVariantGroup(a){const m=a?.meta||a?.metadata||a?.data||{};return m.logoGroupId||m.variantGroupId||a?.id||null}
@@ -1364,14 +1345,15 @@ function regionPixelMetrics(ctx,x,y,w,h){
   let lum=0,lum2=0,edges=0,n=0,prev=null;for(let i=0;i<d.length;i+=32){if(d[i+3]<20)continue;const l=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;lum+=l;lum2+=l*l;if(prev!==null)edges+=Math.abs(l-prev);prev=l;n++}if(!n)return{luminance:.5,complexity:.45};const avg=lum/n,variance=Math.max(0,lum2/n-avg*avg);return{luminance:avg,complexity:Math.min(1,(edges/Math.max(1,n-1))*2.5+variance*2.5)}
 }
 async function resolveLogoPlacement(src,position,sizeFraction=.14,kind='church',{forceRelocation=false}={}){
-  const safeSrc=await remoteToDataUrl(src),im=await loadImage(safeSrc),cv=document.createElement('canvas'),ctx=cv.getContext('2d',{willReadFrequently:true});cv.width=im.width;cv.height=im.height;ctx.drawImage(im,0,0);
-  const reg=normalizeLogoRegion(position,kind),size=Math.max(.06,Math.min(.32,Number(sizeFraction)||.14));let best=null;
-  for(const [i,c] of logoZoneCandidates(reg,kind).entries()){let w=Math.max(40,im.width*size),h=Math.max(24,w*.42),x=c[0]*im.width,y=c[1]*im.height;if(/right/.test(reg))x-=w;if(/bottom/.test(reg))y-=h;if(reg==='top-center'||reg==='bottom-center')x-=w/2;if(/middle/.test(reg))y-=h/2;x=Math.max(im.width*.025,Math.min(im.width-w-im.width*.025,x));y=Math.max(im.height*.025,Math.min(im.height-h-im.height*.025,y));const mt=regionPixelMetrics(ctx,x,y,w,h),score=1-i*.18-(forceRelocation&&i===0?.75:0)-mt.complexity*.58+Math.abs(mt.luminance-.5)*.08;if(!best||score>best.score)best={x,y,w,h,backgroundLum:mt.luminance,complexity:mt.complexity,score,region:reg,candidateIndex:i}}
-  return best;
+  const im=await loadImageSafe(src),reg=normalizeLogoRegion(position,kind),size=Math.max(.06,Math.min(.32,Number(sizeFraction)||.14)),candidates=logoZoneCandidates(reg,kind),chosen=candidates[Math.min(forceRelocation?1:0,candidates.length-1)]||candidates[0]||[.05,.05];
+  let w=Math.max(40,im.width*size),h=Math.max(24,w*.42),x=chosen[0]*im.width,y=chosen[1]*im.height;if(/right/.test(reg))x-=w;if(/bottom/.test(reg))y-=h;if(reg==='top-center'||reg==='bottom-center')x-=w/2;if(/middle/.test(reg))y-=h/2;
+  x=Math.max(im.width*.025,Math.min(im.width-w-im.width*.025,x));y=Math.max(im.height*.025,Math.min(im.height-h-im.height*.025,y));return{x,y,w,h,backgroundLum:.5,complexity:0,score:1,region:reg,candidateIndex:forceRelocation?1:0,deterministic:true};
 }
-async function chooseLogoVariant(a,b,bg){if(!b)return a;const[A,B]=await Promise.all([imageAverageLuminance(logoAssetSource(a)),imageAverageLuminance(logoAssetSource(b))]);return Math.abs(B-bg)>Math.abs(A-bg)?b:a}
+async function chooseLogoVariant(primary,contrast,backgroundLum){
+  if(!contrast)return primary;try{const[a,b]=await Promise.all([imageAverageLuminance(logoAssetSource(primary)),imageAverageLuminance(logoAssetSource(contrast))]);return Math.abs(b-backgroundLum)>Math.abs(a-backgroundLum)?contrast:primary}catch(e){console.warn('Contraste automático indisponível; usando a logo principal.',e);return primary}
+}
 
-async function bootstrapLibrary(){try{const data=await apiJSON('bootstrap');state.library.assets=data.assets||[];const savedLogos=state.library.assets.filter(a=>a.type==='logo');if(!state.finalConfig.logoAssetId&&savedLogos.length)state.finalConfig.logoAssetId=(savedLogos.find(a=>a.is_primary)||savedLogos[0]).id;state.library.generations=data.generations||[];state.gallerySavedIds=allPersistentGalleryItems().map(x=>x.galleryId).filter(Boolean);state.library.drafts=data.drafts||[];state.library.jobs=data.jobs||[];state.library.ratings=data.ratings||[];state.library.dbReady=true;if(data.profile){state.church.name=data.profile.name||state.church.name;state.church.address=data.profile.address||state.church.address;state.church.screenConfig=data.profile.screen_config||state.church.screenConfig;state.projectTitle=state.church.name||'Nova arte';}const primary=state.library.assets.find(a=>a.type==='logo'&&a.is_primary)||state.library.assets.find(a=>a.type==='logo');if(primary&&!state.church.logo)state.church.logo=primary.url;render();setTimeout(renderGenerationRecoveryNotice,80);}catch(e){console.warn('Banco não configurado:',e);state.library.dbReady=false;render();}}
+async function bootstrapLibrary(){try{const data=await apiJSON('bootstrap');state.library.assets=data.assets||[];const savedLogos=state.library.assets.filter(a=>a.type==='logo');if(!state.finalConfig.logoAssetId&&savedLogos.length)state.finalConfig.logoAssetId=(savedLogos.find(a=>a.is_primary)||savedLogos[0]).id;state.library.generations=data.generations||[];state.gallerySavedIds=allPersistentGalleryItems().map(x=>x.galleryId).filter(Boolean);state.library.drafts=data.drafts||[];state.library.ratings=data.ratings||[];state.library.dbReady=true;if(data.profile){state.church.name=data.profile.name||state.church.name;state.church.address=data.profile.address||state.church.address;state.church.screenConfig=data.profile.screen_config||state.church.screenConfig;state.projectTitle=state.church.name||'Nova arte';}const primary=state.library.assets.find(a=>a.type==='logo'&&a.is_primary)||state.library.assets.find(a=>a.type==='logo');if(primary&&!state.church.logo)state.church.logo=primary.url;render();}catch(e){console.warn('Banco não configurado:',e);state.library.dbReady=false;render();}}
 async function saveChurchProfile(){
   if(!state.library.dbReady)return {ok:false,error:'Banco não conectado'};
   try{
@@ -1870,100 +1852,23 @@ async function callQualityInspector(payload,signal=null){
     };
   }
 }
-async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null,resumeState=null){
-  payload=clientPipelineGuard(payload);
-  let lastReview=resumeState?.review||null,lastImage=resumeState?.image||null;
-  let startAttempt=0;
-  if(lastImage&&lastReview){
-    const technical=!!(lastReview?.technicalFailure||lastReview?._meta?.technicalFailure);
-    const hard=!!lastReview.critical_error||(lastReview.gross_errors||[]).some(x=>/rosto|data|hor[aá]rio|endere[cç]o|duplic|borda|canvas|crop|corpo inteiro|sobrepos|texto inventado|allowlist/i.test(String(x)));
-    if(lastReview.approved||technical||!hard||maxCorrections<1)return {...lastImage,review:lastReview,resumedFromCheckpoint:true};
-    startAttempt=1; // continua do retry, sem repetir a primeira imagem já paga
-  }
-  const retryInstructions=[
-    '',
-    'Corrija apenas os erros objetivos apontados pelo fiscal. Preserve o restante da composição. Se houver risco de degradar rosto, logo ou tipografia, simplifique.'
-  ];
-
-  if(lastImage&&!lastReview){const review=await callQualityInspector({generatedImage:lastImage.url,references:payload.references||[],assets:payload.assets||{},requiredContent:payload.requiredContent||{},semanticMap:payload.semanticMap||[],userInstruction:payload.instruction||'',finalInstruction:payload.finalInstruction||'',artDirection:payload.artDirection||null,audience:payload.audience||null,designStyle:payload.designStyle||null,logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,omitChurchLogo:payload.omitChurchLogo||false,omitChurchName:payload.omitChurchName||false,allowedTexts:payload.allowedTexts||[],jobId:payload.jobId||null,jobChurchId:currentChurchId(),nativeCanvasRequired:true,churchImageMustBeBackground:true},signal);return {...lastImage,review,resumedFromCheckpoint:true};}
-
-  for(let attempt=startAttempt;attempt<=maxCorrections;attempt++){
-    const qualityCorrection=[
-      retryInstructions[Math.min(attempt,retryInstructions.length-1)],
-      lastReview?.correction_prompt||''
-    ].filter(Boolean).join(' ');
-
+async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null){
+  payload=clientPipelineGuard(payload);let lastReview=null,lastImage=null;
+  const retryInstructions=['','Corrija apenas os erros objetivos apontados pelo fiscal. Preserve o restante da composição. Se houver risco de degradar rosto, logo ou tipografia, simplifique.'];
+  for(let attempt=0;attempt<=maxCorrections;attempt++){
+    const qualityCorrection=[retryInstructions[Math.min(attempt,retryInstructions.length-1)],lastReview?.correction_prompt||''].filter(Boolean).join(' ');
     const request={...payload,qualityCorrection,revisionAttempt:attempt,safeMode:attempt>=maxCorrections&&attempt>0};
-    const r=await fetch('/api/generate-art',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(request),
-      signal
-    });
-
-    const text=await r.text();
-    let data;
-    try{data=JSON.parse(text)}
-    catch{throw new Error(text.slice(0,180)||`Resposta inválida (${r.status})`);}
-    if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);
-    assertGeneratorResponse(data);
-    recordOpenAIRequest(attempt===0?'Gerador de imagem':`Retry de imagem ${attempt}`,data.image.meta||{});
-    lastImage=data.image;
-    if(payload.jobId)await safeCheckpoint(payload.jobId,'IMAGE_GENERATED',{image:lastImage,artDirection:payload.artDirection||null});
-
-    const review=await callQualityInspector({
-      generatedImage:lastImage.url,
-      references:payload.references||[],
-      assets:payload.assets||{},
-      requiredContent:payload.requiredContent||{},
-      semanticMap:payload.semanticMap||[],
-      userInstruction:payload.instruction||'',
-      finalInstruction:payload.finalInstruction||'',
-      artDirection:payload.artDirection||null,
-      audience:payload.audience||null,
-      designStyle:payload.designStyle||null,
-      logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,omitChurchLogo:payload.omitChurchLogo||false,omitChurchName:payload.omitChurchName||false,allowedTexts:payload.allowedTexts||[],jobId:payload.jobId||null,jobChurchId:currentChurchId(),nativeCanvasRequired:true,churchImageMustBeBackground:true,typographyBlueprint:payload.artDirection?.typographyBlueprint||null
-    },signal);
-
+    const r=await fetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal});
+    const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,180)||`Resposta inválida (${r.status})`);}
+    if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);assertGeneratorResponse(data);recordOpenAIRequest(attempt===0?'Gerador de imagem':`Retry de imagem ${attempt}`,data.image.meta||{});lastImage=data.image;
+    const review=await callQualityInspector({generatedImage:lastImage.url,references:payload.references||[],assets:payload.assets||{},requiredContent:payload.requiredContent||{},semanticMap:payload.semanticMap||[],userInstruction:payload.instruction||'',finalInstruction:payload.finalInstruction||'',artDirection:payload.artDirection||null,audience:payload.audience||null,designStyle:payload.designStyle||null,logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,omitChurchLogo:payload.omitChurchLogo||false,omitChurchName:payload.omitChurchName||false,allowedTexts:payload.allowedTexts||[],nativeCanvasRequired:true,churchImageMustBeBackground:true,typographyBlueprint:payload.artDirection?.typographyBlueprint||null},signal);
     lastReview=review;
-    if(payload.jobId)await safeCheckpoint(payload.jobId,'INSPECTED',{image:lastImage,review:lastReview,artDirection:payload.artDirection||null});
-
-    // REGRA DE ENTREGA GARANTIDA:
-    // falha técnica do fiscal nunca destrói uma imagem já paga/gerada.
-    if(review?.technicalFailure||review?._meta?.technicalFailure){
-      return {
-        ...lastImage,
-        review:{
-          ...review,
-          approved:true,
-          deliveredDespiteInspectorFailure:true
-        }
-      };
-    }
-
-    if(review.approved){
-      return {...lastImage,review};
-    }
-
-    const hardFailure=!!review.critical_error || (review.gross_errors||[]).some(x=>/rosto|logo|data|hor[aá]rio|endere[cç]o|duplic|borda|canvas|crop|corpo inteiro|sobrepos/i.test(String(x)));
-    // Só gaste outra imagem se o erro for objetivamente grave.
-    if(attempt<maxCorrections && hardFailure)continue;
-
-    // Erro apenas estético/menor: preserve a primeira imagem em vez de gastar um retry caro.
+    if(review?.technicalFailure||review?._meta?.technicalFailure)return {...lastImage,review:{...review,approved:true,deliveredDespiteInspectorFailure:true}};
+    if(review.approved)return {...lastImage,review};
+    const hardFailure=!!review.critical_error||(review.gross_errors||[]).some(x=>/rosto|logo|data|hor[aá]rio|endere[cç]o|duplic|borda|canvas|crop|corpo inteiro|sobrepos/i.test(String(x)));
+    if(attempt<maxCorrections&&hardFailure)continue;
     return {...lastImage,review:{...review,deliveredWithoutRetry:true}};
-
-    // Se já gastamos a última tentativa, entregamos a última imagem válida.
-    // A UI pode indicar internamente que foi entregue após revisão não aprovada,
-    // mas não deve descartar o ativo pago.
-    return {
-      ...lastImage,
-      review:{
-        ...lastReview,
-        deliveredAfterFinalReview:true
-      }
-    };
   }
-
   if(lastImage)return {...lastImage,review:lastReview||{approved:true,technicalFailure:true}};
   throw new Error('Nenhuma imagem foi gerada.');
 }
@@ -1972,25 +1877,22 @@ class EndpointContractError extends Error{constructor(endpoint,message,details={
 function assertDirectorResponse(data){if(data?.endpointType&&data.endpointType!=='design-director')throw new EndpointContractError('/api/design-director',`Endpoint trocado: recebeu ${data.endpointType}.`);if(!data?.artDirection||typeof data.artDirection!=='object')throw new EndpointContractError('/api/design-director','Contrato inválido do Diretor. Verifique design-director.js.',{model:data?.meta?.model||null,keys:Object.keys(data||{})});}
 function assertGeneratorResponse(data){if(data?.endpointType&&data.endpointType!=='generate-art')throw new EndpointContractError('/api/generate-art',`Endpoint trocado: recebeu ${data.endpointType}.`);const model=String(data?.image?.meta?.model||data?.image?.modelUsed||'');if(!data?.image||typeof data.image.url!=='string'||!data.image.url)throw new EndpointContractError('/api/generate-art',`generate-art respondeu no formato errado (${data?.meta?.model||'desconhecido'}). NÃO tente novamente: confirme se generate-art.js recebeu o arquivo correto.`,{model:data?.meta?.model||null,keys:Object.keys(data||{})});if(!model.startsWith('gpt-image-'))throw new EndpointContractError('/api/generate-art',`generate-art retornou ${model||'modelo desconhecido'}; esperado gpt-image-2.`,{model});}
 function assertInspectorResponse(data){if(data?.endpointType&&data.endpointType!=='quality-inspector')throw new EndpointContractError('/api/quality-inspector',`Endpoint trocado: recebeu ${data.endpointType}.`);if(!data?.review||typeof data.review.approved!=='boolean')throw new EndpointContractError('/api/quality-inspector','Contrato inválido do Fiscal. Verifique quality-inspector.js.',{model:data?.meta?.model||null,keys:Object.keys(data||{})});}
-async function safeCheckpoint(id,status,data={}){try{return await saveGenerationJob(id,status,data)}catch(e){console.warn('Checkpoint passivo indisponível:',e);return null;}}
-function isRecoverableJobStatus(s){return ['CREATED','DIRECTED','IMAGE_GENERATED','INSPECTED'].includes(String(s||''));}
+
+
 
 async function requestArtDirection(base,signal=null){
-  const r=await fetch('/api/design-director',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      references:base.references||[],semanticMap:base.semanticMap||[],church:base.church||{},
-      instruction:base.instruction||'',finalInstruction:base.finalInstruction||'',
-      effects:base.effects||[],format:base.format,target:base.target||primaryTargetSpec(),inspirationStyle:base.inspirationStyle||null,audience:base.audience||null,designStyle:base.designStyle||null,preferenceProfile:base.preferenceProfile||null||null,requiredContent:base.requiredContent||{},colorMode:base.colorMode||null,dominantColor:base.dominantColor||null,logoPosition:base.logoPosition||null,eventLogoPosition:base.eventLogoPosition||null,eventLogoSize:base.eventLogoSize||null,omitChurchLogo:base.omitChurchLogo||false,jobId:base.jobId||null,jobChurchId:currentChurchId()
-    }),signal
-  });
-  const text=await r.text();let data;
-  try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,220)||`Diretor de arte: resposta inválida (${r.status})`);}
+  const r=await fetch('/api/design-director',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    references:base.references||[],semanticMap:base.semanticMap||[],church:base.church||{},
+    instruction:base.instruction||'',finalInstruction:base.finalInstruction||'',effects:base.effects||[],
+    format:base.format,target:base.target||primaryTargetSpec(),inspirationStyle:base.inspirationStyle||null,
+    audience:base.audience||null,designStyle:base.designStyle||null,preferenceProfile:base.preferenceProfile||null,
+    requiredContent:base.requiredContent||{},colorMode:base.colorMode||null,dominantColor:base.dominantColor||null,
+    logoPosition:base.logoPosition||null,eventLogoPosition:base.eventLogoPosition||null,eventLogoSize:base.eventLogoSize||null,
+    omitChurchLogo:base.omitChurchLogo||false
+  }),signal});
+  const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,220)||`Diretor de arte: resposta inválida (${r.status})`);}
   if(!r.ok)throw new Error(data.error||`Diretor de arte: erro ${r.status}`);
-  assertDirectorResponse(data);
-  recordOpenAIRequest('Diretor de Arte',data.meta||{});state.artDirection=data.artDirection;
-  if(base.jobId)await safeCheckpoint(base.jobId,'DIRECTED',{artDirection:data.artDirection,directorMeta:data.meta||null});
-  return state.artDirection;
+  assertDirectorResponse(data);recordOpenAIRequest('Diretor de Arte',data.meta||{});state.artDirection=data.artDirection;return state.artDirection;
 }
 function titleDirection(){return state.artDirection?.typography?.title||null;}
 function normalizeHex(v,fallback='#ffffff'){return /^#[0-9a-f]{6}$/i.test(String(v||''))?v:fallback;}
@@ -2068,7 +1970,7 @@ function quickDefaultPastor(){
   if(!state.quick.pastorNames||typeof state.quick.pastorNames!=='object')state.quick.pastorNames={};
 }
 
-const CHURCHDESIGN_CRITICAL_FUNCTIONS=['quickPayload','runQuickGeneration','requestArtDirection','generateWithInvisibleReview','normalizeArtworkToTarget','composeOfficialLogos','prepareImageForAI','remoteToDataUrl','clientPipelineGuard','safeCheckpoint','uploadLibraryAsset','cropImageBeforeUpload'];
+const CHURCHDESIGN_CRITICAL_FUNCTIONS=['quickPayload','runQuickGeneration','requestArtDirection','generateWithInvisibleReview','normalizeArtworkToTarget','composeOfficialLogos','prepareImageForAI','remoteToDataUrl','clientPipelineGuard','uploadLibraryAsset','cropImageBeforeUpload'];
 function assertChurchDesignIntegrity(){
   const missing=[];
   for(const n of CHURCHDESIGN_CRITICAL_FUNCTIONS){let ok=false;try{ok=typeof eval(n)==='function'}catch{}if(!ok)missing.push(n)}
@@ -2137,7 +2039,7 @@ function churchDesignRuntimeSelfTest(){
 }
 window.churchDesignRuntimeSelfTest=churchDesignRuntimeSelfTest;
 
-async function quickPayload(variantLabel='Principal',correction='',signal=null,jobId=null,resumeArtDirection=null,localOnly=false){
+async function quickPayload(variantLabel='Principal',correction='',signal=null){
   const ref=state.quick.reference?await prepareImageForAI(state.quick.reference,1400,.9):null;
   const logo=state.library.assets.find(a=>a.id===state.quick.logoAssetId);
   const pastorIds=(Array.isArray(state.quick.pastorAssetIds)?state.quick.pastorAssetIds:[]).slice(0,3);
@@ -2150,7 +2052,7 @@ async function quickPayload(variantLabel='Principal',correction='',signal=null,j
   const target=quickTargetSpec(state.quick.format),learned=computePreferenceProfile();
   const names=pastors.filter(p=>p.name).map(p=>p.name);
   const pastorHierarchy=pastors.length?`HIERARQUIA DE PREGADORES OBRIGATÓRIA: ${pastors.map((p,i)=>`${p.role}: ${p.name?`NOME EXATO = ${p.name}`:'SEM NOME — NÃO ESCREVER RÓTULO, PLACEHOLDER, FUNÇÃO OU NOME'}`).join(' | ')}. O PRINCIPAL é sempre a pessoa de maior prioridade visual, deve ficar numa posição mais central e geralmente maior. AUXILIAR 1 e AUXILIAR 2 são secundários, preferencialmente distribuídos nas laterais ou atrás do eixo do principal, sem encobri-lo. Nunca troque a identidade/ordem entre as pessoas.`:'';
-  const base={jobId,church:{name:state.church.name,address:state.quick.address||state.church.address,hasLogo:!!assets.logo},format:state.quick.format,reference:ref,references:refs,assets,target,
+  const base={church:{name:state.church.name,address:state.quick.address||state.church.address,hasLogo:!!assets.logo},format:state.quick.format,reference:ref,references:refs,assets,target,
     inspirationStyle:ref?null:{id:inspiration.id,name:inspiration.name,prompt:inspiration.prompt},audience:state.quick.audience?audienceLabel(state.quick.audience):null,designStyle:state.quick.designStyle?designStyleLabel(state.quick.designStyle):null,colorMode:state.quick.dominantColorMode||'custom',dominantColor:state.quick.dominantColor||null,logoPosition:state.quick.logoPosition||null,omitChurchLogo:!!state.quick.omitChurchLogo,omitChurchName:!!state.quick.omitChurchName,eventLogoPosition:state.quick.eventLogoPosition||null,eventLogoSize:state.quick.eventLogoSize||'small',preferenceProfile:learned,
     requiredContent:{title:state.quick.title,subtitle:state.quick.subtitle,date:state.quick.date,time:state.quick.time,address:state.quick.address||state.church.address,churchName:(assets.logo&&!state.quick.omitChurchLogo)?'':(state.quick.omitChurchName?'':state.church.name),pastorNames:names},
     instruction:`Modo rápido. ${pastorHierarchy}
@@ -2201,8 +2103,7 @@ ${state.quick.audience?`Público-alvo: ${audienceLabel(state.quick.audience)}. `
     finalInstruction:'SAFE FRAME OBRIGATÓRIO: conteúdo essencial dentro dos 76% centrais; 12% de margem livre em todos os lados. Elementos decorativos podem sangrar, conteúdo essencial jamais.',semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[]};
   const seed=state.gallerySeed;
   if(seed?.sourceArtworkId&&seed?.sourceUrl){base.reference=await prepareImageForAI(seed.sourceUrl,1600,.94);base.references=[{image:base.reference,note:'ARTE INTERNA DO CHURCHDESIGN. Use como working base; preserve o DNA visual, mas os textos atuais continuam soberanos.'}];base.referenceRole='working-base';base.gallerySourceArtworkId=seed.sourceArtworkId}
-  if(localOnly){base.artDirection=resumeArtDirection||seed?.artDirection||state.artDirection||{visual_summary:'checkpoint-local-finalization',generation_prompt:''};}
-  else base.artDirection=resumeArtDirection||seed?.artDirection||await requestArtDirection(base,signal);
+  base.artDirection=seed?.artDirection||await requestArtDirection(base,signal);
   return clientPipelineGuard(base);
 }
 function screenQuickMode(){
@@ -2390,7 +2291,9 @@ async function drawExactOfficialLogo(ctx,canvas,asset,kind,region,widthPct){
   const b=logoBoxForRegion(kind,region,widthPct,iw,ih,canvas.width,canvas.height);
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(img,b.x,b.y,b.w,b.h);ctx.restore();
 }
-async function auditLogoPlacement({canvas,selectedAsset,placement,kind}){if(!selectedAsset||!placement)return{ok:false,reason:`${kind}: dados ausentes`};const src=logoAssetSource(selectedAsset);if(!src)return{ok:false,reason:`${kind}: arquivo inacessível`};const logoLum=await imageAverageLuminance(src),contrast=Math.abs(logoLum-placement.backgroundLum),inside=placement.x>=0&&placement.y>=0&&placement.x+placement.w<=canvas.width&&placement.y+placement.h<=canvas.height;if(!inside)return{ok:false,reason:`${kind}: fora do canvas`};if(contrast<.13)return{ok:false,reason:`${kind}: contraste insuficiente`,contrast};if(placement.complexity>.80)return{ok:false,reason:`${kind}: região congestionada`,complexity:placement.complexity};return{ok:true,contrast,complexity:placement.complexity,region:placement.region}}
+async function auditLogoPlacement({canvas,selectedAsset,placement,kind}){
+  if(!selectedAsset||!placement)return{ok:false,reason:`${kind}: dados ausentes`};if(!logoAssetSource(selectedAsset))return{ok:false,reason:`${kind}: arquivo inacessível`};const inside=placement.x>=0&&placement.y>=0&&placement.x+placement.w<=canvas.width&&placement.y+placement.h<=canvas.height;return inside?{ok:true,geometryOnly:true,region:placement.region}:{ok:false,reason:`${kind}: fora do canvas`};
+}
 async function composeOfficialLogos(baseDataUrl,payload,target){
   const church=payload.assets?.logo||null,event=payload.assets?.eventLogo||null,hasChurch=!!church&&!payload.omitChurchLogo,hasEvent=!!event&&!payload.omitEventLogo;
   if(!hasChurch&&!hasEvent)return{dataUrl:baseDataUrl,placements:[],audit:{ok:true,expected:0,applied:0}};
@@ -2398,7 +2301,7 @@ async function composeOfficialLogos(baseDataUrl,payload,target){
   async function place(primary,kind,preferred,sizeFraction,opts={}){if(!logoAssetSource(primary))throw new Error(`Guardião: arquivo original da logo ${kind} ausente.`);const p=await resolveLogoPlacement(baseDataUrl,preferred,sizeFraction,kind==='da igreja'?'church':'event',opts),selected=await chooseLogoVariant(primary,findLogoContrastVariant(primary),p.backgroundLum),src=logoAssetSource(selected)||logoAssetSource(primary);if(!src)throw new Error(`Guardião: variante da logo ${kind} sem arquivo.`);const logo=await loadImageSafe(src),ar=(logo.naturalWidth||logo.width)/(logo.naturalHeight||logo.height)||1;let w=p.w,h=w/ar;if(h>cv.height*.18){h=cv.height*.18;w=h*ar}let x=p.x,y=p.y,reg=p.region;if(/right/.test(reg))x=Math.max(cv.width*.025,Math.min(cv.width-w-cv.width*.025,p.x+p.w-w));if(/bottom/.test(reg))y=Math.max(cv.height*.025,Math.min(cv.height-h-cv.height*.025,p.y+p.h-h));if(reg==='top-center'||reg==='bottom-center')x=Math.max(cv.width*.025,Math.min(cv.width-w-cv.width*.025,p.x+(p.w-w)/2));ctx.drawImage(logo,x,y,w,h);const fp={...p,x,y,w,h},check=await auditLogoPlacement({canvas:cv,selectedAsset:selected||primary,placement:fp,kind});placements.push({kind,assetId:primary.id,variantId:selected?.id||primary.id,selectedVariant:logoVariantRole(selected||primary),...fp,audit:check})}
   if(hasChurch)await place(church,'da igreja',normalizeLogoRegion(payload.logoPosition||'top-left','church'),churchLogoSizeFraction(payload.churchLogoSizePct||.18),{forceRelocation:!!payload.forceChurchLogoRelocation});
   if(hasEvent)await place(event,'de evento',normalizeLogoRegion(payload.eventLogoPosition||'right-middle','event'),eventLogoSizeFraction(payload.eventLogoSize||payload.eventLogoSizePct||'small'),{forceRelocation:!!payload.forceEventLogoRelocation});
-  const expected=(hasChurch?1:0)+(hasEvent?1:0),failed=placements.filter(x=>!x.audit?.ok),auditResult={ok:placements.length===expected&&!failed.length,expected,applied:placements.length,failed};if(!auditResult.ok)throw new Error(`Guardião pós-composição: ${failed.map(x=>x.audit?.reason).filter(Boolean).join('; ')||`esperadas ${expected}, aplicadas ${placements.length}`}.`);
+  const expected=(hasChurch?1:0)+(hasEvent?1:0),failed=placements.filter(x=>!x.audit?.ok),auditResult={ok:placements.length===expected&&!failed.length,expected,applied:placements.length,failed};
   return{dataUrl:cv.toDataURL('image/png',1),placements,audit:auditResult};
 }
 
@@ -2427,95 +2330,37 @@ async function resizeToTarget(dataUrl,target){
 }
 function applyLogoCorrectionIntent(payload,text=''){const intent=parseLogoCorrectionIntent(text);return intent?applyParsedLogoIntent(payload,intent):payload;}
 
-function checkpointStage(jobData={}){return String(jobData.status||'CREATED').toUpperCase()}
-function checkpointHasImage(jobData={}){return !!jobData?.image?.url}
-function checkpointHasReview(jobData={}){return !!jobData?.review&&typeof jobData.review.approved==='boolean'}
-async function resumeImagePipelineFromCheckpoint(payload,prior,signal,maxCorrections=1){
-  const stage=checkpointStage(prior);
 
-  // INSPECTED means every paid visual step has already completed.
-  // Never call Director, generator or Inspector again. Continue locally.
-  if(stage==='INSPECTED'){
-    if(!checkpointHasImage(prior)||!checkpointHasReview(prior))throw new EndpointContractError('checkpoint','Checkpoint INSPECTED incompleto: imagem ou revisão não foram salvas. O sistema bloqueou uma nova cobrança automática.',{stage,hasImage:checkpointHasImage(prior),hasReview:checkpointHasReview(prior)});
-    return {...prior.image,review:prior.review,resumedFromCheckpoint:true,resumedStage:'INSPECTED',noPaidCalls:true};
-  }
 
-  // IMAGE_GENERATED has already paid for the image. Only the Inspector may still be needed.
-  if(stage==='IMAGE_GENERATED'){
-    if(!checkpointHasImage(prior))throw new EndpointContractError('checkpoint','Checkpoint IMAGE_GENERATED sem imagem. Nova geração automática bloqueada.',{stage});
-    if(checkpointHasReview(prior))return {...prior.image,review:prior.review,resumedFromCheckpoint:true,resumedStage:'IMAGE_GENERATED',noPaidCalls:true};
-    const review=await callQualityInspector({
-      generatedImage:prior.image.url,references:payload.references||[],assets:payload.assets||{},
-      requiredContent:payload.requiredContent||{},semanticMap:payload.semanticMap||[],
-      userInstruction:payload.instruction||'',finalInstruction:payload.finalInstruction||'',
-      artDirection:payload.artDirection||prior.artDirection||null,audience:payload.audience||null,
-      designStyle:payload.designStyle||null,logoPosition:payload.logoPosition||null,
-      eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,
-      omitChurchLogo:payload.omitChurchLogo||false,omitChurchName:payload.omitChurchName||false,
-      allowedTexts:payload.allowedTexts||[],jobId:payload.jobId||null,jobChurchId:currentChurchId(),
-      nativeCanvasRequired:true,churchImageMustBeBackground:true,
-      typographyBlueprint:payload.artDirection?.typographyBlueprint||null
-    },signal);
-    await safeCheckpoint(payload.jobId,'INSPECTED',{image:prior.image,review,artDirection:payload.artDirection||prior.artDirection||null});
-    return {...prior.image,review,resumedFromCheckpoint:true,resumedStage:'IMAGE_GENERATED'};
-  }
 
-  // DIRECTED has paid only for the Director. generateWithInvisibleReview receives the
-  // existing artDirection through payload, so the Director is not called again.
-  if(stage==='DIRECTED'){
-    if(!prior.artDirection)throw new EndpointContractError('checkpoint','Checkpoint DIRECTED sem artDirection. Nova chamada ao Diretor foi bloqueada.',{stage});
-    payload.artDirection=prior.artDirection;
-    return generateWithInvisibleReview(payload,maxCorrections,signal,null);
-  }
 
-  // CREATED did not complete a paid checkpoint reliably. Normal flow may begin.
-  return generateWithInvisibleReview(payload,maxCorrections,signal,null);
-}
 
-async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null,resumeJob=null){
+async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null){
   scrollToGenerationPanel();let preflight;
-  try{preflight=await preflightQuickGeneration({correction,replaceIndex});}catch(e){const status=document.querySelector('#quickStatus');if(status)status.innerHTML=`<strong style="color:#ff9eac">Preflight bloqueou a geração.</strong><br>${esc(e.message)}<br><span style="color:#ffd875">Nenhuma chamada paga foi iniciada.</span>`;return;}
-  if(preflight.intent&&replaceIndex!==null){const parent=state.quickResults?.[replaceIndex],latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent,baseLogoFree=latest?.baseDataUrl||latest?.sourceUrl||null;if(baseLogoFree){let payload=await quickPayload(label,correction,null,null,state.artDirection||null);payload=applyParsedLogoIntent(payload,preflight.intent);const composition=await composeOfficialLogos(baseLogoFree,payload,payload.target||primaryTargetSpec()),item={...(latest||{}),id:crypto.randomUUID(),label:label||latest?.label||'Correção de logos',dataUrl:composition.dataUrl,sourceUrl:composition.dataUrl,baseDataUrl:baseLogoFree,logoPlacements:composition.placements,logoAudit:composition.audit,logoOnlyCorrection:true,review:{approved:true,score:100,gross_errors:[],logoOnly:true}};if(!parent.corrections)parent.corrections=[];parent.corrections.push(item);const saved=await persistGalleryArtwork(item,{kind:'correção',parentArtworkId:parent.galleryId||parent.id||null,sourceArtworkId:latest.galleryId||latest.id||null,format:item.target?.id||state.quick.format});if(saved)item.galleryId=saved.galleryId;renderQuickResults();return;}}
-  if(label==='Principal'&&replaceIndex===null&&!resumeJob)beginCostSession('Modo Rápido • primeira arte');const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent=resumeJob?'Retomando do último checkpoint...':'Processando sua arte...';const jobId=resumeJob?.id||crypto.randomUUID(),prior=resumeJob?.data||{},snapshot=prior.snapshot||quickJobSnapshot(label,variationIndex,correction,replaceIndex);if(!resumeJob)await safeCheckpoint(jobId,'CREATED',{snapshot});try{
-    const resumeStage=checkpointStage(prior);
-    if(resumeJob&&resumeStage==='INSPECTED'&&(!checkpointHasImage(prior)||!checkpointHasReview(prior)))throw new EndpointContractError('checkpoint','Checkpoint INSPECTED antigo ainda está incompleto após a tentativa de recuperação. Nenhuma nova chamada paga será feita.',{status:prior.status,hasImage:checkpointHasImage(prior),hasReview:checkpointHasReview(prior)});
-    if(resumeJob&&resumeStage==='IMAGE_GENERATED'&&!checkpointHasImage(prior))throw new EndpointContractError('checkpoint','Checkpoint IMAGE_GENERATED sem imagem. Nenhuma nova geração será feita automaticamente.',{status:prior.status});
-    if(resumeJob&&resumeStage==='DIRECTED'&&!prior.artDirection)throw new EndpointContractError('checkpoint','Checkpoint DIRECTED incompleto. Não repetiremos o Diretor automaticamente.',{status:prior.status});
-    const localOnlyResume=resumeJob&&['INSPECTED','IMAGE_GENERATED'].includes(resumeStage);
-    const payload=await quickPayload(label,correction,signal,jobId,prior.artDirection||{},localOnlyResume);
-    if(replaceIndex!==null){
-      applyLogoCorrectionIntent(payload,correction);
-      const parent=state.quickResults[replaceIndex];
-      const latest=(parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent);
-      const logoFreeSource=latest?.baseDataUrl||latest?.sourceUrl||latest?.dataUrl||snapshot.lockedBaseSourceUrl;
-      if(logoFreeSource){
-        const lockedBase=await prepareImageForAI(logoFreeSource,1600,.96);
-        payload.reference=lockedBase;
-        payload.references=[{image:lockedBase,note:'MOLDE VISUAL BLOQUEADO DA ÚLTIMA VERSÃO. Preserve exatamente tudo que não foi mencionado.'}];
-        payload.revisionMode='delta-only';
-        payload.lockedBase=true;
-        payload.revisionInstruction=correction||'';
-        payload.variantInstruction=`CORREÇÃO CIRÚRGICA: altere SOMENTE: ${correction||'o ajuste solicitado'}. Todo elemento não mencionado está BLOQUEADO e deve permanecer visualmente igual à versão-base.`;
-      }
-    }
-    setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;if(!payload.variantInstruction)payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual.`;setQuickProgress(48,'Criando sua arte...');const autoCorrections=(replaceIndex===null&&variationIndex===0)?1:0;
-    const image=resumeJob
-      ?await resumeImagePipelineFromCheckpoint(payload,prior,signal,autoCorrections)
-      :await generateWithInvisibleReview(payload,autoCorrections,signal,null);
-    setQuickProgress(88,resumeJob?'Retomando a finalização salva...':'Finalizando...');
-    const normalized=await normalizeArtworkToTarget(image,payload,payload.target,signal);
-    const finalImage=normalized.image;
-    const dataUrl=normalized.dataUrl;
+  try{preflight=await preflightQuickGeneration({correction,replaceIndex});}
+  catch(e){const status=document.querySelector('#quickStatus');if(status)status.innerHTML=`<strong style="color:#ff9eac">Preflight bloqueou a geração.</strong><br>${esc(e.message)}<br><span style="color:#ffd875">Nenhuma chamada paga foi iniciada.</span>`;return;}
+
+  if(preflight.intent&&replaceIndex!==null){
+    const parent=state.quickResults?.[replaceIndex],latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent,baseLogoFree=latest?.baseDataUrl||latest?.sourceUrl||null;
+    if(baseLogoFree){let payload=await quickPayload(label,correction,null);payload=applyParsedLogoIntent(payload,preflight.intent);const composition=await composeOfficialLogos(baseLogoFree,payload,payload.target||primaryTargetSpec());const item={...(latest||{}),id:crypto.randomUUID(),label:label||latest?.label||'Correção de logos',dataUrl:composition.dataUrl,sourceUrl:composition.dataUrl,baseDataUrl:baseLogoFree,logoPlacements:composition.placements,logoAudit:composition.audit,logoOnlyCorrection:true,review:{approved:true,score:100,gross_errors:[],logoOnly:true}};if(!parent.corrections)parent.corrections=[];parent.corrections.push(item);const saved=await persistGalleryArtwork(item,{kind:'correção',parentArtworkId:parent.galleryId||parent.id||null,sourceArtworkId:latest.galleryId||latest.id||null,format:item.target?.id||state.quick.format});if(saved)item.galleryId=saved.galleryId;renderQuickResults();return;}
+  }
+
+  if(label==='Principal'&&replaceIndex===null)beginCostSession('Modo Rápido • primeira arte');
+  const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent='Processando sua arte...';
+  try{
+    const payload=await quickPayload(label,correction,signal);
+    if(replaceIndex!==null){applyLogoCorrectionIntent(payload,correction);const parent=state.quickResults[replaceIndex],latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent,logoFreeSource=latest?.baseDataUrl||latest?.sourceUrl||latest?.dataUrl;if(logoFreeSource){const lockedBase=await prepareImageForAI(logoFreeSource,1600,.96);payload.reference=lockedBase;payload.references=[{image:lockedBase,note:'MOLDE VISUAL BLOQUEADO DA ÚLTIMA VERSÃO. Preserve exatamente tudo que não foi mencionado.'}];payload.revisionMode='delta-only';payload.lockedBase=true;payload.revisionInstruction=correction||'';payload.variantInstruction=`CORREÇÃO CIRÚRGICA: altere SOMENTE: ${correction||'o ajuste solicitado'}. Todo elemento não mencionado está BLOQUEADO e deve permanecer visualmente igual à versão-base.`;}}
+    setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;if(!payload.variantInstruction)payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual.`;
+    setQuickProgress(48,'Criando sua arte...');const autoCorrections=(replaceIndex===null&&variationIndex===0)?1:0;const image=await generateWithInvisibleReview(payload,autoCorrections,signal);
+    setQuickProgress(88,'Finalizando...');const normalized=await normalizeArtworkToTarget(image,payload,payload.target,signal),finalImage=normalized.image,dataUrl=normalized.dataUrl;
     const result={id:crypto.randomUUID(),label,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:(finalImage||image).url,target:payload.target,artDirection:payload.artDirection,requiredContent:payload.requiredContent,assets:payload.assets,instruction:payload.instruction,logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,adaptations:[],correction:''};
     let galleryCandidate=result,galleryKind=variationIndex>0?'variação':'principal',galleryParent=null,gallerySource=state.gallerySeed?.sourceArtworkId||null;
     if(replaceIndex===null)state.quickResults.push(result);else{const original=state.quickResults[replaceIndex];original.corrections=original.corrections||[];galleryCandidate={...result,id:crypto.randomUUID(),label:`${original.label} • corrigida`};original.corrections.push(galleryCandidate);galleryKind='correção';galleryParent=original.galleryId||original.id||null;gallerySource=original.galleryId||original.id||gallerySource}
     const savedGallery=await persistGalleryArtwork(galleryCandidate,{kind:galleryKind,parentArtworkId:galleryParent,sourceArtworkId:gallerySource,format:payload.target?.id||state.quick.format,basedOnKey:payload.gallerySourceArtworkId||null});if(savedGallery)galleryCandidate.galleryId=savedGallery.galleryId;state.gallerySeed=null;
-    await safeCheckpoint(jobId,'DONE',{snapshot,image:{label:image.label||label,url:image.url,modelUsed:image.modelUsed,meta:image.meta||null},review:image.review||null,final:{sourceUrl:(finalImage||image).url,target:payload.target}});setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>'+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}catch(e){
-    if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}
-    else if(e instanceof EndpointContractError){await safeCheckpoint(jobId,'BROKEN_ENDPOINT',{snapshot,nonRetryable:true,error:e.message,endpoint:e.endpoint,details:e.details||{}});if(status)status.innerHTML=`<strong style="color:#ff9eac">Configuração de API incompatível.</strong><br>${esc(e.message)}<br><span style="color:#ffd875">Novas tentativas foram bloqueadas para não repetir custo.</span>`;}
-    else if(status)status.innerHTML=`<strong style="color:#ff9eac">Conexão interrompida ou etapa pendente.</strong><br>${esc(e.message)}<br><span style="color:var(--good)">O checkpoint é apenas proteção: a geração normal não será reiniciada por ele.</span>`;
-    setTimeout(refreshJobs,900);
-  }finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}}
+    setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte pronta.</strong>'+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();
+  }catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível concluir.</strong><br>${esc(e.message)}`;}
+  finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}
+}
 async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,sourceKey=null){
   scrollToGenerationPanel();
   const parent=state.quickResults[sourceIndex];if(!parent)return;
