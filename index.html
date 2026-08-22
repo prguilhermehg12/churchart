@@ -471,7 +471,7 @@
 .pastor-order-pill b{color:white}
 
 </style>
-  <!-- ChurchDesign V0.30.7 — persistent gallery / generation recipes / resumable child art -->
+  <!-- ChurchDesign V0.30.8 — deterministic checkpoint resume / CORS-safe canvas -->
 </head>
 <body>
   <div class="app-shell">
@@ -1192,7 +1192,7 @@ async function optimizeImageFile(file,maxDim=1600,quality=.88,preserveAlpha=fals
   const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.clearRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
   return preserveAlpha?c.toDataURL('image/png'):c.toDataURL('image/jpeg',quality);
 }
-function loadImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src;});}
+function loadImage(src){return new Promise((resolve,reject)=>{const img=new Image();if(src&&!String(src).startsWith('data:')&&!String(src).startsWith('blob:'))img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=reject;img.src=src;});}
 async function overlayLogoOnImage(baseDataUrl,logoDataUrl,layer){
   const [base,logo]=await Promise.all([loadImageSafe(baseDataUrl),loadImageSafe(logoDataUrl)]);
   const c=document.createElement('canvas');c.width=base.naturalWidth;c.height=base.naturalHeight;const ctx=c.getContext('2d');ctx.drawImage(base,0,0,c.width,c.height);
@@ -1281,10 +1281,29 @@ function apiJSON(action,options={}){const method=options.method||'GET';const chu
 async function saveGenerationJob(id,status,data={}){const r=await apiJSON('save-job',{method:'POST',body:{id,status,data:{...data,status}}});const job=r.job;if(job)state.library.jobs=[job,...(state.library.jobs||[]).filter(x=>x.id!==job.id)];return job;}
 function quickJobSnapshot(label,variationIndex,correction,replaceIndex){let lockedBaseSourceUrl=null;if(replaceIndex!==null){const parent=state.quickResults?.[replaceIndex];const latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent;lockedBaseSourceUrl=latest?.baseDataUrl||latest?.sourceUrl||null;}return{mode:'quick',label,variationIndex,correction,replaceIndex,quick:JSON.parse(JSON.stringify(state.quick)),church:JSON.parse(JSON.stringify(state.church)),lockedBaseSourceUrl,createdAt:new Date().toISOString()};}
 function restoreQuickJobSnapshot(s={}){if(s.church)state.church={...state.church,...s.church};if(s.quick)state.quick={...state.quick,...s.quick};}
-function incompleteGenerationJobs(){return(state.library.jobs||[]).filter(j=>j?.data?.kind==='generation_job'&&!['DONE','CANCELLED'].includes(j.data.status)).filter(j=>Date.now()-new Date(j.updated_at||j.data?.updatedAt||0).getTime()<86400000);}
-function renderGenerationRecoveryNotice(){document.querySelectorAll('[data-generation-recovery]').forEach(x=>x.remove());const jobs=incompleteGenerationJobs();if(!jobs.length)return;const host=document.querySelector('#quickResultsWrap')||document.querySelector('#content')||document.querySelector('.content');if(!host)return;const box=document.createElement('div');box.dataset.generationRecovery='1';box.className='card';box.style.cssText='border-color:#665b24;margin-bottom:12px';box.innerHTML=`<h3>Arte interrompida encontrada</h3><p>O último estágio concluído foi salvo. Continue sem repetir etapas já pagas.</p>${jobs.slice(0,4).map(j=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:9px 0"><div><strong>${esc(j.data?.snapshot?.label||'Arte')}</strong><small style="display:block;color:var(--muted)">Checkpoint: ${esc(j.data.status||'CREATED')}</small></div>${isRecoverableJobStatus(j.data.status)?`<button class="mini-btn" data-resume-job="${j.id}">Continuar arte</button>`:`<span style="font-size:8px;color:#ffb0bc">Bloqueado: ${esc(j.data.error||'erro estrutural')}</span>`}</div>`).join('')}`;host.prepend(box);box.querySelectorAll('[data-resume-job]').forEach(b=>b.onclick=()=>resumeGenerationJob(b.dataset.resumeJob));}
+function incompleteGenerationJobs(){
+  const jobs=(state.library.jobs||[]).filter(j=>j?.data?.kind==='generation_job'&&!['DONE','CANCELLED'].includes(j.data.status)).filter(j=>Date.now()-new Date(j.updated_at||j.data?.updatedAt||0).getTime()<86400000);
+  const seen=new Set();
+  return jobs.filter(j=>{
+    const s=j.data?.snapshot||{},key=[s.mode,s.label,s.variationIndex,s.replaceIndex,j.data?.status,j.data?.image?.url||''].join('|');
+    if(seen.has(key))return false;seen.add(key);return true;
+  });
+}
+function renderGenerationRecoveryNotice(){document.querySelectorAll('[data-generation-recovery]').forEach(x=>x.remove());const jobs=incompleteGenerationJobs();if(!jobs.length)return;const host=document.querySelector('#quickResultsWrap')||document.querySelector('#content')||document.querySelector('.content');if(!host)return;const box=document.createElement('div');box.dataset.generationRecovery='1';box.className='card';box.style.cssText='border-color:#665b24;margin-bottom:12px';box.innerHTML=`<h3>Arte interrompida encontrada</h3><p>O último estágio concluído foi salvo. Continue sem repetir etapas já pagas.</p>${jobs.slice(0,4).map(j=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:9px 0"><div><strong>${esc(j.data?.snapshot?.label||'Arte')}</strong><small style="display:block;color:var(--muted)">Checkpoint: ${esc(j.data.status||'CREATED')}</small></div>${isRecoverableJobStatus(j.data.status)?`<button class="mini-btn" data-resume-job="${j.id}">Continuar arte</button>`:`<span style="font-size:8px;color:#ffb0bc">Bloqueado: ${esc(j.data.error||'erro estrutural')}</span>`}</div>`).join('')}`;host.prepend(box);box.querySelectorAll('[data-resume-job]').forEach(b=>b.onclick=()=>resumeGenerationJob(b.dataset.resumeJob,b));}
 async function refreshJobs(){try{const d=await apiJSON('bootstrap');state.library.jobs=d.jobs||[];renderGenerationRecoveryNotice();}catch{}}
-async function resumeGenerationJob(id){const job=(state.library.jobs||[]).find(x=>x.id===id);if(!job)return alert('Job não encontrado.');const d=job.data||{},s=d.snapshot||{};if(!isRecoverableJobStatus(d.status))return alert('Este job foi bloqueado porque repetir a etapa poderia gastar créditos sem corrigir a causa.');if(s.mode!=='quick')return alert('Checkpoint incompatível.');restoreQuickJobSnapshot(s);screenQuickMode();await new Promise(r=>setTimeout(r,30));return runQuickGeneration(s.label||'Principal',Number(s.variationIndex)||0,s.correction||'',s.replaceIndex??null,{id:job.id,data:d});}
+async function resumeGenerationJob(id,button=null){
+  const job=(state.library.jobs||[]).find(x=>x.id===id);if(!job)return alert('Job não encontrado.');
+  const d=job.data||{},s=d.snapshot||{};
+  if(!isRecoverableJobStatus(d.status))return alert('Este job foi bloqueado porque repetir a etapa poderia gastar créditos sem corrigir a causa.');
+  if(s.mode!=='quick')return alert('Checkpoint incompatível.');
+  if(button){button.disabled=true;button.dataset.originalText=button.textContent;button.textContent='Retomando...'}
+  try{
+    restoreQuickJobSnapshot(s);screenQuickMode();await new Promise(r=>setTimeout(r,80));
+    return await runQuickGeneration(s.label||'Principal',Number(s.variationIndex)||0,s.correction||'',s.replaceIndex??null,{id:job.id,data:d});
+  }finally{
+    if(button&&document.body.contains(button)){button.disabled=false;button.textContent=button.dataset.originalText||'Continuar arte'}
+  }
+}
 function clientPipelineGuard(payload={}){const p={...payload,assets:{...(payload.assets||{})}};if((p.assets.pastors||[]).length>3)throw new Error('Guardião: máximo de 3 pregadores.');p.allowedTexts=[p.requiredContent?.title,p.requiredContent?.subtitle,p.requiredContent?.date,p.requiredContent?.time,p.requiredContent?.address,p.requiredContent?.churchName,...(p.requiredContent?.pastorNames||[])].map(x=>String(x||'').trim()).filter(Boolean);p.referenceSemanticPolicy='style-only';p.jobChurchId=currentChurchId();if(p.mode==='primary'&&!p.revisionMode&&!p.referenceRole)p.referenceRole='director-only';return p;}
 
 
@@ -1329,7 +1348,12 @@ async function ensureLogoContrastVariant(asset,kind='church'){
   });
 }
 
-async function imageAverageLuminance(src){const im=await loadImage(src),cv=document.createElement('canvas'),x=cv.getContext('2d',{willReadFrequently:true});cv.width=cv.height=48;x.drawImage(im,0,0,48,48);const d=x.getImageData(0,0,48,48).data;let s=0,n=0;for(let i=0;i<d.length;i+=16){if(d[i+3]<30)continue;s+=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;n++}return n?s/n:.5}
+async function imageAverageLuminance(src){
+  const safe=await remoteToDataUrl(src),im=await loadImage(safe),cv=document.createElement('canvas'),x=cv.getContext('2d',{willReadFrequently:true});
+  cv.width=cv.height=48;x.drawImage(im,0,0,48,48);
+  let d;try{d=x.getImageData(0,0,48,48).data}catch(e){throw new Error('Não foi possível analisar o contraste da logo com segurança. A imagem remota não foi convertida para uma cópia local.')}
+  let s=0,n=0;for(let i=0;i<d.length;i+=16){if(d[i+3]<30)continue;s+=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;n++}return n?s/n:.5;
+}
 function logoZoneCandidates(position='top-left',kind='church'){
   const p=normalizeLogoRegion(position,kind),m={'top-left':[[.045,.045],[.065,.055],[.045,.09],[.09,.045]],'top-center':[[.50,.045],[.50,.075],[.43,.055],[.57,.055]],'top-right':[[.955,.045],[.935,.055],[.955,.09],[.91,.045]],'bottom-left':[[.045,.955],[.065,.935],[.045,.90]],'bottom-center':[[.50,.955],[.50,.925],[.43,.945],[.57,.945]],'bottom-right':[[.955,.955],[.935,.935],[.955,.90]],'left-top':[[.10,.30],[.13,.34],[.16,.38],[.19,.31]],'left-middle':[[.10,.50],[.14,.50],[.18,.47],[.18,.55]],'left-bottom':[[.10,.70],[.13,.66],[.16,.62],[.19,.70]],'right-top':[[.90,.30],[.87,.34],[.84,.38],[.81,.31]],'right-middle':[[.90,.50],[.86,.50],[.82,.47],[.82,.55]],'right-bottom':[[.90,.70],[.87,.66],[.84,.62],[.81,.70]]};
   return m[p]||m[kind==='church'?'top-left':'right-middle'];
@@ -2366,7 +2390,7 @@ async function composeOfficialLogos(baseDataUrl,payload,target){
   const church=payload.assets?.logo||null,event=payload.assets?.eventLogo||null,hasChurch=!!church&&!payload.omitChurchLogo,hasEvent=!!event&&!payload.omitEventLogo;
   if(!hasChurch&&!hasEvent)return{dataUrl:baseDataUrl,placements:[],audit:{ok:true,expected:0,applied:0}};
   const base=await loadImage(baseDataUrl),cv=document.createElement('canvas'),ctx=cv.getContext('2d');cv.width=base.width;cv.height=base.height;ctx.drawImage(base,0,0);const placements=[];
-  async function place(primary,kind,preferred,sizeFraction,opts={}){if(!logoAssetSource(primary))throw new Error(`Guardião: arquivo original da logo ${kind} ausente.`);const p=await resolveLogoPlacement(baseDataUrl,preferred,sizeFraction,kind==='da igreja'?'church':'event',opts),selected=await chooseLogoVariant(primary,findLogoContrastVariant(primary),p.backgroundLum),src=logoAssetSource(selected)||logoAssetSource(primary);if(!src)throw new Error(`Guardião: variante da logo ${kind} sem arquivo.`);const logo=await loadImage(src),ar=(logo.naturalWidth||logo.width)/(logo.naturalHeight||logo.height)||1;let w=p.w,h=w/ar;if(h>cv.height*.18){h=cv.height*.18;w=h*ar}let x=p.x,y=p.y,reg=p.region;if(/right/.test(reg))x=Math.max(cv.width*.025,Math.min(cv.width-w-cv.width*.025,p.x+p.w-w));if(/bottom/.test(reg))y=Math.max(cv.height*.025,Math.min(cv.height-h-cv.height*.025,p.y+p.h-h));if(reg==='top-center'||reg==='bottom-center')x=Math.max(cv.width*.025,Math.min(cv.width-w-cv.width*.025,p.x+(p.w-w)/2));ctx.drawImage(logo,x,y,w,h);const fp={...p,x,y,w,h},check=await auditLogoPlacement({canvas:cv,selectedAsset:selected||primary,placement:fp,kind});placements.push({kind,assetId:primary.id,variantId:selected?.id||primary.id,selectedVariant:logoVariantRole(selected||primary),...fp,audit:check})}
+  async function place(primary,kind,preferred,sizeFraction,opts={}){if(!logoAssetSource(primary))throw new Error(`Guardião: arquivo original da logo ${kind} ausente.`);const p=await resolveLogoPlacement(baseDataUrl,preferred,sizeFraction,kind==='da igreja'?'church':'event',opts),selected=await chooseLogoVariant(primary,findLogoContrastVariant(primary),p.backgroundLum),src=logoAssetSource(selected)||logoAssetSource(primary);if(!src)throw new Error(`Guardião: variante da logo ${kind} sem arquivo.`);const logo=await loadImageSafe(src),ar=(logo.naturalWidth||logo.width)/(logo.naturalHeight||logo.height)||1;let w=p.w,h=w/ar;if(h>cv.height*.18){h=cv.height*.18;w=h*ar}let x=p.x,y=p.y,reg=p.region;if(/right/.test(reg))x=Math.max(cv.width*.025,Math.min(cv.width-w-cv.width*.025,p.x+p.w-w));if(/bottom/.test(reg))y=Math.max(cv.height*.025,Math.min(cv.height-h-cv.height*.025,p.y+p.h-h));if(reg==='top-center'||reg==='bottom-center')x=Math.max(cv.width*.025,Math.min(cv.width-w-cv.width*.025,p.x+(p.w-w)/2));ctx.drawImage(logo,x,y,w,h);const fp={...p,x,y,w,h},check=await auditLogoPlacement({canvas:cv,selectedAsset:selected||primary,placement:fp,kind});placements.push({kind,assetId:primary.id,variantId:selected?.id||primary.id,selectedVariant:logoVariantRole(selected||primary),...fp,audit:check})}
   if(hasChurch)await place(church,'da igreja',normalizeLogoRegion(payload.logoPosition||'top-left','church'),churchLogoSizeFraction(payload.churchLogoSizePct||.18),{forceRelocation:!!payload.forceChurchLogoRelocation});
   if(hasEvent)await place(event,'de evento',normalizeLogoRegion(payload.eventLogoPosition||'right-middle','event'),eventLogoSizeFraction(payload.eventLogoSize||payload.eventLogoSizePct||'small'),{forceRelocation:!!payload.forceEventLogoRelocation});
   const expected=(hasChurch?1:0)+(hasEvent?1:0),failed=placements.filter(x=>!x.audit?.ok),auditResult={ok:placements.length===expected&&!failed.length,expected,applied:placements.length,failed};if(!auditResult.ok)throw new Error(`Guardião pós-composição: ${failed.map(x=>x.audit?.reason).filter(Boolean).join('; ')||`esperadas ${expected}, aplicadas ${placements.length}`}.`);
@@ -2397,6 +2421,52 @@ async function resizeToTarget(dataUrl,target){
   return {dataUrl:c.toDataURL('image/png'),aspectRatioFallback};
 }
 function applyLogoCorrectionIntent(payload,text=''){const intent=parseLogoCorrectionIntent(text);return intent?applyParsedLogoIntent(payload,intent):payload;}
+
+function checkpointStage(jobData={}){return String(jobData.status||'CREATED').toUpperCase()}
+function checkpointHasImage(jobData={}){return !!jobData?.image?.url}
+function checkpointHasReview(jobData={}){return !!jobData?.review&&typeof jobData.review.approved==='boolean'}
+async function resumeImagePipelineFromCheckpoint(payload,prior,signal,maxCorrections=1){
+  const stage=checkpointStage(prior);
+
+  // INSPECTED means every paid visual step has already completed.
+  // Never call Director, generator or Inspector again. Continue locally.
+  if(stage==='INSPECTED'){
+    if(!checkpointHasImage(prior)||!checkpointHasReview(prior))throw new EndpointContractError('checkpoint','Checkpoint INSPECTED incompleto: imagem ou revisão não foram salvas. O sistema bloqueou uma nova cobrança automática.',{stage,hasImage:checkpointHasImage(prior),hasReview:checkpointHasReview(prior)});
+    return {...prior.image,review:prior.review,resumedFromCheckpoint:true,resumedStage:'INSPECTED',noPaidCalls:true};
+  }
+
+  // IMAGE_GENERATED has already paid for the image. Only the Inspector may still be needed.
+  if(stage==='IMAGE_GENERATED'){
+    if(!checkpointHasImage(prior))throw new EndpointContractError('checkpoint','Checkpoint IMAGE_GENERATED sem imagem. Nova geração automática bloqueada.',{stage});
+    if(checkpointHasReview(prior))return {...prior.image,review:prior.review,resumedFromCheckpoint:true,resumedStage:'IMAGE_GENERATED',noPaidCalls:true};
+    const review=await callQualityInspector({
+      generatedImage:prior.image.url,references:payload.references||[],assets:payload.assets||{},
+      requiredContent:payload.requiredContent||{},semanticMap:payload.semanticMap||[],
+      userInstruction:payload.instruction||'',finalInstruction:payload.finalInstruction||'',
+      artDirection:payload.artDirection||prior.artDirection||null,audience:payload.audience||null,
+      designStyle:payload.designStyle||null,logoPosition:payload.logoPosition||null,
+      eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,
+      omitChurchLogo:payload.omitChurchLogo||false,omitChurchName:payload.omitChurchName||false,
+      allowedTexts:payload.allowedTexts||[],jobId:payload.jobId||null,jobChurchId:currentChurchId(),
+      nativeCanvasRequired:true,churchImageMustBeBackground:true,
+      typographyBlueprint:payload.artDirection?.typographyBlueprint||null
+    },signal);
+    await safeCheckpoint(payload.jobId,'INSPECTED',{image:prior.image,review,artDirection:payload.artDirection||prior.artDirection||null});
+    return {...prior.image,review,resumedFromCheckpoint:true,resumedStage:'IMAGE_GENERATED'};
+  }
+
+  // DIRECTED has paid only for the Director. generateWithInvisibleReview receives the
+  // existing artDirection through payload, so the Director is not called again.
+  if(stage==='DIRECTED'){
+    if(!prior.artDirection)throw new EndpointContractError('checkpoint','Checkpoint DIRECTED sem artDirection. Nova chamada ao Diretor foi bloqueada.',{stage});
+    payload.artDirection=prior.artDirection;
+    return generateWithInvisibleReview(payload,maxCorrections,signal,null);
+  }
+
+  // CREATED did not complete a paid checkpoint reliably. Normal flow may begin.
+  return generateWithInvisibleReview(payload,maxCorrections,signal,null);
+}
+
 async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null,resumeJob=null){
   scrollToGenerationPanel();let preflight;
   try{preflight=await preflightQuickGeneration({correction,replaceIndex});}catch(e){const status=document.querySelector('#quickStatus');if(status)status.innerHTML=`<strong style="color:#ff9eac">Preflight bloqueou a geração.</strong><br>${esc(e.message)}<br><span style="color:#ffd875">Nenhuma chamada paga foi iniciada.</span>`;return;}
@@ -2419,7 +2489,11 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
         payload.variantInstruction=`CORREÇÃO CIRÚRGICA: altere SOMENTE: ${correction||'o ajuste solicitado'}. Todo elemento não mencionado está BLOQUEADO e deve permanecer visualmente igual à versão-base.`;
       }
     }
-    setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;if(!payload.variantInstruction)payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual.`;setQuickProgress(48,'Criando sua arte...');const autoCorrections=(replaceIndex===null&&variationIndex===0)?1:0;const image=await generateWithInvisibleReview(payload,autoCorrections,signal,{image:prior.image||null,review:prior.review||null});setQuickProgress(88,'Finalizando...');
+    setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;if(!payload.variantInstruction)payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual.`;setQuickProgress(48,'Criando sua arte...');const autoCorrections=(replaceIndex===null&&variationIndex===0)?1:0;
+    const image=resumeJob
+      ?await resumeImagePipelineFromCheckpoint(payload,prior,signal,autoCorrections)
+      :await generateWithInvisibleReview(payload,autoCorrections,signal,null);
+    setQuickProgress(88,resumeJob?'Retomando a finalização salva...':'Finalizando...');
     const normalized=await normalizeArtworkToTarget(image,payload,payload.target,signal);
     const finalImage=normalized.image;
     const dataUrl=normalized.dataUrl;
