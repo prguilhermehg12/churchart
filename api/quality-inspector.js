@@ -1,4 +1,4 @@
-// ChurchDesign V0.31.0 — linear pipeline, no checkpoints
+// ChurchDesign V0.31.3 — logo-free quality inspector; logo placement validated separately
 module.exports.config={maxDuration:60};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
 
@@ -33,7 +33,6 @@ ERROS CRÍTICOS que reprovam:
 - arte quebrada, ilegível ou com artefatos severos;
 - composição artificial de cartaz/quadro menor dentro de outro fundo/moldura sem que isso faça parte da referência ou instrução;
 - excesso de caixas/cards/cápsulas que transforme a arte em aparência de interface/template, especialmente quando a referência não usa esse recurso;\n- qualquer texto, logo, rosto, nome de pregador, data, horário, endereço ou informação essencial dentro dos 10% externos da imagem, cortado, encostado na borda ou parcialmente fora do canvas;
-- logo clara/branca sobre fundo claro ou logo escura/preta sobre fundo escuro sem uma solução de contraste;
 - foto da igreja selecionada ausente ou substituída por outra imagem de igreja.
 
 Se público-alvo ou estilo estiverem especificados, verifique se a peça é coerente com eles, mas não reprove por diferenças criativas pequenas.
@@ -57,7 +56,7 @@ TIPOGRAFIA:
 - ATIVOS SAGRADOS — FALHA CRÍTICA: reprove fusão entre pregadores, transferência de microfone/mãos/roupa/objetos entre camadas, alteração relevante de rosto ou mistura entre logo da igreja e logo de evento.
 - CAMADA DO PRINCIPAL: nenhum elemento pertencente a auxiliar pode atravessar indevidamente para frente do principal.
 - NOME VAZIO: reprove qualquer “Pessoa N”, “Pastor”, “Pregador”, nome inferido ou placeholder.
-- LOGOS: nesta etapa, reprove qualquer presença de logo no canvas gerado. A fidelidade das marcas será garantida pelo compositor determinístico depois.
+- LOGOS: esta é EXCLUSIVAMENTE a etapa LOGO-FREE. A ausência das logos oficiais é CORRETA e nunca pode reduzir score nem reprovar. Reprove somente se alguma logo, wordmark, emblema ou marca da referência sobreviveu/inventou-se no canvas. Para o campo logo_fidelity, use 100 quando o canvas estiver corretamente sem logos; reduza apenas quando existir marca indevida.
 - DELTA ONLY: reprove mudanças não solicitadas na versão-base, inclusive dedos/mãos, pose, rosto, palavras de fundo, logos, cores e efeitos.
 - DIREÇÃO: prefira auxiliares abrindo para fora do centro; flip horizontal integral é aceitável sem alteração de identidade.
 
@@ -67,14 +66,12 @@ TIPOGRAFIA:
 - POSE: preserve braço levantado/abaixado, gesto, microfone, orientação corporal e direção do olhar. Mudança injustificada de uma pose marcante deve reprovar.
 - POSICIONAMENTO DIRECIONAL: auxiliar orientado para a direita deve preferencialmente ficar do lado direito do principal; orientado para a esquerda, do lado esquerdo. Reprove quando a inversão prejudicar claramente a lógica visual e não houver justificativa da referência/instrução.
 - CANVAS LOGO-FREE: nesta etapa, a imagem deve conter ZERO logos. Reprove qualquer logo, marca, emblema institucional, símbolo copiado da referência, wordmark ou marca de evento que tenha sobrevivido ou sido inventado.
-- NÃO reprove ausência das logos oficiais: elas serão compostas deterministicamente após este Fiscal.
+- NÃO reprove ausência das logos oficiais em hipótese alguma. Posicionamento, contraste, tamanho e sobreposição de logos serão avaliados por outro módulo DEPOIS deste Fiscal.
 - HIERARQUIA DE PREGADORES: quando houver mais de um, PESSOA 1 é PRINCIPAL e precisa ter prioridade visual e posição mais central que os auxiliares. PESSOA 2 = AUXILIAR 1; PESSOA 3 = AUXILIAR 2.
 - Reprove se o principal for tratado como auxiliar periférico enquanto outro pregador ocupa claramente a posição central/dominante sem instrução explícita do usuário.
 - Reprove troca de identidade, nome ou papel entre os pregadores.
 - Com três pregadores, aceite variações criativas, mas exija que o principal continue sendo o eixo visual predominante.
-- REGRA CRÍTICA DE CAMADAS: a logo de evento jamais pode estar desenhada à frente de qualquer parte do pregador. Se houver interseção, o recorte do pregador deve ocluir a logo de evento. Reprove se qualquer fragmento da logo aparecer sobre rosto, cabelo, corpo, roupa, braços ou mãos do pregador.
-- Não reprove apenas porque a logo ficou parcialmente escondida atrás do pregador: isso é o comportamento correto quando houver conflito e não existir reposicionamento melhor dentro da zona escolhida.
-- Se houver logo de evento, reprove se ela estiver ausente, redesenhada, duplicada, nos cantos extremos, grande além do limite selecionado ou sobreposta à logo principal/rosto/título.\n- Se omitChurchLogo=true, a presença de qualquer logo principal da igreja é falha crítica.\n- Se omitChurchName=true, a presença textual do nome da igreja é falha crítica.
+- Se omitChurchLogo=true, a presença de qualquer logo principal da igreja é falha crítica.\n- Se omitChurchName=true, a presença textual do nome da igreja é falha crítica.
 
 FIDELIDADE GEOMÉTRICA:
 - Compare enquadramento, posição e escala do pregador com a referência.
