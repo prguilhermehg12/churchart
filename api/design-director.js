@@ -1,4 +1,4 @@
-// ChurchDesign V0.31.0 — linear pipeline, no checkpoints
+// ChurchDesign V0.31.2 — logo hints are metadata only, never visible reservations
 module.exports.config={maxDuration:60};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
 
@@ -73,14 +73,12 @@ REGRA DE ENQUADRAMENTO HUMANO: por padrão preserve o corpo inteiro do pregador 
 ARQUITETURA DE LOGOS — REGRA ABSOLUTA:
 - A IA VISUAL NÃO desenhará, reconstruirá, copiará nem escreverá nenhuma logo.
 - Toda logo existente nas REFERÊNCIAS deve ser tratada como elemento a REMOVER da geração visual.
-- Seu trabalho é somente reservar espaço e indicar em protected_assets onde o compositor determinístico colará o PNG original depois.
-- Se houver logo da igreja e logo de evento, reserve áreas distintas.
-- Se o usuário escolheu posição explícita da logo da igreja, respeite-a.
-- Sem posição explícita, preserve apenas a REGIÃO da logo na referência, nunca a marca em si.
-- Para logo de evento, use uma das seis regiões centrais laterais e mantenha distância de pregadores, título e dados essenciais.
-- Como a logo será colada depois, NÃO planeje sobreposição com pregadores. Escolha um ponto limpo dentro da região.
-- church_logo_width_pct normalmente entre 12 e 26.
-- event_logo_width_pct respeita small≈14, medium≈20, large≈26.
+- protected_assets serve SOMENTE como METADADO para o compositor pós-arte. NÃO transforme isso em espaço vazio, caixa, contorno, placeholder, placa, halo ou buraco visual no generation_prompt.
+- A composição gerada deve parecer completa e equilibrada sem qualquer logo.
+- Se houver logo da igreja e logo de evento, apenas sugira regiões distintas em protected_assets.
+- Para logo de evento, use uma das seis regiões centrais laterais como preferência aproximada; o compositor pós-arte poderá escolher outro ponto dentro da mesma zona conforme o conteúdo real.
+- church_logo_width_pct normalmente entre 12 e 22.
+- event_logo_width_pct: small≈12, medium≈17, large≈22.
 - Logo omitida/inexistente => região "none" e largura 0.
 
 Em telão sem imagem principal, favoreça título centralizado. Com pregador/figura/ilustração, favoreça título em um lado e imagem no lado oposto.
@@ -118,7 +116,8 @@ FIDELIDADE DE POSE E DIREÇÃO:
 LOGOS — REGRA DE IDENTIDADE:
 - NÃO planeje logos como conteúdo gerado.
 - Logo principal e logo de evento serão coladas depois pelo compositor determinístico.
-- Planeje apenas região, escala e espaço negativo em protected_assets.
+- protected_assets é apenas dica geométrica para o compositor, NÃO uma instrução de reservar espaço visual na arte.
+- generation_prompt jamais deve pedir área limpa, caixa vazia, placeholder ou espaço reservado para logo.
 - Logos presentes nas referências devem ser removidas, nunca preservadas ou reinterpretadas.
 
 HIERARQUIA DE ATÉ 3 PREGADORES — REGRA ESTRUTURAL:
@@ -129,10 +128,10 @@ HIERARQUIA DE ATÉ 3 PREGADORES — REGRA ESTRUTURAL:
 - Se houver 3, o PRINCIPAL deve formar o eixo dominante; os auxiliares equilibram os lados.
 - Preserve integralmente a identidade de cada pessoa e associe o nome correto à pessoa correta.
 
-REGRA DE RESERVA — LOGO DE EVENTO × PREGADOR:
-A logo de evento será colada deterministicamente depois. Portanto reserve uma área limpa que NÃO atravesse pregadores.
-Nunca planeje a região da logo sobre rosto, cabelo, corpo, roupa, mãos, microfone ou instrumento.
-Se a região escolhida conflitar, mantenha a região geral e desloque o ponto dentro dela até encontrar espaço livre.
+REGRA DE POSICIONAMENTO PÓS-ARTE — LOGO DE EVENTO:
+A logo de evento será colada somente DEPOIS que a arte visual estiver pronta.
+Não altere a composição para abrir espaço para ela e não desenhe qualquer área reservada.
+Em protected_assets, apenas registre uma preferência lateral aproximada. O compositor pós-arte é responsável por procurar o trecho menos ocupado dentro dessa região.
 Estilo explicitamente escolhido: ${data.designStyle||"não especificado"}
 Modo de cor predominante: ${data.colorMode||"não especificado"}
 Cor manual, se houver: ${data.dominantColor||"não especificada"}
