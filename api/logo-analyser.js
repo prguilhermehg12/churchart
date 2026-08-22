@@ -1,4 +1,4 @@
-// ChurchDesign V0.31.3 — semantic occupancy analyzer for post-art logo placement
+// ChurchDesign V0.31.5 — conservative semantic occupancy analyzer + diagnostics
 module.exports.config={maxDuration:60};
 
 const RESPONSES_URL="https://api.openai.com/v1/responses";
@@ -67,6 +67,7 @@ module.exports=async function handler(req,res){
   try{
     const data=req.body||{};
     const image=data.image;
+    const expectations=data.expectations||{};
     if(!image||!String(image).startsWith("data:image/"))return res.status(400).json({error:"Envie a base plate como data:image/... ."});
 
     const prompt=`Você é o ANALISADOR DE OCUPAÇÃO do ChurchDesign.
@@ -77,9 +78,12 @@ Analise a imagem final LOGO-FREE e devolva somente o mapa semântico necessário
 COORDENADAS:
 - Todas as caixas usam escala 0..1000.
 - x0,y0 = canto superior esquerdo; x1,y1 = canto inferior direito.
-- Cubra a extensão VISÍVEL inteira do elemento.
+- Cubra a extensão VISÍVEL inteira do elemento, incluindo braços, cotovelos, mãos, pernas, cabelo e objetos segurados.
+- Para PERSON, prefira uma caixa um pouco MAIOR a uma caixa apertada. Nunca corte extremidades visíveis.
 - Quando houver 3 pessoas, devolva 3 regiões person separadas.
 - Detecte faces e mãos separadamente quando visíveis.
+- Se uma mão estiver conectada ao corpo mas afastada dele, a caixa PERSON deve ainda cobrir o braço inteiro e a caixa HAND deve cobrir a mão.
+- Se houver dúvida entre marcar uma área e deixá-la livre, MARQUE-A: este mapa existe para impedir sobreposição de logos.
 - Detecte microfone/instrumento quando existirem.
 - Detecte blocos de texto por função visual: title, subtitle, date, address, other.
 - graphic_focus = elemento gráfico importante que não deve ser coberto.
@@ -91,6 +95,11 @@ TONE GRID:
 - Cada valor vai de 0 (muito escuro) a 100 (muito claro).
 - Considere a luminância visual do fundo naquela célula, mesmo que haja textura.
 - Exatamente 80 valores.
+
+EXPECTATIVAS DO SISTEMA:
+- pregadores esperados: ${Number(expectations.pastorCount||0)}
+- há texto relevante esperado: ${expectations.hasText?'SIM':'NÃO'}
+Se há pregadores esperados, é obrigatório devolver pelo menos uma região PERSON ou FACE por pessoa claramente visível. Se não conseguir distinguir perfeitamente, cubra conservadoramente toda a silhueta humana.
 
 Objetivo: permitir que um programa coloque logos sem cobrir pessoa, rosto, mão, microfone, instrumento ou texto.`;
 
@@ -114,11 +123,22 @@ Objetivo: permitir que um programa coloque logos sem cobrir pessoa, rosto, mão,
     let parsed;
     try{parsed=JSON.parse(text)}catch{throw new Error("Logo Analyzer devolveu JSON inválido.");}
 
+    const normalizedRegions=(parsed.regions||[]).map(normalizeRegion).filter(x=>x.x1>x.x0&&x.y1>x.y0&&x.confidence>=.20);
     const occupancy={
       version:1,
-      regions:(parsed.regions||[]).map(normalizeRegion).filter(x=>x.x1>x.x0&&x.y1>x.y0&&x.confidence>=.25),
+      regions:normalizedRegions,
       toneGrid:normalizeGrid(parsed.tone_grid),
-      notes:Array.isArray(parsed.notes)?parsed.notes.slice(0,20):[]
+      notes:Array.isArray(parsed.notes)?parsed.notes.slice(0,20):[],
+      diagnostics:{
+        expectedPastors:Number(expectations.pastorCount||0),
+        detectedPersons:normalizedRegions.filter(r=>r.type==='person').length,
+        detectedFaces:normalizedRegions.filter(r=>r.type==='face').length,
+        detectedHands:normalizedRegions.filter(r=>r.type==='hand').length,
+        detectedPeople:normalizedRegions.filter(r=>r.type==='person'||r.type==='face').length,
+        hasTextExpected:!!expectations.hasText,
+        detectedText:normalizedRegions.filter(r=>String(r.type||'').startsWith('text_')).length,
+        totalRegions:normalizedRegions.length
+      }
     };
 
     return res.status(200).json({
