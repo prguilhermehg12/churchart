@@ -1,4 +1,4 @@
-// ChurchDesign V0.31.0 — linear pipeline, no checkpoints
+// ChurchDesign V0.31.2 — generator never reserves or draws logo zones
 module.exports.config={maxDuration:180};
 
 const IMAGES_EDIT_URL="https://api.openai.com/v1/images/edits";
@@ -80,7 +80,7 @@ Tipografia: ${JSON.stringify(a.typography||{})}
 Imagem: ${JSON.stringify(a.imagery||{})}
 Texturas: ${(a.textures||[]).join(", ")}
 Elementos: ${(a.graphic_elements||[]).join(", ")}
-Zonas geométricas neutras de respiro (não desenhe caixas, rótulos ou placeholders): ${JSON.stringify(a.protected_assets||{})}
+Observação de logos: posições e áreas de logos NÃO fazem parte do canvas generativo e não devem influenciar a geometria visual.
 Preservar: ${(a.preserve_rules||[]).join(" | ")}
 Evitar: ${(a.avoid_rules||[]).join(" | ")}
 Orientação especializada: ${a.generation_prompt||""}`;}
@@ -116,8 +116,8 @@ LOGO-FREE CANVAS — HARD CONSTRAINT:
 - Se a referência contém qualquer logo, símbolo de igreja, wordmark, selo, marca de evento ou assinatura institucional, REMOVA completamente esse elemento e reconstrua naturalmente o fundo atrás dele.
 - Não copie símbolo, não deixe fantasma, não deixe marca d'água e não converta logo em texto.
 - Quando houver logo oficial selecionada para composição posterior, não escreva o nome da igreja como substituto da logo.
-- artDirection.protected_assets define áreas reservadas: mantenha-as limpas e com contraste suficiente para o PNG original.
-- Nunca desenhe placeholders "LOGO", caixas vazias, chamas, globos ou símbolos genéricos nesses espaços.
+- NÃO reserve área visual para logos. Não abra buraco na composição, não deixe caixa vazia, contorno, moldura, halo, placa, selo ou placeholder.
+- Faça a arte parecer completamente finalizada MESMO SEM LOGOS. O compositor pós-arte analisará o resultado pronto e escolherá depois a melhor posição para os PNGs originais.
 
 ${blueprint(data)}
 
@@ -161,10 +161,11 @@ TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
 - Elementos abstratos/texturas podem sangrar; informação e pessoas nunca.
 - Faça uma revisão final das quatro bordas antes de concluir.
 
-REGRA DE CONTRASTE DA LOGO:
-- A logo oficial deve permanecer com suas cores originais.
-- Nunca coloque logo branca/clara sobre região clara e nunca coloque logo preta/escura sobre região escura.
-- Se o fundo não oferecer contraste, crie discretamente atrás da logo uma área/placa/halo compatível com o design. NÃO altere a cor da logo para resolver contraste.
+REGRA DE LOGOS PÓS-ARTE:
+- Nenhuma logo será desenhada nesta etapa.
+- Não reserve, marque ou sinalize posição de logo.
+- Ignore logoPosition, eventLogoPosition, eventLogoSize e artDirection.protected_assets ao compor a imagem visual.
+- Se a referência tiver logo, remova-a e reconstrua o fundo naturalmente, sem deixar vestígio nem espaço artificial.
 
 REGRA DE SAFE AREA / ÁREA SEGURA:
 - Nenhum texto, logo, rosto, data, horário, endereço ou informação essencial pode encostar, ultrapassar ou ficar parcialmente fora do canvas.
@@ -207,7 +208,7 @@ PREGADOR:
 LOGOS OFICIAIS — PROIBIÇÃO FINAL:
 - Logo da igreja e logo de evento NÃO pertencem a esta geração.
 - Toda logo da referência deve desaparecer.
-- Preserve somente espaço negativo destinado ao compositor determinístico.
+- NÃO preserve espaço negativo específico para logos e NÃO desenhe qualquer marcador de posição.
 - Não invente símbolo institucional ou marca substituta.
 
 REGRA DE CANVAS NATIVO — HARD CONSTRAINT:
