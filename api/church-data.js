@@ -1,4 +1,4 @@
-// ChurchDesign V0.31.0 — gallery/library backend; generation checkpoints removed
+// ChurchDesign V0.31.1 — resilient My Church bootstrap; no generation checkpoints
 // ChurchDesign V0.30.9 — unified checkpoint persistence and historical merge
 const BUCKET = "churchart-assets";
 
@@ -138,14 +138,51 @@ module.exports = async function handler(req, res) {
     cfg();
 
     if (action === "bootstrap") {
-      const [profile, assets, generations, drafts] = await Promise.all([
-        rest(`church_profile?id=eq.${encodeURIComponent(churchId)}&select=*`),
-        rest(`church_assets?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=created_at.desc`),
-        rest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=created_at.desc&limit=100`),
-        rest(`church_drafts?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=updated_at.desc`)
+      // Assets are the critical data for "Minha Igreja". Auxiliary query failures
+      // must never make the library look empty.
+      const warnings=[];
+      const safeRest=async(path,label,fallback=[])=>{
+        try{return await rest(path)}
+        catch(e){warnings.push(`${label}: ${e.message}`);return fallback}
+      };
+
+      const assetsCurrent=await safeRest(
+        `church_assets?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=created_at.desc`,
+        "assets"
+      );
+
+      // Historical versions sometimes wrote assets using church_id="default".
+      // Only use that legacy scope when the current church has no assets at all.
+      let assets=assetsCurrent||[];
+      let legacyAssetsRecovered=false;
+      if(!assets.length&&churchId!=="default"){
+        const legacy=await safeRest(
+          `church_assets?church_id=eq.default&select=*&order=created_at.desc`,
+          "legacy assets"
+        );
+        if(legacy?.length){assets=legacy;legacyAssetsRecovered=true}
+      }
+
+      const [profileCurrent,generations,drafts]=await Promise.all([
+        safeRest(`church_profile?id=eq.${encodeURIComponent(churchId)}&select=*`,"profile"),
+        safeRest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=created_at.desc&limit=100`,"gallery"),
+        safeRest(`church_drafts?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=updated_at.desc&limit=60`,"drafts")
       ]);
-      const userDrafts=(drafts||[]).filter(x=>x?.title!=="__GENERATION_JOB__");
-      return res.json({profile:profile?.[0]||null,assets:assets||[],generations:generations||[],drafts:userDrafts});
+
+      let profile=profileCurrent||[];
+      if(!profile.length&&churchId!=="default"){
+        profile=await safeRest(`church_profile?id=eq.default&select=*`,"legacy profile");
+      }
+
+      const userDrafts=(drafts||[]).filter(x=>x?.title!=="__GENERATION_JOB__"&&x?.data?.kind!=="generation_job");
+      return res.json({
+        profile:profile?.[0]||null,
+        assets:assets||[],
+        generations:generations||[],
+        drafts:userDrafts,
+        bootstrapWarnings:warnings,
+        legacyAssetsRecovered
+      });
     }
 
     if (action === "save-profile" && req.method === "POST") {
