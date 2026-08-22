@@ -1,4 +1,4 @@
-// ChurchDesign V0.30.7 — persistent gallery history
+// ChurchDesign V0.30.9 — unified checkpoint persistence and historical merge
 const BUCKET = "churchart-assets";
 
 function cfg() {
@@ -133,27 +133,43 @@ async function uploadDataUrl(dataUrl, path, mime) {
 module.exports = async function handler(req, res) {
   try {
     const action = req.query.action;
-    const churchId='default'; // V0.27.1: FK-safe until multi-church auth/migration is implemented
+    const churchId=String(req.headers['x-church-id']||'default').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)||'default';
     cfg();
 
     if (action === "bootstrap") {
-      const [profile, assets, generations, drafts] = await Promise.all([
+      const [profile, assets, generations, drafts, legacyDrafts] = await Promise.all([
         rest(`church_profile?id=eq.${encodeURIComponent(churchId)}&select=*`),
         rest(`church_assets?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=created_at.desc`),
         rest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=created_at.desc&limit=100`),
-        rest(`church_drafts?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=updated_at.desc&limit=30`)
+        rest(`church_drafts?church_id=eq.${encodeURIComponent(churchId)}&select=*&order=updated_at.desc&limit=60`),
+        churchId==='default'?Promise.resolve([]):rest(`church_drafts?church_id=eq.default&select=*&order=updated_at.desc&limit=60`)
       ]);
 
-      const allDrafts=drafts||[];
-      const jobs=allDrafts.filter(x=>x?.data?.kind==="generation_job");
-      const userDrafts=allDrafts.filter(x=>x?.data?.kind!=="generation_job");
-      return res.json({
-        profile: profile?.[0] || null,
-        assets: assets || [],
-        generations: generations || [],
-        drafts: userDrafts,
-        jobs
-      });
+      const currentDrafts=drafts||[],legacy=legacyDrafts||[];
+      const userDrafts=currentDrafts.filter(x=>x?.data?.kind!=="generation_job");
+      const jobRows=[...currentDrafts,...legacy].filter(x=>x?.data?.kind==="generation_job");
+      const stageRank={CREATED:0,DIRECTED:1,IMAGE_GENERATED:2,INSPECTED:3,DONE:4,CANCELLED:5,BROKEN_ENDPOINT:6};
+      const byId=new Map();
+      for(const row of jobRows){
+        const prev=byId.get(row.id);
+        if(!prev){byId.set(row.id,{...row,data:{...(row.data||{})}});continue;}
+        const a=prev.data||{},b=row.data||{};
+        const merged={...a,...b,
+          snapshot:b.snapshot||a.snapshot||null,
+          artDirection:b.artDirection||a.artDirection||null,
+          image:b.image||a.image||null,
+          review:b.review||a.review||null,
+          directorMeta:b.directorMeta||a.directorMeta||null,
+          generatorMeta:b.generatorMeta||a.generatorMeta||null,
+          inspectorMeta:b.inspectorMeta||a.inspectorMeta||null
+        };
+        const sa=String(a.status||'CREATED'),sb=String(b.status||'CREATED');
+        merged.status=(stageRank[sb]??0)>=(stageRank[sa]??0)?sb:sa;
+        const newer=new Date(row.updated_at||row.created_at||0)>new Date(prev.updated_at||prev.created_at||0)?row:prev;
+        byId.set(row.id,{...newer,data:{...merged,kind:'generation_job'}});
+      }
+      const jobs=[...byId.values()].sort((a,b)=>new Date(b.updated_at||b.created_at||0)-new Date(a.updated_at||a.created_at||0));
+      return res.json({profile:profile?.[0]||null,assets:assets||[],generations:generations||[],drafts:userDrafts,jobs});
     }
 
     if (action === "save-profile" && req.method === "POST") {
@@ -321,6 +337,17 @@ module.exports = async function handler(req, res) {
       const nextMeta={...(current.meta||current.metadata||{}),...(body.meta||{})};
       try{const updated=await rest(`church_assets?id=eq.${encodeURIComponent(id)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify({meta:nextMeta})});return res.json({asset:updated?.[0]||current,metadataPersisted:true});}
       catch(e){return res.json({asset:current,metadataPersisted:false,warning:"A tabela church_assets ainda não possui coluna meta."});}
+    }
+
+    if (action === "save-job" && req.method === "POST") {
+      const body=req.body||{},id=body.id||crypto.randomUUID();
+      const currentRows=await rest(`church_drafts?id=eq.${encodeURIComponent(id)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`);
+      const legacyRows=churchId==='default'?[]:await rest(`church_drafts?id=eq.${encodeURIComponent(id)}&church_id=eq.default&select=*`);
+      const current=currentRows?.[0]?.data||{},legacy=legacyRows?.[0]?.data||{};
+      const incoming=body.data||{};
+      const merged={...legacy,...current,...incoming,kind:'generation_job',status:body.status||incoming.status||current.status||legacy.status||'CREATED',updatedAt:new Date().toISOString(),snapshot:incoming.snapshot||current.snapshot||legacy.snapshot||null,artDirection:incoming.artDirection||current.artDirection||legacy.artDirection||null,image:incoming.image||current.image||legacy.image||null,review:incoming.review||current.review||legacy.review||null};
+      const rows=await rest('church_drafts?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=representation'},body:JSON.stringify([{id,church_id:churchId,title:'__GENERATION_JOB__',data:merged,updated_at:new Date().toISOString()}])});
+      return res.json({job:rows?.[0]||null});
     }
 
     if (action === "save-draft" && req.method === "POST") {
