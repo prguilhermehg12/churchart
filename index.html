@@ -53,6 +53,15 @@
 
 
 
+
+/* V0.31.2 — visualização em tela cheia */
+.art-fullscreen-overlay{position:fixed;inset:0;z-index:120000;background:rgba(0,0,0,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px}
+.art-fullscreen-toolbar{width:min(96vw,1600px);display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;color:#fff}
+.art-fullscreen-toolbar strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.art-fullscreen-close{border:1px solid #4d5668;background:#161b24;color:#fff;border-radius:10px;padding:9px 13px;cursor:pointer}
+.art-fullscreen-stage{width:96vw;height:90vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.art-fullscreen-stage img{display:block;max-width:96vw;max-height:90vh;width:auto;height:auto;object-fit:contain;box-shadow:0 16px 50px rgba(0,0,0,.55)}
+
 /* V0.30.7 — Galeria persistente */
 .sidebar-library-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:-8px 0 16px}
 .sidebar-library-actions .my-church-btn{margin:0}
@@ -471,7 +480,7 @@
 .pastor-order-pill b{color:white}
 
 </style>
-  <!-- ChurchDesign V0.31.0 — linear generation rollback / no checkpoints / stable finalization -->
+  <!-- ChurchDesign V0.31.2 — fullscreen preview / post-art smart logo placement / gallery delete -->
 </head>
 <body>
   <div class="app-shell">
@@ -1336,8 +1345,29 @@ async function imageAverageLuminance(src){
   let s=0,n=0;for(let i=0;i<d.length;i+=16){if(d[i+3]<30)continue;s+=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;n++}return n?s/n:.5;
 }
 function logoZoneCandidates(position='top-left',kind='church'){
-  const p=normalizeLogoRegion(position,kind),m={'top-left':[[.045,.045],[.065,.055],[.045,.09],[.09,.045]],'top-center':[[.50,.045],[.50,.075],[.43,.055],[.57,.055]],'top-right':[[.955,.045],[.935,.055],[.955,.09],[.91,.045]],'bottom-left':[[.045,.955],[.065,.935],[.045,.90]],'bottom-center':[[.50,.955],[.50,.925],[.43,.945],[.57,.945]],'bottom-right':[[.955,.955],[.935,.935],[.955,.90]],'left-top':[[.10,.30],[.13,.34],[.16,.38],[.19,.31]],'left-middle':[[.10,.50],[.14,.50],[.18,.47],[.18,.55]],'left-bottom':[[.10,.70],[.13,.66],[.16,.62],[.19,.70]],'right-top':[[.90,.30],[.87,.34],[.84,.38],[.81,.31]],'right-middle':[[.90,.50],[.86,.50],[.82,.47],[.82,.55]],'right-bottom':[[.90,.70],[.87,.66],[.84,.62],[.81,.70]]};
-  return m[p]||m[kind==='church'?'top-left':'right-middle'];
+  const p=normalizeLogoRegion(position,kind);
+  if(kind==='church'){
+    const m={
+      'top-left':[[.055,.055],[.08,.065],[.055,.11]],
+      'top-center':[[.50,.055],[.50,.09],[.42,.065],[.58,.065]],
+      'top-right':[[.945,.055],[.92,.065],[.945,.11]],
+      'bottom-left':[[.055,.945],[.08,.925],[.055,.89]],
+      'bottom-center':[[.50,.945],[.50,.91],[.42,.935],[.58,.935]],
+      'bottom-right':[[.945,.945],[.92,.925],[.945,.89]]
+    };
+    return m[p]||m['top-left'];
+  }
+  // Evento: seis zonas dentro dos 3/5 centrais. Os valores são CENTROS candidatos,
+  // não cantos; mantemos distância das bordas e oferecemos alternativas locais.
+  const m={
+    'left-top':[[.27,.31],[.32,.31],[.27,.36],[.34,.36],[.23,.35]],
+    'left-middle':[[.27,.50],[.32,.50],[.27,.45],[.32,.56],[.23,.53]],
+    'left-bottom':[[.27,.69],[.32,.69],[.27,.64],[.34,.64],[.23,.66]],
+    'right-top':[[.73,.31],[.68,.31],[.73,.36],[.66,.36],[.77,.35]],
+    'right-middle':[[.73,.50],[.68,.50],[.73,.45],[.68,.56],[.77,.53]],
+    'right-bottom':[[.73,.69],[.68,.69],[.73,.64],[.66,.64],[.77,.66]]
+  };
+  return m[p]||m['right-middle'];
 }
 function regionPixelMetrics(ctx,x,y,w,h){
   const sx=Math.max(0,Math.floor(x)),sy=Math.max(0,Math.floor(y)),sw=Math.max(1,Math.min(ctx.canvas.width-sx,Math.floor(w))),sh=Math.max(1,Math.min(ctx.canvas.height-sy,Math.floor(h)));
@@ -1345,9 +1375,23 @@ function regionPixelMetrics(ctx,x,y,w,h){
   let lum=0,lum2=0,edges=0,n=0,prev=null;for(let i=0;i<d.length;i+=32){if(d[i+3]<20)continue;const l=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;lum+=l;lum2+=l*l;if(prev!==null)edges+=Math.abs(l-prev);prev=l;n++}if(!n)return{luminance:.5,complexity:.45};const avg=lum/n,variance=Math.max(0,lum2/n-avg*avg);return{luminance:avg,complexity:Math.min(1,(edges/Math.max(1,n-1))*2.5+variance*2.5)}
 }
 async function resolveLogoPlacement(src,position,sizeFraction=.14,kind='church',{forceRelocation=false}={}){
-  const im=await loadImageSafe(src),reg=normalizeLogoRegion(position,kind),size=Math.max(.06,Math.min(.32,Number(sizeFraction)||.14)),candidates=logoZoneCandidates(reg,kind),chosen=candidates[Math.min(forceRelocation?1:0,candidates.length-1)]||candidates[0]||[.05,.05];
-  let w=Math.max(40,im.width*size),h=Math.max(24,w*.42),x=chosen[0]*im.width,y=chosen[1]*im.height;if(/right/.test(reg))x-=w;if(/bottom/.test(reg))y-=h;if(reg==='top-center'||reg==='bottom-center')x-=w/2;if(/middle/.test(reg))y-=h/2;
-  x=Math.max(im.width*.025,Math.min(im.width-w-im.width*.025,x));y=Math.max(im.height*.025,Math.min(im.height-h-im.height*.025,y));return{x,y,w,h,backgroundLum:.5,complexity:0,score:1,region:reg,candidateIndex:forceRelocation?1:0,deterministic:true};
+  const safeSrc=String(src||'').startsWith('data:image/')||String(src||'').startsWith('blob:')?src:await remoteToDataUrl(src);
+  const im=await loadImage(safeSrc),reg=normalizeLogoRegion(position,kind),size=Math.max(.06,Math.min(.30,Number(sizeFraction)||.14));
+  const cv=document.createElement('canvas'),ctx=cv.getContext('2d',{willReadFrequently:true});cv.width=im.width;cv.height=im.height;ctx.drawImage(im,0,0);
+  let best=null;
+  for(const [i,c] of logoZoneCandidates(reg,kind).entries()){
+    let w=Math.max(40,im.width*size),h=Math.max(24,w*.42);
+    let x=c[0]*im.width-w/2,y=c[1]*im.height-h/2;
+    x=Math.max(im.width*.035,Math.min(im.width-w-im.width*.035,x));
+    y=Math.max(im.height*.035,Math.min(im.height-h-im.height*.035,y));
+    let metrics={luminance:.5,complexity:.5,pixelReadUnavailable:true};
+    try{metrics=regionPixelMetrics(ctx,x,y,w,h)}catch(e){console.warn('Logo planner local fallback',e)}
+    // proximidade da zona escolhida vale mais; dentro dela, escolha a área visualmente mais calma.
+    const relocationPenalty=(forceRelocation&&i===0?.65:0);
+    const score=1-(i*.07)-relocationPenalty-(metrics.complexity||.5)*.78;
+    if(!best||score>best.score)best={x,y,w,h,backgroundLum:metrics.luminance??.5,complexity:metrics.complexity??.5,score,region:reg,candidateIndex:i,localAnalysis:!metrics.pixelReadUnavailable};
+  }
+  return best;
 }
 async function chooseLogoVariant(primary,contrast,backgroundLum){
   if(!contrast)return primary;try{const[a,b]=await Promise.all([imageAverageLuminance(logoAssetSource(primary)),imageAverageLuminance(logoAssetSource(contrast))]);return Math.abs(b-backgroundLum)>Math.abs(a-backgroundLum)?contrast:primary}catch(e){console.warn('Contraste automático indisponível; usando a logo principal.',e);return primary}
@@ -1554,6 +1598,19 @@ function bindQuickUpload(id,type,done){
 function showNoPastorPopup(){const root=document.querySelector('#modalRoot');if(!root||document.querySelector('.modal-backdrop'))return;root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel" style="width:min(520px,94vw)"><div class="modal-head"><h2>Foto do pregador</h2><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><p style="color:var(--muted);font-size:12px">Nenhuma foto está salva em Minha Igreja. Envie uma agora para preservar a pessoa original.</p><label class="library-upload"><strong>Enviar foto agora</strong><span>JPG, PNG ou WEBP</span><input id="modalPastorUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>`;bindQuickUpload('modalPastorUpload','pastor',a=>{state.finalConfig.pastorAssetId=a.id;closeModal();screenAdjust()});}
 function closeModal(){document.querySelector('#modalRoot').innerHTML=''}
 
+
+function openArtworkFullscreen(src,label='Arte'){
+  if(!src)return;
+  const old=document.querySelector('.art-fullscreen-overlay');if(old)old.remove();
+  const ov=document.createElement('div');ov.className='art-fullscreen-overlay';
+  ov.innerHTML=`<div class="art-fullscreen-toolbar"><strong>${esc(label||'Arte')}</strong><button class="art-fullscreen-close" type="button">✕ Fechar</button></div><div class="art-fullscreen-stage"><img src="${src}" alt="${esc(label||'Arte')}"></div>`;
+  const close=()=>ov.remove();
+  ov.querySelector('.art-fullscreen-close').onclick=close;
+  ov.onclick=e=>{if(e.target===ov||e.target.classList.contains('art-fullscreen-stage'))close()};
+  const key=e=>{if(e.key==='Escape'){document.removeEventListener('keydown',key);close()}};
+  document.addEventListener('keydown',key);
+  document.body.appendChild(ov);
+}
 function compactGalleryAsset(a){
   if(!a)return null;
   const lib=a.id?(state.library.assets||[]).find(x=>x.id===a.id):null;
@@ -1624,9 +1681,11 @@ function startGalleryChild(id,format){
 }
 window.openGallery=function(query=''){
   const root=document.querySelector('#modalRoot'),items=allPersistentGalleryItems(),q=String(query||'').trim().toLowerCase(),filtered=q?items.filter(x=>`${x.label||''} ${x.kind||''} ${x.format||''}`.toLowerCase().includes(q)):items;
-  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel gallery-modal-panel"><div class="modal-head"><div><h2>Galeria</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Artes e receitas salvas':'Banco não conectado'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="gallery-toolbar"><div><strong>${items.length} arte(s)</strong><small style="display:block;color:var(--muted);margin-top:3px">Reabra projetos ou crie artes filhas sem começar do zero.</small></div><input id="gallerySearch" placeholder="Buscar na Galeria" value="${esc(query||'')}"></div>${filtered.length?`<div class="persistent-gallery-grid">${filtered.map(x=>`<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}"><div class="persistent-gallery-body"><strong>${esc(x.label||'Arte')}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}</small><div class="gallery-actions"><button class="mini-btn download-btn" data-gallery-download="${x.galleryId}">↓ Baixar</button><button class="mini-btn" data-gallery-reference="${x.galleryId}">Usar como referência</button><button class="mini-btn" data-gallery-reopen="${x.galleryId}">${x.recipe?'Reabrir projeto':'Reusar arte'}</button></div><div class="gallery-child-actions"><button class="mini-btn" data-gallery-child="${x.galleryId}|youtube">YouTube</button><button class="mini-btn" data-gallery-child="${x.galleryId}|screen">Telão</button><button class="mini-btn" data-gallery-child="${x.galleryId}|story">Stories</button></div>${x.parentArtworkId||x.sourceArtworkId?`<div class="gallery-lineage">Derivada de uma arte anterior</div>`:''}</div></div>`).join('')}</div>`:`<div class="gallery-empty">Nenhuma arte encontrada.</div>`}</div></div></div>`;
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel gallery-modal-panel"><div class="modal-head"><div><h2>Galeria</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Artes e receitas salvas':'Banco não conectado'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="gallery-toolbar"><div><strong>${items.length} arte(s)</strong><small style="display:block;color:var(--muted);margin-top:3px">Reabra projetos ou crie artes filhas sem começar do zero.</small></div><input id="gallerySearch" placeholder="Buscar na Galeria" value="${esc(query||'')}"></div>${filtered.length?`<div class="persistent-gallery-grid">${filtered.map(x=>`<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}"><div class="persistent-gallery-body"><strong>${esc(x.label||'Arte')}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}</small><div class="gallery-actions"><button class="mini-btn download-btn" data-gallery-download="${x.galleryId}">↓ Baixar</button><button class="mini-btn" data-gallery-fullscreen="${x.galleryId}">⛶ Tela cheia</button><button class="mini-btn" data-gallery-reference="${x.galleryId}">Usar como referência</button><button class="mini-btn" data-gallery-reopen="${x.galleryId}">${x.recipe?'Reabrir projeto':'Reusar arte'}</button><button class="mini-btn" data-gallery-delete="${x.galleryId}" style="border-color:#69333d;color:#ff9eac">Excluir</button></div><div class="gallery-child-actions"><button class="mini-btn" data-gallery-child="${x.galleryId}|youtube">YouTube</button><button class="mini-btn" data-gallery-child="${x.galleryId}|screen">Telão</button><button class="mini-btn" data-gallery-child="${x.galleryId}|story">Stories</button></div>${x.parentArtworkId||x.sourceArtworkId?`<div class="gallery-lineage">Derivada de uma arte anterior</div>`:''}</div></div>`).join('')}</div>`:`<div class="gallery-empty">Nenhuma arte encontrada.</div>`}</div></div></div>`;
   const search=root.querySelector('#gallerySearch');if(search)search.onchange=()=>openGallery(search.value);
   root.querySelectorAll('[data-gallery-download]').forEach(b=>b.onclick=()=>{const x=findGalleryItem(b.dataset.galleryDownload);if(x)downloadDataUrl(x.url,`churchdesign-${(x.label||'arte').toLowerCase().replace(/\s+/g,'-')}.png`,{label:x.label})});
+  root.querySelectorAll('[data-gallery-fullscreen]').forEach(b=>b.onclick=()=>{const x=findGalleryItem(b.dataset.galleryFullscreen);if(x)openArtworkFullscreen(x.url,x.label||'Arte')});
+  root.querySelectorAll('[data-gallery-delete]').forEach(b=>b.onclick=async()=>{const x=findGalleryItem(b.dataset.galleryDelete);if(!x)return;if(!confirm(`Excluir "${x.label||'esta arte'}" da Galeria?`))return;b.disabled=true;b.textContent='Excluindo...';try{await apiJSON('delete-gallery-item',{method:'DELETE',body:{generationId:x.generationId,galleryId:x.galleryId}});state.library.generations=(state.library.generations||[]).map(g=>{if(g.id!==x.generationId)return g;return{...g,images:(g.images||[]).filter(im=>(im.galleryId||'')!==x.galleryId)}}).filter(g=>(g.images||[]).length);state.gallerySavedIds=(state.gallerySavedIds||[]).filter(id=>id!==x.galleryId);openGallery()}catch(e){alert('Não foi possível excluir: '+e.message);b.disabled=false;b.textContent='Excluir'}});
   root.querySelectorAll('[data-gallery-reference]').forEach(b=>b.onclick=()=>useGalleryAsReference(b.dataset.galleryReference));
   root.querySelectorAll('[data-gallery-reopen]').forEach(b=>b.onclick=()=>reopenGalleryProject(b.dataset.galleryReopen));
   root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=()=>{const [id,f]=b.dataset.galleryChild.split('|');startGalleryChild(id,f)});
@@ -1983,7 +2042,7 @@ function normalizeLogoRegion(region,kind='church'){
   if(kind==='church')return ['top-left','top-center','top-right','bottom-left','bottom-center','bottom-right'].includes(v)?v:'top-left';
   return ['left-top','left-middle','left-bottom','right-top','right-middle','right-bottom'].includes(v)?v:'right-middle';
 }
-function eventLogoSizeFraction(size){if(typeof size==='number'&&Number.isFinite(size))return size>1?Math.max(.06,Math.min(.32,size/100)):Math.max(.06,Math.min(.32,size));return({small:.14,medium:.20,large:.26})[String(size||'small').toLowerCase()]||.14}
+function eventLogoSizeFraction(size){if(typeof size==='number'&&Number.isFinite(size))return size>1?Math.max(.08,Math.min(.22,size/100)):Math.max(.08,Math.min(.22,size));return({small:.12,medium:.17,large:.22})[String(size||'small').toLowerCase()]||.12}
 function churchLogoSizeFraction(size){if(typeof size==='number'&&Number.isFinite(size))return size>1?Math.max(.08,Math.min(.30,size/100)):Math.max(.08,Math.min(.30,size));return .18}
 function parseLogoCorrectionIntent(text=''){
   const s=String(text||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');if(!/logo|logomarca|marca/.test(s))return null;
@@ -2099,7 +2158,7 @@ LOGOS — IDENTIDADES NÃO INTERCAMBIÁVEIS:
 - A logo de evento, quando selecionada, deve aparecer UMA vez e exatamente como enviada.
 - É PROIBIDO repetir a logo principal no lugar da logo de evento.
 - É PROIBIDO duplicar, extrair símbolo, redesenhar ou criar segunda versão da logo principal.
-${state.quick.audience?`Público-alvo: ${audienceLabel(state.quick.audience)}. `:''}${state.quick.designStyle?`Estilo desejado: ${designStyleLabel(state.quick.designStyle)}. `:''}${!state.quick.designStyle&&learned?.designStyle?`Preferência aprendida do usuário: ${learned.designStyle}. `:''}${state.quick.dominantColorMode==='reference'?(ref?'PALETA: preserve a paleta predominante da referência; analise-a visualmente antes de definir cores. Não introduza uma nova cor dominante que descaracterize a referência.':'PALETA: não há referência disponível; escolha automaticamente uma paleta coerente com conteúdo, estilo e público.'):`Cor predominante escolhida pelo usuário: ${state.quick.dominantColor}.`} Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${ref?'':'Criação sem referência: use a direção visual '+inspiration.name+' — '+inspiration.prompt+'.'} SAFE FRAME RÍGIDO: mantenha TODO conteúdo essencial dentro dos 76% centrais do canvas, reservando 12% livres em cada borda. Nenhum texto, logo, rosto, nome, data, hora ou endereço pode tocar as bordas. ${churchAsset?'A FOTO DA IGREJA selecionada é OBRIGATÓRIA: use-a claramente como ambiente/fundo integrado, sem substituí-la por outra igreja.':'Se a referência já tiver pessoas adorando ou ambiente de igreja ao fundo, preserve essa atmosfera; não invente espaços vazios.'} LOGO-FREE CANVAS OBRIGATÓRIO: NÃO desenhe a logo da igreja, NÃO desenhe a logo de evento e REMOVA completamente qualquer logo existente na referência. Não crie símbolos substitutos, marcas d'água ou nomes institucionais para ocupar o lugar das logos. ${state.quick.omitChurchName?'OMITA também o NOME DA IGREJA em qualquer forma textual.':''} ${assets.logo?'Reserve uma área limpa e de bom contraste para a logo oficial da igreja, que será colada depois por código.':''} ${eventLogo?'Reserve uma área limpa para a LOGO DE EVENTO dentro da zona '+(state.quick.eventLogoPosition||'escolhida pelo Diretor')+'. Não coloque pregadores, rostos, mãos, título ou dados essenciais nessa área, pois o PNG original será colado depois por código.':''} ${correction||state.quick.correction||''}`,
+${state.quick.audience?`Público-alvo: ${audienceLabel(state.quick.audience)}. `:''}${state.quick.designStyle?`Estilo desejado: ${designStyleLabel(state.quick.designStyle)}. `:''}${!state.quick.designStyle&&learned?.designStyle?`Preferência aprendida do usuário: ${learned.designStyle}. `:''}${state.quick.dominantColorMode==='reference'?(ref?'PALETA: preserve a paleta predominante da referência; analise-a visualmente antes de definir cores. Não introduza uma nova cor dominante que descaracterize a referência.':'PALETA: não há referência disponível; escolha automaticamente uma paleta coerente com conteúdo, estilo e público.'):`Cor predominante escolhida pelo usuário: ${state.quick.dominantColor}.`} Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${ref?'':'Criação sem referência: use a direção visual '+inspiration.name+' — '+inspiration.prompt+'.'} SAFE FRAME RÍGIDO: mantenha TODO conteúdo essencial dentro dos 76% centrais do canvas, reservando 12% livres em cada borda. Nenhum texto, logo, rosto, nome, data, hora ou endereço pode tocar as bordas. ${churchAsset?'A FOTO DA IGREJA selecionada é OBRIGATÓRIA: use-a claramente como ambiente/fundo integrado, sem substituí-la por outra igreja.':'Se a referência já tiver pessoas adorando ou ambiente de igreja ao fundo, preserve essa atmosfera; não invente espaços vazios.'} LOGO-FREE CANVAS OBRIGATÓRIO: NÃO desenhe a logo da igreja, NÃO desenhe a logo de evento e REMOVA completamente qualquer logo existente na referência. Não crie símbolos substitutos, marcas d'água ou nomes institucionais para ocupar o lugar das logos. ${state.quick.omitChurchName?'OMITA também o NOME DA IGREJA em qualquer forma textual.':''} ${assets.logo||eventLogo?'NÃO reserve visualmente nenhum espaço para logos: não desenhe caixa, contorno, placa vazia, moldura, selo, halo, placeholder ou área demarcada. Faça a composição parecer completa mesmo sem logos; o compositor pós-arte escolherá depois um ponto adequado e colará os PNGs originais por cima.':''} ${correction||state.quick.correction||''}`,
     finalInstruction:'SAFE FRAME OBRIGATÓRIO: conteúdo essencial dentro dos 76% centrais; 12% de margem livre em todos os lados. Elementos decorativos podem sangrar, conteúdo essencial jamais.',semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[]};
   const seed=state.gallerySeed;
   if(seed?.sourceArtworkId&&seed?.sourceUrl){base.reference=await prepareImageForAI(seed.sourceUrl,1600,.94);base.references=[{image:base.reference,note:'ARTE INTERNA DO CHURCHDESIGN. Use como working base; preserve o DNA visual, mas os textos atuais continuam soberanos.'}];base.referenceRole='working-base';base.gallerySourceArtworkId=seed.sourceArtworkId}
@@ -2194,11 +2253,12 @@ function collectAllQuickArtworks(){
 }
 function allArtworksHTML(){
   const arts=collectAllQuickArtworks();if(!arts.length)return '';
-  return `<div class="card all-artworks-shell"><div class="all-artworks-head"><div><h3 style="margin:0">Todas as artes</h3><p style="margin:4px 0 0;color:var(--muted);font-size:9px">Principal, complementares, variações e correções no mesmo carrossel.</p></div>${arts.length>=2?`<button class="mini-btn download-all-btn" id="downloadAllArtworks" type="button">↓ Baixar tudo</button>`:''}</div><div class="all-artworks-carousel">${arts.map((a,i)=>`<div class="all-artwork-card"><img src="${a.dataUrl}"><div class="all-artwork-body"><strong>${esc(a.label)}</strong><small>${a.target?.width||''}${a.target?.width?'×':''}${a.target?.height||''} • ${a.kind}</small><div class="quick-actions" style="margin-top:8px"><button class="mini-btn download-btn" data-all-art-download="${i}" type="button">↓ Baixar</button></div></div></div>`).join('')}</div></div>`;
+  return `<div class="card all-artworks-shell"><div class="all-artworks-head"><div><h3 style="margin:0">Todas as artes</h3><p style="margin:4px 0 0;color:var(--muted);font-size:9px">Principal, complementares, variações e correções no mesmo carrossel.</p></div>${arts.length>=2?`<button class="mini-btn download-all-btn" id="downloadAllArtworks" type="button">↓ Baixar tudo</button>`:''}</div><div class="all-artworks-carousel">${arts.map((a,i)=>`<div class="all-artwork-card"><img src="${a.dataUrl}"><div class="all-artwork-body"><strong>${esc(a.label)}</strong><small>${a.target?.width||''}${a.target?.width?'×':''}${a.target?.height||''} • ${a.kind}</small><div class="quick-actions" style="margin-top:8px"><button class="mini-btn download-btn" data-all-art-download="${i}" type="button">↓ Baixar</button><button class="mini-btn" data-all-art-fullscreen="${i}" type="button">⛶ Tela cheia</button></div></div></div>`).join('')}</div></div>`;
 }
 function bindAllArtworksEvents(){
   const arts=collectAllQuickArtworks();
   document.querySelectorAll('[data-all-art-download]').forEach(b=>b.onclick=()=>{const a=arts[+b.dataset.allArtDownload];if(a)downloadDataUrl(a.dataUrl,`churchdesign-${(a.label||'arte').toLowerCase().replace(/\s+/g,'-')}.png`,{label:a.label});});
+  document.querySelectorAll('[data-all-art-fullscreen]').forEach(b=>b.onclick=()=>{const a=arts[+b.dataset.allArtFullscreen];if(a)openArtworkFullscreen(a.dataUrl,a.label||'Arte');});
   const all=document.querySelector('#downloadAllArtworks');
   if(all)all.onclick=async()=>{
     all.disabled=true;all.textContent='Baixando...';
@@ -2232,8 +2292,8 @@ function preferredQuickReferenceKey(parentIndex){
 
 function renderQuickResultsHTML(){if(!state.quickResults.length)return '';return `<div class="card"><h3>Artes desta criação</h3><p style="margin-bottom:10px">Cada versão pode ser usada diretamente como base das artes filhas.</p><div class="quick-results-row">${state.quickResults.map((r,i)=>quickResultCardHTML(r,i)).join('')}</div></div>`;}
 function versionAdaptButtons(sourceKey,parentIndex){return ['story','youtube','screen','square','wide16','fourthree','threetwo'].map(f=>{const t=quickTargetSpec(f);return `<button class="quick-adapt-btn" data-qadapt-source="${parentIndex}|${sourceKey}|${f}" type="button">${t.label}</button>`}).join('');}
-function correctionVersionHTML(c,parentIndex,j){const key=`correction:${parentIndex}:${j}`;return `<div class="quick-correction-version" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><img src="${c.dataUrl}" style="width:100%;border-radius:10px"><h4 style="margin-top:8px">${esc(c.label||`Correção ${j+1}`)}</h4><div class="quick-actions"><button class="mini-btn download-btn" data-qdownload-correction="${parentIndex}-${j}">↓ Baixar</button></div><strong style="font-size:9px">Criar outro tamanho a partir DESTA versão</strong><div class="quick-adapt-grid">${versionAdaptButtons(key,parentIndex)}</div><div id="quickAdaptConfig-${parentIndex}-correction-${j}"></div></div>`;}
-function quickResultCardHTML(r,i){const key=`main:${i}`;return `<div class="quick-result-card" id="quickResultCard-${i}"><img src="${r.dataUrl}"><div class="quick-result-body"><h4>${esc(r.label)} • ${esc(r.target.label)}</h4><div class="quick-actions"><button class="mini-btn download-btn" data-qdownload="${i}">↓ Baixar</button>${i===state.quickResults.length-1&&i<2?`<button class="mini-btn" data-qvariation="${i+1}">Gerar variação ${i+1}</button>`:''}<button class="mini-btn" data-qreload="${i}">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:8px"><label>Correção desta arte</label><textarea data-qcorrection="${i}">${esc(r.correction||'')}</textarea></div><strong style="font-size:9px">Criar outro tamanho a partir DESTA versão</strong><div class="quick-adapt-grid">${versionAdaptButtons(key,i)}</div><div id="quickAdaptConfig-${i}"></div>${(r.corrections||[]).map((c,j)=>correctionVersionHTML(c,i,j)).join('')}<div class="quick-adaptations" id="quickAdaptations-${i}">${(r.adaptations||[]).map(a=>quickAdaptationHTML(a,i)).join('')}</div></div></div>`;}
+function correctionVersionHTML(c,parentIndex,j){const key=`correction:${parentIndex}:${j}`;return `<div class="quick-correction-version" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><img src="${c.dataUrl}" style="width:100%;border-radius:10px"><h4 style="margin-top:8px">${esc(c.label||`Correção ${j+1}`)}</h4><div class="quick-actions"><button class="mini-btn download-btn" data-qdownload-correction="${parentIndex}-${j}">↓ Baixar</button><button class="mini-btn" data-qfullscreen-correction="${parentIndex}-${j}">⛶ Tela cheia</button></div><strong style="font-size:9px">Criar outro tamanho a partir DESTA versão</strong><div class="quick-adapt-grid">${versionAdaptButtons(key,parentIndex)}</div><div id="quickAdaptConfig-${parentIndex}-correction-${j}"></div></div>`;}
+function quickResultCardHTML(r,i){const key=`main:${i}`;return `<div class="quick-result-card" id="quickResultCard-${i}"><img src="${r.dataUrl}"><div class="quick-result-body"><h4>${esc(r.label)} • ${esc(r.target.label)}</h4><div class="quick-actions"><button class="mini-btn download-btn" data-qdownload="${i}">↓ Baixar</button><button class="mini-btn" data-qfullscreen="${i}">⛶ Tela cheia</button>${i===state.quickResults.length-1&&i<2?`<button class="mini-btn" data-qvariation="${i+1}">Gerar variação ${i+1}</button>`:''}<button class="mini-btn" data-qreload="${i}">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:8px"><label>Correção desta arte</label><textarea data-qcorrection="${i}">${esc(r.correction||'')}</textarea></div><strong style="font-size:9px">Criar outro tamanho a partir DESTA versão</strong><div class="quick-adapt-grid">${versionAdaptButtons(key,i)}</div><div id="quickAdaptConfig-${i}"></div>${(r.corrections||[]).map((c,j)=>correctionVersionHTML(c,i,j)).join('')}<div class="quick-adaptations" id="quickAdaptations-${i}">${(r.adaptations||[]).map(a=>quickAdaptationHTML(a,i)).join('')}</div></div></div>`;}
 function openQuickAdaptConfig(i,f,explicitSourceKey=null){
   const target=quickTargetSpec(f),defaultKey=explicitSourceKey||preferredQuickReferenceKey(i);
   const cm=defaultKey.match(/^correction:(\d+):(\d+)$/);
@@ -2248,16 +2308,19 @@ function openQuickAdaptConfig(i,f,explicitSourceKey=null){
     runQuickAdaptation(i,f,omit,darkScreen,sourceKey);
   };
 }
-function quickAdaptationHTML(a,parentIndex){return `<div class="quick-adapt-item ${a.format==='story'?'story':''}"><img src="${a.dataUrl}"><div style="min-width:0;flex:1"><strong style="font-size:9px">${esc(a.target.label)}</strong><small style="display:block;font-size:8px;color:var(--muted)">${a.target.width}×${a.target.height}${a.basedOnLabel?` • base: ${esc(a.basedOnLabel)}`:''}</small></div><button class="mini-btn download-btn" data-qadapt-download data-qadapt-parent="${parentIndex}" data-qadapt-id="${a.id}" type="button">↓ Baixar</button></div>`;}
+function quickAdaptationHTML(a,parentIndex){return `<div class="quick-adapt-item ${a.format==='story'?'story':''}"><img src="${a.dataUrl}"><div style="min-width:0;flex:1"><strong style="font-size:9px">${esc(a.target.label)}</strong><small style="display:block;font-size:8px;color:var(--muted)">${a.target.width}×${a.target.height}${a.basedOnLabel?` • base: ${esc(a.basedOnLabel)}`:''}</small></div><button class="mini-btn" data-qadapt-fullscreen data-qadapt-parent="${parentIndex}" data-qadapt-id="${a.id}" type="button">⛶</button><button class="mini-btn download-btn" data-qadapt-download data-qadapt-parent="${parentIndex}" data-qadapt-id="${a.id}" type="button">↓ Baixar</button></div>`;}
 function bindQuickResultEvents(){
   document.querySelectorAll('[data-qadapt-source]').forEach(btn=>btn.onclick=()=>{const [i,key,f]=btn.dataset.qadaptSource.split('|');openQuickAdaptConfig(+i,f,key)});
   document.querySelectorAll('[data-qdownload-correction]').forEach(btn=>btn.onclick=()=>{const [i,j]=btn.dataset.qdownloadCorrection.split('-').map(Number);const a=state.quickResults?.[i]?.corrections?.[j];if(a)downloadDataUrl(a.dataUrl,`${slug(a.label||'churchdesign-correction')}.png`);});
+  document.querySelectorAll('[data-qfullscreen-correction]').forEach(btn=>btn.onclick=()=>{const [i,j]=btn.dataset.qfullscreenCorrection.split('-').map(Number);const a=state.quickResults?.[i]?.corrections?.[j];if(a)openArtworkFullscreen(a.dataUrl,a.label||`Correção ${j+1}`);});
+  document.querySelectorAll('[data-qfullscreen]').forEach(btn=>btn.onclick=()=>{const a=state.quickResults?.[+btn.dataset.qfullscreen];if(a)openArtworkFullscreen(a.dataUrl,a.label||'Arte');});
 
   document.querySelectorAll('[data-qdownload]').forEach(b=>b.onclick=()=>{const r=state.quickResults[+b.dataset.qdownload];downloadDataUrl(r.dataUrl,`churchdesign-${r.label.toLowerCase().replace(/\s+/g,'-')}.png`,{label:r.label,format:r.target?.id||state.quick.format,target:r.target,designStyle:state.quick.designStyle,audience:state.quick.audience,inspirationStyle:state.quick.inspirationStyle,effect:state.quick.effect})});
   document.querySelectorAll('[data-qvariation]').forEach(b=>b.onclick=()=>{scrollToGenerationPanel();runQuickGeneration(`Variação ${b.dataset.qvariation}`,Number(b.dataset.qvariation))});
   document.querySelectorAll('[data-qreload]').forEach(b=>b.onclick=()=>{const i=+b.dataset.qreload,t=document.querySelector(`[data-qcorrection="${i}"]`);scrollToGenerationPanel();runQuickGeneration(state.quickResults[i].label,i,t?.value||'',i)});
   document.querySelectorAll('[data-qadapt]').forEach(b=>b.onclick=()=>{const [i,f]=b.dataset.qadapt.split('-');openQuickAdaptConfig(Number(i),f)});
   document.querySelectorAll('[data-qadapt-download]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.qadaptParent),id=b.dataset.qadaptId,a=state.quickResults[i]?.adaptations?.find(x=>x.id===id);if(a)downloadDataUrl(a.dataUrl,`churchdesign-${a.target.id}.png`,{label:a.target.label,format:a.target.id,target:a.target,designStyle:state.quick.designStyle,audience:state.quick.audience,inspirationStyle:state.quick.inspirationStyle,effect:state.quick.effect})});
+  document.querySelectorAll('[data-qadapt-fullscreen]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.qadaptParent),id=b.dataset.qadaptId,a=state.quickResults[i]?.adaptations?.find(x=>x.id===id);if(a)openArtworkFullscreen(a.dataUrl,a.label||a.target?.label||'Arte filha');});
 }
 function setQuickProgress(pct,text){const wrap=document.querySelector('#quickProgress'),bar=document.querySelector('#quickProgressBar'),label=document.querySelector('#quickProgressText'),num=document.querySelector('#quickProgressPct');if(!wrap)return;wrap.classList.toggle('show',pct>0&&pct<100);if(bar)bar.style.width=`${pct}%`;if(label)label.textContent=text||'Processando sua arte...';if(num)num.textContent=`${pct}%`;}
 
@@ -2395,7 +2458,7 @@ ${target.id==='screen'?`TELÃO: prefira o TÍTULO centralizado e dominante. Se a
 ${darkScreen?'VERSÃO ESCURA OBRIGATÓRIA: fundo e áreas dominantes devem ser escuros para telão/câmera de live; preserve contraste alto e, se houver foto da igreja mantida, integre-a de modo escuro e discreto.':''}
 COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referência ou ordem explícita. Evite caixas/cards/cápsulas desnecessários. Se a logo estiver mantida, use a original uma única vez, sem caixa/placa/selo e nunca repita ou extraia partes dela.`;
 
-    const payload={mode:'adaptation',format:formatId,reference:sourceRef,references:[{image:sourceRef,note:'Use esta versão LOGO-FREE como base visual. Preserve identidade e mantenha limpas as áreas reservadas às logos oficiais.'}],target,assets,requiredContent:required,instruction:source.instruction||parent.instruction,finalInstruction,semanticMap:[],effects:[],artDirection:source.artDirection||parent.artDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:!assets.logo};
+    const payload={mode:'adaptation',format:formatId,reference:sourceRef,references:[{image:sourceRef,note:'Use esta versão LOGO-FREE como base visual. Preserve identidade. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.'}],target,assets,requiredContent:required,instruction:source.instruction||parent.instruction,finalInstruction,semanticMap:[],effects:[],artDirection:source.artDirection||parent.artDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:!assets.logo};
 
     setQuickProgress(48,'Recompondo para o novo formato...');
     // V0.26: arte filha = 1 geração + 1 fiscal; sem retry automático.
