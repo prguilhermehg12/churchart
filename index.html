@@ -1432,7 +1432,7 @@ function fallbackOccupancy(target={},reason="analyzer-unavailable"){
 async function analyzeLogoOccupancy(baseDataUrl,target,signal=null,expectations={}){
   try{
     const image=await prepareImageForAI(baseDataUrl,1280,.84);
-    const r=await fetch('/api/logo-analyzer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image,target,expectations}),signal});
+    const r=await fetch('/api/logo-placement-analyzer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image,target,expectations}),signal});
     const text=await r.text();let data;
     try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,180)||`Logo Analyzer: resposta inválida (${r.status})`)}
     if(!r.ok)throw new Error(data.error||`Logo Analyzer: erro ${r.status}`);
