@@ -507,7 +507,7 @@
 .pastor-order-pill b{color:white}
 
 </style>
-  <!-- ChurchDesign V0.31.7 — tenant probe / gallery recovery / logo diagnostics -->
+  <!-- ChurchDesign V0.31.9 — logo occupancy via existing quality-inspector endpoint -->
 </head>
 <body>
   <div class="app-shell">
@@ -1432,7 +1432,7 @@ function fallbackOccupancy(target={},reason="analyzer-unavailable"){
 async function analyzeLogoOccupancy(baseDataUrl,target,signal=null,expectations={}){
   try{
     const image=await prepareImageForAI(baseDataUrl,1280,.84);
-    const r=await fetch('/api/logo-placement-analyzer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image,target,expectations}),signal});
+    const r=await fetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'logo-occupancy',image,target,expectations}),signal});
     const text=await r.text();let data;
     try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,180)||`Logo Analyzer: resposta inválida (${r.status})`)}
     if(!r.ok)throw new Error(data.error||`Logo Analyzer: erro ${r.status}`);
@@ -1989,7 +1989,7 @@ function compactGalleryAsset(a){
 function compactGalleryAssets(assets={}){return{logo:compactGalleryAsset(assets.logo),eventLogo:compactGalleryAsset(assets.eventLogo),pastor:compactGalleryAsset(assets.pastor),pastors:(assets.pastors||[]).map(compactGalleryAsset),churchImage:compactGalleryAsset(assets.churchImage)}}
 function galleryQuickSnapshot(){const q=JSON.parse(JSON.stringify(state.quick||{}));if(String(q.reference||'').startsWith('data:'))q.reference=null;return q}
 function makeGenerationRecipe(artwork,extra={}){
-  return{recipeVersion:5,pipelineVersion:'0.31.7-tenant-probe',createdAt:new Date().toISOString(),kind:extra.kind||artwork.kind||'principal',parentArtworkId:extra.parentArtworkId||artwork.parentArtworkId||null,sourceArtworkId:extra.sourceArtworkId||artwork.sourceArtworkId||null,quick:galleryQuickSnapshot(),church:JSON.parse(JSON.stringify(state.church||{})),artDirection:artwork.artDirection||state.artDirection||null,requiredContent:artwork.requiredContent||null,assets:compactGalleryAssets(artwork.assets||{}),instruction:artwork.instruction||'',logoPosition:artwork.logoPosition??state.quick.logoPosition??null,eventLogoPosition:artwork.eventLogoPosition??state.quick.eventLogoPosition??null,eventLogoSize:artwork.eventLogoSize??state.quick.eventLogoSize??null,target:artwork.target||null,format:extra.format||artwork.format||artwork.target?.id||state.quick.format||state.format||'feed',occupancy:artwork.occupancy||null,logoPlan:artwork.logoPlan||null,logoReceipt:artwork.logoReceipt||null,logoDegradations:artwork.logoDegradations||[],basedOnKey:extra.basedOnKey||artwork.basedOnKey||null,basedOnLabel:extra.basedOnLabel||artwork.basedOnLabel||null};
+  return{recipeVersion:5,pipelineVersion:'0.31.9-shared-inspector',createdAt:new Date().toISOString(),kind:extra.kind||artwork.kind||'principal',parentArtworkId:extra.parentArtworkId||artwork.parentArtworkId||null,sourceArtworkId:extra.sourceArtworkId||artwork.sourceArtworkId||null,quick:galleryQuickSnapshot(),church:JSON.parse(JSON.stringify(state.church||{})),artDirection:artwork.artDirection||state.artDirection||null,requiredContent:artwork.requiredContent||null,assets:compactGalleryAssets(artwork.assets||{}),instruction:artwork.instruction||'',logoPosition:artwork.logoPosition??state.quick.logoPosition??null,eventLogoPosition:artwork.eventLogoPosition??state.quick.eventLogoPosition??null,eventLogoSize:artwork.eventLogoSize??state.quick.eventLogoSize??null,target:artwork.target||null,format:extra.format||artwork.format||artwork.target?.id||state.quick.format||state.format||'feed',occupancy:artwork.occupancy||null,logoPlan:artwork.logoPlan||null,logoReceipt:artwork.logoReceipt||null,logoDegradations:artwork.logoDegradations||[],basedOnKey:extra.basedOnKey||artwork.basedOnKey||null,basedOnLabel:extra.basedOnLabel||artwork.basedOnLabel||null};
 }
 async function uploadGalleryImage(dataUrl,label,format){
   if(!dataUrl)return null;if(/^https?:\/\//.test(String(dataUrl)))return dataUrl;
