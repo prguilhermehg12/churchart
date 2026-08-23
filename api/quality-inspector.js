@@ -1,4 +1,4 @@
-// ChurchDesign V0.31.3 — logo-free quality inspector; logo placement validated separately
+// ChurchDesign V0.31.9 — quality inspector + logo occupancy mode on one published route
 module.exports.config={maxDuration:60};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
 
@@ -110,7 +110,180 @@ Avalie de forma conservadora. Se reprovar, escreva correction_prompt curto e ope
   return c;
 }
 function out(d){if(d.output_text)return d.output_text;for(const i of d.output||[])if(i.type==="message")for(const p of i.content||[])if(p.type==="output_text")return p.text;return"";}
+
+// ============================================================
+// V0.31.9 — LOGO OCCUPANCY MODE
+// Logical agent remains separate, but shares this already-published
+// serverless endpoint to avoid Vercel route publication issues.
+// ============================================================
+const LOGO_OCCUPANCY_REGION_TYPES=[
+  "person","face","hand","microphone","instrument",
+  "text_title","text_subtitle","text_date","text_address","text_other",
+  "graphic_focus"
+];
+
+const LOGO_OCCUPANCY_SCHEMA={
+  type:"object",
+  additionalProperties:false,
+  required:["regions","tone_grid","notes"],
+  properties:{
+    regions:{
+      type:"array",
+      items:{
+        type:"object",
+        additionalProperties:false,
+        required:["type","x0","y0","x1","y1","confidence"],
+        properties:{
+          type:{type:"string",enum:LOGO_OCCUPANCY_REGION_TYPES},
+          x0:{type:"number"},y0:{type:"number"},x1:{type:"number"},y1:{type:"number"},
+          confidence:{type:"number"}
+        }
+      }
+    },
+    tone_grid:{
+      type:"object",
+      additionalProperties:false,
+      required:["cols","rows","values"],
+      properties:{
+        cols:{type:"number"},
+        rows:{type:"number"},
+        values:{type:"array",items:{type:"number"}}
+      }
+    },
+    notes:{type:"array",items:{type:"string"}}
+  }
+};
+
+function logoOccupancyClamp(n,min,max){
+  n=Number(n);return Number.isFinite(n)?Math.max(min,Math.min(max,n)):min;
+}
+function logoOccupancyNormalizeRegion(r){
+  const x0=logoOccupancyClamp(Math.min(Number(r.x0)||0,Number(r.x1)||0),0,1000);
+  const x1=logoOccupancyClamp(Math.max(Number(r.x0)||0,Number(r.x1)||0),0,1000);
+  const y0=logoOccupancyClamp(Math.min(Number(r.y0)||0,Number(r.y1)||0),0,1000);
+  const y1=logoOccupancyClamp(Math.max(Number(r.y0)||0,Number(r.y1)||0),0,1000);
+  return{
+    type:LOGO_OCCUPANCY_REGION_TYPES.includes(r.type)?r.type:"graphic_focus",
+    x0,y0,x1,y1,confidence:logoOccupancyClamp(r.confidence,0,1)
+  };
+}
+function logoOccupancyNormalizeGrid(g={}){
+  const cols=8,rows=10,expected=cols*rows,input=Array.isArray(g.values)?g.values:[];
+  return{cols,rows,values:Array.from({length:expected},(_,i)=>logoOccupancyClamp(input[i]??50,0,100))};
+}
+async function handleLogoOccupancyMode(req,res){
+  const data=req.body||{},image=data.image,expectations=data.expectations||{};
+  if(!image||!String(image).startsWith("data:image/")){
+    return res.status(400).json({error:"Envie a base plate como data:image/... .",diagnostic:{stage:"logo-occupancy-input"}});
+  }
+
+  const prompt=`Você é o ANALISADOR DE OCUPAÇÃO do ChurchDesign.
+Você NÃO cria arte e NÃO escolhe onde logos devem ficar.
+
+Analise a imagem final LOGO-FREE e devolva apenas um mapa semântico conservador para um solver determinístico.
+
+COORDENADAS:
+- Escala 0..1000.
+- x0,y0 = canto superior esquerdo; x1,y1 = canto inferior direito.
+- Cubra a extensão VISÍVEL INTEIRA das pessoas, incluindo cabelo, braços, cotovelos, mãos, pernas e objetos segurados.
+- Para PERSON, prefira caixa um pouco MAIOR a uma caixa apertada.
+- Detecte FACE e HAND separadamente quando visíveis.
+- Detecte MICROPHONE e INSTRUMENT.
+- Detecte blocos de texto por função: text_title, text_subtitle, text_date, text_address, text_other.
+- graphic_focus = elemento gráfico importante que não deve ser coberto.
+- Se houver dúvida entre marcar uma área e deixá-la livre, MARQUE-A.
+- NÃO retorne posição de logo.
+
+TONE GRID:
+- Grade fixa 8x10, linha a linha.
+- Exatamente 80 valores.
+- 0 = muito escuro; 100 = muito claro.
+
+EXPECTATIVAS:
+- pregadores esperados: ${Number(expectations.pastorCount||0)}
+- há texto relevante esperado: ${expectations.hasText?'SIM':'NÃO'}
+
+Se há pregadores esperados, é obrigatório devolver regiões humanas para as pessoas claramente visíveis.`;
+
+  const model=process.env.LOGO_ANALYZER_MODEL||process.env.QUALITY_INSPECTOR_MODEL||"gpt-5.6-terra";
+  const r=await fetch("https://api.openai.com/v1/responses",{
+    method:"POST",
+    headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},
+    body:JSON.stringify({
+      model,
+      reasoning:{effort:"low"},
+      store:false,
+      input:[{role:"user",content:[
+        {type:"input_text",text:prompt},
+        {type:"input_image",image_url:image,detail:"high"}
+      ]}],
+      text:{format:{type:"json_schema",name:"churchdesign_logo_occupancy",strict:true,schema:LOGO_OCCUPANCY_SCHEMA},verbosity:"low"}
+    })
+  });
+
+  const requestId=r.headers.get("x-request-id")||null;
+  const d=await r.json();
+  if(!r.ok)throw new Error(d?.error?.message||`OpenAI ${r.status}`);
+
+  const rawText=(typeof d.output_text==="string"?d.output_text:
+    (d.output||[]).flatMap(x=>x.content||[]).find(x=>x.type==="output_text")?.text)||"";
+  let parsed;
+  try{parsed=JSON.parse(rawText)}catch{throw new Error("Logo Occupancy devolveu JSON inválido.");}
+
+  const normalizedRegions=(parsed.regions||[])
+    .map(logoOccupancyNormalizeRegion)
+    .filter(x=>x.x1>x.x0&&x.y1>x.y0&&x.confidence>=.20);
+
+  const detectedPeople=normalizedRegions.filter(r=>r.type==="person"||r.type==="face").length;
+  const detectedText=normalizedRegions.filter(r=>String(r.type).startsWith("text_")).length;
+
+  if(Number(expectations.pastorCount||0)>0&&!detectedPeople){
+    throw new Error("Logo Occupancy não detectou o pregador esperado.");
+  }
+  if(expectations.hasText===true&&!detectedText){
+    throw new Error("Logo Occupancy não detectou nenhum bloco de texto esperado.");
+  }
+  if(!normalizedRegions.length){
+    throw new Error("Logo Occupancy retornou mapa sem regiões semânticas.");
+  }
+
+  return res.status(200).json({
+    success:true,
+    endpointType:"logo-occupancy",
+    occupancy:{
+      version:1,
+      regions:normalizedRegions,
+      toneGrid:logoOccupancyNormalizeGrid(parsed.tone_grid),
+      notes:Array.isArray(parsed.notes)?parsed.notes.slice(0,20):[],
+      diagnostics:{
+        expectedPastors:Number(expectations.pastorCount||0),
+        detectedPersons:normalizedRegions.filter(r=>r.type==="person").length,
+        detectedFaces:normalizedRegions.filter(r=>r.type==="face").length,
+        detectedHands:normalizedRegions.filter(r=>r.type==="hand").length,
+        detectedPeople,
+        hasTextExpected:!!expectations.hasText,
+        detectedText,
+        totalRegions:normalizedRegions.length
+      }
+    },
+    meta:{model,usage:d.usage||null,requestId,endpoint:"responses"}
+  });
+}
+
 module.exports=async function handler(req,res){
+  if(req.method==="POST"&&req.body?.mode==="logo-occupancy"){
+    try{
+      if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY não configurada.",diagnostic:{stage:"logo-occupancy-config"}});
+      return await handleLogoOccupancyMode(req,res);
+    }catch(e){
+      console.error("ChurchDesign Logo Occupancy",e);
+      return res.status(500).json({
+        error:e?.message||"Erro no analisador de ocupação.",
+        diagnostic:{stage:"logo-occupancy",name:e?.name||"Error",message:e?.message||String(e),model:process.env.LOGO_ANALYZER_MODEL||process.env.QUALITY_INSPECTOR_MODEL||"gpt-5.6-terra"}
+      });
+    }
+  }
+
   if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
   try{
     const data=req.body||{};
