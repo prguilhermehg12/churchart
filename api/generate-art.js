@@ -1,4 +1,4 @@
-// ChurchDesign NEWFLOW v0.9 — high-fidelity protected church plate + logo-free generation
+// ChurchDesign NEWFLOW v0.10 — high-fidelity protected church plate + logo-free generation
 module.exports.config={maxDuration:180};
 
 const IMAGES_EDIT_URL="https://api.openai.com/v1/images/edits";
@@ -61,16 +61,16 @@ function dataUrlPart(dataUrl,name="image.png"){
 }
 function collectInputImages(data){
   const imgs=[];
-  // NEWFLOW v0.9: when a real church photo exists it is the PRIMARY protected photographic plate.
-  // Put it first so the edit request treats the environment as the main visual substrate.
-  if(isDataImage(data.assets?.churchImage?.image))imgs.push({data:data.assets.churchImage.image,name:"00-protected-church-background.png"});
-  // Logos never enter the visual generator. Pastor photos are identity assets.
+  // Logos nunca entram no gerador visual.
+  // Pregadores continuam como identidades protegidas; referências de working-base continuam como guia visual.
   for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).slice(0,3).entries())
-    if(isDataImage(p?.image))imgs.push({data:p.image,name:`${i===0?'10-principal':`11-auxiliar-${i}`}.png`});
+    if(isDataImage(p?.image))imgs.push({data:p.image,name:`${i===0?'principal':`auxiliar-${i}`}.png`});
   if(data.revisionMode==="delta-only"||data.mode==="adaptation"||data.referenceRole==="working-base"){
     for(const [i,r] of (data.references||[]).slice(0,1).entries())
-      if(isDataImage(r?.image))imgs.push({data:r.image,name:`20-working-base-${i+1}.png`});
+      if(isDataImage(r?.image))imgs.push({data:r.image,name:`working-base-${i+1}.png`});
   }
+  // Foto da igreja volta à mesma posição de entrada usada antes da tentativa v0.9.
+  if(isDataImage(data.assets?.churchImage?.image))imgs.push({data:data.assets.churchImage.image,name:"church-background.png"});
   return imgs;
 }
 function blueprint(data){const a=data.artDirection||{};return `Direção visual: ${a.visual_summary||""}
@@ -144,7 +144,6 @@ REGRA DE FOTO DA IGREJA — ATIVO PROTEGIDO / HARD CONSTRAINT:
 - É permitido redimensionar a fotografia UNIFORMEMENTE para encaixe, sem deformação. Não faça perspective warp, liquify, mudança de lente, troca de céu/parede/palco, preenchimento generativo dentro da fotografia ou alteração de pessoas.
 - Se a proporção da foto não coincidir com o canvas, preserve a fotografia intacta e resolva a área externa com composição gráfica ao redor; NÃO modifique o conteúdo interno da foto para fazê-la caber.
 - A foto da igreja continua sendo BACKGROUND. Pregadores e elementos gráficos podem ser compostos SOBRE ela, mas a própria foto permanece geometricamente e semanticamente intacta.
-- IMPORTANTE: trate a primeira imagem de entrada, quando nomeada 00-protected-church-background.png, como a placa-base. NÃO gere uma versão parecida dela. Mantenha o conteúdo fotográfico original e faça o tratamento visual por filtros/color grading e camadas gráficas SOBRE a placa.
 - Se não foi fornecida e a referência já possui ambiente de igreja, congregação ou adoração ao fundo, preserve esse tipo de ambiente da referência.
 - Não crie silhuetas humanas apenas para preencher lugares vazios.
 
@@ -305,7 +304,6 @@ async function generate(data){
     form.append("model","gpt-image-2");
     form.append("prompt",text);
     form.append("quality","medium");
-    form.append("input_fidelity","high");
     form.append("size",size);
     form.append("output_format","png");
     for(const im of images)form.append("image[]",dataUrlPart(im.data,im.name),im.name);
