@@ -548,7 +548,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.8</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.9</div>
   
   <script>
 const state={
@@ -2239,10 +2239,10 @@ window.openGallery=function(query=''){
   root.querySelectorAll('[data-gallery-delete]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDelete);if(!x)return;if(!confirm(`Excluir "${x.label||'esta arte'}" da Galeria?`))return;b.disabled=true;b.textContent='Excluindo...';try{if(x.generationId==='local-recovery'||x.recoveryOnly){galleryRecoveryRemove(x.galleryId)}else{await apiJSON('delete-gallery-item',{method:'DELETE',body:{generationId:x.generationId,galleryId:x.galleryId}});galleryRecoveryRemove(x.galleryId)}state.library.generations=(state.library.generations||[]).map(g=>{if(g.id!==x.generationId)return g;return{...g,images:(g.images||[]).filter(im=>(im.galleryId||'')!==x.galleryId)}}).filter(g=>(g.images||[]).length);state.gallerySavedIds=(state.gallerySavedIds||[]).filter(id=>id!==x.galleryId);openGallery(query)}catch(err){alert('Não foi possível excluir: '+err.message);b.disabled=false;b.textContent='Excluir'}});
   root.querySelectorAll('[data-gallery-reference]').forEach(b=>b.onclick=e=>{e.stopPropagation();useGalleryAsReference(b.dataset.galleryReference)});
   root.querySelectorAll('[data-gallery-reopen]').forEach(b=>b.onclick=e=>{e.stopPropagation();reopenGalleryProject(b.dataset.galleryReopen)});
-  // data-gallery-child é tratado pelo controlador delegado global do NEWFLOW v0.8.
+  // data-gallery-child é tratado pelo controlador delegado global do NEWFLOW v0.9.
 };
 
-// NEWFLOW v0.8 — fallback delegado para ações de derivadas da Galeria.
+// NEWFLOW v0.9 — fallback delegado para ações de derivadas da Galeria.
 if(!window.__churchDesignGalleryChildDelegation){
   window.__churchDesignGalleryChildDelegation=true;
   document.addEventListener('click',e=>{
@@ -2922,7 +2922,19 @@ function addLogoToAssistant(key,slot,assetId,dropPoint=null){
 async function composeManualLogos(baseDataUrl,placements=[]){
   const base=await loadImageSafe(baseDataUrl),cv=document.createElement('canvas'),ctx=cv.getContext('2d');cv.width=base.naturalWidth||base.width;cv.height=base.naturalHeight||base.height;ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(base,0,0,cv.width,cv.height);
   const receipt=[];
-  for(const p0 of placements){const asset=(state.library.assets||[]).find(a=>String(a.id)===String(p0.assetId));if(!asset?.url)continue;const p={...p0};clampManualPlacement(p,{target:{width:cv.width,height:cv.height}},asset);const local=await remoteToDataUrl(asset.url),img=await loadImageSafe(local),x=p.x*cv.width,y=p.y*cv.height,w=p.w*cv.width,h=w*((img.naturalHeight||img.height)/(img.naturalWidth||img.width));ctx.drawImage(img,x,y,w,h);receipt.push({slot:p.slot,assetId:asset.id,x:p.x,y:p.y,w:p.w,h:h/cv.height,manual:true});}
+  for(const p0 of placements){
+    const asset=(state.library.assets||[]).find(a=>String(a.id)===String(p0.assetId));if(!asset?.url)continue;
+    const local=await remoteToDataUrl(asset.url),img=await loadImageSafe(local);
+    const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;
+    let w=Math.max(.05,Math.min(.38,Number(p0.w)||.14))*cv.width;
+    let h=w*(ih/iw);
+    let x=Math.max(0,Number(p0.x)||0)*cv.width;
+    let y=Math.max(0,Number(p0.y)||0)*cv.height;
+    if(x+w>cv.width)x=cv.width-w;if(y+h>cv.height)y=cv.height-h;
+    x=Math.max(0,x);y=Math.max(0,y);
+    ctx.drawImage(img,x,y,w,h);
+    receipt.push({slot:p0.slot,assetId:asset.id,x:x/cv.width,y:y/cv.height,w:w/cv.width,h:h/cv.height,manual:true});
+  }
   return{dataUrl:cv.toDataURL('image/png'),receipt};
 }
 async function finalizeArtworkFlow(key,withoutLogo=false){
@@ -2964,8 +2976,22 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.8</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.9</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
+  // NEWFLOW v0.9: the coordinate system MUST be the real exported bitmap, not the requested target.
+  // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
+  // object-fit creates an invisible coordinate mismatch and logos move on export.
+  const stageBaseImg=ov.querySelector('[data-logo-stage] > img');
+  const syncStageToBitmap=()=>{
+    const st=ov.querySelector('[data-logo-stage]');
+    if(!st||!stageBaseImg?.naturalWidth||!stageBaseImg?.naturalHeight)return;
+    st.style.aspectRatio=`${stageBaseImg.naturalWidth} / ${stageBaseImg.naturalHeight}`;
+    st.dataset.bitmapWidth=String(stageBaseImg.naturalWidth);
+    st.dataset.bitmapHeight=String(stageBaseImg.naturalHeight);
+    refreshLogoAssistantStage(ov,key);
+  };
+  if(stageBaseImg?.complete)syncStageToBitmap();
+  else if(stageBaseImg)stageBaseImg.addEventListener('load',syncStageToBitmap,{once:true});
 
   let closing=false,busy=false,drag=null;
   const stage=()=>ov.querySelector('[data-logo-stage]');
