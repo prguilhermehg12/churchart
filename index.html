@@ -548,7 +548,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.6</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.8</div>
   
   <script>
 const state={
@@ -2196,8 +2196,31 @@ function reopenGalleryProject(id){
   state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:item.recipe.artDirection||null,recipe:item.recipe};state.quickResults=[galleryItemToQuickResult(item)];closeModal();screenQuickMode();
 }
 function startGalleryChild(id,format){
-  const item=findGalleryItem(id);if(!item)return alert('Arte não encontrada na Galeria.');if(item.recipe)restoreRecipeToQuick(item.recipe,{asReference:false});
-  state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:item.recipe?.artDirection||null,recipe:item.recipe||null};state.quickResults=[galleryItemToQuickResult(item)];closeModal();screenQuickMode();setTimeout(()=>openQuickAdaptConfig(0,format,'main:0'),80);
+  const item=findGalleryItem(id);if(!item)return alert('Arte não encontrada na Galeria.');
+  if(item.recipe)restoreRecipeToQuick(item.recipe,{asReference:false});
+  state.mode='quick';
+  state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:item.recipe?.artDirection||null,recipe:item.recipe||null};
+  const source=galleryItemToQuickResult(item);
+  source.finalized=true;source.manualLogoFlow=true;source.galleryId=item.galleryId;
+  state.quickResults=[source];
+  closeModal();
+  screenQuickMode();
+  const openConfig=()=>{
+    const host=document.querySelector('#quickAdaptConfig-0');
+    if(!host)return false;
+    openQuickAdaptConfig(0,format,'main:0');
+    const status=document.querySelector('#quickStatus');
+    if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte da Galeria carregada.</strong> Configure abaixo a arte derivada e clique em gerar.';
+    host.scrollIntoView({behavior:'smooth',block:'center'});
+    return true;
+  };
+  if(!openConfig()){
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(!openConfig())setTimeout(()=>{
+        if(!openConfig())alert('Não foi possível abrir a configuração da arte derivada. Reabra a Galeria e tente novamente.');
+      },180);
+    }));
+  }
 }
 function openGalleryLogoAssistant(id){
   const item=findGalleryItem(id);if(!item)return alert('Arte não encontrada na Galeria.');
@@ -2216,9 +2239,21 @@ window.openGallery=function(query=''){
   root.querySelectorAll('[data-gallery-delete]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDelete);if(!x)return;if(!confirm(`Excluir "${x.label||'esta arte'}" da Galeria?`))return;b.disabled=true;b.textContent='Excluindo...';try{if(x.generationId==='local-recovery'||x.recoveryOnly){galleryRecoveryRemove(x.galleryId)}else{await apiJSON('delete-gallery-item',{method:'DELETE',body:{generationId:x.generationId,galleryId:x.galleryId}});galleryRecoveryRemove(x.galleryId)}state.library.generations=(state.library.generations||[]).map(g=>{if(g.id!==x.generationId)return g;return{...g,images:(g.images||[]).filter(im=>(im.galleryId||'')!==x.galleryId)}}).filter(g=>(g.images||[]).length);state.gallerySavedIds=(state.gallerySavedIds||[]).filter(id=>id!==x.galleryId);openGallery(query)}catch(err){alert('Não foi possível excluir: '+err.message);b.disabled=false;b.textContent='Excluir'}});
   root.querySelectorAll('[data-gallery-reference]').forEach(b=>b.onclick=e=>{e.stopPropagation();useGalleryAsReference(b.dataset.galleryReference)});
   root.querySelectorAll('[data-gallery-reopen]').forEach(b=>b.onclick=e=>{e.stopPropagation();reopenGalleryProject(b.dataset.galleryReopen)});
-  root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=e=>{e.stopPropagation();const [id,f]=b.dataset.galleryChild.split('|');startGalleryChild(id,f)});
+  // data-gallery-child é tratado pelo controlador delegado global do NEWFLOW v0.8.
 };
 
+// NEWFLOW v0.8 — fallback delegado para ações de derivadas da Galeria.
+if(!window.__churchDesignGalleryChildDelegation){
+  window.__churchDesignGalleryChildDelegation=true;
+  document.addEventListener('click',e=>{
+    const b=e.target.closest?.('[data-gallery-child]');
+    if(!b)return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    const raw=String(b.dataset.galleryChild||''),cut=raw.lastIndexOf('|');
+    if(cut<1)return;
+    startGalleryChild(raw.slice(0,cut),raw.slice(cut+1));
+  },true);
+}
 window.openMyChurch=function(tab='pastor'){
   const root=document.querySelector('#modalRoot');
   const labels={pastor:'Pregadores',church:'Fotos da igreja',logo:'Logos',event_logo:'Logo de evento',reference:'Referências',graphic:'Elementos PNG',font:'Fontes',screen:'Telão'};
@@ -2903,8 +2938,10 @@ async function finalizeArtworkFlow(key,withoutLogo=false){
   const parentArtworkId=isAdaptation?(parentNode?.galleryId||parentNode?.sourceGalleryId||preservedParent||null):(galleryEditSource?(preservedParent||null):null);
   const sourceArtworkId=galleryEditSource||node.sourceArtworkId||node.galleryId||null;
   try{const saved=await persistGalleryArtwork(node,{kind:isAdaptation?'arte derivada final':'arte final',parentArtworkId,sourceArtworkId,format:node.target?.id||node.format||state.quick.format,force:true});if(saved){node.galleryId=saved.galleryId;node.finalGalleryId=saved.galleryId}}catch(e){console.warn('NEWFLOW: arte final não pôde ser persistida agora',e)}
-  document.querySelector('.logo-assistant-overlay')?.remove();renderQuickResults();
+  document.querySelector('.logo-assistant-overlay')?.remove();
+  const wrap=document.querySelector('#quickResultsWrap');if(wrap){wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}
   const status=document.querySelector('#quickStatus');if(status)status.innerHTML=`<strong style="color:var(--good)">✓ Arte finalizada${withoutLogo?' sem logo':''}.</strong> Agora você pode baixar ou gerar artes derivadas.`;
+  return node;
 }
 function bindLogoPaletteDrag(ov,key,card){
   const stage=ov.querySelector('[data-logo-stage]');if(!stage||!card)return;
@@ -2927,7 +2964,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.6</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.8</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
 
   let closing=false,busy=false,drag=null;
@@ -2958,10 +2995,25 @@ function openLogoAssistant(key,options={}){
     if(e.button!=null&&e.button!==0)return;
     const palette=e.target.closest('[data-palette-asset]'),logo=e.target.closest('.manual-logo-node');if(!palette&&!logo)return;
     e.preventDefault();e.stopPropagation();
-    const startX=e.clientX,startY=e.clientY;let moved=false;
-    const ghost=document.createElement('div');ghost.className='logo-drag-ghost';const src=(palette||logo).querySelector('img')?.src;if(src)ghost.innerHTML=`<img src="${src}">`;ghost.style.display='none';document.body.appendChild(ghost);
-    const move=ev=>{if(!moved&&Math.hypot(ev.clientX-startX,ev.clientY-startY)>4){moved=true;ghost.style.display='block'}if(moved){ghost.style.left=`${ev.clientX+12}px`;ghost.style.top=`${ev.clientY+12}px`}ev.preventDefault()};
-    const up=ev=>{const pt=pointInStage(ev.clientX,ev.clientY);if(moved&&pt){if(palette){palette.dataset.dragged='1';addLogoToAssistant(key,palette.dataset.paletteSlot,palette.dataset.paletteAsset,pt);sync(palette.dataset.paletteSlot);setTimeout(()=>{palette.dataset.dragged=''},100)}else if(logo){const n=artworkFlowNode(key),slot=logo.dataset.manualSlot,p=(n?.manualLogoPlacements||[]).find(x=>x.slot===slot),asset=(state.library.assets||[]).find(a=>String(a.id)===String(p?.assetId));if(p&&asset){p.x=pt.x-p.w/2;p.y=pt.y-p.h/2;clampManualPlacement(p,n,asset);sync(slot)}}}cleanupDrag()};
+    const startX=e.clientX,startY=e.clientY;let moved=false,grabOffset=null;
+    if(logo){const lr=logo.getBoundingClientRect();grabOffset={x:(e.clientX-lr.left)/Math.max(1,lr.width),y:(e.clientY-lr.top)/Math.max(1,lr.height)}}
+    const ghost=document.createElement('div');ghost.className='logo-drag-ghost';ghost.style.display='none';ghost.style.pointerEvents='none';
+    const src=(palette||logo).querySelector('img')?.src;if(src)ghost.innerHTML=`<img src="${src}">`;
+    stage()?.appendChild(ghost);
+    const previewAt=(ev)=>{
+      const st=stage(),sr=st?.getBoundingClientRect(),pt=pointInStage(ev.clientX,ev.clientY);if(!st||!sr||!pt){ghost.style.display='none';return}
+      let wNorm=.14,hNorm=.08,left=pt.x-wNorm/2,top=pt.y-hNorm/2;
+      if(logo){const lr=logo.getBoundingClientRect();wNorm=lr.width/sr.width;hNorm=lr.height/sr.height;left=pt.x-(grabOffset?.x??.5)*wNorm;top=pt.y-(grabOffset?.y??.5)*hNorm}
+      else{
+        const n=artworkFlowNode(key),asset=(state.library.assets||[]).find(a=>String(a.id)===String(palette.dataset.paletteAsset));
+        const temp=logoAssistantPlacementDefault(palette.dataset.paletteSlot,asset,n);wNorm=temp.w;hNorm=temp.h;left=pt.x-wNorm/2;top=pt.y-hNorm/2;
+      }
+      ghost.style.display='block';ghost.style.position='absolute';ghost.style.zIndex='30';
+      ghost.style.left=`${left*100}%`;ghost.style.top=`${top*100}%`;ghost.style.width=`${wNorm*100}%`;ghost.style.height='auto';ghost.style.transform='none';
+      ghost.style.border='1px dashed rgba(255,255,255,.9)';ghost.style.background='rgba(15,18,23,.35)';ghost.style.padding='2px';
+    };
+    const move=ev=>{if(!moved&&Math.hypot(ev.clientX-startX,ev.clientY-startY)>4)moved=true;if(moved)previewAt(ev);ev.preventDefault()};
+    const up=ev=>{const pt=pointInStage(ev.clientX,ev.clientY);if(moved&&pt){if(palette){palette.dataset.dragged='1';addLogoToAssistant(key,palette.dataset.paletteSlot,palette.dataset.paletteAsset,pt);sync(palette.dataset.paletteSlot);setTimeout(()=>{palette.dataset.dragged=''},100)}else if(logo){const n=artworkFlowNode(key),slot=logo.dataset.manualSlot,p=(n?.manualLogoPlacements||[]).find(x=>x.slot===slot),asset=(state.library.assets||[]).find(a=>String(a.id)===String(p?.assetId));if(p&&asset){const st=stage(),sr=st.getBoundingClientRect(),lr=logo.getBoundingClientRect(),nw=lr.width/sr.width,nh=lr.height/sr.height;p.x=pt.x-(grabOffset?.x??.5)*nw;p.y=pt.y-(grabOffset?.y??.5)*nh;clampManualPlacement(p,n,asset);sync(slot)}}}cleanupDrag()};
     drag={ghost,move,up};document.addEventListener('pointermove',move,true);document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',up,true);
   },true);
 
@@ -2972,6 +3024,14 @@ function openLogoAssistant(key,options={}){
   // Só depois de os controles estarem vivos fazemos tarefas visuais auxiliares.
   try{refreshLogoAssistantStage(ov,key)}catch(err){console.warn('NEWFLOW: falha ao restaurar posições de logo',err)}
   try{applyAdaptiveLogoPreviewBackgrounds(ov).catch(()=>{})}catch{}
+}
+function renderQuickResults(){
+  const wrap=document.querySelector('#quickResultsWrap');
+  if(!wrap)return;
+  wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();
+  bindQuickResultEvents();
+  bindAllArtworksEvents();
+  renderCostSupervisor();
 }
 function renderQuickResultsHTML(){if(!state.quickResults.length)return '';return `<div class="card"><h3>Artes desta criação</h3><p style="margin-bottom:10px">A geração entrega primeiro uma arte base sem logos. Finalize no Assistente de Logos para liberar download e artes derivadas.</p><div class="quick-results-row">${state.quickResults.map((r,i)=>quickResultCardHTML(r,i)).join('')}</div></div>`;}
 function versionAdaptButtons(sourceKey,parentIndex){return ['story','youtube','screen','square','wide16','fourthree','threetwo'].map(f=>{const t=quickTargetSpec(f);return `<button class="quick-adapt-btn" data-qadapt-source="${parentIndex}|${sourceKey}|${f}" type="button">${t.label}</button>`}).join('');}
@@ -3183,7 +3243,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
 
   if(!preflight.manualLogoFlow&&preflight.intent&&replaceIndex!==null){
     const parent=state.quickResults?.[replaceIndex],latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent,baseLogoFree=latest?.baseDataUrl||latest?.sourceUrl||null;
-    if(baseLogoFree){let payload=await quickPayload(label,correction,null);payload=applyParsedLogoIntent(payload,preflight.intent);payload.previousLogoPlan=latest?.logoPlan||null;const composition=await composeOfficialLogos(baseLogoFree,payload,payload.target||primaryTargetSpec(),{occupancy:latest?.occupancy||null});const item={...(latest||{}),id:crypto.randomUUID(),label:label||latest?.label||'Correção de logos',dataUrl:composition.dataUrl,sourceUrl:composition.dataUrl,baseDataUrl:baseLogoFree,logoPlacements:composition.placements,logoReceipt:composition.receipt||[],logoAudit:composition.audit,occupancy:composition.occupancy||latest?.occupancy||null,logoPlan:composition.logoPlan||null,logoDegradations:composition.degradations||[],logoOnlyCorrection:true,review:{approved:true,score:100,gross_errors:[],logoOnly:true}};if(!parent.corrections)parent.corrections=[];parent.corrections.push(item);const saved=await persistGalleryArtwork(item,{kind:'correção',parentArtworkId:parent.galleryId||parent.id||null,sourceArtworkId:latest.galleryId||latest.id||null,format:item.target?.id||state.quick.format});if(saved)item.galleryId=saved.galleryId;renderQuickResults();return;}
+    if(baseLogoFree){let payload=await quickPayload(label,correction,null);payload=applyParsedLogoIntent(payload,preflight.intent);payload.previousLogoPlan=latest?.logoPlan||null;const composition=await composeOfficialLogos(baseLogoFree,payload,payload.target||primaryTargetSpec(),{occupancy:latest?.occupancy||null});const item={...(latest||{}),id:crypto.randomUUID(),label:label||latest?.label||'Correção de logos',dataUrl:composition.dataUrl,sourceUrl:composition.dataUrl,baseDataUrl:baseLogoFree,logoPlacements:composition.placements,logoReceipt:composition.receipt||[],logoAudit:composition.audit,occupancy:composition.occupancy||latest?.occupancy||null,logoPlan:composition.logoPlan||null,logoDegradations:composition.degradations||[],logoOnlyCorrection:true,review:{approved:true,score:100,gross_errors:[],logoOnly:true}};if(!parent.corrections)parent.corrections=[];parent.corrections.push(item);const saved=await persistGalleryArtwork(item,{kind:'correção',parentArtworkId:parent.galleryId||parent.id||null,sourceArtworkId:latest.galleryId||latest.id||null,format:item.target?.id||state.quick.format});if(saved)item.galleryId=saved.galleryId;{const w=document.querySelector('#quickResultsWrap');if(w){w.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}}return;}
   }
 
   if(label==='Principal'&&replaceIndex===null)beginCostSession('Modo Rápido • primeira arte');
