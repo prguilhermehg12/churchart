@@ -562,7 +562,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.14</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.15</div>
   
   <script>
 const state={
@@ -2234,6 +2234,29 @@ async function hydrateGalleryAssets(compact={}){
   }
   return{logo:resolveAsset(compact.logo),eventLogo:resolveAsset(compact.eventLogo),pastor:pastors[0]||null,pastors,churchImage};
 }
+function restoreRecipeToQuick(recipe={},options={}){
+  if(!recipe||typeof recipe!=='object')return state.quick;
+  const q=state.quick||(state.quick={});
+  const source=recipe.quick||recipe.inputs||recipe.form||recipe;
+  const copy=(key,...aliases)=>{
+    for(const k of [key,...aliases]){
+      if(source[k]!==undefined&&source[k]!==null){q[key]=source[k];return}
+    }
+  };
+  copy('title');copy('subtitle');copy('date');copy('time');copy('address');
+  copy('theme');copy('style');copy('format');copy('referenceMode');
+  copy('pastorPhotoTreatment');
+  if(Array.isArray(source.pastorAssetIds))q.pastorAssetIds=[...source.pastorAssetIds].slice(0,3);
+  else if(Array.isArray(source.pastors))q.pastorAssetIds=source.pastors.map(x=>typeof x==='object'?x.id:x).filter(Boolean).slice(0,3);
+  if(source.pastorNames&&typeof source.pastorNames==='object')q.pastorNames={...source.pastorNames};
+  if(source.churchImageAssetId!==undefined)q.churchImageAssetId=source.churchImageAssetId||null;
+  else if(source.churchImage?.id)q.churchImageAssetId=source.churchImage.id;
+  if(options.asReference){
+    q.reference=recipe.finalUrl||recipe.url||recipe.baseUrl||q.reference||null;
+    q.referenceMode='upload';
+  }
+  return q;
+}
 function galleryItemToQuickResult(item){
   const r=item.recipe||{};return{id:item.galleryId||crypto.randomUUID(),galleryId:item.galleryId||null,label:item.label||'Arte da galeria',dataUrl:item.url,baseDataUrl:item.baseUrl||item.url,sourceUrl:item.baseUrl||item.url,target:item.target||r.target||quickTargetSpec(item.format||r.format||'feed'),artDirection:r.artDirection||null,requiredContent:r.requiredContent||{},assets:r.assets||{},instruction:r.instruction||'',logoPosition:r.logoPosition??null,eventLogoPosition:r.eventLogoPosition??null,eventLogoSize:r.eventLogoSize??null,occupancy:r.occupancy||null,logoPlan:r.logoPlan||null,logoReceipt:r.logoReceipt||null,logoDegradations:r.logoDegradations||[],adaptations:[],corrections:[],correction:'',manualLogoFlow:!!r.manualLogoFlow,finalized:r.finalized!==false,manualLogoPlacements:r.manualLogoPlacements||[],parentArtworkId:item.parentArtworkId||r.parentArtworkId||null,sourceArtworkId:item.sourceArtworkId||r.sourceArtworkId||null};
 }
@@ -2248,7 +2271,10 @@ function reopenGalleryProject(id){
 function startGalleryChild(id,format){
   try{
     const item=findGalleryItem(id);if(!item)throw new Error('Arte não encontrada na Galeria.');
-    if(item.recipe)restoreRecipeToQuick(item.recipe,{asReference:false});
+    if(item.recipe){
+      try{restoreRecipeToQuick(item.recipe,{asReference:false})}
+      catch(recipeErr){console.warn('NEWFLOW: receita da Galeria não pôde ser restaurada; a derivada continuará usando a arte final como base.',recipeErr)}
+    }
     state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:item.recipe?.artDirection||null,recipe:item.recipe||null};
     const source=galleryItemToQuickResult(item);source.finalized=true;source.manualLogoFlow=true;source.galleryId=item.galleryId;state.quickResults=[source];
     closeModal();screenQuickMode();
@@ -2278,7 +2304,7 @@ window.openGallery=function(query=''){
   root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const raw=String(b.dataset.galleryChild||''),cut=raw.lastIndexOf('|');if(cut<1)return;startGalleryChild(raw.slice(0,cut),raw.slice(cut+1));});
 };
 
-// NEWFLOW v0.14 — derivadas da Galeria usam handlers locais do modal.
+// NEWFLOW v0.15 — derivadas da Galeria usam handlers locais do modal.
 window.startGalleryChild=startGalleryChild;
 
 window.openMyChurch=function(tab='pastor'){
@@ -2601,7 +2627,7 @@ async function drawTextLayer(ctx,c,l,text,fontFamily){
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
 
-// NEWFLOW v0.14 — Modo Detalhado removido do fluxo atual.
+// NEWFLOW v0.15 — Modo Detalhado removido do fluxo atual.
 // O arquivo completo anterior foi preservado separadamente como backup.
 // O produto atual inicia diretamente no Modo Rápido.
 function quickDefaultLogo(){
@@ -2613,7 +2639,7 @@ function quickDefaultPastor(){
   if(!state.quick.pastorNames||typeof state.quick.pastorNames!=='object')state.quick.pastorNames={};
 }
 
-const CHURCHDESIGN_CRITICAL_FUNCTIONS=['quickPayload','runQuickGeneration','runQuickAdaptation','hydrateGalleryAssets','startGalleryChild','openQuickAdaptConfig','resolveQuickReferenceCandidate','requestArtDirection','generateWithInvisibleReview','normalizeArtworkToTarget','composeOfficialLogos','prepareImageForAI','remoteToDataUrl','clientPipelineGuard','uploadLibraryAsset','cropImageBeforeUpload'];
+const CHURCHDESIGN_CRITICAL_FUNCTIONS=['quickPayload','runQuickGeneration','runQuickAdaptation','hydrateGalleryAssets','restoreRecipeToQuick','startGalleryChild','openQuickAdaptConfig','resolveQuickReferenceCandidate','requestArtDirection','generateWithInvisibleReview','normalizeArtworkToTarget','composeOfficialLogos','prepareImageForAI','remoteToDataUrl','clientPipelineGuard','uploadLibraryAsset','cropImageBeforeUpload'];
 function assertChurchDesignIntegrity(){
   const missing=[];
   for(const n of CHURCHDESIGN_CRITICAL_FUNCTIONS){let ok=false;try{ok=typeof eval(n)==='function'}catch{}if(!ok)missing.push(n)}
@@ -2684,6 +2710,12 @@ function churchDesignRuntimeSelfTest(){
   console.table(r.checks);console.log('ChurchDesign self-test',r);return r;
 }
 window.churchDesignRuntimeSelfTest=churchDesignRuntimeSelfTest;
+window.churchDesignDerivativeSelfTest=function(){
+  const names=['startGalleryChild','restoreRecipeToQuick','galleryItemToQuickResult','openQuickAdaptConfig','runQuickAdaptation','hydrateGalleryAssets','resolveQuickReferenceCandidate','quickTargetSpec','prepareImageForAI','generateWithInvisibleReview','normalizeArtworkToTarget'];
+  const missing=names.filter(n=>{try{return typeof eval(n)!=='function'}catch{return true}});
+  if(missing.length)console.error('CHURCHDESIGN DERIVATIVE PIPELINE INCOMPLETE:',missing);
+  return{ok:!missing.length,missing};
+};
 document.querySelector('#currentProjectBtn')?.addEventListener('click',()=>{state.mode='quick';screenQuickMode();window.scrollTo({top:0,behavior:'smooth'});});
 
 async function quickPayload(variantLabel='Principal',correction='',signal=null){
@@ -3110,9 +3142,9 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.14</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.15</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
-  // NEWFLOW v0.14: the coordinate system MUST be the real exported bitmap, not the requested target.
+  // NEWFLOW v0.15: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
   // object-fit creates an invisible coordinate mismatch and logos move on export.
   const stageBaseImg=ov.querySelector('[data-logo-stage] > img');
@@ -3437,7 +3469,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
   finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}
 }
 function assertDerivativePipelineReady(){
-  const required=['prepareImageForAI','hydrateGalleryAssets','generateWithInvisibleReview','normalizeArtworkToTarget','quickTargetSpec','resolveQuickReferenceCandidate'];
+  const required=['prepareImageForAI','hydrateGalleryAssets','generateWithInvisibleReview','normalizeArtworkToTarget','quickTargetSpec','resolveQuickReferenceCandidate','restoreRecipeToQuick','galleryItemToQuickResult','openQuickAdaptConfig'];
   const missing=required.filter(n=>{try{return typeof eval(n)!=='function'}catch{return true}});
   if(missing.length)throw new Error(`Pipeline de artes derivadas incompleto: ${missing.join(', ')}.`);
 }
@@ -3501,7 +3533,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
-// NEWFLOW v0.14 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
+// NEWFLOW v0.15 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
 bootstrapLibrary().finally(()=>{state.mode='quick';updateSidebarAccount();screenQuickMode();});
 
