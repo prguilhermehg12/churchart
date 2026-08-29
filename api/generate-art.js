@@ -1,4 +1,4 @@
-// ChurchDesign NEWFLOW v0.10 — high-fidelity protected church plate + logo-free generation
+// ChurchDesign NEWFLOW v0.11 — V0.21 church-photo semantics + logo-free generation
 module.exports.config={maxDuration:180};
 
 const IMAGES_EDIT_URL="https://api.openai.com/v1/images/edits";
@@ -137,13 +137,8 @@ PÚBLICO-ALVO ESCOLHIDO: ${data.audience||"não especificado"}\nPOSIÇÃO PRIORI
 ESTILO ESCOLHIDO: ${data.designStyle||"não especificado"}
 Se uma LOGO oficial foi fornecida, use a logo e NÃO repita o nome da igreja em texto separado.
 
-REGRA DE FOTO DA IGREJA — ATIVO PROTEGIDO / HARD CONSTRAINT:
-- Se data.assets.churchImage foi fornecida, trate essa fotografia como PLACA FOTOGRÁFICA BLOQUEADA. Ela NÃO é inspiração e NÃO pode ser redesenhada.
-- Preserve EXATAMENTE a arquitetura, palco, paredes, teto, cadeiras, objetos, pessoas, luzes, telas, púlpito e todos os elementos existentes. NÃO adicione, remova, mova, substitua, reconstrua, estilize ou transforme conteúdo da fotografia.
-- É permitido SOMENTE aplicar filtros globais não destrutivos sobre a foto: exposição, contraste, temperatura, saturação, tonalidade, escurecimento, vinheta e color grading. Esses filtros não podem alterar formas nem conteúdo.
-- É permitido redimensionar a fotografia UNIFORMEMENTE para encaixe, sem deformação. Não faça perspective warp, liquify, mudança de lente, troca de céu/parede/palco, preenchimento generativo dentro da fotografia ou alteração de pessoas.
-- Se a proporção da foto não coincidir com o canvas, preserve a fotografia intacta e resolva a área externa com composição gráfica ao redor; NÃO modifique o conteúdo interno da foto para fazê-la caber.
-- A foto da igreja continua sendo BACKGROUND. Pregadores e elementos gráficos podem ser compostos SOBRE ela, mas a própria foto permanece geometricamente e semanticamente intacta.
+REGRA DE FOTO DA IGREJA:
+- Se data.assets.churchImage foi fornecida, o uso dessa foto é obrigatório no ambiente/fundo e deve ser visualmente reconhecível.
 - Se não foi fornecida e a referência já possui ambiente de igreja, congregação ou adoração ao fundo, preserve esse tipo de ambiente da referência.
 - Não crie silhuetas humanas apenas para preencher lugares vazios.
 
