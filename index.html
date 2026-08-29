@@ -562,7 +562,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.15</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.16</div>
   
   <script>
 const state={
@@ -2213,6 +2213,14 @@ function galleryFamilyHTML(family){
   if(!children.length)return `<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}"><div class="persistent-gallery-body"><strong>${esc(x.label||'Arte')}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}${galleryChildActionsHTML(x)}</div></div>`;
   return `<div class="gallery-family-card"><div class="gallery-family-head"><div><strong>${esc(x.label||'Arte principal')}${galleryDraftBadge(x)}</strong><small>Principal + artes derivadas reunidas no mesmo projeto</small></div><span class="gallery-family-count">${children.length} derivada${children.length===1?'':'s'}</span></div><div class="gallery-family-main"><div class="gallery-family-main-preview" data-gallery-fullscreen="${esc(String(x.galleryId))}"><img src="${x.url||x.dataUrl}" alt="${esc(x.label||'Arte principal')}"></div><div class="gallery-family-info"><strong>${esc(x.label||'Arte')}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}${galleryChildActionsHTML(x)}</div></div><div class="gallery-family-derivatives">${children.map(d=>`<div class="gallery-derivative-card"><div class="gallery-derivative-preview" data-gallery-fullscreen="${esc(String(d.galleryId))}"><img src="${d.url||d.dataUrl}" alt="${esc(d.label||'Arte derivada')}"></div><div class="gallery-derivative-body"><strong>${esc(d.label||'Arte derivada')}${galleryDraftBadge(d)}</strong><small>${esc(d.target?.label||d.format||'')} • ${formatDateTime(d.createdAt)}</small>${galleryActionsHTML(d,true)}${galleryChildActionsHTML(d,true)}</div></div>`).join('')}</div></div>`;
 }
+function isDataImage(value){
+  return typeof value==='string' && /^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(value.trim());
+}
+function isUsableImageSource(value){
+  if(typeof value!=='string'||!value.trim())return false;
+  const v=value.trim();
+  return isDataImage(v)||/^blob:/i.test(v)||/^https?:\/\//i.test(v)||v.startsWith('/');
+}
 async function hydrateGalleryAssets(compact={}){
   const resolveAsset=a=>{
     if(!a)return null;
@@ -2304,7 +2312,7 @@ window.openGallery=function(query=''){
   root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const raw=String(b.dataset.galleryChild||''),cut=raw.lastIndexOf('|');if(cut<1)return;startGalleryChild(raw.slice(0,cut),raw.slice(cut+1));});
 };
 
-// NEWFLOW v0.15 — derivadas da Galeria usam handlers locais do modal.
+// NEWFLOW v0.16 — derivadas da Galeria usam handlers locais do modal.
 window.startGalleryChild=startGalleryChild;
 
 window.openMyChurch=function(tab='pastor'){
@@ -2627,7 +2635,7 @@ async function drawTextLayer(ctx,c,l,text,fontFamily){
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
 
-// NEWFLOW v0.15 — Modo Detalhado removido do fluxo atual.
+// NEWFLOW v0.16 — Modo Detalhado removido do fluxo atual.
 // O arquivo completo anterior foi preservado separadamente como backup.
 // O produto atual inicia diretamente no Modo Rápido.
 function quickDefaultLogo(){
@@ -2639,7 +2647,7 @@ function quickDefaultPastor(){
   if(!state.quick.pastorNames||typeof state.quick.pastorNames!=='object')state.quick.pastorNames={};
 }
 
-const CHURCHDESIGN_CRITICAL_FUNCTIONS=['quickPayload','runQuickGeneration','runQuickAdaptation','hydrateGalleryAssets','restoreRecipeToQuick','startGalleryChild','openQuickAdaptConfig','resolveQuickReferenceCandidate','requestArtDirection','generateWithInvisibleReview','normalizeArtworkToTarget','composeOfficialLogos','prepareImageForAI','remoteToDataUrl','clientPipelineGuard','uploadLibraryAsset','cropImageBeforeUpload'];
+const CHURCHDESIGN_CRITICAL_FUNCTIONS=['quickPayload','runQuickGeneration','runQuickAdaptation','isDataImage','hydrateGalleryAssets','restoreRecipeToQuick','startGalleryChild','openQuickAdaptConfig','resolveQuickReferenceCandidate','requestArtDirection','generateWithInvisibleReview','normalizeArtworkToTarget','composeOfficialLogos','prepareImageForAI','remoteToDataUrl','clientPipelineGuard','uploadLibraryAsset','cropImageBeforeUpload'];
 function assertChurchDesignIntegrity(){
   const missing=[];
   for(const n of CHURCHDESIGN_CRITICAL_FUNCTIONS){let ok=false;try{ok=typeof eval(n)==='function'}catch{}if(!ok)missing.push(n)}
@@ -2711,7 +2719,7 @@ function churchDesignRuntimeSelfTest(){
 }
 window.churchDesignRuntimeSelfTest=churchDesignRuntimeSelfTest;
 window.churchDesignDerivativeSelfTest=function(){
-  const names=['startGalleryChild','restoreRecipeToQuick','galleryItemToQuickResult','openQuickAdaptConfig','runQuickAdaptation','hydrateGalleryAssets','resolveQuickReferenceCandidate','quickTargetSpec','prepareImageForAI','generateWithInvisibleReview','normalizeArtworkToTarget'];
+  const names=['startGalleryChild','restoreRecipeToQuick','galleryItemToQuickResult','openQuickAdaptConfig','runQuickAdaptation','isDataImage','hydrateGalleryAssets','resolveQuickReferenceCandidate','quickTargetSpec','prepareImageForAI','generateWithInvisibleReview','normalizeArtworkToTarget'];
   const missing=names.filter(n=>{try{return typeof eval(n)!=='function'}catch{return true}});
   if(missing.length)console.error('CHURCHDESIGN DERIVATIVE PIPELINE INCOMPLETE:',missing);
   return{ok:!missing.length,missing};
@@ -3142,9 +3150,9 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.15</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.16</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
-  // NEWFLOW v0.15: the coordinate system MUST be the real exported bitmap, not the requested target.
+  // NEWFLOW v0.16: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
   // object-fit creates an invisible coordinate mismatch and logos move on export.
   const stageBaseImg=ov.querySelector('[data-logo-stage] > img');
@@ -3469,7 +3477,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
   finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}
 }
 function assertDerivativePipelineReady(){
-  const required=['prepareImageForAI','hydrateGalleryAssets','generateWithInvisibleReview','normalizeArtworkToTarget','quickTargetSpec','resolveQuickReferenceCandidate','restoreRecipeToQuick','galleryItemToQuickResult','openQuickAdaptConfig'];
+  const required=['prepareImageForAI','isDataImage','hydrateGalleryAssets','generateWithInvisibleReview','normalizeArtworkToTarget','quickTargetSpec','resolveQuickReferenceCandidate','restoreRecipeToQuick','galleryItemToQuickResult','openQuickAdaptConfig'];
   const missing=required.filter(n=>{try{return typeof eval(n)!=='function'}catch{return true}});
   if(missing.length)throw new Error(`Pipeline de artes derivadas incompleto: ${missing.join(', ')}.`);
 }
@@ -3533,7 +3541,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
-// NEWFLOW v0.15 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
+// NEWFLOW v0.16 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
 bootstrapLibrary().finally(()=>{state.mode='quick';updateSidebarAccount();screenQuickMode();});
 
