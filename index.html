@@ -99,6 +99,11 @@
 /* V0.30.7 — Galeria persistente */
 .sidebar-library-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:-8px 0 16px}
 .sidebar-library-actions .my-church-btn{margin:0}
+.sidebar-project-btn{width:100%;margin:0 0 10px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:12px;padding:11px 12px;text-align:left;cursor:pointer}
+.sidebar-project-btn span,.sidebar-project-btn strong{display:block}.sidebar-project-btn span{font-size:9px;color:var(--muted);letter-spacing:.12em}.sidebar-project-btn strong{font-size:12px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-flow{display:grid;gap:6px;margin:4px 0 16px}.sidebar-flow .nav-step{cursor:default}
+.account-card{border:1px solid var(--line);background:#111318;border-radius:14px;padding:12px;margin-top:4px}
+.account-card h4{margin:0 0 9px;font-size:10px;letter-spacing:.12em;color:#cfd5df}.account-row{display:flex;justify-content:space-between;gap:8px;font-size:9px;margin-top:6px;color:var(--muted)}.account-row strong{color:#fff;font-size:9px}.account-plan{display:inline-flex;padding:4px 7px;border-radius:99px;background:#201b37;border:1px solid #514686;color:#ded7ff;font-size:9px;font-weight:900}
 .gallery-btn{width:100%;border:1px solid #3a4354;background:#131820;color:#eef2f8;border-radius:11px;padding:11px 10px;text-align:left;font-weight:800;cursor:pointer}.gallery-btn:hover{border-color:#6a7891;background:#19202a}
 .gallery-modal-panel{width:min(1280px,97vw)!important}
 .gallery-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:15px}.gallery-toolbar input{min-width:min(340px,80vw)}
@@ -520,7 +525,7 @@
 .logo-assistant-overlay{position:fixed;inset:0;z-index:150000;background:rgba(4,6,10,.96);display:grid;grid-template-rows:auto 1fr;overflow:hidden}
 .logo-assistant-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:#0d1015}.logo-assistant-head h2{font-size:16px;margin:0}.logo-assistant-head small{display:block;color:var(--muted);margin-top:3px}
 .logo-assistant-body{min-height:0;display:grid;grid-template-columns:minmax(250px,330px) 1fr;gap:14px;padding:14px}.logo-assistant-panel{position:relative;z-index:5;pointer-events:auto;min-height:0;overflow:auto;border:1px solid var(--line);border-radius:14px;background:#0f1217;padding:14px}.logo-assistant-stage-wrap{position:relative;z-index:4;pointer-events:auto;min-height:0;display:flex;align-items:center;justify-content:center;overflow:auto;border:1px solid var(--line);border-radius:14px;background:#080a0d;padding:18px}
-.logo-assistant-stage{position:relative;width:min(78vw,980px);max-width:100%;max-height:calc(100vh - 150px);line-height:0;box-shadow:0 20px 70px rgba(0,0,0,.45);overflow:hidden;background:#111;touch-action:none}.logo-assistant-stage>img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}
+.logo-assistant-stage{position:relative;width:min(78vw,980px);max-width:100%;max-height:calc(100vh - 150px);line-height:0;box-shadow:0 20px 70px rgba(0,0,0,.45);overflow:hidden;background:#111;touch-action:none}.logo-assistant-stage>img{display:block;width:100%;height:auto;pointer-events:none;user-select:none}
 .logo-palette-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#cfd5df;margin:4px 0 8px}.logo-palette{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}.logo-palette-item{appearance:none;width:100%;color:inherit;text-align:left;font:inherit;border:1px solid var(--line);border-radius:10px;padding:8px;background:#151922;cursor:grab;min-width:0;touch-action:none;position:relative;z-index:2}.logo-palette-item:hover{border-color:#555e70}.logo-palette-item.is-pointer-dragging{opacity:.55;cursor:grabbing}.logo-drag-ghost{position:fixed;z-index:170000;width:92px;height:70px;pointer-events:none;border:1px solid #687386;border-radius:10px;background:#151922;padding:6px;box-shadow:0 12px 36px rgba(0,0,0,.5)}.logo-drag-ghost img{width:100%;height:100%;object-fit:contain}.logo-palette-item .logo-preview-surface{height:64px}.logo-palette-item strong,.logo-palette-item small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.logo-palette-item strong{font-size:9px;margin-top:6px}.logo-palette-item small{font-size:8px;color:var(--muted);margin-top:2px}
 .manual-logo-node{position:absolute;line-height:normal;cursor:move;touch-action:none;user-select:none}.manual-logo-node img{display:block;width:100%;height:auto;pointer-events:none;filter:none}.manual-logo-node.selected{outline:2px solid #fff;outline-offset:3px}.manual-logo-node .slot-tag{position:absolute;left:0;top:-20px;background:#fff;color:#111;font-size:8px;font-weight:900;padding:3px 5px;border-radius:5px;line-height:1}
 .logo-assistant-controls{border-top:1px solid var(--line);padding-top:12px;margin-top:8px}.logo-assistant-controls label{display:block;font-size:9px;color:#cfd5df;margin-bottom:6px}.logo-assistant-controls input[type=range]{width:100%;pointer-events:auto;touch-action:pan-x;position:relative;z-index:6}.logo-assistant-actions{display:grid;gap:8px;margin-top:16px}.logo-assistant-actions .btn{width:100%}.logo-assistant-version{margin-top:14px;padding-top:10px;border-top:1px solid var(--line);text-align:center;font-size:8px;color:var(--muted);letter-spacing:.08em}.logo-assistant-note{font-size:9px;color:var(--muted);line-height:1.5;margin:8px 0 12px}.flow-badge{display:inline-flex;align-items:center;border:1px solid #3c4655;border-radius:99px;padding:4px 8px;font-size:8px;color:#cbd2df;margin-bottom:8px}.proceed-btn{border-color:#7d6cff!important;background:#1b1830!important;color:#e7e2ff!important}
@@ -533,22 +538,31 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand"><div class="brand-mark">C</div><div><strong>ChurchDesign</strong><span>AI Design Studio</span></div></div>
-      <div class="project-mini"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></div>
+      <button class="sidebar-project-btn" id="currentProjectBtn" type="button"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></button>
       <div class="sidebar-library-actions">
         <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
         <button class="gallery-btn" type="button" onclick="openGallery()">▦ Galeria</button>
       </div>
-      <nav id="stepNav"></nav>
+      <nav id="stepNav" class="sidebar-flow">
+        <div class="nav-step active" data-flow-step="1"><b>1</b><span>Criação da arte base</span></div>
+        <div class="nav-step" data-flow-step="2"><b>2</b><span>Assistente de logos</span></div>
+      </nav>
+      <div class="account-card" id="sidebarAccount">
+        <h4>MINHA CONTA</h4>
+        <span class="account-plan" id="accountPlan">PREMIUM</span>
+        <div class="account-row"><span>Referências salvas</span><strong id="accountRefUsage">0 / 30</strong></div>
+        <div class="account-row"><span>Créditos</span><strong id="accountCredits">—</strong></div>
+      </div>
     </aside>
 
     <main class="main">
-      <header class="topbar"><div><p class="eyebrow" id="eyebrow">CONFIGURAÇÃO</p><h1 id="pageTitle">Identidade da igreja</h1></div><div class="progress"><span id="progressText">1 de 7</span><div><i id="progressBar"></i></div></div></header><div id="mobileStepbar" class="mobile-stepbar"></div>
+      <header class="topbar"><div><p class="eyebrow" id="eyebrow">CONFIGURAÇÃO</p><h1 id="pageTitle">Identidade da igreja</h1></div><div class="progress"><span id="progressText">Etapa 1 de 2</span><div><i id="progressBar"></i></div></div></header><div id="mobileStepbar" class="mobile-stepbar"></div>
       <section id="content" class="content"></section>
       <footer class="footer"><button id="backBtn" class="btn ghost">← Voltar</button><button id="nextBtn" class="btn primary">Continuar →</button></footer>
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.10</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.12</div>
   
   <script>
 const state={
@@ -614,6 +628,20 @@ const effectCatalog=[
 ];
 const planRank={free:0,pro:1,studio:2};
 function canUseFeature(requiredPlan='free'){return (planRank[state.user.plan]??0)>=(planRank[requiredPlan]??0);}
+function referenceLibraryLimit(){if(state.user.plan==='studio')return 30;if(state.user.plan==='pro')return 20;return 10;}
+function planDisplayName(){return state.user.plan==='studio'?'PREMIUM':String(state.user.plan||'free').toUpperCase();}
+function updateSidebarAccount(){
+  const refs=state.library.assets.filter(a=>a.type==='reference').length,lim=referenceLibraryLimit();
+  const p=document.querySelector('#accountPlan'),u=document.querySelector('#accountRefUsage'),c=document.querySelector('#accountCredits');
+  if(p)p.textContent=planDisplayName();if(u)u.textContent=`${refs} / ${lim}`;if(c)c.textContent=state.user.credits==null?'—':String(state.user.credits);
+}
+function setNewflowStage(stage=1){
+  document.querySelectorAll('#stepNav [data-flow-step]').forEach(el=>{
+    const n=Number(el.dataset.flowStep);el.classList.toggle('active',n===stage);el.classList.toggle('done',n<stage);
+    const b=el.querySelector('b');if(b)b.textContent=n<stage?'✓':String(n);
+  });
+  const pt=document.querySelector('#progressText'),pb=document.querySelector('#progressBar');if(pt)pt.textContent=`Etapa ${stage} de 2`;if(pb)pb.style.width=stage===1?'50%':'100%';
+}
 
 
 
@@ -792,7 +820,7 @@ function cancelActiveProcess(){if(activeProcessController){activeProcessControll
 const content=document.querySelector('#content'),next=document.querySelector('#nextBtn'),back=document.querySelector('#backBtn');
 function esc(s=''){return String(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 function nav(){
-document.querySelector('#stepNav').innerHTML=steps.map((s,i)=>`<div class="nav-step ${i===state.step?'active':''} ${i<state.step?'done':''}"><b>${i<state.step?'✓':i+1}</b><span>${s[1]}</span></div>`).join('');
+setNewflowStage(1);
 const mobile=document.querySelector('#mobileStepbar');if(mobile)mobile.innerHTML=steps.map((s,i)=>`<div class="mobile-step ${i===state.step?'active':''} ${i<state.step?'done':''}">${i+1}. ${s[1]}</div>`).join('');
 setTimeout(()=>{const a=mobile?.querySelector('.active');if(a)a.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},20);
 }
@@ -840,7 +868,8 @@ f.onchange=async e=>{const file=e.target.files[0];if(!file)return;const asset=aw
 }
 function screenFormat(){content.innerHTML=`<div class="help">Começaremos pelos formatos mais usados em igrejas. A mesma campanha poderá ser adaptada para outros tamanhos depois.</div><div class="grid3">${[['feed','Feed Instagram','1080 × 1350',''],['story','Story / Reels','1080 × 1920','story'],['wide','Telão / YouTube','1920 × 1080','wide']].map(x=>`<div class="format-card ${state.format===x[0]?'selected':''}" data-format="${x[0]}"><div class="format-icon ${x[3]}"></div><strong>${x[1]}</strong><span>${x[2]}</span></div>`).join('')}</div>`;document.querySelectorAll('[data-format]').forEach(el=>el.onclick=()=>{state.format=el.dataset.format;screenFormat()})}
 function screenReference(){
-  const refs=state.library.assets.filter(a=>a.type==='reference').slice(0,20);
+  const refLimit=referenceLibraryLimit();
+  const refs=state.library.assets.filter(a=>a.type==='reference').slice(0,refLimit);
   const selectedIds=state.referenceSelections.map(r=>r.id).filter(Boolean);
   content.innerHTML=`
   <div class="help"><strong>Até 3 referências por arte.</strong> <button class="mini-btn" id="switchQuickNoRef" type="button">Criar do zero</button> Escolha imagens da biblioteca da igreja ou envie novas. Em cada uma, diga exatamente o que a IA deve aproveitar.</div>
@@ -848,7 +877,7 @@ function screenReference(){
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px"><div><h3>Referências da igreja</h3><p>Máximo de 20 imagens salvas.</p></div><span class="tag">${refs.length}/20</span></div>
     <div class="reference-library-grid">
       ${refs.map(a=>`<div class="reference-card ${selectedIds.includes(a.id)?'selected':''}" data-ref-lib="${a.id}"><span class="ref-check">${selectedIds.includes(a.id)?'✓':'+'}</span><img src="${a.url}"><div class="ref-meta"><strong>${esc(a.name)}</strong><small>${selectedIds.includes(a.id)?'Selecionada':'Clique para usar'}</small></div></div>`).join('')}
-      ${refs.length<20?`<label class="library-upload" style="min-height:170px"><strong>+ Subir referência</strong><span>JPG, PNG ou WEBP</span><input id="referenceUpload" type="file" accept="image/*" hidden multiple></label><div id="referenceUploadLive" class="upload-live" style="grid-column:1/-1"></div>`:''}
+      ${refs.length<refLimit?`<label class="library-upload" style="min-height:170px"><strong>+ Subir referência</strong><span>JPG, PNG ou WEBP</span><input id="referenceUpload" type="file" accept="image/*" hidden multiple></label><div id="referenceUploadLive" class="upload-live" style="grid-column:1/-1"></div>`:''}
     </div>
     <div class="reference-limit">Você pode selecionar até 3 referências para uma mesma geração.</div>
   </div>
@@ -1836,7 +1865,7 @@ async function cropImageBeforeUpload(file,type){
 async function uploadLibraryAsset(file,type,extraMeta={}){
   try{
     const refCount=state.library.assets.filter(a=>a.type==='reference').length;
-    if(type==='reference'&&refCount>=20){alert('Limite de 20 referências por igreja. Remova uma referência antes de adicionar outra.');return null;}
+    if(type==='reference'&&refCount>=referenceLibraryLimit()){alert(`Limite de ${referenceLibraryLimit()} referências neste plano. Remova uma referência antes de adicionar outra.`);return null;}
     const isFont=type==='font';
     const dbType=type==='event_logo'?'graphic':type;
     const preserveAlpha=type==='logo'||type==='event_logo'||type==='graphic'||file.type==='image/png';
@@ -2239,10 +2268,10 @@ window.openGallery=function(query=''){
   root.querySelectorAll('[data-gallery-delete]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDelete);if(!x)return;if(!confirm(`Excluir "${x.label||'esta arte'}" da Galeria?`))return;b.disabled=true;b.textContent='Excluindo...';try{if(x.generationId==='local-recovery'||x.recoveryOnly){galleryRecoveryRemove(x.galleryId)}else{await apiJSON('delete-gallery-item',{method:'DELETE',body:{generationId:x.generationId,galleryId:x.galleryId}});galleryRecoveryRemove(x.galleryId)}state.library.generations=(state.library.generations||[]).map(g=>{if(g.id!==x.generationId)return g;return{...g,images:(g.images||[]).filter(im=>(im.galleryId||'')!==x.galleryId)}}).filter(g=>(g.images||[]).length);state.gallerySavedIds=(state.gallerySavedIds||[]).filter(id=>id!==x.galleryId);openGallery(query)}catch(err){alert('Não foi possível excluir: '+err.message);b.disabled=false;b.textContent='Excluir'}});
   root.querySelectorAll('[data-gallery-reference]').forEach(b=>b.onclick=e=>{e.stopPropagation();useGalleryAsReference(b.dataset.galleryReference)});
   root.querySelectorAll('[data-gallery-reopen]').forEach(b=>b.onclick=e=>{e.stopPropagation();reopenGalleryProject(b.dataset.galleryReopen)});
-  // data-gallery-child é tratado pelo controlador delegado global do NEWFLOW v0.10.
+  // data-gallery-child é tratado pelo controlador delegado global do NEWFLOW v0.12.
 };
 
-// NEWFLOW v0.10 — fallback delegado para ações de derivadas da Galeria.
+// NEWFLOW v0.12 — fallback delegado para ações de derivadas da Galeria.
 if(!window.__churchDesignGalleryChildDelegation){
   window.__churchDesignGalleryChildDelegation=true;
   document.addEventListener('click',e=>{
@@ -2574,7 +2603,7 @@ async function drawTextLayer(ctx,c,l,text,fontFamily){
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
 
-// NEWFLOW v0.10 — Modo Detalhado removido do fluxo atual.
+// NEWFLOW v0.12 — Modo Detalhado removido do fluxo atual.
 // O arquivo completo anterior foi preservado separadamente como backup.
 // O produto atual inicia diretamente no Modo Rápido.
 function quickDefaultLogo(){
@@ -2657,6 +2686,7 @@ function churchDesignRuntimeSelfTest(){
   console.table(r.checks);console.log('ChurchDesign self-test',r);return r;
 }
 window.churchDesignRuntimeSelfTest=churchDesignRuntimeSelfTest;
+document.querySelector('#currentProjectBtn')?.addEventListener('click',()=>{state.mode='quick';screenQuickMode();window.scrollTo({top:0,behavior:'smooth'});});
 
 async function quickPayload(variantLabel='Principal',correction='',signal=null){
   const ref=state.quick.reference?await prepareImageForAI(state.quick.reference,1400,.9):null;
@@ -2739,7 +2769,22 @@ function refreshQuickModePreservingView(focusSelector=''){
     }
   });
 }
+function refreshQuickPastorUI(){
+  const ids=(state.quick.pastorAssetIds||[]).slice(0,3),pastors=state.library.assets.filter(a=>a.type==='pastor'),grid=document.querySelector('.quick-pastor-grid');
+  if(!grid)return;
+  grid.querySelectorAll('[data-qpastor]').forEach(el=>{
+    const id=el.dataset.qpastor,rank=ids.indexOf(id),a=pastors.find(x=>x.id===id);el.classList.toggle('multi-selected',rank>=0);el.dataset.pastorRank=String(rank);
+    el.querySelector('.pastor-rank-badge')?.remove();el.querySelector('[data-pastor-name]')?.remove();
+    if(rank>=0){
+      const badge=document.createElement('span');badge.className='pastor-rank-badge';badge.textContent=rank===0?'PRINCIPAL':`AUXILIAR ${rank}`;el.prepend(badge);
+      const inp=document.createElement('input');inp.className='pastor-name-input';inp.dataset.pastorName=id;inp.value=Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},id)?state.quick.pastorNames[id]:(a?.meta?.displayName||'');inp.placeholder='Nome na arte';
+      inp.addEventListener('click',e=>e.stopPropagation());inp.addEventListener('pointerdown',e=>e.stopPropagation());inp.addEventListener('input',e=>{state.quick.pastorNames[id]=e.target.value;});el.appendChild(inp);
+    }
+  });
+  const summary=document.querySelector('.pastor-order-summary');if(summary)summary.innerHTML=ids.map((id,i)=>{const a=pastors.find(x=>x.id===id);return `<span class="pastor-order-pill"><b>${i===0?'PRINCIPAL':`AUXILIAR ${i}`}</b>${a?` • ${esc(a.meta?.displayName||a.name)}`:''}</span>`}).join('');
+}
 function screenQuickMode(){
+  setNewflowStage(1);updateSidebarAccount();
   quickDefaultLogo();quickDefaultPastor();
   const logos=state.library.assets.filter(a=>a.type==='logo'&&logoVariantRole(a)!=='contrast'),eventLogos=state.library.assets.filter(a=>((a.type==='graphic'&&a.meta?.category==='event_logo')||a.type==='event_logo')&&logoVariantRole(a)!=='contrast'),pastors=state.library.assets.filter(a=>a.type==='pastor'),churchImages=state.library.assets.filter(a=>a.type==='church'),refs=state.library.assets.filter(a=>a.type==='reference');
   document.querySelector('.footer').style.display='none';document.querySelector('#mobileStepbar').style.display='none';
@@ -2778,9 +2823,9 @@ function screenQuickMode(){
       if(!Object.prototype.hasOwnProperty.call(state.quick.pastorNames,id)){const a=pastors.find(x=>x.id===id);state.quick.pastorNames[id]=a?.meta?.displayName||'';}
     }
     state.quick.pastorAssetIds=arr;
-    refreshQuickModePreservingView();
+    refreshQuickPastorUI();
   });document.querySelectorAll('[data-pastor-name]').forEach(inp=>inp.oninput=e=>{e.stopPropagation();state.quick.pastorNames[inp.dataset.pastorName]=e.target.value;});document.querySelectorAll('[data-qchurch]').forEach(el=>el.onclick=()=>{const id=el.dataset.qchurch;state.quick.churchImageAssetId=state.quick.churchImageAssetId===id?null:id;document.querySelectorAll('[data-qchurch]').forEach(x=>x.classList.toggle('selected',state.quick.churchImageAssetId===x.dataset.qchurch));});
-  const up=document.querySelector('#qRefUpload');if(up)up.onchange=async e=>{const files=[...(e.target.files||[])],live=document.querySelector('#qRefUploadLive');const saved=await uploadLibraryAssets(files,'reference',{container:live,max:20-state.library.assets.filter(a=>a.type==='reference').length,onAsset:async a=>{state.quick.reference=a.url;state.quick.referenceMode='upload';}});if(saved.length)setTimeout(()=>refreshQuickModePreservingView(),350);};
+  const up=document.querySelector('#qRefUpload');if(up)up.onchange=async e=>{const files=[...(e.target.files||[])],live=document.querySelector('#qRefUploadLive');const saved=await uploadLibraryAssets(files,'reference',{container:live,max:referenceLibraryLimit()-state.library.assets.filter(a=>a.type==='reference').length,onAsset:async a=>{state.quick.reference=a.url;state.quick.referenceMode='upload';}});if(saved.length)setTimeout(()=>refreshQuickModePreservingView(),350);};
   const cup=document.querySelector('#qChurchUpload');if(cup)cup.onchange=async e=>{let live=document.querySelector('#qChurchUploadLive');if(!live){live=document.createElement('div');live.id='qChurchUploadLive';live.className='upload-live';cup.closest('label')?.insertAdjacentElement('afterend',live);}const saved=await uploadLibraryAssets(e.target.files,'church',{container:live,onAsset:async a=>{if(!state.quick.churchImageAssetId)state.quick.churchImageAssetId=a.id;}});if(saved.length)setTimeout(()=>refreshQuickModePreservingView(),350);};
   const eul=document.querySelector('#qEventLogoUpload');if(eul)eul.onchange=async e=>{let live=document.querySelector('#qEventLogoUploadLive');if(!live){live=document.createElement('div');live.id='qEventLogoUploadLive';live.className='upload-live';eul.closest('label')?.insertAdjacentElement('afterend',live);}const saved=await uploadLibraryAssets(e.target.files,'event_logo',{container:live,onAsset:async a=>{if(!state.quick.eventLogoAssetId)state.quick.eventLogoAssetId=a.id;}});if(saved.length)setTimeout(()=>screenQuickMode(),350);};
   document.querySelector('#quickGenerate').onclick=()=>runQuickGeneration('Principal',0);document.querySelector('#quickCancel').onclick=()=>{cancelActiveProcess();document.querySelector('#quickStatus').textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');};bindQuickResultEvents();bindAllArtworksEvents();
@@ -2926,6 +2971,27 @@ function addLogoToAssistant(key,slot,assetId,dropPoint=null){
   p.assetId=asset.id;p.variantRole=logoVariantRole(asset)||'primary';
   if(dropPoint){p.x=dropPoint.x-p.w/2;p.y=dropPoint.y-p.h/2}clampManualPlacement(p,node,asset);
 }
+function captureLogoPlacementsFromAssistant(ov,key){
+  const node=artworkFlowNode(key),stage=ov?.querySelector('[data-logo-stage]'),baseImg=stage?.querySelector(':scope > img');
+  if(!node||!stage||!baseImg)return;
+  const sr=stage.getBoundingClientRect(),ir=baseImg.getBoundingClientRect();
+  if(!sr.width||!sr.height||!ir.width||!ir.height)return;
+  // The bitmap is displayed as the stage image. Read the ACTUAL DOM rectangles at the instant of Finalizar.
+  // This makes export WYSIWYG and avoids any later reinterpretation of target/aspect-ratio coordinates.
+  const updated=[];
+  stage.querySelectorAll('.manual-logo-node').forEach(el=>{
+    const slot=el.dataset.manualSlot,old=(node.manualLogoPlacements||[]).find(p=>p.slot===slot);
+    if(!old)return;
+    const r=el.getBoundingClientRect();
+    updated.push({...old,
+      x:(r.left-ir.left)/ir.width,
+      y:(r.top-ir.top)/ir.height,
+      w:r.width/ir.width,
+      h:r.height/ir.height
+    });
+  });
+  node.manualLogoPlacements=updated;
+}
 async function composeManualLogos(baseDataUrl,placements=[]){
   const base=await loadImageSafe(baseDataUrl),cv=document.createElement('canvas'),ctx=cv.getContext('2d');cv.width=base.naturalWidth||base.width;cv.height=base.naturalHeight||base.height;ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(base,0,0,cv.width,cv.height);
   const receipt=[];
@@ -2933,12 +2999,13 @@ async function composeManualLogos(baseDataUrl,placements=[]){
     const asset=(state.library.assets||[]).find(a=>String(a.id)===String(p0.assetId));if(!asset?.url)continue;
     const local=await remoteToDataUrl(asset.url),img=await loadImageSafe(local);
     const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;
-    let w=Math.max(.05,Math.min(.38,Number(p0.w)||.14))*cv.width;
-    let h=w*(ih/iw);
-    let x=Math.max(0,Number(p0.x)||0)*cv.width;
-    let y=Math.max(0,Number(p0.y)||0)*cv.height;
-    if(x+w>cv.width)x=cv.width-w;if(y+h>cv.height)y=cv.height-h;
-    x=Math.max(0,x);y=Math.max(0,y);
+    let x=Number(p0.x)*cv.width,y=Number(p0.y)*cv.height;
+    let w=Number(p0.w)*cv.width,h=Number(p0.h)*cv.height;
+    if(!Number.isFinite(x))x=0;if(!Number.isFinite(y))y=0;
+    if(!Number.isFinite(w)||w<=0)w=.14*cv.width;
+    if(!Number.isFinite(h)||h<=0)h=w*(ih/iw);
+    // Do not run target-based solver/clamp here. Export reproduces the assistant rectangle exactly.
+    x=Math.max(0,Math.min(cv.width-w,x));y=Math.max(0,Math.min(cv.height-h,y));
     ctx.drawImage(img,x,y,w,h);
     receipt.push({slot:p0.slot,assetId:asset.id,x:x/cv.width,y:y/cv.height,w:w/cv.width,h:h/cv.height,manual:true});
   }
@@ -2977,15 +3044,16 @@ function bindLogoPaletteDrag(ov,key,card){
   },{passive:false});
 }
 function openLogoAssistant(key,options={}){
+  setNewflowStage(2);
   const node=artworkFlowNode(key);if(!node)return alert('Arte não encontrada.');
   const base=node.baseDataUrl||node.sourceUrl||node.dataUrl;if(!base)return alert('A arte base não está disponível.');
   const assets=logoAssistantAssets(),old=document.querySelector('.logo-assistant-overlay');if(old)old.remove();
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.10</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.12</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
-  // NEWFLOW v0.10: the coordinate system MUST be the real exported bitmap, not the requested target.
+  // NEWFLOW v0.12: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
   // object-fit creates an invisible coordinate mismatch and logos move on export.
   const stageBaseImg=ov.querySelector('[data-logo-stage] > img');
@@ -3002,7 +3070,7 @@ function openLogoAssistant(key,options={}){
 
   let closing=false,busy=false,drag=null;
   const stage=()=>ov.querySelector('[data-logo-stage]');
-  const closeAssistant=()=>{if(closing)return;closing=true;cleanupDrag();ov.remove();document.removeEventListener('keydown',onKey);if(options.returnToGallery)setTimeout(()=>openGallery(),0)};
+  const closeAssistant=()=>{if(closing)return;closing=true;cleanupDrag();ov.remove();setNewflowStage(1);document.removeEventListener('keydown',onKey);if(options.returnToGallery)setTimeout(()=>openGallery(),0)};
   const onKey=e=>{if(e.key==='Escape')closeAssistant()};document.addEventListener('keydown',onKey);
   const pointInStage=(x,y)=>{const st=stage(),r=st?.getBoundingClientRect();if(!r||!r.width||!r.height||x<r.left||x>r.right||y<r.top||y>r.bottom)return null;return{x:(x-r.left)/r.width,y:(y-r.top)/r.height}};
   const sync=slot=>{refreshLogoAssistantStage(ov,key);setAssistantSelection(ov,key,slot||'')};
@@ -3015,7 +3083,7 @@ function openLogoAssistant(key,options={}){
     const palette=e.target.closest('[data-palette-asset]');if(palette){e.preventDefault();if(palette.dataset.dragged==='1'){palette.dataset.dragged='';return}return addAt(palette.dataset.paletteSlot,palette.dataset.paletteAsset)}
     const logo=e.target.closest('.manual-logo-node');if(logo){e.preventDefault();return setAssistantSelection(ov,key,logo.dataset.manualSlot)}
     const remove=e.target.closest('[data-logo-remove]');if(remove){e.preventDefault();const slot=ov.dataset.selectedSlot,n=artworkFlowNode(key);if(!n||!slot)return;n.manualLogoPlacements=(n.manualLogoPlacements||[]).filter(x=>x.slot!==slot);return sync('')}
-    const finalize=e.target.closest('[data-logo-finalize]');if(finalize){e.preventDefault();if(busy)return;busy=true;finalize.disabled=true;finalize.textContent='Finalizando...';try{await finalizeArtworkFlow(key,false);document.removeEventListener('keydown',onKey)}catch(err){busy=false;finalize.disabled=false;finalize.textContent='FINALIZAR ARTE';alert(`Não foi possível finalizar: ${err.message}`)}return}
+    const finalize=e.target.closest('[data-logo-finalize]');if(finalize){e.preventDefault();if(busy)return;captureLogoPlacementsFromAssistant(ov,key);busy=true;finalize.disabled=true;finalize.textContent='Finalizando...';try{await finalizeArtworkFlow(key,false);document.removeEventListener('keydown',onKey)}catch(err){busy=false;finalize.disabled=false;finalize.textContent='FINALIZAR ARTE';alert(`Não foi possível finalizar: ${err.message}`)}return}
     const without=e.target.closest('[data-logo-without]');if(without){e.preventDefault();if(busy)return;busy=true;without.disabled=true;without.textContent='Exportando...';try{await finalizeArtworkFlow(key,true);document.removeEventListener('keydown',onKey)}catch(err){busy=false;without.disabled=false;without.textContent='EXPORTAR SEM LOGO';alert(`Não foi possível exportar: ${err.message}`)}return}
   },true);
 
@@ -3359,9 +3427,9 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
-// NEWFLOW v0.10 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
+// NEWFLOW v0.12 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
-bootstrapLibrary().finally(()=>{state.mode='quick';screenQuickMode();});
+bootstrapLibrary().finally(()=>{state.mode='quick';updateSidebarAccount();screenQuickMode();});
 
 </script>
 </body>
