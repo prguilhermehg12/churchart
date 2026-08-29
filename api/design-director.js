@@ -1,9 +1,25 @@
-// ChurchDesign V0.31.2 — logo hints are metadata only, never visible reservations
+
+async function requireChurchDesignUser(req){
+  const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
+  const anon=process.env.SUPABASE_ANON_KEY;
+  if(!raw||!anon)throw Object.assign(new Error("SUPABASE_URL ou SUPABASE_ANON_KEY não configuradas."),{statusCode:500});
+  const authorization=String(req.headers.authorization||"");
+  if(!/^Bearer\s+\S+/i.test(authorization))throw Object.assign(new Error("Autenticação obrigatória."),{statusCode:401});
+  const r=await fetch(`${raw}/auth/v1/user`,{headers:{apikey:anon,Authorization:authorization}});
+  const user=await r.json().catch(()=>null);
+  if(!r.ok||!user?.id)throw Object.assign(new Error("Sessão inválida ou expirada."),{statusCode:401});
+  return user;
+}
+function churchIdFromUser(user){
+  return `usr_${String(user.id).replace(/[^a-zA-Z0-9_-]/g,"_").slice(0,76)}`;
+}
+
 module.exports.config={maxDuration:60};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
-
-
-
+function jobCfg(){const raw=process.env.SUPABASE_URL,key=process.env.SUPABASE_SECRET_KEY;if(!raw||!key)return null;return{url:raw.replace(/\/+$/,""),key};}
+async function jobRest(path,opts={}){const c=jobCfg();if(!c)return null;const r=await fetch(`${c.url}/rest/v1/${path}`,{...opts,headers:{apikey:c.key,Authorization:`Bearer ${c.key}`,"Content-Type":"application/json",...(opts.headers||{})}});const text=await r.text();if(!r.ok)throw new Error(`Checkpoint ${r.status}: ${text.slice(0,160)}`);return text?JSON.parse(text):null;}
+async function persistJobCheckpoint(jobId,patch={}){if(!jobId)return;try{
+    await requireChurchDesignUser(req);const churchId=patch.jobChurchId||"default";delete patch.jobChurchId;const rows=await jobRest(`church_drafts?id=eq.${encodeURIComponent(jobId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`);const current=rows?.[0]?.data||{};const next={...current,kind:"generation_job",...patch,updatedAt:new Date().toISOString()};await jobRest("church_drafts?on_conflict=id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify([{id:jobId,church_id:churchId,title:"__GENERATION_JOB__",data:next,updated_at:new Date().toISOString()}])});}catch(e){console.error("Generation checkpoint",e);}}
 
 
 const schema={
@@ -73,12 +89,14 @@ REGRA DE ENQUADRAMENTO HUMANO: por padrão preserve o corpo inteiro do pregador 
 ARQUITETURA DE LOGOS — REGRA ABSOLUTA:
 - A IA VISUAL NÃO desenhará, reconstruirá, copiará nem escreverá nenhuma logo.
 - Toda logo existente nas REFERÊNCIAS deve ser tratada como elemento a REMOVER da geração visual.
-- protected_assets serve SOMENTE como METADADO para o compositor pós-arte. NÃO transforme isso em espaço vazio, caixa, contorno, placeholder, placa, halo ou buraco visual no generation_prompt.
-- A composição gerada deve parecer completa e equilibrada sem qualquer logo.
-- Se houver logo da igreja e logo de evento, apenas sugira regiões distintas em protected_assets.
-- Para logo de evento, use uma das seis regiões centrais laterais como preferência aproximada; o compositor pós-arte poderá escolher outro ponto dentro da mesma zona conforme o conteúdo real.
-- church_logo_width_pct normalmente entre 12 e 22.
-- event_logo_width_pct: small≈12, medium≈17, large≈22.
+- Seu trabalho é somente reservar espaço e indicar em protected_assets onde o compositor determinístico colará o PNG original depois.
+- Se houver logo da igreja e logo de evento, reserve áreas distintas.
+- Se o usuário escolheu posição explícita da logo da igreja, respeite-a.
+- Sem posição explícita, preserve apenas a REGIÃO da logo na referência, nunca a marca em si.
+- Para logo de evento, use uma das seis regiões centrais laterais e mantenha distância de pregadores, título e dados essenciais.
+- Como a logo será colada depois, NÃO planeje sobreposição com pregadores. Escolha um ponto limpo dentro da região.
+- church_logo_width_pct normalmente entre 12 e 26.
+- event_logo_width_pct respeita small≈14, medium≈20, large≈26.
 - Logo omitida/inexistente => região "none" e largura 0.
 
 Em telão sem imagem principal, favoreça título centralizado. Com pregador/figura/ilustração, favoreça título em um lado e imagem no lado oposto.
@@ -116,8 +134,7 @@ FIDELIDADE DE POSE E DIREÇÃO:
 LOGOS — REGRA DE IDENTIDADE:
 - NÃO planeje logos como conteúdo gerado.
 - Logo principal e logo de evento serão coladas depois pelo compositor determinístico.
-- protected_assets é apenas dica geométrica para o compositor, NÃO uma instrução de reservar espaço visual na arte.
-- generation_prompt jamais deve pedir área limpa, caixa vazia, placeholder ou espaço reservado para logo.
+- Planeje apenas região, escala e espaço negativo em protected_assets.
 - Logos presentes nas referências devem ser removidas, nunca preservadas ou reinterpretadas.
 
 HIERARQUIA DE ATÉ 3 PREGADORES — REGRA ESTRUTURAL:
@@ -128,10 +145,10 @@ HIERARQUIA DE ATÉ 3 PREGADORES — REGRA ESTRUTURAL:
 - Se houver 3, o PRINCIPAL deve formar o eixo dominante; os auxiliares equilibram os lados.
 - Preserve integralmente a identidade de cada pessoa e associe o nome correto à pessoa correta.
 
-REGRA DE POSICIONAMENTO PÓS-ARTE — LOGO DE EVENTO:
-A logo de evento será colada somente DEPOIS que a arte visual estiver pronta.
-Não altere a composição para abrir espaço para ela e não desenhe qualquer área reservada.
-Em protected_assets, apenas registre uma preferência lateral aproximada. O compositor pós-arte é responsável por procurar o trecho menos ocupado dentro dessa região.
+REGRA DE RESERVA — LOGO DE EVENTO × PREGADOR:
+A logo de evento será colada deterministicamente depois. Portanto reserve uma área limpa que NÃO atravesse pregadores.
+Nunca planeje a região da logo sobre rosto, cabelo, corpo, roupa, mãos, microfone ou instrumento.
+Se a região escolhida conflitar, mantenha a região geral e desloque o ponto dentro dela até encontrar espaço livre.
 Estilo explicitamente escolhido: ${data.designStyle||"não especificado"}
 Modo de cor predominante: ${data.colorMode||"não especificado"}
 Cor manual, se houver: ${data.dominantColor||"não especificada"}
@@ -144,7 +161,7 @@ function outputText(d){if(typeof d.output_text==="string")return d.output_text;f
 
 module.exports=async function handler(req,res){
 if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
-if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY não configurada."});
+if(!process.env.OPENAI_API_KEY)return res.status(error?.statusCode||500).json({error:"OPENAI_API_KEY não configurada."});
 try{
 const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle)return res.status(400).json({error:"Envie uma referência ou escolha uma direção de inspiração."});
 const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
@@ -153,6 +170,8 @@ text:{format:{type:"json_schema",name:"churchdesign_art_direction",strict:true,s
 })});
 const requestId=r.headers.get("x-request-id")||null;const d=await r.json();if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.requestId=requestId;throw e;}
 const text=outputText(d);if(!text)throw new Error("Diretor de Arte não devolveu blueprint.");
-let artDirection;try{artDirection=JSON.parse(text)}catch{throw new Error("Blueprint inválido.");}return res.status(200).json({success:true,endpointType:'design-director',artDirection,meta:{model:'gpt-5.6-terra',usage:d.usage||null,requestId,endpoint:'responses'}});
-}catch(e){console.error("ChurchDesign Design Director",e);return res.status(500).json({error:e.message||"Erro no Diretor de Arte."});}
+let artDirection;try{artDirection=JSON.parse(text)}catch{throw new Error("Blueprint inválido.");}
+await persistJobCheckpoint(data.jobId,{jobChurchId:data.jobChurchId,status:"DIRECTED",artDirection,directorMeta:{model:"gpt-5.6-terra",usage:d.usage||null,requestId,endpoint:"responses"}});
+return res.status(200).json({success:true,endpointType:'design-director',artDirection,meta:{model:'gpt-5.6-terra',usage:d.usage||null,requestId,endpoint:'responses'}});
+}catch(e){console.error("ChurchDesign Design Director",e);return res.status(error?.statusCode||500).json({error:e.message||"Erro no Diretor de Arte."});}
 };
