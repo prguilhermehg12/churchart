@@ -532,7 +532,7 @@
 @media(max-width:850px){.logo-assistant-body{grid-template-columns:1fr;overflow:auto}.logo-assistant-stage-wrap{min-height:420px}.logo-assistant-stage{max-width:92vw}.logo-palette{grid-template-columns:repeat(3,1fr)}}
 
 
-/* NEWFLOW v0.18 — authentication */
+/* NEWFLOW v0.19 — authentication */
 .auth-gate{position:fixed;inset:0;z-index:10000;background:#090b0f;display:grid;place-items:center;padding:20px}
 .auth-gate.hidden{display:none}.auth-card{width:min(430px,96vw);background:#111318;border:1px solid #2a2e37;border-radius:20px;padding:26px;box-shadow:0 30px 100px rgba(0,0,0,.55)}
 .auth-card h1{margin:0 0 6px;font-size:26px}.auth-card>p{margin:0 0 20px;color:#969dac;font-size:12px;line-height:1.5}
@@ -541,6 +541,92 @@
 .auth-google{width:100%;background:#fff;color:#17191d}.auth-switch{margin-top:15px;text-align:center;color:#969dac;font-size:11px}.auth-switch button{border:0;background:none;color:#fff;font-weight:800;cursor:pointer}
 .auth-message{display:none;margin:12px 0;padding:10px;border-radius:10px;font-size:11px;line-height:1.45}.auth-message.show{display:block}.auth-message.error{background:#28151a;color:#ffb2bd;border:1px solid #61303a}.auth-message.ok{background:#10261b;color:#bff1d3;border:1px solid #285d43}
 .account-signout{width:100%;margin-top:10px}.account-email{display:block;color:#969dac;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:8px}
+
+
+/* NEWFLOW v0.19 — mobile creation wizard. Desktop layout remains unchanged. */
+.mobile-quick-wizard{display:none}
+@media(max-width:900px){
+  body.mobile-wizard-active{background:#090b0f}
+  body.mobile-wizard-active .sidebar{display:none!important}
+  body.mobile-wizard-active .main{margin-left:0!important;width:100%!important}
+  body.mobile-wizard-active .topbar{padding:14px 16px!important;min-height:64px}
+  body.mobile-wizard-active #eyebrow{font-size:10px!important;letter-spacing:.14em}
+  body.mobile-wizard-active #pageTitle{font-size:21px!important;line-height:1.12}
+  body.mobile-wizard-active .content{padding:12px 12px 104px!important}
+  body.mobile-wizard-active .quick-shell>.help,
+  body.mobile-wizard-active .quick-shell>.quick-grid,
+  body.mobile-wizard-active .quick-shell>.card,
+  body.mobile-wizard-active .quick-shell>#quickResultsWrap{display:none!important}
+  .mobile-quick-wizard{display:block;max-width:640px;margin:0 auto}
+  .mobile-wizard-progress{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 13px}
+  .mobile-wizard-progress strong{font-size:11px;color:#fff}
+  .mobile-wizard-progress span{font-size:10px;color:var(--muted)}
+  .mobile-wizard-track{height:5px;flex:1;background:#20242c;border-radius:99px;overflow:hidden}
+  .mobile-wizard-track i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;transition:width .2s ease}
+  .mobile-wizard-screen{display:none}
+  .mobile-wizard-screen.active{display:block}
+  .mobile-app-card{background:#11141a;border:1px solid #292e38;border-radius:20px;padding:18px 16px;box-shadow:0 18px 60px rgba(0,0,0,.24)}
+  .mobile-app-card>h2{font-size:22px;line-height:1.15;margin:0 0 7px}
+  .mobile-app-card>.mobile-step-copy{font-size:13px;line-height:1.5;color:#9ba3b3;margin:0 0 18px}
+  .mobile-app-card h3{font-size:16px!important;margin-top:20px!important}
+  .mobile-app-card p{font-size:12px!important;line-height:1.45}
+  .mobile-app-card .field{margin-bottom:16px}
+  .mobile-app-card .field label{font-size:12px!important;margin-bottom:7px!important;display:block}
+  .mobile-app-card input:not([type=checkbox]):not([type=color]):not([type=range]),
+  .mobile-app-card select,
+  .mobile-app-card textarea{min-height:52px!important;font-size:16px!important;border-radius:13px!important;padding:12px 13px!important}
+  .mobile-app-card textarea{min-height:92px!important}
+  .mobile-app-card .grid2{grid-template-columns:1fr!important;gap:0!important}
+  .mobile-app-card .quick-mode-toggle{gap:10px;margin-bottom:14px}
+  .mobile-app-card .quick-mode-toggle button{min-height:54px;font-size:14px!important;border-radius:13px}
+  .mobile-app-card .quick-format-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:11px}
+  .mobile-app-card .quick-format-card{padding:12px;border-radius:14px}
+  .mobile-app-card .quick-format-card strong{font-size:12px}
+  .mobile-app-card .quick-format-card small{font-size:10px}
+  .mobile-app-card .quick-format-sketch{height:70px}
+  .mobile-app-card .quick-ref-grid,.mobile-app-card .quick-pastor-grid,.mobile-app-card .church-image-grid,.mobile-app-card .inspiration-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px;max-height:none!important;overflow:visible!important}
+  .mobile-app-card .quick-asset{padding:8px;border-radius:14px}
+  .mobile-app-card .quick-asset strong{font-size:11px;margin-top:7px}
+  .mobile-app-card .inspiration-card{min-height:100px;padding:13px;border-radius:14px}
+  .mobile-app-card .inspiration-card strong{font-size:13px}
+  .mobile-app-card .inspiration-card small{font-size:10px;line-height:1.4}
+  .mobile-app-card .layer{padding:13px!important;border-radius:14px}
+  .mobile-app-card .layer-info strong{font-size:13px}
+  .mobile-app-card .layer-info small{font-size:10px;line-height:1.4}
+  .mobile-app-card .library-upload,.mobile-app-card .quick-upload-box{min-height:86px!important;border-radius:14px!important;padding:14px!important}
+  .mobile-app-card .pastor-name-input{min-height:44px!important;font-size:14px!important}
+  .mobile-logo-explainer{padding:15px;border:1px solid #343b49;background:#0c1016;border-radius:15px;margin-bottom:15px}
+  .mobile-logo-explainer strong{display:block;font-size:15px;margin-bottom:7px}
+  .mobile-logo-explainer p{margin:0;color:#a9b1bf!important}
+  .mobile-logo-explainer .flow-row{display:flex;align-items:center;gap:7px;margin-top:12px;flex-wrap:wrap}
+  .mobile-logo-explainer .flow-row span{font-size:10px;background:#171c25;border:1px solid #303744;padding:6px 8px;border-radius:99px}
+  .mobile-wizard-nav{position:fixed;left:0;right:0;bottom:0;z-index:120;background:rgba(9,11,15,.96);backdrop-filter:blur(14px);border-top:1px solid #272c35;padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:88px 88px 1fr;gap:9px}
+  .mobile-wizard-nav button{min-height:50px;border-radius:13px;font-size:13px;font-weight:800}
+  .mobile-wizard-nav .mobile-next{font-size:15px}
+  .mobile-wizard-nav button:disabled{opacity:.35}
+  .mobile-hidden-address{display:none!important}
+  .mobile-final-shell .quick-results-row{display:block;overflow:visible}
+  .mobile-final-shell .quick-result-card{width:100%;max-width:none;flex:none;border-radius:18px}
+  .mobile-final-shell .quick-result-body{padding:14px}
+  .mobile-final-shell .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .mobile-final-shell .quick-actions button{min-height:45px;font-size:11px!important}
+  .mobile-final-shell .quick-adapt-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px}
+  .mobile-final-shell .quick-adapt-btn{min-height:46px;font-size:11px!important;border-radius:12px}
+  .mobile-final-shell .all-artworks-shell{margin-top:14px}
+  .logo-assistant-overlay .mobile-assistant-home{display:none}
+}
+@media(max-width:700px){
+  .logo-assistant-overlay .logo-assistant-head{padding:10px 12px;gap:8px}
+  .logo-assistant-overlay .logo-assistant-head h2{font-size:18px}
+  .logo-assistant-overlay .logo-assistant-head small{font-size:9px}
+  .logo-assistant-overlay .mobile-assistant-home{display:inline-flex}
+  .logo-assistant-overlay .logo-assistant-head .mini-btn{min-height:42px;font-size:11px}
+  .logo-assistant-overlay .logo-assistant-body{padding-bottom:74px}
+  .logo-assistant-overlay .logo-assistant-panel{font-size:13px}
+  .logo-assistant-overlay .logo-palette-title{font-size:13px}
+  .logo-assistant-overlay .logo-palette-item strong{font-size:11px}
+  .logo-assistant-overlay .logo-assistant-actions button{min-height:50px;font-size:13px}
+}
 
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
@@ -590,7 +676,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.18</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.19</div>
   
   <script>
 const state={
@@ -609,6 +695,7 @@ artDirection:null,
 mode:'quick',
 quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',dominantColorMode:'custom',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoPosition:'',logoAssetId:null,omitChurchLogo:false,omitChurchName:false,eventLogoAssetId:null,eventLogoPosition:'',eventLogoSize:'small',pastorAssetIds:[],pastorNames:{},pastorPhotoTreatment:'ai',churchImageAssetId:null,correction:''},
 quickResults:[],
+mobileQuickStep:0,
 costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',actualStart:null,actualEnd:null,actualCost:null,requests:[],untrackedEstimate:0},
 library:{assets:[],generations:[],drafts:[],ratings:[],dbReady:false},
 gallerySeed:null,
@@ -2470,7 +2557,7 @@ window.openGallery=function(query=''){
   root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const raw=String(b.dataset.galleryChild||''),cut=raw.lastIndexOf('|');if(cut<1)return;startGalleryChild(raw.slice(0,cut),raw.slice(cut+1));});
 };
 
-// NEWFLOW v0.18 — derivadas da Galeria usam handlers locais do modal.
+// NEWFLOW v0.19 — derivadas da Galeria usam handlers locais do modal.
 window.startGalleryChild=startGalleryChild;
 
 window.openMyChurch=function(tab='pastor'){
@@ -2793,7 +2880,7 @@ async function drawTextLayer(ctx,c,l,text,fontFamily){
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
 
-// NEWFLOW v0.18 — Modo Detalhado removido do fluxo atual.
+// NEWFLOW v0.19 — Modo Detalhado removido do fluxo atual.
 // O arquivo completo anterior foi preservado separadamente como backup.
 // O produto atual inicia diretamente no Modo Rápido.
 function quickDefaultLogo(){
@@ -3039,6 +3126,103 @@ async function requestQuickGenerationWithMissingCheck(){
   }
   return runQuickGeneration('Principal',0);
 }
+
+function isMobileCreationFlow(){return window.matchMedia('(max-width:900px)').matches}
+function mobileQuickGo(step){
+  state.mobileQuickStep=Math.max(0,Math.min(5,Number(step)||0));
+  const screens=[...document.querySelectorAll('.mobile-wizard-screen')];
+  if(screens.length){
+    screens.forEach((x,i)=>x.classList.toggle('active',i===state.mobileQuickStep));
+    const bar=document.querySelector('.mobile-wizard-track i'),counter=document.querySelector('#mobileWizardCounter'),next=document.querySelector('#mobileWizardNext'),back=document.querySelector('#mobileWizardBack');
+    if(bar)bar.style.width=`${((Math.min(state.mobileQuickStep,4)+1)/5)*100}%`;
+    if(counter)counter.textContent=state.mobileQuickStep===5?'Arte final':`Etapa ${state.mobileQuickStep+1} de 5`;
+    if(next)next.style.display=state.mobileQuickStep<4?'block':'none';
+    if(back)back.disabled=state.mobileQuickStep===0;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }else screenQuickMode();
+}
+function mobileQuickHome(){
+  state.mobileQuickStep=0;
+  document.querySelector('.logo-assistant-overlay')?.remove();
+  setNewflowStage(1);
+  screenQuickMode();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function setupMobileQuickWizard(){
+  if(!isMobileCreationFlow()){document.body.classList.remove('mobile-wizard-active');return}
+  document.body.classList.add('mobile-wizard-active');
+  const shell=document.querySelector('.quick-shell'),grid=shell?.querySelector('.quick-grid');
+  if(!shell||!grid)return;
+  const cards=[...grid.children].filter(x=>x.classList.contains('card')),meta=cards[0],visual=cards[1];
+  const generateCard=[...shell.children].find(x=>x.classList?.contains('card')&&x!==meta&&x!==visual);
+  const results=document.querySelector('#quickResultsWrap');
+  if(!meta||!visual||!generateCard||!results)return;
+
+  const wizard=document.createElement('div');wizard.className='mobile-quick-wizard';
+  wizard.innerHTML=`<div class="mobile-wizard-progress"><strong>Nova arte</strong><div class="mobile-wizard-track"><i></i></div><span id="mobileWizardCounter"></span></div>
+    ${[0,1,2,3,4,5].map(i=>`<section class="mobile-wizard-screen" data-mobile-screen="${i}"><div class="mobile-app-card"><h2>${[
+      'Como você quer começar?','Qual será o tamanho?','Informações da arte','Pessoas e ambiente','Antes de gerar','Sua arte final'
+    ][i]}</h2><p class="mobile-step-copy">${[
+      'Escolha uma referência visual ou comece do zero. Se usar referência, selecione-a aqui mesmo.',
+      'Escolha o formato da arte. A composição será criada especificamente para este tamanho.',
+      'Informe o conteúdo e a direção visual. Campos vazios continuam opcionais e serão confirmados antes da geração.',
+      'Escolha os pregadores e, se quiser, uma foto real da igreja para compor o ambiente.',
+      'A arte base é criada sem nenhuma logo. Depois da geração, o Assistente de Logos abre para você posicionar as marcas manualmente.',
+      'Arte finalizada. Baixe, ajuste as logos novamente ou crie versões derivadas.'
+    ][i]}</p><div class="mobile-screen-content"></div></div></section>`).join('')}
+    <nav class="mobile-wizard-nav"><button class="mini-btn" id="mobileWizardHome" type="button">⌂ Home</button><button class="mini-btn" id="mobileWizardBack" type="button">← Voltar</button><button class="btn primary mobile-next" id="mobileWizardNext" type="button">Próximo →</button></nav>`;
+  shell.appendChild(wizard);
+  const zone=i=>wizard.querySelector(`[data-mobile-screen="${i}"] .mobile-screen-content`);
+
+  // STEP 0 — direction/reference or inspiration. Move nodes up to "Pregadores".
+  let n=visual.firstChild;
+  while(n){
+    const next=n.nextSibling;
+    if(n.nodeType===1 && n.tagName==='H3' && /Pregadores/i.test(n.textContent||''))break;
+    zone(0).appendChild(n);n=next;
+  }
+
+  // STEP 1 — format block.
+  const formatHeading=[...meta.querySelectorAll('h3')].find(x=>/Tamanho da arte/i.test(x.textContent||''));
+  if(formatHeading){
+    let f=formatHeading;
+    while(f){const next=f.nextSibling;zone(1).appendChild(f);f=next}
+  }
+
+  // STEP 2 — requested content fields (address remains stored but not shown in this mobile sequence).
+  const moveClosest=(sel,closest)=>{const el=document.querySelector(sel),node=el?.closest(closest);if(node&&!zone(2).contains(node))zone(2).appendChild(node)};
+  moveClosest('#qTitle','.field');moveClosest('#qSubtitle','.field');moveClosest('#qAudience','.grid2');moveClosest('#qDate','.grid2');moveClosest('#qColor','.grid2');
+  const illustrate=document.querySelector('#qIllustrate')?.closest('.layer');if(illustrate)zone(2).appendChild(illustrate);
+  const addressField=document.querySelector('#qAddress')?.closest('.field');if(addressField)addressField.classList.add('mobile-hidden-address');
+
+  // STEP 3 — remaining visual card = preachers + church image.
+  while(visual.firstChild)zone(3).appendChild(visual.firstChild);
+
+  // STEP 4 — explanation + actual generate card contents.
+  zone(4).insertAdjacentHTML('beforeend',`<div class="mobile-logo-explainer"><strong>As logos ficam protegidas.</strong><p>A inteligência artificial vai criar somente a arte base. Nenhuma logo será redesenhada pela IA. Assim que a arte ficar pronta, abriremos o Assistente de Logos para você colocar e posicionar as marcas originais.</p><div class="flow-row"><span>1 • Arte base</span><span>2 • Logos originais</span><span>3 • Arte final</span></div></div>`);
+  while(generateCard.firstChild)zone(4).appendChild(generateCard.firstChild);
+
+  // STEP 5 — final artwork + derivatives.
+  results.classList.add('mobile-final-shell');zone(5).appendChild(results);
+  if(state.quickResults?.some(r=>r.finalized===true)){
+    const edit=document.createElement('button');edit.type='button';edit.className='btn ghost';edit.style.cssText='width:100%;margin:0 0 12px;min-height:48px';
+    edit.textContent='Editar / reposicionar logos';
+    edit.onclick=()=>{const idx=Math.max(0,state.quickResults.findLastIndex?.(r=>r.finalized===true)??0);openLogoAssistant(`main:${idx}`)};
+    zone(5).prepend(edit);
+  }
+
+  // Preserve current wizard window across rerenders caused by selections.
+  document.querySelector('#qUseReference').onclick=()=>{state.quick.referenceMode='upload';state.mobileQuickStep=0;screenQuickMode()};
+  document.querySelector('#qUseInspiration').onclick=()=>{state.quick.referenceMode='inspiration';state.quick.reference=null;state.mobileQuickStep=0;screenQuickMode()};
+  document.querySelectorAll('[data-qformat]').forEach(el=>el.onclick=()=>{state.quick.format=el.dataset.qformat;state.mobileQuickStep=1;screenQuickMode()});
+  document.querySelectorAll('[data-inspiration]').forEach(el=>el.onclick=()=>{state.quick.inspirationStyle=el.dataset.inspiration;state.mobileQuickStep=0;screenQuickMode()});
+
+  wizard.querySelector('#mobileWizardHome').onclick=mobileQuickHome;
+  wizard.querySelector('#mobileWizardBack').onclick=()=>mobileQuickGo(state.mobileQuickStep-1);
+  wizard.querySelector('#mobileWizardNext').onclick=()=>mobileQuickGo(state.mobileQuickStep+1);
+  mobileQuickGo(state.mobileQuickStep||0);
+}
+
 function screenQuickMode(){
   setNewflowStage(1);updateSidebarAccount();
   quickDefaultLogo();quickDefaultPastor();
@@ -3085,7 +3269,7 @@ function screenQuickMode(){
   const up=document.querySelector('#qRefUpload');if(up)up.onchange=async e=>{const files=[...(e.target.files||[])],live=document.querySelector('#qRefUploadLive');const saved=await uploadLibraryAssets(files,'reference',{container:live,max:referenceLibraryLimit()-state.library.assets.filter(a=>a.type==='reference').length,onAsset:async a=>{state.quick.reference=a.url;state.quick.referenceMode='upload';}});if(saved.length)setTimeout(()=>refreshQuickModePreservingView(),350);};
   const cup=document.querySelector('#qChurchUpload');if(cup)cup.onchange=async e=>{let live=document.querySelector('#qChurchUploadLive');if(!live){live=document.createElement('div');live.id='qChurchUploadLive';live.className='upload-live';cup.closest('label')?.insertAdjacentElement('afterend',live);}const saved=await uploadLibraryAssets(e.target.files,'church',{container:live,onAsset:async a=>{if(!state.quick.churchImageAssetId)state.quick.churchImageAssetId=a.id;}});if(saved.length)setTimeout(()=>refreshQuickModePreservingView(),350);};
   const eul=document.querySelector('#qEventLogoUpload');if(eul)eul.onchange=async e=>{let live=document.querySelector('#qEventLogoUploadLive');if(!live){live=document.createElement('div');live.id='qEventLogoUploadLive';live.className='upload-live';eul.closest('label')?.insertAdjacentElement('afterend',live);}const saved=await uploadLibraryAssets(e.target.files,'event_logo',{container:live,onAsset:async a=>{if(!state.quick.eventLogoAssetId)state.quick.eventLogoAssetId=a.id;}});if(saved.length)setTimeout(()=>screenQuickMode(),350);};
-  document.querySelector('#quickGenerate').onclick=()=>requestQuickGenerationWithMissingCheck();document.querySelector('#quickCancel').onclick=()=>{cancelActiveProcess();document.querySelector('#quickStatus').textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');};bindQuickResultEvents();bindAllArtworksEvents();
+  document.querySelector('#quickGenerate').onclick=()=>requestQuickGenerationWithMissingCheck();document.querySelector('#quickCancel').onclick=()=>{cancelActiveProcess();document.querySelector('#quickStatus').textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');};bindQuickResultEvents();bindAllArtworksEvents();setupMobileQuickWizard();
 }
 
 
@@ -3284,6 +3468,7 @@ async function finalizeArtworkFlow(key,withoutLogo=false){
   document.querySelector('.logo-assistant-overlay')?.remove();
   const wrap=document.querySelector('#quickResultsWrap');if(wrap){wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}
   const status=document.querySelector('#quickStatus');if(status)status.innerHTML=`<strong style="color:var(--good)">✓ Arte finalizada${withoutLogo?' sem logo':''}.</strong> Agora você pode baixar ou gerar artes derivadas.`;
+  if(isMobileCreationFlow()){state.mobileQuickStep=5;setTimeout(()=>screenQuickMode(),0);}
   return node;
 }
 function bindLogoPaletteDrag(ov,key,card){
@@ -3308,9 +3493,9 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.18</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.19</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
-  // NEWFLOW v0.18: the coordinate system MUST be the real exported bitmap, not the requested target.
+  // NEWFLOW v0.19: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
   // object-fit creates an invisible coordinate mismatch and logos move on export.
   const stageBaseImg=ov.querySelector('[data-logo-stage] > img');
@@ -3344,6 +3529,7 @@ function openLogoAssistant(key,options={}){
 
   // Um único controlador delegado: evita perder handlers quando o palco é redesenhado.
   ov.addEventListener('click',async e=>{
+    const home=e.target.closest('[data-logo-home]');if(home){e.preventDefault();cleanupDrag();document.removeEventListener('keydown',onKey);window.removeEventListener('resize',onAssistantResize);ov.remove();return mobileQuickHome()}
     const close=e.target.closest('[data-logo-close]');if(close){e.preventDefault();return closeAssistant()}
     const palette=e.target.closest('[data-palette-asset]');if(palette){e.preventDefault();if(palette.dataset.dragged==='1'){palette.dataset.dragged='';return}return addAt(palette.dataset.paletteSlot,palette.dataset.paletteAsset)}
     const logo=e.target.closest('.manual-logo-node');if(logo){e.preventDefault();return setAssistantSelection(ov,key,logo.dataset.manualSlot)}
@@ -3631,6 +3817,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
     if(savedGallery){galleryCandidate.galleryId=savedGallery.galleryId;galleryCandidate.galleryPersisted=savedGallery.persisted!==false;galleryCandidate.gallerySaveError=savedGallery.error||null} 
     state.gallerySeed=null;
     setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte base pronta. Clique em Prosseguir para inserir as logos ou exportar sem logo.</strong>'+((savedGallery&&savedGallery.persisted===false)?`<span style="display:block;font-size:8px;color:#ffd19c;margin-top:3px">⚠ A arte ficou disponível na Galeria local, mas o banco não confirmou o salvamento: ${esc(savedGallery.error||'erro desconhecido')}.</span>`:'')+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();
+    if(isMobileCreationFlow()&&replaceIndex===null&&variationIndex===0){const createdIndex=state.quickResults.indexOf(result);setTimeout(()=>openLogoAssistant(`main:${Math.max(0,createdIndex)}`),120);}
   }catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível concluir.</strong><br>${esc(e.message)}`;}
   finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}
 }
@@ -3699,7 +3886,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
-// NEWFLOW v0.18 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
+// NEWFLOW v0.19 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
 let churchDesignAppStarted=false;
 async function startAuthenticatedApp(){
