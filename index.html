@@ -531,11 +531,39 @@
 .logo-assistant-controls{border-top:1px solid var(--line);padding-top:12px;margin-top:8px}.logo-assistant-controls label{display:block;font-size:9px;color:#cfd5df;margin-bottom:6px}.logo-assistant-controls input[type=range]{width:100%;pointer-events:auto;touch-action:pan-x;position:relative;z-index:6}.logo-assistant-actions{display:grid;gap:8px;margin-top:16px}.logo-assistant-actions .btn{width:100%}.logo-assistant-version{margin-top:14px;padding-top:10px;border-top:1px solid var(--line);text-align:center;font-size:8px;color:var(--muted);letter-spacing:.08em}.logo-assistant-note{font-size:9px;color:var(--muted);line-height:1.5;margin:8px 0 12px}.flow-badge{display:inline-flex;align-items:center;border:1px solid #3c4655;border-radius:99px;padding:4px 8px;font-size:8px;color:#cbd2df;margin-bottom:8px}.proceed-btn{border-color:#7d6cff!important;background:#1b1830!important;color:#e7e2ff!important}
 @media(max-width:850px){.logo-assistant-body{grid-template-columns:1fr;overflow:auto}.logo-assistant-stage-wrap{min-height:420px}.logo-assistant-stage{max-width:92vw}.logo-palette{grid-template-columns:repeat(3,1fr)}}
 
+
+/* NEWFLOW v0.17 — authentication */
+.auth-gate{position:fixed;inset:0;z-index:10000;background:#090b0f;display:grid;place-items:center;padding:20px}
+.auth-gate.hidden{display:none}.auth-card{width:min(430px,96vw);background:#111318;border:1px solid #2a2e37;border-radius:20px;padding:26px;box-shadow:0 30px 100px rgba(0,0,0,.55)}
+.auth-card h1{margin:0 0 6px;font-size:26px}.auth-card>p{margin:0 0 20px;color:#969dac;font-size:12px;line-height:1.5}
+.auth-field{display:grid;gap:7px;margin-bottom:12px}.auth-field label{font-size:11px;font-weight:800;color:#cfd4df}.auth-field input{width:100%;background:#0b0d11;color:#fff;border:1px solid #2a2e37;border-radius:11px;padding:12px 13px;outline:none}
+.auth-actions{display:grid;gap:9px}.auth-divider{display:flex;align-items:center;gap:10px;color:#737b8a;font-size:10px;margin:13px 0}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:#292d35;flex:1}
+.auth-google{width:100%;background:#fff;color:#17191d}.auth-switch{margin-top:15px;text-align:center;color:#969dac;font-size:11px}.auth-switch button{border:0;background:none;color:#fff;font-weight:800;cursor:pointer}
+.auth-message{display:none;margin:12px 0;padding:10px;border-radius:10px;font-size:11px;line-height:1.45}.auth-message.show{display:block}.auth-message.error{background:#28151a;color:#ffb2bd;border:1px solid #61303a}.auth-message.ok{background:#10261b;color:#bff1d3;border:1px solid #285d43}
+.account-signout{width:100%;margin-top:10px}.account-email{display:block;color:#969dac;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:8px}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
 <body>
-  <div class="app-shell">
+
+  <div id="authGate" class="auth-gate">
+    <div class="auth-card">
+      <h1>ChurchDesign</h1>
+      <p id="authSubtitle">Entre para acessar seu espaço de criação.</p>
+      <div id="authMessage" class="auth-message"></div>
+      <form id="authForm">
+        <div class="auth-field"><label>E-mail</label><input id="authEmail" type="email" autocomplete="email" required></div>
+        <div class="auth-field"><label>Senha</label><input id="authPassword" type="password" minlength="6" autocomplete="current-password" required></div>
+        <div class="auth-actions"><button id="authSubmit" class="btn primary" type="submit">Entrar</button></div>
+      </form>
+      <div class="auth-divider">ou</div>
+      <button id="googleLoginBtn" class="btn auth-google" type="button">Continuar com Google</button>
+      <div class="auth-switch"><span id="authSwitchText">Ainda não tem conta?</span> <button id="authSwitchBtn" type="button">Criar conta</button></div>
+    </div>
+  </div>
+
+  <div class="app-shell" id="appShell" style="visibility:hidden">
     <aside class="sidebar">
       <div class="brand"><div class="brand-mark">C</div><div><strong>ChurchDesign</strong><span>AI Design Studio</span></div></div>
       <button class="sidebar-project-btn" id="currentProjectBtn" type="button"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></button>
@@ -549,9 +577,9 @@
       </nav>
       <div class="account-card" id="sidebarAccount">
         <h4>MINHA CONTA</h4>
-        <span class="account-plan" id="accountPlan">PREMIUM</span>
+        <span class="account-email" id="accountEmail">—</span>
         <div class="account-row"><span>Referências salvas</span><strong id="accountRefUsage">0 / 30</strong></div>
-        <div class="account-row"><span>Créditos</span><strong id="accountCredits">—</strong></div>
+        <button class="mini-btn account-signout" type="button" onclick="signOutChurchDesign()">Sair</button>
       </div>
     </aside>
 
@@ -562,7 +590,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.16</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.17</div>
   
   <script>
 const state={
@@ -585,7 +613,8 @@ costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',
 library:{assets:[],generations:[],drafts:[],ratings:[],dbReady:false},
 gallerySeed:null,
 gallerySavedIds:[],
-user:{email:'pr.guilhermehg12@gmail.com',plan:'studio',credits:null,isAdmin:true},
+user:{id:null,email:null,plan:null,credits:null,isAdmin:false},
+authSession:null,
 finalConfig:{
 logoAssetId:null,
 pastorAssetId:null,
@@ -626,14 +655,13 @@ const effectCatalog=[
 {id:'neobrutalism',name:'Neobrutalismo',kind:'generative',requiredPlan:'pro'},
 {id:'nostalgic_3d',name:'3D nostálgico',kind:'generative',requiredPlan:'studio'}
 ];
-const planRank={free:0,pro:1,studio:2};
-function canUseFeature(requiredPlan='free'){return (planRank[state.user.plan]??0)>=(planRank[requiredPlan]??0);}
+const planRank={free:0,pro:0,studio:0};
+function canUseFeature(requiredPlan='free'){return true;}
 function referenceLibraryLimit(){if(state.user.plan==='studio')return 30;if(state.user.plan==='pro')return 20;return 10;}
 function planDisplayName(){return state.user.plan==='studio'?'PREMIUM':String(state.user.plan||'free').toUpperCase();}
 function updateSidebarAccount(){
-  const refs=state.library.assets.filter(a=>a.type==='reference').length,lim=referenceLibraryLimit();
-  const p=document.querySelector('#accountPlan'),u=document.querySelector('#accountRefUsage'),c=document.querySelector('#accountCredits');
-  if(p)p.textContent=planDisplayName();if(u)u.textContent=`${refs} / ${lim}`;if(c)c.textContent=state.user.credits==null?'—':String(state.user.credits);
+  const email=document.querySelector('#accountEmail');if(email)email.textContent=state.user?.email||'Conta autenticada';
+  const usage=document.querySelector('#accountRefUsage');if(usage)usage.textContent=`${(state.library.assets||[]).filter(a=>a.type==='reference').length} / 30`;
 }
 function setNewflowStage(stage=1){
   document.querySelectorAll('#stepNav [data-flow-step]').forEach(el=>{
@@ -732,7 +760,7 @@ function recordCostEvent(stage,meta={}){
 
 async function fetchActualOpenAICost(startMs,endMs=Date.now()){
   try{
-    const r=await fetch(`/api/openai-costs?start=${Math.floor(startMs/1000)}&end=${Math.floor(endMs/1000)}`);
+    const r=await authFetch(`/api/openai-costs?start=${Math.floor(startMs/1000)}&end=${Math.floor(endMs/1000)}`);
     const d=await r.json();
     if(r.ok&&Number.isFinite(Number(d.cost))){
       state.costSupervisor.actualCost=Number(d.cost);
@@ -1240,7 +1268,7 @@ function screenResults(){
       visualElements:selectedBuiltin,assets,requiredContent:exactContentFromLayers()
     };
   }
-  async function callGenerate(payload,signal){const r=await fetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,220)||`Resposta inválida (${r.status})`);}if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);return data;}
+  async function callGenerate(payload,signal){const r=await authFetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,220)||`Resposta inválida (${r.status})`);}if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);return data;}
   async function persistOne(im){try{const galleryCopy=await prepareImageForAI(im.dataUrl,1400,.82);const d=await apiJSON('upload-generation',{method:'POST',body:{label:im.label,format:state.format,dataUrl:galleryCopy}});return {galleryId:im.id||crypto.randomUUID(),label:im.label,url:d.url,kind:'principal',format:state.format,target:primaryTargetSpec(),recipe:{recipeVersion:2,pipelineVersion:'0.30.7',kind:'principal',format:state.format,target:primaryTargetSpec(),church:JSON.parse(JSON.stringify(state.church||{})),artDirection:state.artDirection||null,instruction:state.instruction||'',requiredContent:exactContentFromLayers(),assets:compactGalleryAssets(await selectedAssetPayload())}};}catch(e){console.warn(e);return null;}}
   function renderArtDirection(ad){
     if(!ad)return;artDirectorPanel?.classList.add('show');
@@ -1362,7 +1390,132 @@ async function deleteDraftById(id){
   catch(e){showMapNotice('Erro',e.message);}
 }
 
-function currentChurchId(){return String(state.user?.id||state.user?.email||'default').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80);}
+function currentChurchId(){
+  if(!state.user?.id)throw new Error("Sessão não autenticada.");
+  return `usr_${String(state.user.id).replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,76)}`;
+}
+
+
+const AUTH_STORAGE_KEY='churchdesign.auth.v1';
+let authConfig=null,authMode='login';
+
+function authHeaders(extra={}){
+  const token=state.authSession?.access_token;
+  return token?{...extra,Authorization:`Bearer ${token}`}:{...extra};
+}
+async function authFetch(url,options={}){
+  return fetch(url,{...options,headers:authHeaders(options.headers||{})});
+}
+function saveAuthSession(session){
+  state.authSession=session||null;
+  if(session)localStorage.setItem(AUTH_STORAGE_KEY,JSON.stringify(session));
+  else localStorage.removeItem(AUTH_STORAGE_KEY);
+}
+function loadAuthSession(){
+  try{return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'null')}catch{return null}
+}
+async function loadAuthConfig(){
+  const r=await fetch('/api/auth-config');
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.error||'Configuração de autenticação indisponível.');
+  authConfig=d;return d;
+}
+function authMessage(text,type='error'){
+  const el=document.querySelector('#authMessage');if(!el)return;
+  el.textContent=text||'';el.className=`auth-message ${text?'show':''} ${type}`;
+}
+async function authRequest(path,body){
+  const c=authConfig||await loadAuthConfig();
+  const r=await fetch(`${c.supabaseUrl}/auth/v1/${path}`,{method:'POST',headers:{apikey:c.anonKey,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.msg||d.error_description||d.message||'Falha na autenticação.');
+  return d;
+}
+async function refreshAuthSession(session){
+  if(!session?.refresh_token)return null;
+  try{
+    const d=await authRequest('token?grant_type=refresh_token',{refresh_token:session.refresh_token});
+    if(d?.access_token){saveAuthSession(d);return d}
+  }catch(e){console.warn('[Auth] refresh failed',e)}
+  saveAuthSession(null);return null;
+}
+async function fetchAuthUser(session){
+  if(!session?.access_token)return null;
+  const c=authConfig||await loadAuthConfig();
+  const r=await fetch(`${c.supabaseUrl}/auth/v1/user`,{headers:{apikey:c.anonKey,Authorization:`Bearer ${session.access_token}`}});
+  if(r.status===401)return null;
+  const d=await r.json().catch(()=>null);return r.ok?d:null;
+}
+function applyAuthenticatedUser(user,session){
+  state.authSession=session;state.user={id:user.id,email:user.email||'',plan:null,credits:null,isAdmin:false};
+  document.querySelector('#authGate')?.classList.add('hidden');
+  const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='visible';
+  const ae=document.querySelector('#accountEmail');if(ae)ae.textContent=state.user.email||'Conta autenticada';
+}
+function showAuthGate(){
+  document.querySelector('#authGate')?.classList.remove('hidden');
+  const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='hidden';
+}
+async function completeAuth(session){
+  let active=session,user=await fetchAuthUser(active);
+  if(!user){active=await refreshAuthSession(active);user=await fetchAuthUser(active)}
+  if(!user)throw new Error('Sessão expirada. Entre novamente.');
+  saveAuthSession(active);applyAuthenticatedUser(user,active);return user;
+}
+function oauthSessionFromHash(){
+  const h=new URLSearchParams(location.hash.replace(/^#/,''));
+  if(!h.get('access_token'))return null;
+  const session={access_token:h.get('access_token'),refresh_token:h.get('refresh_token'),expires_in:Number(h.get('expires_in')||3600),token_type:h.get('token_type')||'bearer'};
+  history.replaceState(null,'',location.pathname+location.search);return session;
+}
+async function initializeAuth(){
+  await loadAuthConfig();
+  const oauth=oauthSessionFromHash();
+  const saved=oauth||loadAuthSession();
+  if(saved){try{await completeAuth(saved);return true}catch(e){authMessage(e.message)}}
+  showAuthGate();return false;
+}
+function setAuthMode(mode){
+  authMode=mode;const signup=mode==='signup';
+  document.querySelector('#authSubmit').textContent=signup?'Criar conta':'Entrar';
+  document.querySelector('#authSwitchText').textContent=signup?'Já tem uma conta?':'Ainda não tem conta?';
+  document.querySelector('#authSwitchBtn').textContent=signup?'Entrar':'Criar conta';
+  document.querySelector('#authPassword').autocomplete=signup?'new-password':'current-password';
+  authMessage('');
+}
+async function handleAuthSubmit(e){
+  e.preventDefault();authMessage('');
+  const email=document.querySelector('#authEmail').value.trim(),password=document.querySelector('#authPassword').value;
+  const btn=document.querySelector('#authSubmit');btn.disabled=true;
+  try{
+    if(authMode==='signup'){
+      const d=await authRequest('signup',{email,password});
+      if(d?.access_token){await completeAuth(d);await startAuthenticatedApp()}
+      else authMessage('Conta criada. Confira seu e-mail para confirmar o cadastro antes de entrar.','ok');
+    }else{
+      const d=await authRequest('token?grant_type=password',{email,password});
+      await completeAuth(d);await startAuthenticatedApp();
+    }
+  }catch(err){authMessage(err.message||'Não foi possível autenticar.')}
+  finally{btn.disabled=false}
+}
+async function loginWithGoogle(){
+  try{
+    const c=authConfig||await loadAuthConfig();
+    const redirect=location.origin+location.pathname;
+    location.href=`${c.supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirect)}`;
+  }catch(e){authMessage(e.message)}
+}
+async function signOutChurchDesign(){
+  try{
+    if(state.authSession?.access_token){
+      const c=authConfig||await loadAuthConfig();
+      await fetch(`${c.supabaseUrl}/auth/v1/logout`,{method:'POST',headers:{apikey:c.anonKey,Authorization:`Bearer ${state.authSession.access_token}`}});
+    }
+  }catch(e){console.warn('[Auth] logout',e)}
+  saveAuthSession(null);state.authSession=null;state.user={id:null,email:null,plan:null,credits:null,isAdmin:false};
+  state.library={assets:[],generations:[],drafts:[],ratings:[],dbReady:false};state.quickResults=[];showAuthGate();setAuthMode('login');
+}
 
 function tenantProbeHTML(){
   const tenant=currentChurchId();
@@ -1384,7 +1537,7 @@ async function copyCurrentTenantId(btn){
   }
 }
 
-function apiJSON(action,options={}){const method=options.method||'GET';const churchId=currentChurchId();const url=`/api/church-data?action=${encodeURIComponent(action)}`;return fetch(url,{method,headers:{'Content-Type':'application/json','x-church-id':churchId},body:method==='GET'?undefined:JSON.stringify(options.body||{})}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;});}
+function apiJSON(action,options={}){const method=options.method||'GET';const churchId=currentChurchId();const url=`/api/church-data?action=${encodeURIComponent(action)}`;return authFetch(url,{method,headers:{'Content-Type':'application/json','x-church-id':churchId},body:method==='GET'?undefined:JSON.stringify(options.body||{})}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;});}
 
 
 
@@ -1507,7 +1660,7 @@ function fallbackOccupancy(target={},reason="analyzer-unavailable"){
 async function analyzeLogoOccupancy(baseDataUrl,target,signal=null,expectations={}){
   try{
     const image=await prepareImageForAI(baseDataUrl,1280,.84);
-    const r=await fetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'logo-occupancy',image,target,expectations}),signal});
+    const r=await authFetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'logo-occupancy',image,target,expectations}),signal});
     const text=await r.text();let data;
     try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,180)||`Logo Analyzer: resposta inválida (${r.status})`)}
     if(!r.ok)throw new Error(data.error||`Logo Analyzer: erro ${r.status}`);
@@ -2312,7 +2465,7 @@ window.openGallery=function(query=''){
   root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const raw=String(b.dataset.galleryChild||''),cut=raw.lastIndexOf('|');if(cut<1)return;startGalleryChild(raw.slice(0,cut),raw.slice(cut+1));});
 };
 
-// NEWFLOW v0.16 — derivadas da Galeria usam handlers locais do modal.
+// NEWFLOW v0.17 — derivadas da Galeria usam handlers locais do modal.
 window.startGalleryChild=startGalleryChild;
 
 window.openMyChurch=function(tab='pastor'){
@@ -2482,7 +2635,7 @@ function exactContentFromLayers(){
 }
 async function callQualityInspector(payload,signal=null){
   try{
-    const r=await fetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});
+    const r=await authFetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});
     const text=await r.text();
     let data;
     try{data=JSON.parse(text)}
@@ -2542,7 +2695,7 @@ async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null)
   for(let attempt=0;attempt<=maxCorrections;attempt++){
     const qualityCorrection=[retryInstructions[Math.min(attempt,retryInstructions.length-1)],lastReview?.correction_prompt||''].filter(Boolean).join(' ');
     const request={...payload,qualityCorrection,revisionAttempt:attempt,safeMode:attempt>=maxCorrections&&attempt>0};
-    const r=await fetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal});
+    const r=await authFetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal});
     const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,180)||`Resposta inválida (${r.status})`);}
     if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);assertGeneratorResponse(data);recordOpenAIRequest(attempt===0?'Gerador de imagem':`Retry de imagem ${attempt}`,data.image.meta||{});lastImage=data.image;
     const review=await callQualityInspector({generatedImage:lastImage.url,references:payload.references||[],assets:payload.assets||{},requiredContent:payload.requiredContent||{},semanticMap:payload.semanticMap||[],userInstruction:payload.instruction||'',finalInstruction:payload.finalInstruction||'',artDirection:payload.artDirection||null,audience:payload.audience||null,designStyle:payload.designStyle||null,logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,omitChurchLogo:payload.omitChurchLogo||false,omitChurchName:payload.omitChurchName||false,allowedTexts:payload.allowedTexts||[],nativeCanvasRequired:true,churchImageMustBeBackground:true,typographyBlueprint:payload.artDirection?.typographyBlueprint||null},signal);
@@ -2565,7 +2718,7 @@ function assertInspectorResponse(data){if(data?.endpointType&&data.endpointType!
 
 
 async function requestArtDirection(base,signal=null){
-  const r=await fetch('/api/design-director',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+  const r=await authFetch('/api/design-director',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     references:base.references||[],semanticMap:base.semanticMap||[],church:base.church||{},
     instruction:base.instruction||'',finalInstruction:base.finalInstruction||'',effects:base.effects||[],
     format:base.format,target:base.target||primaryTargetSpec(),inspirationStyle:base.inspirationStyle||null,
@@ -2635,7 +2788,7 @@ async function drawTextLayer(ctx,c,l,text,fontFamily){
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
 
-// NEWFLOW v0.16 — Modo Detalhado removido do fluxo atual.
+// NEWFLOW v0.17 — Modo Detalhado removido do fluxo atual.
 // O arquivo completo anterior foi preservado separadamente como backup.
 // O produto atual inicia diretamente no Modo Rápido.
 function quickDefaultLogo(){
@@ -3150,9 +3303,9 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.16</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.17</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
-  // NEWFLOW v0.16: the coordinate system MUST be the real exported bitmap, not the requested target.
+  // NEWFLOW v0.17: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
   // object-fit creates an invisible coordinate mismatch and logos move on export.
   const stageBaseImg=ov.querySelector('[data-logo-stage] > img');
@@ -3541,9 +3694,19 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
-// NEWFLOW v0.16 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
+// NEWFLOW v0.17 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
-bootstrapLibrary().finally(()=>{state.mode='quick';updateSidebarAccount();screenQuickMode();});
+let churchDesignAppStarted=false;
+async function startAuthenticatedApp(){
+  if(churchDesignAppStarted)return;
+  churchDesignAppStarted=true;
+  await bootstrapLibrary().catch(e=>console.error('[ChurchDesign] bootstrap',e));
+  state.mode='quick';updateSidebarAccount();screenQuickMode();
+}
+document.querySelector('#authForm')?.addEventListener('submit',handleAuthSubmit);
+document.querySelector('#googleLoginBtn')?.addEventListener('click',loginWithGoogle);
+document.querySelector('#authSwitchBtn')?.addEventListener('click',()=>setAuthMode(authMode==='login'?'signup':'login'));
+initializeAuth().then(ok=>{if(ok)startAuthenticatedApp()}).catch(e=>{showAuthGate();authMessage(e.message||'Falha ao iniciar autenticação.')});
 
 </script>
 </body>
