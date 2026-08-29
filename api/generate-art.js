@@ -1,4 +1,20 @@
-// ChurchDesign NEWFLOW v0.11 — V0.21 church-photo semantics + logo-free generation
+
+async function requireChurchDesignUser(req){
+  const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
+  const anon=process.env.SUPABASE_ANON_KEY;
+  if(!raw||!anon)throw Object.assign(new Error("SUPABASE_URL ou SUPABASE_ANON_KEY não configuradas."),{statusCode:500});
+  const authorization=String(req.headers.authorization||"");
+  if(!/^Bearer\s+\S+/i.test(authorization))throw Object.assign(new Error("Autenticação obrigatória."),{statusCode:401});
+  const r=await fetch(`${raw}/auth/v1/user`,{headers:{apikey:anon,Authorization:authorization}});
+  const user=await r.json().catch(()=>null);
+  if(!r.ok||!user?.id)throw Object.assign(new Error("Sessão inválida ou expirada."),{statusCode:401});
+  return user;
+}
+function churchIdFromUser(user){
+  return `usr_${String(user.id).replace(/[^a-zA-Z0-9_-]/g,"_").slice(0,76)}`;
+}
+
+// ChurchDesign NEWFLOW v0.12 — authentication only; V0.21 church-photo semantics unchanged
 module.exports.config={maxDuration:180};
 
 const IMAGES_EDIT_URL="https://api.openai.com/v1/images/edits";
@@ -327,5 +343,5 @@ module.exports=async function handler(req,res){
     const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
     const url=await saveBase64ToStorage(generated.base64,label);
     const image={label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.usage||null,requestId:generated.requestId||null,endpoint:generated.endpoint,size:generated.size}};return res.status(200).json({success:true,endpointType:'generate-art',image});
-  }catch(e){console.error("ChurchDesign V0.28.4 generate",e);return res.status(500).json({error:e.message||"Erro ao gerar."});}
+  }catch(e){console.error("ChurchDesign V0.28.4 generate",e);return res.status(e.statusCode||500).json({error:e.message||"Erro ao gerar."});}
 };
