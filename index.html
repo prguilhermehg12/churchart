@@ -532,7 +532,7 @@
 @media(max-width:850px){.logo-assistant-body{grid-template-columns:1fr;overflow:auto}.logo-assistant-stage-wrap{min-height:420px}.logo-assistant-stage{max-width:92vw}.logo-palette{grid-template-columns:repeat(3,1fr)}}
 
 
-/* NEWFLOW v0.27 — authentication */
+/* NEWFLOW v0.28 — authentication */
 .auth-gate{position:fixed;inset:0;z-index:10000;background:#090b0f;display:grid;place-items:center;padding:20px}
 .auth-gate.hidden{display:none}.auth-card{width:min(430px,96vw);background:#111318;border:1px solid #2a2e37;border-radius:20px;padding:26px;box-shadow:0 30px 100px rgba(0,0,0,.55)}
 .auth-card h1{margin:0 0 6px;font-size:26px}.auth-card>p{margin:0 0 20px;color:#969dac;font-size:12px;line-height:1.5}
@@ -543,7 +543,7 @@
 .account-signout{width:100%;margin-top:10px}.account-email{display:block;color:#969dac;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:8px}
 
 
-/* NEWFLOW v0.27 — mobile creation wizard. Desktop layout remains unchanged. */
+/* NEWFLOW v0.28 — mobile creation wizard. Desktop layout remains unchanged. */
 .mobile-quick-wizard{display:none}
 @media(max-width:900px){
   body.mobile-wizard-active{background:#090b0f}
@@ -627,7 +627,7 @@
   .logo-assistant-overlay .logo-assistant-actions button{min-height:50px;font-size:13px}
 }
 
-/* NEWFLOW v0.27 — ChurchDesign logo + complete light/dark appearance */
+/* NEWFLOW v0.28 — ChurchDesign logo + complete light/dark appearance */
 :root{--brand-logo:url("/churchdesign-logo-dark.png")}
 html[data-theme="dark"]{--brand-logo:url("/churchdesign-logo-dark.png")}
 html[data-theme="light"]{
@@ -695,7 +695,7 @@ html[data-theme="light"] .footer{background:rgba(255,255,255,.94)!important;bord
 }
 
 
-/* NEWFLOW v0.27 — premium surface system + gallery search/list */
+/* NEWFLOW v0.28 — premium surface system + gallery search/list */
 :root{
   --field-bg:#11151c;--field-bg-2:#171c24;--field-border:#353c48;
   --soft-surface:#151a22;--soft-surface-2:#1c222c;--scroll-track:#151922;--scroll-thumb:#495261;
@@ -806,7 +806,7 @@ html[data-theme="light"] .draft-badge{color:#674700!important}
 }
 
 
-/* NEWFLOW v0.27 — higher-contrast light theme + orange identity */
+/* NEWFLOW v0.28 — higher-contrast light theme + orange identity */
 :root{
   --accent:#ff6a00!important;
   --accent2:#ff9a00!important;
@@ -1042,7 +1042,7 @@ html[data-theme="light"] .db-status.ok i{
 }
 
 
-/* NEWFLOW v0.27 — light treatment for derivative-art configuration panels */
+/* NEWFLOW v0.28 — light treatment for derivative-art configuration panels */
 html[data-theme="light"] .adapt-panel,
 html[data-theme="light"] .quick-adapt-panel,
 html[data-theme="light"] [id^="quickAdaptConfig-"]{
@@ -1087,7 +1087,7 @@ html[data-theme="light"] [id^="quickAdaptConfig-"] input[type=checkbox]{
 }
 
 
-/* NEWFLOW v0.27 — Telão occupancy selector + Modo Livre */
+/* NEWFLOW v0.28 — Telão occupancy selector + Modo Livre */
 .screen-occupancy-block{grid-column:1/-1;margin-top:4px;padding:12px;border:1px solid var(--field-border);background:var(--soft-surface);border-radius:12px}
 .screen-occupancy-block>strong{display:block;font-size:10px;margin-bottom:4px}
 .screen-occupancy-block>small{display:block;color:var(--muted);font-size:8px;line-height:1.45;margin-bottom:10px}
@@ -1113,7 +1113,7 @@ html[data-theme="light"] [id^="quickAdaptConfig-"] input[type=checkbox]{
 }
 
 
-/* NEWFLOW v0.27 — light fixes, screen ratio preview, gallery correction */
+/* NEWFLOW v0.28 — light fixes, screen ratio preview, gallery correction */
 html[data-theme="light"] .draft-badge{
   background:#f3dfc9!important;
   border-color:#d79a59!important;
@@ -1198,6 +1198,90 @@ html[data-theme="light"] .gallery-correct-btn{
   border-color:#d48b4d!important;
 }
 
+
+/* NEWFLOW v0.28 — consistent selected-state system for clickable options */
+:root{
+  --selected-bg-dark:#332015;
+  --selected-border-dark:#ff7a1a;
+  --selected-text-dark:#ffd8ba;
+  --selected-bg-light:#f6d8bf;
+  --selected-border-light:#e07b2f;
+  --selected-text-light:#7a3500;
+}
+[data-selectable],
+.quick-adapt-btn,
+.adapt-format,
+.screen-occupancy-option,
+.free-format-option,
+.quick-format-card,
+.quick-asset,
+.inspiration-card,
+.library-tab,
+.keep-chip,
+.theme-toggle button,
+.quick-mode-toggle button,
+.nav-step,
+.sidebar .mini-btn,
+.project-mini .mini-btn{
+  transition:background .15s ease,border-color .15s ease,color .15s ease,box-shadow .15s ease,transform .12s ease;
+}
+.quick-adapt-btn.selected,
+.quick-adapt-btn.active,
+.adapt-format.selected,
+.adapt-format.active,
+.screen-occupancy-option.selected,
+.screen-occupancy-option.active,
+.free-format-option.selected,
+.free-format-option.active,
+.quick-format-card.selected,
+.quick-asset.selected,
+.quick-asset.multi-selected,
+.inspiration-card.selected,
+.library-tab.active,
+.keep-chip.active,
+.theme-toggle button.active,
+.quick-mode-toggle button.selected-result,
+.nav-step.active,
+.sidebar .mini-btn.active,
+.project-mini .mini-btn.active{
+  background:var(--selected-bg-dark)!important;
+  border-color:var(--selected-border-dark)!important;
+  color:var(--selected-text-dark)!important;
+  box-shadow:0 0 0 2px rgba(255,122,26,.18)!important;
+}
+html[data-theme="light"] .quick-adapt-btn.selected,
+html[data-theme="light"] .quick-adapt-btn.active,
+html[data-theme="light"] .adapt-format.selected,
+html[data-theme="light"] .adapt-format.active,
+html[data-theme="light"] .screen-occupancy-option.selected,
+html[data-theme="light"] .screen-occupancy-option.active,
+html[data-theme="light"] .free-format-option.selected,
+html[data-theme="light"] .free-format-option.active,
+html[data-theme="light"] .quick-format-card.selected,
+html[data-theme="light"] .quick-asset.selected,
+html[data-theme="light"] .quick-asset.multi-selected,
+html[data-theme="light"] .inspiration-card.selected,
+html[data-theme="light"] .library-tab.active,
+html[data-theme="light"] .keep-chip.active,
+html[data-theme="light"] .theme-toggle button.active,
+html[data-theme="light"] .quick-mode-toggle button.selected-result,
+html[data-theme="light"] .nav-step.active,
+html[data-theme="light"] .sidebar .mini-btn.active,
+html[data-theme="light"] .project-mini .mini-btn.active{
+  background:var(--selected-bg-light)!important;
+  border-color:var(--selected-border-light)!important;
+  color:var(--selected-text-light)!important;
+  box-shadow:0 0 0 2px rgba(224,123,47,.15)!important;
+}
+.quick-adapt-btn:active,
+.adapt-format:active,
+.screen-occupancy-option:active,
+.free-format-option:active,
+.keep-chip:active,
+.quick-mode-toggle button:active{
+  transform:translateY(1px);
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -1246,7 +1330,7 @@ html[data-theme="light"] .gallery-correct-btn{
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.27</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.28</div>
   
   <script>
 const state={
@@ -1914,7 +1998,7 @@ function screenResults(){
   function keepOptionsHTML(i,f){const options=[['all','Tudo'],['title','Título principal'],['subtitle','Subtítulo'],['pastor','Foto do pregador'],['date','Data'],['time','Hora'],['address','Endereço'],['logo','Logo'],['background','Elementos de fundo']];return `<div class="keep-box" data-keep-box="${i}-${f}"><strong>O que deve permanecer nesta versão?</strong><div class="keep-chips">${options.map((o,j)=>`<button class="keep-chip ${j===0?'active':''}" type="button" data-keep="${o[0]}">${o[1]}</button>`).join('')}</div></div>`;}
   const formatLabel=f=>f==='screen'?'Criar arte telão':f==='youtube'?'Criar arte YouTube':'Criar Stories';
   function resultCard(im,i){return `<div class="card result-card" id="resultCard-${i}"><img src="${im.dataUrl}" style="display:block;width:100%;${state.format==='wide'?'aspect-ratio:16/9':state.format==='story'?'aspect-ratio:9/16':'aspect-ratio:4/5'};object-fit:cover"><div class="result-live-note">✓ Esta proposta já está pronta.</div><div class="result-meta"><strong>${esc(im.label)}</strong><div class="result-actions"><button class="mini-btn download-btn" data-download-primary="${i}" type="button">↓ Baixar</button></div></div><div class="adapt-panel"><div class="adapt-title">Criar adaptações desta proposta</div><div class="adapt-formats">${['screen','youtube','story'].map(f=>`<button class="adapt-format" type="button" data-adapt-toggle="${i}-${f}">${formatLabel(f)}</button>`).join('')}</div>${['screen','youtube','story'].map(f=>`<div data-adapt-options="${i}-${f}" style="display:none">${keepOptionsHTML(i,f)}</div>`).join('')}<div class="adapt-actions"><button class="mini-btn" data-generate-adapt="${i}" type="button">Gerar formatos selecionados</button></div><div class="adaptation-list" id="adaptList-${i}"></div></div></div>`;}
-  function bindCard(i){const dl=document.querySelector(`[data-download-primary="${i}"]`);if(dl)dl.onclick=()=>{const im=currentImages[i];if(im)downloadDataUrl(im.dataUrl,buildDownloadName(im.label));};document.querySelectorAll(`[data-adapt-toggle^="${i}-"]`).forEach(el=>el.onclick=()=>{const [idx,f]=el.dataset.adaptToggle.split('-');el.classList.toggle('active');const box=document.querySelector(`[data-adapt-options="${idx}-${f}"]`);if(box)box.style.display=el.classList.contains('active')?'block':'none';});document.querySelectorAll(`#resultCard-${i} .keep-box`).forEach(box=>box.querySelectorAll('[data-keep]').forEach(ch=>ch.onclick=()=>{const all=box.querySelector('[data-keep="all"]');if(ch.dataset.keep==='all'){box.querySelectorAll('[data-keep]').forEach(x=>x.classList.toggle('active',x===ch));}else{all?.classList.remove('active');ch.classList.toggle('active');if(!box.querySelector('[data-keep].active'))all?.classList.add('active');}}));const ga=document.querySelector(`[data-generate-adapt="${i}"]`);if(ga)ga.onclick=()=>generateAdaptationsFor(i);}
+  function bindCard(i){const dl=document.querySelector(`[data-download-primary="${i}"]`);if(dl)dl.onclick=()=>{const im=currentImages[i];if(im)downloadDataUrl(im.dataUrl,buildDownloadName(im.label));};document.querySelectorAll(`[data-adapt-toggle^="${i}-"]`).forEach(el=>el.onclick=()=>{const [idx,f]=el.dataset.adaptToggle.split('-');el.classList.toggle('active');el.classList.toggle('selected',el.classList.contains('active'));const box=document.querySelector(`[data-adapt-options="${idx}-${f}"]`);if(box)box.style.display=el.classList.contains('active')?'block':'none';});document.querySelectorAll(`#resultCard-${i} .keep-box`).forEach(box=>box.querySelectorAll('[data-keep]').forEach(ch=>ch.onclick=()=>{const all=box.querySelector('[data-keep="all"]');if(ch.dataset.keep==='all'){box.querySelectorAll('[data-keep]').forEach(x=>{x.classList.toggle('active',x===ch);x.classList.toggle('selected',x===ch)});}else{all?.classList.remove('active','selected');ch.classList.toggle('active');ch.classList.toggle('selected',ch.classList.contains('active'));if(!box.querySelector('[data-keep].active'))all?.classList.add('active','selected');}}));const ga=document.querySelector(`[data-generate-adapt="${i}"]`);if(ga)ga.onclick=()=>generateAdaptationsFor(i);}
   function appendResult(im){const i=currentImages.length;currentImages.push(im);results.insertAdjacentHTML('beforeend',resultCard(im,i));bindCard(i);stopBtn.style.display='block';}
   async function refsPayload(){return Promise.all((state.referenceSelections.length?state.referenceSelections:[state.reference?{url:state.reference,note:''}:null].filter(Boolean)).slice(0,3).map(async r=>({image:await prepareImageForAI(r.url),note:r.note||''})));}
   async function basePayload(){
@@ -3190,10 +3274,17 @@ window.openGallery=function(query='',viewMode=null){
   root.querySelectorAll('[data-gallery-reference]').forEach(b=>b.onclick=e=>{e.stopPropagation();useGalleryAsReference(b.dataset.galleryReference)});
   root.querySelectorAll('[data-gallery-reopen]').forEach(b=>b.onclick=e=>{e.stopPropagation();reopenGalleryProject(b.dataset.galleryReopen)});
   root.querySelectorAll('[data-gallery-correct]').forEach(b=>b.onclick=e=>{e.stopPropagation();correctGalleryArtwork(b.dataset.galleryCorrect)});
-  root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const raw=String(b.dataset.galleryChild||''),cut=raw.lastIndexOf('|');if(cut<1)return;startGalleryChild(raw.slice(0,cut),raw.slice(cut+1));});
+  root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=e=>{
+    e.preventDefault();e.stopPropagation();
+    const group=b.closest('.gallery-child-actions');
+    group?.querySelectorAll('[data-gallery-child]').forEach(x=>x.classList.remove('selected'));
+    b.classList.add('selected');
+    const raw=String(b.dataset.galleryChild||''),cut=raw.lastIndexOf('|');if(cut<1)return;
+    startGalleryChild(raw.slice(0,cut),raw.slice(cut+1));
+  });
 };
 
-// NEWFLOW v0.27 — derivadas da Galeria usam handlers locais do modal.
+// NEWFLOW v0.28 — derivadas da Galeria usam handlers locais do modal.
 window.startGalleryChild=startGalleryChild;
 
 window.openMyChurch=function(tab='pastor'){
@@ -3516,7 +3607,7 @@ async function drawTextLayer(ctx,c,l,text,fontFamily){
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
 
-// NEWFLOW v0.27 — Modo Detalhado removido do fluxo atual.
+// NEWFLOW v0.28 — Modo Detalhado removido do fluxo atual.
 // O arquivo completo anterior foi preservado separadamente como backup.
 // O produto atual inicia diretamente no Modo Rápido.
 function quickDefaultLogo(){
@@ -4139,9 +4230,9 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.27</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.28</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
-  // NEWFLOW v0.27: the coordinate system MUST be the real exported bitmap, not the requested target.
+  // NEWFLOW v0.28: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
   // object-fit creates an invisible coordinate mismatch and logos move on export.
   const stageBaseImg=ov.querySelector('[data-logo-stage] > img');
@@ -4247,9 +4338,9 @@ function openQuickAdaptConfig(i,f,explicitSourceKey=null){
   const sourcePicker=`<input type="hidden" data-adapt-source value="${esc(defaultKey)}"><small style="display:block;color:var(--muted);font-size:8px;margin-bottom:8px">Esta versão é a base exata da arte derivada.</small>`;
 
   if(f==='free'){
-    const formats=quickFormats.map(x=>{const t=quickTargetSpec(x.id);return `<button type="button" class="free-format-option ${x.id==='feed'?'active':''}" data-free-format="${x.id}">${esc(x.label)}<small style="display:block;font-size:7px;color:var(--muted);margin-top:2px">${t.width}×${t.height}</small></button>`}).join('');
+    const formats=quickFormats.map(x=>{const t=quickTargetSpec(x.id);return `<button type="button" class="free-format-option ${x.id==='feed'?'active selected':''}" data-free-format="${x.id}">${esc(x.label)}<small style="display:block;font-size:7px;color:var(--muted);margin-top:2px">${t.width}×${t.height}</small></button>`}).join('');
     box.innerHTML=`<div class="adapt-config free-mode-box">${sourcePicker}<strong>Modo Livre</strong><small style="display:block;color:var(--muted);font-size:8px;margin-top:4px">Escolha o tamanho e descreva livremente a nova peça. A identidade visual da arte-base será preservada.</small><div class="free-mode-formats">${formats}</div><div class="field"><label>O que você quer criar?</label><textarea data-free-instruction placeholder="Ex.: Coloque o título no canto superior esquerdo. No centro, crie uma lista de preços com: Camiseta R$ 50, Caneca R$ 25, Combo R$ 65."></textarea></div><button class="mini-btn" data-confirm-free style="width:100%;margin-top:8px">Gerar Modo Livre</button></div>`;
-    box.querySelectorAll('[data-free-format]').forEach(b=>b.onclick=()=>{box.querySelectorAll('[data-free-format]').forEach(x=>x.classList.remove('active'));b.classList.add('active')});
+    box.querySelectorAll('[data-free-format]').forEach(b=>b.onclick=()=>{box.querySelectorAll('[data-free-format]').forEach(x=>x.classList.remove('active','selected'));b.classList.add('active','selected')});
     box.querySelector('[data-confirm-free]').onclick=()=>{
       const format=box.querySelector('[data-free-format].active')?.dataset.freeFormat||'feed';
       const instruction=String(box.querySelector('[data-free-instruction]')?.value||'').trim();
@@ -4263,9 +4354,9 @@ function openQuickAdaptConfig(i,f,explicitSourceKey=null){
 
   const target=quickTargetSpec(f);
   const screenRatio=(Number(target.width)>0&&Number(target.height)>0)?`${Number(target.width)}/${Number(target.height)}`:'16/9';
-  const occupancy=f==='screen'?`<div class="screen-occupancy-block" style="--screen-preview-ratio:${screenRatio}"><strong>Quanto da tela as informações devem ocupar?</strong><small>Escolha a proporção aproximada do conjunto de informações em relação à tela inteira.</small><div class="screen-occupancy-grid">${[5,20,30,40,50].map(p=>`<button type="button" class="screen-occupancy-option ${p===20?'active':''}" data-screen-occupancy="${p}"><div class="screen-occupancy-preview"><i></i></div><b>${p}%</b></button>`).join('')}</div></div><label class="dark-screen-option"><input type="checkbox" data-dark-screen>Versão escura para telão / transmissão</label>`:'';
+  const occupancy=f==='screen'?`<div class="screen-occupancy-block" style="--screen-preview-ratio:${screenRatio}"><strong>Quanto da tela as informações devem ocupar?</strong><small>Escolha a proporção aproximada do conjunto de informações em relação à tela inteira.</small><div class="screen-occupancy-grid">${[5,20,30,40,50].map(p=>`<button type="button" class="screen-occupancy-option ${p===20?'active selected':''}" data-screen-occupancy="${p}"><div class="screen-occupancy-preview"><i></i></div><b>${p}%</b></button>`).join('')}</div></div><label class="dark-screen-option"><input type="checkbox" data-dark-screen>Versão escura para telão / transmissão</label>`:'';
   box.innerHTML=`<div class="adapt-config">${sourcePicker}<strong>${target.label}: o que deve ser omitido?</strong><div class="adapt-omit-grid"><label><input type="checkbox" data-omit="title">Omitir título</label><label><input type="checkbox" data-omit="subtitle">Omitir subtítulo</label><label><input type="checkbox" data-omit="date">Omitir data</label><label><input type="checkbox" data-omit="time">Omitir hora</label><label><input type="checkbox" data-omit="address">Omitir endereço</label><label><input type="checkbox" data-omit="churchName">Omitir nome da igreja</label><label><input type="checkbox" data-omit="pastorNames">Omitir nome do(s) pregador(es)</label><label><input type="checkbox" data-omit="pastorMain">Omitir pregador principal</label><label><input type="checkbox" data-omit="pastorAux1">Omitir pregador auxiliar 1</label><label><input type="checkbox" data-omit="pastorAux2">Omitir pregador auxiliar 2</label><label><input type="checkbox" data-omit="pastors">Omitir todos os pregadores</label><label><input type="checkbox" data-omit="churchImage">Omitir foto da igreja</label>${occupancy}</div><button class="mini-btn" data-confirm-adapt="${i}-${f}" style="width:100%;margin-top:8px">Gerar ${target.label}</button></div>`;
-  box.querySelectorAll('[data-screen-occupancy]').forEach(b=>b.onclick=()=>{box.querySelectorAll('[data-screen-occupancy]').forEach(x=>x.classList.remove('active'));b.classList.add('active')});
+  box.querySelectorAll('[data-screen-occupancy]').forEach(b=>b.onclick=()=>{box.querySelectorAll('[data-screen-occupancy]').forEach(x=>x.classList.remove('active','selected'));b.classList.add('active','selected')});
   box.querySelector('[data-confirm-adapt]').onclick=()=>{
     const omit=[...box.querySelectorAll('[data-omit]:checked')].map(x=>x.dataset.omit);
     const darkScreen=!!box.querySelector('[data-dark-screen]:checked');
@@ -4281,7 +4372,13 @@ function bindQuickResultEvents(){
   document.querySelectorAll('[data-qproceed]').forEach(b=>b.onclick=()=>openLogoAssistant(`main:${b.dataset.qproceed}`));
   document.querySelectorAll('[data-qproceed-correction]').forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.qproceedCorrection.split('-');openLogoAssistant(`correction:${i}:${j}`)});
   document.querySelectorAll('[data-qadapt-proceed]').forEach(b=>b.onclick=()=>openLogoAssistant(`adaptation:${b.dataset.qadaptParent}:${b.dataset.qadaptId}`));
-  document.querySelectorAll('[data-qadapt-source]').forEach(btn=>btn.onclick=()=>{const [i,key,f]=btn.dataset.qadaptSource.split('|');openQuickAdaptConfig(+i,f,key)});
+  document.querySelectorAll('[data-qadapt-source]').forEach(btn=>btn.onclick=()=>{
+    const [i,key,f]=btn.dataset.qadaptSource.split('|');
+    const scope=btn.closest('.quick-adapt-grid');
+    scope?.querySelectorAll('[data-qadapt-source]').forEach(x=>x.classList.remove('selected'));
+    btn.classList.add('selected');
+    openQuickAdaptConfig(+i,f,key);
+  });
   document.querySelectorAll('[data-qdownload-correction]').forEach(btn=>btn.onclick=async()=>{const [i,j]=btn.dataset.qdownloadCorrection.split('-').map(Number);const a=state.quickResults?.[i]?.corrections?.[j];if(a&&await downloadDataUrl(a.dataUrl,`${slug(a.label||'churchdesign-correction')}.png`)){markGalleryDownloaded(a)}});
   document.querySelectorAll('[data-qfullscreen-correction]').forEach(btn=>btn.onclick=()=>{const [i,j]=btn.dataset.qfullscreenCorrection.split('-').map(Number);const a=state.quickResults?.[i]?.corrections?.[j];if(a)openArtworkFullscreen(a.dataUrl,a.label||`Correção ${j+1}`);});
   document.querySelectorAll('[data-qfullscreen]').forEach(btn=>btn.onclick=()=>{const a=state.quickResults?.[+btn.dataset.qfullscreen];if(a)openArtworkFullscreen(a.dataUrl,a.label||'Arte');});
@@ -4557,7 +4654,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
-// NEWFLOW v0.27 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
+// NEWFLOW v0.28 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
 let churchDesignAppStarted=false;
 async function startAuthenticatedApp(){
