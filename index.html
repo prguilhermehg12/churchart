@@ -532,7 +532,7 @@
 @media(max-width:850px){.logo-assistant-body{grid-template-columns:1fr;overflow:auto}.logo-assistant-stage-wrap{min-height:420px}.logo-assistant-stage{max-width:92vw}.logo-palette{grid-template-columns:repeat(3,1fr)}}
 
 
-/* NEWFLOW v0.24 — authentication */
+/* NEWFLOW v0.26 — authentication */
 .auth-gate{position:fixed;inset:0;z-index:10000;background:#090b0f;display:grid;place-items:center;padding:20px}
 .auth-gate.hidden{display:none}.auth-card{width:min(430px,96vw);background:#111318;border:1px solid #2a2e37;border-radius:20px;padding:26px;box-shadow:0 30px 100px rgba(0,0,0,.55)}
 .auth-card h1{margin:0 0 6px;font-size:26px}.auth-card>p{margin:0 0 20px;color:#969dac;font-size:12px;line-height:1.5}
@@ -543,7 +543,7 @@
 .account-signout{width:100%;margin-top:10px}.account-email{display:block;color:#969dac;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:8px}
 
 
-/* NEWFLOW v0.24 — mobile creation wizard. Desktop layout remains unchanged. */
+/* NEWFLOW v0.26 — mobile creation wizard. Desktop layout remains unchanged. */
 .mobile-quick-wizard{display:none}
 @media(max-width:900px){
   body.mobile-wizard-active{background:#090b0f}
@@ -627,7 +627,7 @@
   .logo-assistant-overlay .logo-assistant-actions button{min-height:50px;font-size:13px}
 }
 
-/* NEWFLOW v0.24 — ChurchDesign logo + complete light/dark appearance */
+/* NEWFLOW v0.26 — ChurchDesign logo + complete light/dark appearance */
 :root{--brand-logo:url("/churchdesign-logo-dark.png")}
 html[data-theme="dark"]{--brand-logo:url("/churchdesign-logo-dark.png")}
 html[data-theme="light"]{
@@ -695,7 +695,7 @@ html[data-theme="light"] .footer{background:rgba(255,255,255,.94)!important;bord
 }
 
 
-/* NEWFLOW v0.24 — premium surface system + gallery search/list */
+/* NEWFLOW v0.26 — premium surface system + gallery search/list */
 :root{
   --field-bg:#11151c;--field-bg-2:#171c24;--field-border:#353c48;
   --soft-surface:#151a22;--soft-surface-2:#1c222c;--scroll-track:#151922;--scroll-thumb:#495261;
@@ -806,7 +806,7 @@ html[data-theme="light"] .draft-badge{color:#674700!important}
 }
 
 
-/* NEWFLOW v0.24 — higher-contrast light theme + orange identity */
+/* NEWFLOW v0.26 — higher-contrast light theme + orange identity */
 :root{
   --accent:#ff6a00!important;
   --accent2:#ff9a00!important;
@@ -1041,6 +1041,77 @@ html[data-theme="light"] .db-status.ok i{
   background:var(--brand-orange)!important;
 }
 
+
+/* NEWFLOW v0.26 — light treatment for derivative-art configuration panels */
+html[data-theme="light"] .adapt-panel,
+html[data-theme="light"] .quick-adapt-panel,
+html[data-theme="light"] [id^="quickAdaptConfig-"]{
+  background:#dfe4ea!important;
+  color:#171a1f!important;
+  border-color:#aab4c0!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55)!important;
+}
+html[data-theme="light"] .adapt-panel small,
+html[data-theme="light"] .quick-adapt-panel small,
+html[data-theme="light"] [id^="quickAdaptConfig-"] small{
+  color:#5f6976!important;
+}
+html[data-theme="light"] .adapt-panel label,
+html[data-theme="light"] .quick-adapt-panel label,
+html[data-theme="light"] [id^="quickAdaptConfig-"] label{
+  color:#252a31!important;
+}
+html[data-theme="light"] .adapt-panel .keep-box,
+html[data-theme="light"] .quick-adapt-panel .keep-box,
+html[data-theme="light"] [id^="quickAdaptConfig-"] .keep-box{
+  background:#d3d9e1!important;
+  border-color:#9fa9b6!important;
+  color:#20252b!important;
+}
+html[data-theme="light"] .adapt-panel button,
+html[data-theme="light"] .quick-adapt-panel button,
+html[data-theme="light"] [id^="quickAdaptConfig-"] button{
+  background:#cbd2db!important;
+  color:#20252b!important;
+  border-color:#9fa9b6!important;
+}
+html[data-theme="light"] .adapt-panel button:hover,
+html[data-theme="light"] .quick-adapt-panel button:hover,
+html[data-theme="light"] [id^="quickAdaptConfig-"] button:hover{
+  background:#c1c9d3!important;
+}
+html[data-theme="light"] .adapt-panel input[type=checkbox],
+html[data-theme="light"] .quick-adapt-panel input[type=checkbox],
+html[data-theme="light"] [id^="quickAdaptConfig-"] input[type=checkbox]{
+  accent-color:var(--brand-orange)!important;
+}
+
+
+/* NEWFLOW v0.26 — Telão occupancy selector + Modo Livre */
+.screen-occupancy-block{grid-column:1/-1;margin-top:4px;padding:12px;border:1px solid var(--field-border);background:var(--soft-surface);border-radius:12px}
+.screen-occupancy-block>strong{display:block;font-size:10px;margin-bottom:4px}
+.screen-occupancy-block>small{display:block;color:var(--muted);font-size:8px;line-height:1.45;margin-bottom:10px}
+.screen-occupancy-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.screen-occupancy-option{border:1px solid var(--field-border);background:var(--field-bg);border-radius:10px;padding:7px;cursor:pointer;text-align:center;color:var(--text)}
+.screen-occupancy-option.active{border-color:var(--brand-orange);box-shadow:0 0 0 2px rgba(255,106,0,.13)}
+.screen-occupancy-preview{height:54px;border-radius:7px;background:var(--field-bg-2);position:relative;overflow:hidden;margin-bottom:5px;border:1px solid var(--field-border)}
+.screen-occupancy-preview i{position:absolute;display:block;border-radius:3px;background:var(--brand-orange);opacity:.88;left:50%;transform:translateX(-50%)}
+.screen-occupancy-option[data-screen-occupancy="5"] i{width:30%;height:7%;bottom:8%}
+.screen-occupancy-option[data-screen-occupancy="20"] i{width:38%;height:25%;top:50%;transform:translate(-50%,-50%)}
+.screen-occupancy-option[data-screen-occupancy="30"] i{width:48%;height:35%;top:50%;transform:translate(-50%,-50%)}
+.screen-occupancy-option[data-screen-occupancy="40"] i{width:58%;height:45%;top:50%;transform:translate(-50%,-50%)}
+.screen-occupancy-option[data-screen-occupancy="50"] i{width:68%;height:55%;top:50%;transform:translate(-50%,-50%)}
+.screen-occupancy-option b{font-size:9px}
+.free-mode-box{padding:13px;border:1px solid var(--field-border);background:var(--soft-surface);border-radius:12px}
+.free-mode-formats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:10px 0}
+.free-format-option{border:1px solid var(--field-border);background:var(--field-bg);color:var(--text);border-radius:9px;padding:8px 5px;font-size:8px;font-weight:800;cursor:pointer}
+.free-format-option.active{border-color:var(--brand-orange);box-shadow:0 0 0 2px rgba(255,106,0,.12)}
+.free-mode-box textarea{width:100%;min-height:120px;margin-top:7px}
+@media(max-width:700px){
+  .screen-occupancy-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .free-mode-formats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -1089,7 +1160,7 @@ html[data-theme="light"] .db-status.ok i{
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.24</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.26</div>
   
   <script>
 const state={
@@ -2882,7 +2953,7 @@ function galleryActionsHTML(x,compact=false){
   const id=esc(String(x.galleryId||''));
   return `<div class="${compact?'gallery-derivative-actions':'gallery-actions'}"><button class="mini-btn download-btn" data-gallery-download="${id}">↓ Baixar</button><button class="mini-btn" data-gallery-fullscreen="${id}">⛶ Tela cheia</button><button class="mini-btn" data-gallery-diagnostic="${id}">◎ Diagnóstico logos</button><button class="mini-btn" data-gallery-logo-assistant="${id}">Assistente de Logos</button><button class="mini-btn" data-gallery-reference="${id}">Usar como referência</button><button class="mini-btn" data-gallery-reopen="${id}">${x.recipe?'Reabrir projeto':'Reusar arte'}</button><button class="mini-btn" data-gallery-delete="${id}" style="border-color:#69333d;color:#ff9eac">Excluir</button></div>`;
 }
-function galleryChildActionsHTML(x,compact=false){const id=esc(String(x.galleryId||''));return `<div class="gallery-child-actions" style="${compact?'margin-top:6px':''}"><strong style="font-size:${compact?'7':'8'}px;grid-column:1/-1">Gerar artes derivadas</strong><button class="mini-btn" data-gallery-child="${id}|youtube">YouTube</button><button class="mini-btn" data-gallery-child="${id}|screen">Telão</button><button class="mini-btn" data-gallery-child="${id}|story">Stories</button></div>`}
+function galleryChildActionsHTML(x,compact=false){const id=esc(String(x.galleryId||''));return `<div class="gallery-child-actions" style="${compact?'margin-top:6px':''}"><strong style="font-size:${compact?'7':'8'}px;grid-column:1/-1">Gerar artes derivadas</strong><button class="mini-btn" data-gallery-child="${id}|youtube">YouTube</button><button class="mini-btn" data-gallery-child="${id}|screen">Telão</button><button class="mini-btn" data-gallery-child="${id}|story">Stories</button><button class="mini-btn" data-gallery-child="${id}|free">Modo Livre</button></div>`}
 
 function galleryThemeTitle(item){
   const title=item?.recipe?.quick?.title||item?.recipe?.requiredContent?.title||item?.requiredContent?.title||'';
@@ -3018,7 +3089,7 @@ window.openGallery=function(query='',viewMode=null){
   root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const raw=String(b.dataset.galleryChild||''),cut=raw.lastIndexOf('|');if(cut<1)return;startGalleryChild(raw.slice(0,cut),raw.slice(cut+1));});
 };
 
-// NEWFLOW v0.24 — derivadas da Galeria usam handlers locais do modal.
+// NEWFLOW v0.26 — derivadas da Galeria usam handlers locais do modal.
 window.startGalleryChild=startGalleryChild;
 
 window.openMyChurch=function(tab='pastor'){
@@ -3341,7 +3412,7 @@ async function drawTextLayer(ctx,c,l,text,fontFamily){
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
 
-// NEWFLOW v0.24 — Modo Detalhado removido do fluxo atual.
+// NEWFLOW v0.26 — Modo Detalhado removido do fluxo atual.
 // O arquivo completo anterior foi preservado separadamente como backup.
 // O produto atual inicia diretamente no Modo Rápido.
 function quickDefaultLogo(){
@@ -3432,6 +3503,16 @@ window.churchDesignDerivativeSelfTest=function(){
 };
 document.querySelector('#currentProjectBtn')?.addEventListener('click',()=>{state.mode='quick';screenQuickMode();window.scrollTo({top:0,behavior:'smooth'});});
 
+
+function nextYoutubeCompositionInstruction(){
+  let n=0;try{n=Number(localStorage.getItem('churchdesign.youtube.layout.v1')||0)}catch{}
+  const pastorLeft=(n%2)===0;
+  try{localStorage.setItem('churchdesign.youtube.layout.v1',String(n+1))}catch{}
+  return pastorLeft
+    ?'CAPA YOUTUBE — PREFERÊNCIA DE COMPOSIÇÃO: evite pregador centralizado com título sobre/abaixo dele. Prefira composição em dois polos: FOTO DO PREGADOR À ESQUERDA e BLOCO DO TÍTULO À DIREITA, com áreas próprias e sem texto atravessando rosto/corpo. Só desobedeça se uma referência explícita exigir claramente outra solução.'
+    :'CAPA YOUTUBE — PREFERÊNCIA DE COMPOSIÇÃO: evite pregador centralizado com título sobre/abaixo dele. Prefira composição em dois polos: BLOCO DO TÍTULO À ESQUERDA e FOTO DO PREGADOR À DIREITA, com áreas próprias e sem texto atravessando rosto/corpo. Só desobedeça se uma referência explícita exigir claramente outra solução.';
+}
+
 async function quickPayload(variantLabel='Principal',correction='',signal=null){
   const ref=state.quick.reference?await prepareImageForAI(state.quick.reference,1400,.9):null;
   const logo=null; // NEWFLOW: logo é escolhida somente no Assistente de Logos.
@@ -3442,7 +3523,7 @@ async function quickPayload(variantLabel='Principal',correction='',signal=null){
   const assets={logo:null,eventLogo:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.94)}:null};
   const inspiration=inspirationCatalog.find(x=>x.id===state.quick.inspirationStyle)||inspirationCatalog[0];
   const refs=ref?[{image:ref,note:'STYLE ONLY / DESIGN DNA: extraia SOMENTE composição, hierarquia, proporções, escala do pregador, estilo/peso tipográfico, textura, recortes, geometria, sombras, brilhos, profundidade e linguagem visual. NÃO reutilize palavra, número, slogan, data, horário, endereço, nome, logo, símbolo institucional ou conteúdo semântico. Cores só inspiram quando o usuário não definiu cor.'}]:[];
-  const target=quickTargetSpec(state.quick.format),learned=computePreferenceProfile();
+  const target=quickTargetSpec(state.quick.format),learned=computePreferenceProfile(),youtubeCompositionInstruction=target.id==='youtube'?nextYoutubeCompositionInstruction():'';
   const names=pastors.filter(p=>p.name).map(p=>p.name);
   const pastorPhotoTreatment=state.quick.pastorPhotoTreatment||'ai';
   const pastorPhotoTreatmentInstruction=pastorPhotoTreatment==='original'
@@ -3498,7 +3579,7 @@ LOGOS — IDENTIDADES NÃO INTERCAMBIÁVEIS:
 - A logo de evento, quando selecionada, deve aparecer UMA vez e exatamente como enviada.
 - É PROIBIDO repetir a logo principal no lugar da logo de evento.
 - É PROIBIDO duplicar, extrair símbolo, redesenhar ou criar segunda versão da logo principal.
-${state.quick.audience?`Público-alvo: ${audienceLabel(state.quick.audience)}. `:''}${state.quick.designStyle?`Estilo desejado: ${designStyleLabel(state.quick.designStyle)}. `:''}${!state.quick.designStyle&&learned?.designStyle?`Preferência aprendida do usuário: ${learned.designStyle}. `:''}${state.quick.dominantColorMode==='reference'?(ref?'PALETA: preserve a paleta predominante da referência; analise-a visualmente antes de definir cores. Não introduza uma nova cor dominante que descaracterize a referência.':'PALETA: não há referência disponível; escolha automaticamente uma paleta coerente com conteúdo, estilo e público.'):`Cor predominante escolhida pelo usuário: ${state.quick.dominantColor}.`} Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${ref?'':'Criação sem referência: use a direção visual '+inspiration.name+' — '+inspiration.prompt+'.'} SAFE FRAME RÍGIDO: mantenha TODO conteúdo essencial dentro dos 76% centrais do canvas, reservando 12% livres em cada borda. Nenhum texto, logo, rosto, nome, data, hora ou endereço pode tocar as bordas. ${churchAsset?'A FOTO DA IGREJA selecionada é UM ATIVO FOTOGRÁFICO PROTEGIDO E OBRIGATÓRIO: use exatamente essa fotografia como ambiente/fundo. NÃO redesenhe, reconstrua, complete, troque, mova ou invente paredes, palco, cadeiras, objetos, pessoas, luzes ou arquitetura. Só são permitidos filtros globais/color grading, exposição, contraste, saturação, temperatura, tonalidade, vinheta e escurecimento sobre a fotografia original.':'Se a referência já tiver pessoas adorando ou ambiente de igreja ao fundo, preserve essa atmosfera; não invente espaços vazios.'} LOGO-FREE CANVAS OBRIGATÓRIO: NÃO desenhe a logo da igreja, NÃO desenhe a logo de evento e REMOVA completamente qualquer logo existente na referência. Não crie símbolos substitutos, marcas d'água ou nomes institucionais para ocupar o lugar das logos. ${state.quick.omitChurchName?'OMITA também o NOME DA IGREJA em qualquer forma textual.':''} NÃO reserve visualmente nenhum espaço para logos: não desenhe caixa, contorno, placa vazia, moldura, selo, halo, placeholder ou área demarcada. Faça a composição parecer completa sem logos. As marcas serão inseridas manualmente pelo usuário em uma etapa posterior. ${correction||state.quick.correction||''}`,
+${state.quick.audience?`Público-alvo: ${audienceLabel(state.quick.audience)}. `:''}${state.quick.designStyle?`Estilo desejado: ${designStyleLabel(state.quick.designStyle)}. `:''}${!state.quick.designStyle&&learned?.designStyle?`Preferência aprendida do usuário: ${learned.designStyle}. `:''}${state.quick.dominantColorMode==='reference'?(ref?'PALETA: preserve a paleta predominante da referência; analise-a visualmente antes de definir cores. Não introduza uma nova cor dominante que descaracterize a referência.':'PALETA: não há referência disponível; escolha automaticamente uma paleta coerente com conteúdo, estilo e público.'):`Cor predominante escolhida pelo usuário: ${state.quick.dominantColor}.`} Efeito ${state.quick.effect}. ${state.quick.illustrateTitle?'Ilustre visualmente o conceito do título com elementos coerentes, sem competir com o título.':'Não acrescente ilustrações conceituais pelo título.'} ${ref?'':'Criação sem referência: use a direção visual '+inspiration.name+' — '+inspiration.prompt+'.'} SAFE FRAME RÍGIDO: mantenha TODO conteúdo essencial dentro dos 76% centrais do canvas, reservando 12% livres em cada borda. Nenhum texto, logo, rosto, nome, data, hora ou endereço pode tocar as bordas. ${churchAsset?'A FOTO DA IGREJA selecionada é UM ATIVO FOTOGRÁFICO PROTEGIDO E OBRIGATÓRIO: use exatamente essa fotografia como ambiente/fundo. NÃO redesenhe, reconstrua, complete, troque, mova ou invente paredes, palco, cadeiras, objetos, pessoas, luzes ou arquitetura. Só são permitidos filtros globais/color grading, exposição, contraste, saturação, temperatura, tonalidade, vinheta e escurecimento sobre a fotografia original.':'Se a referência já tiver pessoas adorando ou ambiente de igreja ao fundo, preserve essa atmosfera; não invente espaços vazios.'} LOGO-FREE CANVAS OBRIGATÓRIO: NÃO desenhe a logo da igreja, NÃO desenhe a logo de evento e REMOVA completamente qualquer logo existente na referência. Não crie símbolos substitutos, marcas d'água ou nomes institucionais para ocupar o lugar das logos. ${state.quick.omitChurchName?'OMITA também o NOME DA IGREJA em qualquer forma textual.':''} NÃO reserve visualmente nenhum espaço para logos: não desenhe caixa, contorno, placa vazia, moldura, selo, halo, placeholder ou área demarcada. Faça a composição parecer completa sem logos. As marcas serão inseridas manualmente pelo usuário em uma etapa posterior. ${youtubeCompositionInstruction?` ${youtubeCompositionInstruction}`:''} ${correction||state.quick.correction||''}`,
     finalInstruction:'SAFE FRAME OBRIGATÓRIO: conteúdo essencial dentro dos 76% centrais; 12% de margem livre em todos os lados. Elementos decorativos podem sangrar, conteúdo essencial jamais.',semanticMap:[],effects:state.quick.effect!=='none'?[{id:state.quick.effect,target:'full'}]:[]};
   const seed=state.gallerySeed;
   if(seed?.sourceArtworkId&&seed?.sourceUrl){base.reference=await prepareImageForAI(seed.sourceUrl,1600,.94);base.references=[{image:base.reference,note:'ARTE INTERNA DO CHURCHDESIGN. Use como working base; preserve o DNA visual, mas os textos atuais continuam soberanos.'}];base.referenceRole='working-base';base.gallerySourceArtworkId=seed.sourceArtworkId}
@@ -3954,9 +4035,9 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.24</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.26</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
-  // NEWFLOW v0.24: the coordinate system MUST be the real exported bitmap, not the requested target.
+  // NEWFLOW v0.26: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
   // object-fit creates an invisible coordinate mismatch and logos move on export.
   const stageBaseImg=ov.querySelector('[data-logo-stage] > img');
@@ -4047,7 +4128,7 @@ function renderQuickResults(){
   renderCostSupervisor();
 }
 function renderQuickResultsHTML(){if(!state.quickResults.length)return '';return `<div class="card"><h3>Artes desta criação</h3><p style="margin-bottom:10px">A geração entrega primeiro uma arte base sem logos. Finalize no Assistente de Logos para liberar download e artes derivadas.</p><div class="quick-results-row">${state.quickResults.map((r,i)=>quickResultCardHTML(r,i)).join('')}</div></div>`;}
-function versionAdaptButtons(sourceKey,parentIndex){return ['story','youtube','screen','square','wide16','fourthree','threetwo'].map(f=>{const t=quickTargetSpec(f);return `<button class="quick-adapt-btn" data-qadapt-source="${parentIndex}|${sourceKey}|${f}" type="button">${t.label}</button>`}).join('');}
+function versionAdaptButtons(sourceKey,parentIndex){const standard=['story','youtube','screen','square','wide16','fourthree','threetwo'].map(f=>{const t=quickTargetSpec(f);return `<button class="quick-adapt-btn" data-qadapt-source="${parentIndex}|${sourceKey}|${f}" type="button">${t.label}</button>`}).join('');return standard+`<button class="quick-adapt-btn" data-qadapt-source="${parentIndex}|${sourceKey}|free" type="button">Modo Livre</button>`;}
 function correctionVersionHTML(c,parentIndex,j){const key=`correction:${parentIndex}:${j}`,done=c.finalized===true;return `<div class="quick-correction-version" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><img src="${c.dataUrl}" style="width:100%;border-radius:10px"><h4 style="margin-top:8px">${esc(c.label||`Correção ${j+1}`)}</h4><div class="quick-actions">${done?`<button class="mini-btn download-btn" data-qdownload-correction="${parentIndex}-${j}">↓ Baixar</button>`:`<button class="mini-btn proceed-btn" data-qproceed-correction="${parentIndex}-${j}">Prosseguir →</button>`}<button class="mini-btn" data-qfullscreen-correction="${parentIndex}-${j}">⛶ Tela cheia</button></div>${done?`<strong style="font-size:9px">Gerar arte derivada a partir DESTA versão</strong><div class="quick-adapt-grid">${versionAdaptButtons(key,parentIndex)}</div>`:`<small style="display:block;color:var(--muted);font-size:8px">Finalize as logos antes de baixar ou gerar derivadas.</small>`}<div id="quickAdaptConfig-${parentIndex}-correction-${j}"></div></div>`;}
 function quickResultCardHTML(r,i){const key=`main:${i}`,done=r.finalized===true;return `<div class="quick-result-card" id="quickResultCard-${i}"><img src="${r.dataUrl}"><div class="quick-result-body"><h4>${esc(r.label)} • ${esc(r.target.label)}${done?' • finalizada':' • arte base'}</h4><div class="quick-actions">${done?`<button class="mini-btn download-btn" data-qdownload="${i}">↓ Baixar</button>`:`<button class="mini-btn proceed-btn" data-qproceed="${i}">Prosseguir →</button>`}<button class="mini-btn" data-qfullscreen="${i}">⛶ Tela cheia</button>${i===state.quickResults.length-1&&i<2?`<button class="mini-btn" data-qvariation="${i+1}">Gerar variação ${i+1}</button>`:''}<button class="mini-btn" data-qreload="${i}">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:8px"><label>Correção desta arte</label><textarea data-qcorrection="${i}">${esc(r.correction||'')}</textarea></div>${done?`<strong style="font-size:9px">Gerar artes derivadas a partir DESTA versão</strong><div class="quick-adapt-grid">${versionAdaptButtons(key,i)}</div>`:`<small style="display:block;color:var(--muted);font-size:8px">O download e as artes derivadas serão liberados depois do Assistente de Logos.</small>`}<div id="quickAdaptConfig-${i}"></div>${(r.corrections||[]).map((c,j)=>correctionVersionHTML(c,i,j)).join('')}<div class="quick-adaptations" id="quickAdaptations-${i}">${(r.adaptations||[]).map(a=>quickAdaptationHTML(a,i)).join('')}</div></div></div>`;}
 function currentCorrectionForSource(sourceKey,parentIndex){
@@ -4056,25 +4137,40 @@ function currentCorrectionForSource(sourceKey,parentIndex){
   const node=resolveQuickReferenceCandidate(sourceKey,parentIndex);return String(node?.correction||'').trim();
 }
 function openQuickAdaptConfig(i,f,explicitSourceKey=null){
-  const target=quickTargetSpec(f),defaultKey=explicitSourceKey||preferredQuickReferenceKey(i);
+  const defaultKey=explicitSourceKey||preferredQuickReferenceKey(i);
   const cm=defaultKey.match(/^correction:(\d+):(\d+)$/);
   const box=document.querySelector(cm?`#quickAdaptConfig-${i}-correction-${cm[2]}`:`#quickAdaptConfig-${i}`);if(!box)return;
-  const refs=quickReferenceCandidates();
   const sourcePicker=`<input type="hidden" data-adapt-source value="${esc(defaultKey)}"><small style="display:block;color:var(--muted);font-size:8px;margin-bottom:8px">Esta versão é a base exata da arte derivada.</small>`;
-  box.innerHTML=`<div class="adapt-config">${sourcePicker}<strong>${target.label}: o que deve ser omitido?</strong><div class="adapt-omit-grid"><label><input type="checkbox" data-omit="title">Omitir título</label><label><input type="checkbox" data-omit="subtitle">Omitir subtítulo</label><label><input type="checkbox" data-omit="date">Omitir data</label><label><input type="checkbox" data-omit="time">Omitir hora</label><label><input type="checkbox" data-omit="address">Omitir endereço</label><label><input type="checkbox" data-omit="churchName">Omitir nome da igreja</label><label><input type="checkbox" data-omit="pastorNames">Omitir nome do(s) pregador(es)</label><label><input type="checkbox" data-omit="pastorMain">Omitir pregador principal</label><label><input type="checkbox" data-omit="pastorAux1">Omitir pregador auxiliar 1</label><label><input type="checkbox" data-omit="pastorAux2">Omitir pregador auxiliar 2</label><label><input type="checkbox" data-omit="pastors">Omitir todos os pregadores</label><label><input type="checkbox" data-omit="churchImage">Omitir foto da igreja</label>${f==='screen'?`<div class="screen-title-mode"><label><input type="checkbox" data-discrete-title>Título discreto (embaixo)</label><small>Remove o título da composição principal e reaplica uma versão realmente pequena no centro inferior, deixando a área útil limpa para letras do Holyrics.</small></div><label class="dark-screen-option"><input type="checkbox" data-dark-screen>Versão escura para telão / transmissão</label>`:''}</div><button class="mini-btn" data-confirm-adapt="${i}-${f}" style="width:100%;margin-top:8px">Gerar ${target.label}</button></div>`;
+
+  if(f==='free'){
+    const formats=quickFormats.map(x=>{const t=quickTargetSpec(x.id);return `<button type="button" class="free-format-option ${x.id==='feed'?'active':''}" data-free-format="${x.id}">${esc(x.label)}<small style="display:block;font-size:7px;color:var(--muted);margin-top:2px">${t.width}×${t.height}</small></button>`}).join('');
+    box.innerHTML=`<div class="adapt-config free-mode-box">${sourcePicker}<strong>Modo Livre</strong><small style="display:block;color:var(--muted);font-size:8px;margin-top:4px">Escolha o tamanho e descreva livremente a nova peça. A identidade visual da arte-base será preservada.</small><div class="free-mode-formats">${formats}</div><div class="field"><label>O que você quer criar?</label><textarea data-free-instruction placeholder="Ex.: Coloque o título no canto superior esquerdo. No centro, crie uma lista de preços com: Camiseta R$ 50, Caneca R$ 25, Combo R$ 65."></textarea></div><button class="mini-btn" data-confirm-free style="width:100%;margin-top:8px">Gerar Modo Livre</button></div>`;
+    box.querySelectorAll('[data-free-format]').forEach(b=>b.onclick=()=>{box.querySelectorAll('[data-free-format]').forEach(x=>x.classList.remove('active'));b.classList.add('active')});
+    box.querySelector('[data-confirm-free]').onclick=()=>{
+      const format=box.querySelector('[data-free-format].active')?.dataset.freeFormat||'feed';
+      const instruction=String(box.querySelector('[data-free-instruction]')?.value||'').trim();
+      if(!instruction)return alert('Digite as instruções para o Modo Livre.');
+      const sourceKey=box.querySelector('[data-adapt-source]')?.value||defaultKey;
+      const childCorrection=currentCorrectionForSource(sourceKey,i);
+      runQuickAdaptation(i,format,[],false,sourceKey,false,childCorrection,{freeMode:true,freeInstruction:instruction});
+    };
+    return;
+  }
+
+  const target=quickTargetSpec(f);
+  const occupancy=f==='screen'?`<div class="screen-occupancy-block"><strong>Quanto da tela as informações devem ocupar?</strong><small>Escolha a proporção aproximada do conjunto de informações em relação à tela inteira.</small><div class="screen-occupancy-grid">${[5,20,30,40,50].map(p=>`<button type="button" class="screen-occupancy-option ${p===20?'active':''}" data-screen-occupancy="${p}"><div class="screen-occupancy-preview"><i></i></div><b>${p}%</b></button>`).join('')}</div></div><label class="dark-screen-option"><input type="checkbox" data-dark-screen>Versão escura para telão / transmissão</label>`:'';
+  box.innerHTML=`<div class="adapt-config">${sourcePicker}<strong>${target.label}: o que deve ser omitido?</strong><div class="adapt-omit-grid"><label><input type="checkbox" data-omit="title">Omitir título</label><label><input type="checkbox" data-omit="subtitle">Omitir subtítulo</label><label><input type="checkbox" data-omit="date">Omitir data</label><label><input type="checkbox" data-omit="time">Omitir hora</label><label><input type="checkbox" data-omit="address">Omitir endereço</label><label><input type="checkbox" data-omit="churchName">Omitir nome da igreja</label><label><input type="checkbox" data-omit="pastorNames">Omitir nome do(s) pregador(es)</label><label><input type="checkbox" data-omit="pastorMain">Omitir pregador principal</label><label><input type="checkbox" data-omit="pastorAux1">Omitir pregador auxiliar 1</label><label><input type="checkbox" data-omit="pastorAux2">Omitir pregador auxiliar 2</label><label><input type="checkbox" data-omit="pastors">Omitir todos os pregadores</label><label><input type="checkbox" data-omit="churchImage">Omitir foto da igreja</label>${occupancy}</div><button class="mini-btn" data-confirm-adapt="${i}-${f}" style="width:100%;margin-top:8px">Gerar ${target.label}</button></div>`;
+  box.querySelectorAll('[data-screen-occupancy]').forEach(b=>b.onclick=()=>{box.querySelectorAll('[data-screen-occupancy]').forEach(x=>x.classList.remove('active'));b.classList.add('active')});
   box.querySelector('[data-confirm-adapt]').onclick=()=>{
     const omit=[...box.querySelectorAll('[data-omit]:checked')].map(x=>x.dataset.omit);
     const darkScreen=!!box.querySelector('[data-dark-screen]:checked');
-    const discreteTitle=!!box.querySelector('[data-discrete-title]:checked');
-    if(discreteTitle&&!omit.includes('title'))omit.push('title');
+    const screenInfoPct=f==='screen'?Number(box.querySelector('[data-screen-occupancy].active')?.dataset.screenOccupancy||20):null;
     const sourceKey=box.querySelector('[data-adapt-source]')?.value||defaultKey;
     const childCorrection=currentCorrectionForSource(sourceKey,i);
-    runQuickAdaptation(i,f,omit,darkScreen,sourceKey,discreteTitle,childCorrection);
+    runQuickAdaptation(i,f,omit,darkScreen,sourceKey,false,childCorrection,{screenInfoPct});
   };
-  const discreet=box.querySelector('[data-discrete-title]'),omitTitle=box.querySelector('[data-omit="title"]');
-  if(discreet&&omitTitle){discreet.onchange=()=>{if(discreet.checked){omitTitle.checked=true;omitTitle.disabled=true}else omitTitle.disabled=false};omitTitle.onchange=()=>{if(!omitTitle.checked&&discreet.checked)discreet.checked=false};}
-
 }
+
 function quickAdaptationHTML(a,parentIndex){const done=a.finalized===true;return `<div class="quick-adapt-item ${a.format==='story'?'story':''}"><img src="${a.dataUrl}"><div style="min-width:0;flex:1"><strong style="font-size:9px">${esc(a.target.label)}${done?' • finalizada':' • base'}</strong><small style="display:block;font-size:8px;color:var(--muted)">${a.target.width}×${a.target.height}${a.basedOnLabel?` • base: ${esc(a.basedOnLabel)}`:''}</small></div><button class="mini-btn" data-qadapt-fullscreen data-qadapt-parent="${parentIndex}" data-qadapt-id="${a.id}" type="button">⛶</button>${done?`<button class="mini-btn download-btn" data-qadapt-download data-qadapt-parent="${parentIndex}" data-qadapt-id="${a.id}" type="button">↓ Baixar</button>`:`<button class="mini-btn proceed-btn" data-qadapt-proceed data-qadapt-parent="${parentIndex}" data-qadapt-id="${a.id}" type="button">Prosseguir →</button>`}</div>`;}
 function bindQuickResultEvents(){
   document.querySelectorAll('[data-qproceed]').forEach(b=>b.onclick=()=>openLogoAssistant(`main:${b.dataset.qproceed}`));
@@ -4203,7 +4299,7 @@ async function normalizeArtworkToTarget(image,payload,target,signal=null){
   // NEWFLOW: Modo Rápido entrega primeiro a ARTE BASE logo-free. O compositor
   // automático antigo permanece disponível no código, mas fica desativado aqui.
   if(payload?.manualLogoFlow){
-    const finalDataUrl=payload.screenDiscreteTitle?await applyDiscreteScreenTitle(baseDataUrl,payload.discreteTitleText||'',target):baseDataUrl;
+    const finalDataUrl=baseDataUrl;
     return{image,dataUrl:finalDataUrl,baseDataUrl:finalDataUrl,logosComposed:false,logoPlacements:[],logoReceipt:[],logoAudit:{ok:true,expected:0,applied:0,manualFlow:true},occupancy:null,logoPlan:null,logoDegradations:[],manualLogoFlow:true,recomposed:false,aspectRatioFallback:normalized.aspectRatioFallback||false};
   }
   const logoComposition=await composeOfficialLogos(baseDataUrl,payload,target,{signal});
@@ -4287,7 +4383,7 @@ function assertDerivativePipelineReady(){
   const missing=required.filter(n=>{try{return typeof eval(n)!=='function'}catch{return true}});
   if(missing.length)throw new Error(`Pipeline de artes derivadas incompleto: ${missing.join(', ')}.`);
 }
-async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,sourceKey=null,screenDiscreteTitle=false,childCorrection=''){
+async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,sourceKey=null,screenDiscreteTitle=false,childCorrection='',adaptOptions={}){
   try{assertDerivativePipelineReady()}catch(e){const st=document.querySelector('#quickStatus');if(st)st.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;else alert(e.message);return}
   scrollToGenerationPanel();
   const parent=state.quickResults[sourceIndex];if(!parent)return;
@@ -4298,7 +4394,10 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
   try{
     const sourceRef=await prepareImageForAI(source.baseDataUrl||source.sourceUrl||source.dataUrl,1400,.9);
     const required={...(source.requiredContent||parent.requiredContent||{})};
-    const discreteTitleText=screenDiscreteTitle?String(required.title||state.quick.title||'').trim():'';
+    const discreteTitleText='';
+    const screenInfoPct=Number(adaptOptions?.screenInfoPct)||20;
+    const freeMode=!!adaptOptions?.freeMode;
+    const freeInstruction=String(adaptOptions?.freeInstruction||'').trim();
     omit.forEach(k=>{if(k==='pastorNames')required.pastorNames=[];else required[k]='';});
     if(omit.includes('churchName'))required.churchName='';
     const assets=await hydrateGalleryAssets(source.assets||parent.assets||{});
@@ -4321,13 +4420,15 @@ ${pastorRemoval}
 ${logoRemoval}
 ${eventLogoRemoval}
 ${churchRemoval}
-${target.id==='screen'?(screenDiscreteTitle?`TELÃO — TÍTULO DISCRETO: NÃO renderize o título na composição da IA. O pós-compositor aplicará uma versão mínima no centro inferior. Priorize uma imagem limpa e ampla para projeção de letras por cima.`:omit.includes('title')?`TELÃO — SEM TÍTULO: não renderize título, slogan substituto ou placeholder. Preserve uma área útil limpa para projeção.`:`TELÃO: prefira o TÍTULO centralizado e dominante. Se a FOTO DO PREGADOR estiver omitida, o título pode ocupar a região central principal e NENHUMA pessoa pode permanecer. Se houver foto/figura explicitamente mantida, use composição em dois polos, título de um lado e imagem do outro.`):''}
+${target.id==='screen'?(omit.includes('title')?`TELÃO — SEM TÍTULO: não renderize título, slogan substituto ou placeholder. Preserve uma área útil limpa para projeção.`:screenInfoPct===5?`TELÃO — OCUPAÇÃO 5%: todo o CONJUNTO DE INFORMAÇÕES deve ser muito discreto, ocupando aproximadamente 5% da área total da tela e ficando CENTRALIZADO NA PARTE INFERIOR. Não transforme o título em elemento dominante. Preserve a maior parte da tela visualmente limpa.`:`TELÃO — OCUPAÇÃO ${screenInfoPct}%: organize o CONJUNTO COMPLETO DE INFORMAÇÕES como um bloco visual centralizado horizontal e verticalmente, ocupando aproximadamente ${screenInfoPct}% da área total da tela. A porcentagem se refere ao bloco informacional como um todo, não apenas ao tamanho da fonte.`):''}
 ${darkScreen?'VERSÃO ESCURA OBRIGATÓRIA: fundo e áreas dominantes devem ser escuros para telão/câmera de live; preserve contraste alto e, se houver foto da igreja mantida, integre-a de modo escuro e discreto.':''}
-${target.id==='screen'&&!screenDiscreteTitle&&['title','subtitle','date','time','address','churchName','logo','eventLogo','pastorNames','pastors','churchImage'].every(k=>omit.includes(k))?'FUNDO PURO OBRIGATÓRIO: gere SOMENTE o fundo visual/atmosférico. Nenhuma pessoa, logo, nome, título, texto, data, horário, endereço, selo ou placeholder pode aparecer.':''}
+${target.id==='screen'&&['title','subtitle','date','time','address','churchName','logo','eventLogo','pastorNames','pastors','churchImage'].every(k=>omit.includes(k))?'FUNDO PURO OBRIGATÓRIO: gere SOMENTE o fundo visual/atmosférico. Nenhuma pessoa, logo, nome, título, texto, data, horário, endereço, selo ou placeholder pode aparecer.':''}
+${target.id==='youtube'?nextYoutubeCompositionInstruction():''}
+${freeMode?`MODO LIVRE — IDENTIDADE BLOQUEADA: crie uma NOVA PEÇA no tamanho solicitado preservando claramente a identidade visual da arte-base — linguagem, atmosfera, cores, tratamento, textura, hierarquia e DNA gráfico. Não copie cegamente o layout; reorganize a composição para cumprir as instruções do usuário. INSTRUÇÕES LIVRES DO USUÁRIO (prioridade alta): ${freeInstruction}`:''}
 ${childCorrection?`CORREÇÃO SOLICITADA PARA ESTA ARTE DERIVADA — aplique esta alteração específica sem abandonar a identidade da arte-base: ${childCorrection}`:''}
 COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referência ou ordem explícita. Evite caixas/cards/cápsulas desnecessários. Se a logo estiver mantida, use a original uma única vez, sem caixa/placa/selo e nunca repita ou extraia partes dela.`;
 
-    const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:'Use esta versão LOGO-FREE como base visual. Preserve identidade. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.'}],target,assets,requiredContent:required,instruction:`${source.instruction||parent.instruction||''}${childCorrection?`\nCORREÇÃO PARA A DERIVADA: ${childCorrection}`:''}`,finalInstruction,semanticMap:[],effects:[],artDirection:source.artDirection||parent.artDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:!assets.logo,screenDiscreteTitle:!!screenDiscreteTitle,discreteTitleText};
+    const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:'Use esta versão LOGO-FREE como base visual. Preserve identidade. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.'}],target,assets,requiredContent:required,instruction:`${source.instruction||parent.instruction||''}${childCorrection?`\nCORREÇÃO PARA A DERIVADA: ${childCorrection}`:''}`,finalInstruction,semanticMap:[],effects:[],artDirection:source.artDirection||parent.artDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:!assets.logo,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,freeMode,freeInstruction};
 
     setQuickProgress(48,'Recompondo para o novo formato...');
     // V0.26: arte derivada = 1 geração + 1 fiscal; sem retry automático.
@@ -4336,7 +4437,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     const normalized=await normalizeArtworkToTarget(image,payload,target,signal);
     const dataUrl=normalized.dataUrl;
     parent.adaptations=parent.adaptations||[];
-    const child={id:crypto.randomUUID(),label:`${source.label} • ${target.label}`,format:formatId,target,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:image.url,omit,basedOnKey:source.key,basedOnLabel:source.label,artDirection:source.artDirection||parent.artDirection,requiredContent:required,assets,instruction:payload.instruction,logoPosition:null,eventLogoPosition:null,eventLogoSize:null,occupancy:null,logoPlan:null,logoReceipt:[],logoDegradations:[],screenDiscreteTitle:!!screenDiscreteTitle,discreteTitleText,manualLogoFlow:true,finalized:false,manualLogoPlacements:[],correction:childCorrection||''};
+    const child={id:crypto.randomUUID(),label:`${source.label} • ${target.label}`,format:formatId,target,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:image.url,omit,basedOnKey:source.key,basedOnLabel:source.label,artDirection:source.artDirection||parent.artDirection,requiredContent:required,assets,instruction:payload.instruction,logoPosition:null,eventLogoPosition:null,eventLogoSize:null,occupancy:null,logoPlan:null,logoReceipt:[],logoDegradations:[],screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,freeMode,freeInstruction,manualLogoFlow:true,finalized:false,manualLogoPlacements:[],correction:childCorrection||''};
     parent.adaptations.push(child);let savedChild=null;/* NEWFLOW: derivada base só é persistida após Finalizar arte no Assistente de Logos. */if(!payload.manualLogoFlow){savedChild=await persistGalleryArtwork(child,{kind:'arte derivada',parentArtworkId:parent.galleryId||parent.id||null,sourceArtworkId:source.galleryId||source.id||parent.galleryId||parent.id||null,format:formatId,basedOnKey:source.key,basedOnLabel:source.label});if(savedChild)child.galleryId=savedChild.galleryId;}
     setQuickProgress(100,'Pronto');
     if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte derivada base pronta. Clique em Prosseguir para finalizar as logos.</strong>';
@@ -4347,7 +4448,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
-// NEWFLOW v0.24 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
+// NEWFLOW v0.26 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
 let churchDesignAppStarted=false;
 async function startAuthenticatedApp(){
