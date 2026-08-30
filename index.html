@@ -532,7 +532,7 @@
 @media(max-width:850px){.logo-assistant-body{grid-template-columns:1fr;overflow:auto}.logo-assistant-stage-wrap{min-height:420px}.logo-assistant-stage{max-width:92vw}.logo-palette{grid-template-columns:repeat(3,1fr)}}
 
 
-/* NEWFLOW v0.22 — authentication */
+/* NEWFLOW v0.23 — authentication */
 .auth-gate{position:fixed;inset:0;z-index:10000;background:#090b0f;display:grid;place-items:center;padding:20px}
 .auth-gate.hidden{display:none}.auth-card{width:min(430px,96vw);background:#111318;border:1px solid #2a2e37;border-radius:20px;padding:26px;box-shadow:0 30px 100px rgba(0,0,0,.55)}
 .auth-card h1{margin:0 0 6px;font-size:26px}.auth-card>p{margin:0 0 20px;color:#969dac;font-size:12px;line-height:1.5}
@@ -543,7 +543,7 @@
 .account-signout{width:100%;margin-top:10px}.account-email{display:block;color:#969dac;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:8px}
 
 
-/* NEWFLOW v0.22 — mobile creation wizard. Desktop layout remains unchanged. */
+/* NEWFLOW v0.23 — mobile creation wizard. Desktop layout remains unchanged. */
 .mobile-quick-wizard{display:none}
 @media(max-width:900px){
   body.mobile-wizard-active{background:#090b0f}
@@ -627,7 +627,7 @@
   .logo-assistant-overlay .logo-assistant-actions button{min-height:50px;font-size:13px}
 }
 
-/* NEWFLOW v0.22 — ChurchDesign logo + complete light/dark appearance */
+/* NEWFLOW v0.23 — ChurchDesign logo + complete light/dark appearance */
 :root{--brand-logo:url("/churchdesign-logo-dark.png")}
 html[data-theme="dark"]{--brand-logo:url("/churchdesign-logo-dark.png")}
 html[data-theme="light"]{
@@ -694,6 +694,117 @@ html[data-theme="light"] .footer{background:rgba(255,255,255,.94)!important;bord
   body.mobile-wizard-active .theme-toggle button{padding:7px 8px}
 }
 
+
+/* NEWFLOW v0.23 — premium surface system + gallery search/list */
+:root{
+  --field-bg:#11151c;--field-bg-2:#171c24;--field-border:#353c48;
+  --soft-surface:#151a22;--soft-surface-2:#1c222c;--scroll-track:#151922;--scroll-thumb:#495261;
+}
+html[data-theme="light"]{
+  --bg:#f4f5f7;--panel:#ffffff;--panel2:#eef0f3;--line:#d5d9e0;--text:#15181d;--muted:#69717d;
+  --field-bg:#eef1f4;--field-bg-2:#e7eaee;--field-border:#c9ced6;
+  --soft-surface:#f0f2f5;--soft-surface-2:#e7eaee;--scroll-track:#e6e9ed;--scroll-thumb:#a8b0bc;
+  --shadow:0 14px 40px rgba(22,28,38,.08);
+}
+*{scrollbar-width:thin;scrollbar-color:var(--scroll-thumb) var(--scroll-track)}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:var(--scroll-track);border-radius:99px}
+*::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border:2px solid var(--scroll-track);border-radius:99px}
+*::-webkit-scrollbar-thumb:hover{filter:brightness(1.08)}
+
+body,.main,.content{background:var(--bg)!important;color:var(--text)!important}
+.sidebar,.topbar,.card,.modal-panel,.modal-head,.auth-card{background:var(--panel)!important;color:var(--text)!important;border-color:var(--line)!important}
+.project-mini,.account-card,.mobile-app-card{background:var(--panel)!important;border-color:var(--line)!important;color:var(--text)!important}
+.nav-step.active{background:var(--panel2)!important;color:var(--text)!important}
+.nav-step:not(.active){color:var(--muted)!important}
+
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),
+select,textarea,
+.pastor-name-input{
+  background:var(--field-bg)!important;color:var(--text)!important;border-color:var(--field-border)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+input::placeholder,textarea::placeholder{color:var(--muted)!important;opacity:.82}
+input:focus,select:focus,textarea:focus{
+  border-color:#8a93a2!important;outline:none!important;
+  box-shadow:0 0 0 3px rgba(125,108,255,.12)!important
+}
+html[data-theme="light"] input:focus,html[data-theme="light"] select:focus,html[data-theme="light"] textarea:focus{
+  border-color:#8b94a3!important;box-shadow:0 0 0 3px rgba(67,83,107,.10)!important
+}
+
+.quick-asset,.quick-format-card,.inspiration-card,.asset-card,.gallery-item,.persistent-gallery-card,
+.gallery-family-card,.gallery-derivative-card,.logo-palette-item,.layer,.library-upload,.quick-upload-box{
+  background:var(--soft-surface)!important;border-color:var(--field-border)!important;color:var(--text)!important
+}
+.quick-asset img,.asset-card img,.gallery-family-main-preview,.gallery-family-main-preview img,
+.gallery-derivative-preview,.gallery-derivative-preview img,.quick-format-sketch,.asset-card .font-preview{
+  background:var(--field-bg-2)!important
+}
+.quick-asset.selected,.quick-format-card.selected,.asset-card.selected{
+  background:var(--soft-surface-2)!important
+}
+.library-tabs,.gallery-toolbar{background:transparent!important}
+.library-tab,.keep-chip,.mini-btn,.btn.ghost,.quick-adapt-btn,.adapt-format{
+  background:var(--field-bg)!important;color:var(--text)!important;border-color:var(--field-border)!important
+}
+.library-tab.active,.keep-chip.active,.adapt-format.active{
+  background:var(--soft-surface-2)!important;color:var(--text)!important
+}
+.btn.primary{box-shadow:0 5px 16px rgba(255,79,114,.18)}
+.close-modal{background:var(--field-bg)!important;color:var(--text)!important;border-color:var(--field-border)!important}
+.modal-body{background:var(--panel)!important}
+.db-status{color:var(--muted)!important}
+.asset-card small,.persistent-gallery-body small,.gallery-family-info small,.gallery-derivative-body small{color:var(--muted)!important}
+
+html[data-theme="light"] .quick-color,
+html[data-theme="light"] input[type=color]{background:#e7eaee!important;border-color:#c5cbd4!important}
+html[data-theme="light"] .result-card,
+html[data-theme="light"] .quick-result-card,
+html[data-theme="light"] .adapt-panel,
+html[data-theme="light"] .keep-box{
+  background:#f4f6f8!important;border-color:#d2d7de!important;color:#15181d!important
+}
+html[data-theme="light"] .help{background:#f0f2f6!important;color:#555f6d!important;border-color:#d7dce3!important}
+html[data-theme="light"] .sidebar{background:#f7f8fa!important}
+html[data-theme="light"] .gallery-family-count,
+html[data-theme="light"] .draft-badge{color:#674700!important}
+
+.gallery-toolbar{display:grid!important;grid-template-columns:minmax(220px,1fr) minmax(300px,520px) auto!important;gap:12px!important;align-items:center!important}
+.gallery-search-wrap{position:relative;min-width:0}
+.gallery-search-wrap:before{content:"⌕";position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px;pointer-events:none}
+#gallerySearch{
+  width:100%!important;min-width:0!important;height:44px!important;padding:10px 14px 10px 39px!important;
+  border-radius:12px!important;background:var(--field-bg)!important;color:var(--text)!important;border:1px solid var(--field-border)!important;
+}
+.gallery-view-toggle{display:flex;gap:5px;padding:4px;border:1px solid var(--field-border);background:var(--field-bg);border-radius:12px}
+.gallery-view-toggle button{border:0;background:transparent;color:var(--muted);font-size:10px;font-weight:800;border-radius:8px;padding:8px 10px;cursor:pointer}
+.gallery-view-toggle button.active{background:var(--panel);color:var(--text);box-shadow:0 1px 6px rgba(0,0,0,.12)}
+
+.persistent-gallery-list{display:grid;gap:10px}
+.gallery-list-row{display:grid;grid-template-columns:148px minmax(0,1fr);gap:14px;padding:11px;border:1px solid var(--field-border);background:var(--soft-surface);border-radius:15px;align-items:stretch}
+.gallery-list-main-thumb{height:118px;border-radius:11px;overflow:hidden;background:var(--field-bg-2);cursor:pointer}
+.gallery-list-main-thumb img{width:100%;height:100%;object-fit:contain;display:block}
+.gallery-list-content{display:grid;grid-template-columns:minmax(180px,1fr) minmax(260px,2fr);gap:14px;align-items:center;min-width:0}
+.gallery-list-meta{min-width:0}
+.gallery-list-title{font-size:14px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gallery-list-sub{font-size:9px;color:var(--muted);margin-top:4px}
+.gallery-list-derivatives{display:flex;gap:8px;align-items:center;overflow-x:auto;padding:3px 1px 5px;min-width:0}
+.gallery-list-child{flex:0 0 106px}
+.gallery-list-child-thumb{height:76px;border-radius:9px;overflow:hidden;background:var(--field-bg-2);border:1px solid var(--field-border);cursor:pointer}
+.gallery-list-child-thumb img{width:100%;height:100%;object-fit:contain;display:block}
+.gallery-list-child small{display:block;font-size:8px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
+
+@media(max-width:800px){
+  .gallery-toolbar{grid-template-columns:1fr!important}
+  .gallery-view-toggle{width:max-content}
+  .gallery-list-row{grid-template-columns:92px minmax(0,1fr)}
+  .gallery-list-main-thumb{height:94px}
+  .gallery-list-content{grid-template-columns:1fr;gap:8px}
+  .gallery-list-child{flex-basis:82px}
+  .gallery-list-child-thumb{height:60px}
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -742,7 +853,7 @@ html[data-theme="light"] .footer{background:rgba(255,255,255,.94)!important;bord
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.22</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.23</div>
   
   <script>
 const state={
@@ -766,6 +877,7 @@ costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',
 library:{assets:[],generations:[],drafts:[],ratings:[],dbReady:false},
 gallerySeed:null,
 gallerySavedIds:[],
+galleryViewMode:'grid',
 user:{id:null,email:null,plan:null,credits:null,isAdmin:false},
 authSession:null,
 finalConfig:{
@@ -2535,10 +2647,31 @@ function galleryActionsHTML(x,compact=false){
   return `<div class="${compact?'gallery-derivative-actions':'gallery-actions'}"><button class="mini-btn download-btn" data-gallery-download="${id}">↓ Baixar</button><button class="mini-btn" data-gallery-fullscreen="${id}">⛶ Tela cheia</button><button class="mini-btn" data-gallery-diagnostic="${id}">◎ Diagnóstico logos</button><button class="mini-btn" data-gallery-logo-assistant="${id}">Assistente de Logos</button><button class="mini-btn" data-gallery-reference="${id}">Usar como referência</button><button class="mini-btn" data-gallery-reopen="${id}">${x.recipe?'Reabrir projeto':'Reusar arte'}</button><button class="mini-btn" data-gallery-delete="${id}" style="border-color:#69333d;color:#ff9eac">Excluir</button></div>`;
 }
 function galleryChildActionsHTML(x,compact=false){const id=esc(String(x.galleryId||''));return `<div class="gallery-child-actions" style="${compact?'margin-top:6px':''}"><strong style="font-size:${compact?'7':'8'}px;grid-column:1/-1">Gerar artes derivadas</strong><button class="mini-btn" data-gallery-child="${id}|youtube">YouTube</button><button class="mini-btn" data-gallery-child="${id}|screen">Telão</button><button class="mini-btn" data-gallery-child="${id}|story">Stories</button></div>`}
+
+function galleryThemeTitle(item){
+  const title=item?.recipe?.quick?.title||item?.recipe?.requiredContent?.title||item?.requiredContent?.title||'';
+  return String(title||item?.label||'Arte').trim()||'Arte';
+}
+function galleryFamilySearchText(family){
+  return (family?.members||[family?.main]).map(x=>[
+    galleryThemeTitle(x),x?.label,x?.kind,x?.format,x?.target?.label,x?.recipe?.quick?.subtitle,x?.recipe?.quick?.date
+  ].filter(Boolean).join(' ')).join(' ').toLowerCase();
+}
+function galleryFamilyListHTML(family){
+  const x=family.main,children=family.derivatives||[],title=galleryThemeTitle(x),id=esc(String(x.galleryId||''));
+  return `<div class="gallery-list-row">
+    <div class="gallery-list-main-thumb" data-gallery-fullscreen="${id}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"></div>
+    <div class="gallery-list-content">
+      <div class="gallery-list-meta"><div class="gallery-list-title">${esc(title)} ${galleryDraftBadge(x)}</div><div class="gallery-list-sub">${esc(x.target?.label||x.format||'')} • ${formatDateTime(x.createdAt)}</div>${galleryActionsHTML(x,true)}${galleryChildActionsHTML(x,true)}</div>
+      <div class="gallery-list-derivatives">${children.length?children.map(d=>`<div class="gallery-list-child"><div class="gallery-list-child-thumb" data-gallery-fullscreen="${esc(String(d.galleryId||''))}"><img src="${d.url||d.dataUrl}" alt="${esc(galleryThemeTitle(d))}"></div><small>${esc(d.target?.label||d.format||'Derivada')}</small></div>`).join(''):`<small style="color:var(--muted)">Sem artes derivadas</small>`}</div>
+    </div>
+  </div>`;
+}
+
 function galleryFamilyHTML(family){
-  const x=family.main,children=family.derivatives||[];
-  if(!children.length)return `<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}"><div class="persistent-gallery-body"><strong>${esc(x.label||'Arte')}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}${galleryChildActionsHTML(x)}</div></div>`;
-  return `<div class="gallery-family-card"><div class="gallery-family-head"><div><strong>${esc(x.label||'Arte principal')}${galleryDraftBadge(x)}</strong><small>Principal + artes derivadas reunidas no mesmo projeto</small></div><span class="gallery-family-count">${children.length} derivada${children.length===1?'':'s'}</span></div><div class="gallery-family-main"><div class="gallery-family-main-preview" data-gallery-fullscreen="${esc(String(x.galleryId))}"><img src="${x.url||x.dataUrl}" alt="${esc(x.label||'Arte principal')}"></div><div class="gallery-family-info"><strong>${esc(x.label||'Arte')}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}${galleryChildActionsHTML(x)}</div></div><div class="gallery-family-derivatives">${children.map(d=>`<div class="gallery-derivative-card"><div class="gallery-derivative-preview" data-gallery-fullscreen="${esc(String(d.galleryId))}"><img src="${d.url||d.dataUrl}" alt="${esc(d.label||'Arte derivada')}"></div><div class="gallery-derivative-body"><strong>${esc(d.label||'Arte derivada')}${galleryDraftBadge(d)}</strong><small>${esc(d.target?.label||d.format||'')} • ${formatDateTime(d.createdAt)}</small>${galleryActionsHTML(d,true)}${galleryChildActionsHTML(d,true)}</div></div>`).join('')}</div></div>`;
+  const x=family.main,children=family.derivatives||[],title=galleryThemeTitle(x);
+  if(!children.length)return `<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"><div class="persistent-gallery-body"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}${galleryChildActionsHTML(x)}</div></div>`;
+  return `<div class="gallery-family-card"><div class="gallery-family-head"><div><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>Principal + artes derivadas reunidas no mesmo projeto</small></div><span class="gallery-family-count">${children.length} derivada${children.length===1?'':'s'}</span></div><div class="gallery-family-main"><div class="gallery-family-main-preview" data-gallery-fullscreen="${esc(String(x.galleryId))}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"></div><div class="gallery-family-info"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}${galleryChildActionsHTML(x)}</div></div><div class="gallery-family-derivatives">${children.map(d=>`<div class="gallery-derivative-card"><div class="gallery-derivative-preview" data-gallery-fullscreen="${esc(String(d.galleryId))}"><img src="${d.url||d.dataUrl}" alt="${esc(galleryThemeTitle(d))}"></div><div class="gallery-derivative-body"><strong>${esc(galleryThemeTitle(d))}${galleryDraftBadge(d)}</strong><small>${esc(d.target?.label||d.format||'')} • ${formatDateTime(d.createdAt)}</small>${galleryActionsHTML(d,true)}${galleryChildActionsHTML(d,true)}</div></div>`).join('')}</div></div>`;
 }
 function isDataImage(value){
   return typeof value==='string' && /^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(value.trim());
@@ -2625,10 +2758,20 @@ function openGalleryLogoAssistant(id){
   source.id=crypto.randomUUID();source.galleryId=null;source.dataUrl=base;source.baseDataUrl=base;source.sourceUrl=base;source.finalized=false;source.finalizedWithoutLogo=false;source.manualLogoFlow=true;source.manualLogoPlacements=Array.isArray(item.recipe?.manualLogoPlacements)?JSON.parse(JSON.stringify(item.recipe.manualLogoPlacements)):[];source.sourceGalleryId=item.galleryId;source.parentArtworkId=item.parentArtworkId||item.recipe?.parentArtworkId||null;source.sourceArtworkId=item.sourceArtworkId||item.recipe?.sourceArtworkId||null;source.label=`${item.label||'Arte'} • logos`;
   state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:base,artDirection:item.recipe?.artDirection||null,recipe:item.recipe||null};state.quickResults=[source];closeModal();screenQuickMode();setTimeout(()=>openLogoAssistant('main:0',{returnToGallery:true,galleryItemId:item.galleryId}),80);
 }
-window.openGallery=function(query=''){
-  const root=document.querySelector('#modalRoot'),items=allPersistentGalleryItems(),q=String(query||'').trim().toLowerCase(),filtered=q?items.filter(x=>`${x.label||''} ${x.kind||''} ${x.format||''}`.toLowerCase().includes(q)):items,families=galleryFamilies(filtered);
-  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel gallery-modal-panel"><div class="modal-head"><div><h2>Galeria</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Artes e receitas salvas':'Banco não conectado'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="gallery-toolbar"><div><strong>${items.length} arte(s)</strong><small style="display:block;color:var(--muted);margin-top:3px">A principal e suas derivadas aparecem reunidas no mesmo card.</small></div><input id="gallerySearch" placeholder="Buscar na Galeria" value="${esc(query||'')}"></div>${families.length?`<div class="persistent-gallery-grid">${families.map(galleryFamilyHTML).join('')}</div>`:`<div class="gallery-empty">Nenhuma arte encontrada.</div>`}</div></div></div>`;
-  const search=root.querySelector('#gallerySearch');if(search)search.onchange=()=>openGallery(search.value);
+window.openGallery=function(query='',viewMode=null){
+  const root=document.querySelector('#modalRoot'),items=allPersistentGalleryItems(),q=String(query||'').trim().toLowerCase();
+  if(viewMode)state.galleryViewMode=viewMode;
+  const view=state.galleryViewMode||'grid',allFamilies=galleryFamilies(items),families=q?allFamilies.filter(f=>galleryFamilySearchText(f).includes(q)):allFamilies;
+  const galleryHTML=view==='list'
+    ?`<div class="persistent-gallery-list">${families.map(galleryFamilyListHTML).join('')}</div>`
+    :`<div class="persistent-gallery-grid">${families.map(galleryFamilyHTML).join('')}</div>`;
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel gallery-modal-panel"><div class="modal-head"><div><h2>Galeria</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Artes e receitas salvas':'Banco não conectado'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="gallery-toolbar"><div><strong>${items.length} arte(s)</strong><small style="display:block;color:var(--muted);margin-top:3px">Busque pelo tema/título da arte. Principal e derivadas permanecem reunidas.</small></div><div class="gallery-search-wrap"><input id="gallerySearch" type="search" placeholder="Buscar pelo tema da arte..." value="${esc(query||'')}"></div><div class="gallery-view-toggle"><button type="button" data-gallery-view="grid" class="${view==='grid'?'active':''}">▦ Grade</button><button type="button" data-gallery-view="list" class="${view==='list'?'active':''}">☷ Lista</button></div></div>${families.length?galleryHTML:`<div class="gallery-empty">Nenhuma arte encontrada para “${esc(query||'')}”.</div>`}</div></div></div>`;
+  const search=root.querySelector('#gallerySearch');
+  if(search){
+    search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();openGallery(search.value,view)}};
+    search.onsearch=()=>openGallery(search.value,view);
+  }
+  root.querySelectorAll('[data-gallery-view]').forEach(b=>b.onclick=()=>openGallery(search?.value||'',b.dataset.galleryView));
   root.querySelectorAll('[data-gallery-download]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDownload);if(x){const ok=await downloadDataUrl(x.url,`churchdesign-${(x.label||'arte').toLowerCase().replace(/\s+/g,'-')}.png`,{label:x.label});if(ok){markGalleryDownloaded(x);openGallery(document.querySelector('#gallerySearch')?.value||'')}}});
   root.querySelectorAll('[data-gallery-fullscreen]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryFullscreen);if(x)openArtworkFullscreen(x.url,x.label||'Arte')});
   root.querySelectorAll('[data-gallery-diagnostic]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDiagnostic);if(!x)return;const a=galleryItemToQuickResult(x);openLogoDiagnostic(a)});
@@ -2639,7 +2782,7 @@ window.openGallery=function(query=''){
   root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const raw=String(b.dataset.galleryChild||''),cut=raw.lastIndexOf('|');if(cut<1)return;startGalleryChild(raw.slice(0,cut),raw.slice(cut+1));});
 };
 
-// NEWFLOW v0.22 — derivadas da Galeria usam handlers locais do modal.
+// NEWFLOW v0.23 — derivadas da Galeria usam handlers locais do modal.
 window.startGalleryChild=startGalleryChild;
 
 window.openMyChurch=function(tab='pastor'){
@@ -2962,7 +3105,7 @@ async function drawTextLayer(ctx,c,l,text,fontFamily){
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
 
-// NEWFLOW v0.22 — Modo Detalhado removido do fluxo atual.
+// NEWFLOW v0.23 — Modo Detalhado removido do fluxo atual.
 // O arquivo completo anterior foi preservado separadamente como backup.
 // O produto atual inicia diretamente no Modo Rápido.
 function quickDefaultLogo(){
@@ -3575,9 +3718,9 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.22</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.23</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
-  // NEWFLOW v0.22: the coordinate system MUST be the real exported bitmap, not the requested target.
+  // NEWFLOW v0.23: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
   // object-fit creates an invisible coordinate mismatch and logos move on export.
   const stageBaseImg=ov.querySelector('[data-logo-stage] > img');
@@ -3968,7 +4111,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
-// NEWFLOW v0.22 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
+// NEWFLOW v0.23 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
 let churchDesignAppStarted=false;
 async function startAuthenticatedApp(){
