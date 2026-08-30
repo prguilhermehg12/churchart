@@ -532,7 +532,7 @@
 @media(max-width:850px){.logo-assistant-body{grid-template-columns:1fr;overflow:auto}.logo-assistant-stage-wrap{min-height:420px}.logo-assistant-stage{max-width:92vw}.logo-palette{grid-template-columns:repeat(3,1fr)}}
 
 
-/* NEWFLOW v0.23 — authentication */
+/* NEWFLOW v0.24 — authentication */
 .auth-gate{position:fixed;inset:0;z-index:10000;background:#090b0f;display:grid;place-items:center;padding:20px}
 .auth-gate.hidden{display:none}.auth-card{width:min(430px,96vw);background:#111318;border:1px solid #2a2e37;border-radius:20px;padding:26px;box-shadow:0 30px 100px rgba(0,0,0,.55)}
 .auth-card h1{margin:0 0 6px;font-size:26px}.auth-card>p{margin:0 0 20px;color:#969dac;font-size:12px;line-height:1.5}
@@ -543,7 +543,7 @@
 .account-signout{width:100%;margin-top:10px}.account-email{display:block;color:#969dac;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:8px}
 
 
-/* NEWFLOW v0.23 — mobile creation wizard. Desktop layout remains unchanged. */
+/* NEWFLOW v0.24 — mobile creation wizard. Desktop layout remains unchanged. */
 .mobile-quick-wizard{display:none}
 @media(max-width:900px){
   body.mobile-wizard-active{background:#090b0f}
@@ -627,7 +627,7 @@
   .logo-assistant-overlay .logo-assistant-actions button{min-height:50px;font-size:13px}
 }
 
-/* NEWFLOW v0.23 — ChurchDesign logo + complete light/dark appearance */
+/* NEWFLOW v0.24 — ChurchDesign logo + complete light/dark appearance */
 :root{--brand-logo:url("/churchdesign-logo-dark.png")}
 html[data-theme="dark"]{--brand-logo:url("/churchdesign-logo-dark.png")}
 html[data-theme="light"]{
@@ -695,7 +695,7 @@ html[data-theme="light"] .footer{background:rgba(255,255,255,.94)!important;bord
 }
 
 
-/* NEWFLOW v0.23 — premium surface system + gallery search/list */
+/* NEWFLOW v0.24 — premium surface system + gallery search/list */
 :root{
   --field-bg:#11151c;--field-bg-2:#171c24;--field-border:#353c48;
   --soft-surface:#151a22;--soft-surface-2:#1c222c;--scroll-track:#151922;--scroll-thumb:#495261;
@@ -805,6 +805,242 @@ html[data-theme="light"] .draft-badge{color:#674700!important}
   .gallery-list-child-thumb{height:60px}
 }
 
+
+/* NEWFLOW v0.24 — higher-contrast light theme + orange identity */
+:root{
+  --accent:#ff6a00!important;
+  --accent2:#ff9a00!important;
+  --brand-orange:#ff6a00;
+  --brand-orange-2:#ff9a00;
+}
+html[data-theme="light"]{
+  --bg:#eceff3!important;
+  --panel:#f8f9fb!important;
+  --panel2:#e1e5ea!important;
+  --line:#b8c0ca!important;
+  --text:#171a1f!important;
+  --muted:#606975!important;
+
+  --field-bg:#dfe4ea!important;
+  --field-bg-2:#d5dbe3!important;
+  --field-border:#aeb7c2!important;
+
+  --soft-surface:#e5e9ee!important;
+  --soft-surface-2:#dbe1e8!important;
+  --scroll-track:#d5dbe2!important;
+  --scroll-thumb:#8e99a7!important;
+}
+
+/* Remove pink/purple decorative accents */
+.progress>div,
+.mobile-wizard-track{
+  background:var(--field-bg-2)!important;
+}
+.progress i,
+.mobile-wizard-track i{
+  background:linear-gradient(90deg,var(--brand-orange),var(--brand-orange-2))!important;
+}
+.eyebrow,
+.account-plan,
+.gallery-family-count,
+.draft-badge{
+  color:var(--brand-orange)!important;
+}
+.nav-step.active .step-num,
+.mobile-wizard-progress strong::before{
+  background:var(--brand-orange)!important;
+  color:#fff!important;
+}
+.quick-format-card.selected,
+.quick-asset.selected,
+.asset-card.selected,
+.inspiration-card.selected,
+.keep-chip.active,
+.library-tab.active,
+.adapt-format.active{
+  border-color:var(--brand-orange)!important;
+  box-shadow:0 0 0 2px rgba(255,106,0,.14)!important;
+}
+
+/* Light theme: stronger depth and contrast */
+html[data-theme="light"] body,
+html[data-theme="light"] .main,
+html[data-theme="light"] .content{
+  background:#eceff3!important;
+}
+html[data-theme="light"] .sidebar{
+  background:#f1f3f6!important;
+  border-right:1px solid #bcc4ce!important;
+}
+html[data-theme="light"] .topbar,
+html[data-theme="light"] .card,
+html[data-theme="light"] .modal-panel,
+html[data-theme="light"] .modal-head,
+html[data-theme="light"] .auth-card,
+html[data-theme="light"] .project-mini,
+html[data-theme="light"] .account-card,
+html[data-theme="light"] .mobile-app-card{
+  background:#f8f9fb!important;
+  border-color:#b8c0ca!important;
+}
+
+/* All text fields/selects become visibly gray, with darker outlines */
+html[data-theme="light"] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),
+html[data-theme="light"] select,
+html[data-theme="light"] textarea,
+html[data-theme="light"] .pastor-name-input{
+  background:#dfe4ea!important;
+  border:1px solid #aab4c0!important;
+  color:#171a1f!important;
+  box-shadow:inset 0 1px 2px rgba(27,34,44,.05)!important;
+}
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder{
+  color:#697381!important;
+}
+html[data-theme="light"] input:focus,
+html[data-theme="light"] select:focus,
+html[data-theme="light"] textarea:focus{
+  background:#e7ebef!important;
+  border-color:var(--brand-orange)!important;
+  box-shadow:0 0 0 3px rgba(255,106,0,.12)!important;
+}
+
+/* Buttons: no black fills in light mode */
+html[data-theme="light"] button,
+html[data-theme="light"] .btn,
+html[data-theme="light"] .mini-btn,
+html[data-theme="light"] .btn.ghost,
+html[data-theme="light"] .quick-adapt-btn,
+html[data-theme="light"] .adapt-format,
+html[data-theme="light"] .library-tab,
+html[data-theme="light"] .keep-chip,
+html[data-theme="light"] .close-modal{
+  background:#d8dde4!important;
+  color:#252a31!important;
+  border-color:#aeb7c2!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] button:hover,
+html[data-theme="light"] .btn:hover,
+html[data-theme="light"] .mini-btn:hover{
+  background:#cfd5dd!important;
+}
+html[data-theme="light"] .btn.primary,
+html[data-theme="light"] #quickGenerate,
+html[data-theme="light"] .mobile-next{
+  background:var(--brand-orange)!important;
+  color:#fff!important;
+  border-color:var(--brand-orange)!important;
+  box-shadow:0 6px 16px rgba(255,106,0,.20)!important;
+}
+html[data-theme="light"] .btn.primary:hover,
+html[data-theme="light"] #quickGenerate:hover,
+html[data-theme="light"] .mobile-next:hover{
+  background:#e85f00!important;
+}
+html[data-theme="light"] .theme-toggle{
+  background:#d8dde4!important;
+  border-color:#abb4bf!important;
+}
+html[data-theme="light"] .theme-toggle button{
+  background:transparent!important;
+  border-color:transparent!important;
+}
+html[data-theme="light"] .theme-toggle button.active{
+  background:#f8f9fb!important;
+  color:#171a1f!important;
+  box-shadow:0 1px 4px rgba(30,36,45,.10)!important;
+}
+
+/* Size cards: no black preview surfaces */
+html[data-theme="light"] .quick-format-card{
+  background:#e7eaee!important;
+  border-color:#b8c0ca!important;
+}
+html[data-theme="light"] .quick-format-sketch{
+  background:#cfd5dd!important;
+  border:1px solid #b2bbc6!important;
+}
+html[data-theme="light"] .quick-format-sketch i,
+html[data-theme="light"] .quick-format-sketch span,
+html[data-theme="light"] .format-preview,
+html[data-theme="light"] .format-preview i{
+  background:#8f99a7!important;
+  border-color:#6f7b8a!important;
+}
+html[data-theme="light"] .quick-format-card.selected{
+  background:#eef1f4!important;
+  border-color:var(--brand-orange)!important;
+}
+
+/* References, preacher photos and asset/library areas */
+html[data-theme="light"] .quick-asset,
+html[data-theme="light"] .asset-card,
+html[data-theme="light"] .gallery-item,
+html[data-theme="light"] .persistent-gallery-card,
+html[data-theme="light"] .gallery-family-card,
+html[data-theme="light"] .gallery-derivative-card,
+html[data-theme="light"] .logo-palette-item,
+html[data-theme="light"] .layer,
+html[data-theme="light"] .library-upload,
+html[data-theme="light"] .quick-upload-box,
+html[data-theme="light"] .inspiration-card{
+  background:#e3e7ec!important;
+  border-color:#b3bcc7!important;
+}
+html[data-theme="light"] .quick-asset img,
+html[data-theme="light"] .asset-card img,
+html[data-theme="light"] .gallery-family-main-preview,
+html[data-theme="light"] .gallery-derivative-preview,
+html[data-theme="light"] .gallery-list-main-thumb,
+html[data-theme="light"] .gallery-list-child-thumb{
+  background:#cfd5dc!important;
+}
+
+/* Sidebar/navigation: selected state in gray + orange, never black */
+html[data-theme="light"] .nav-step.active,
+html[data-theme="light"] .sidebar-btn.active,
+html[data-theme="light"] .project-actions .mini-btn.active{
+  background:#dce1e7!important;
+  color:#20252b!important;
+  border-color:#adb6c1!important;
+}
+html[data-theme="light"] .nav-step.active{
+  border-left:3px solid var(--brand-orange)!important;
+}
+html[data-theme="light"] .sidebar .mini-btn,
+html[data-theme="light"] .project-mini button{
+  background:#dce1e7!important;
+  color:#20252b!important;
+  border-color:#adb6c1!important;
+}
+
+/* Scrollbars with more contrast */
+html[data-theme="light"] *{
+  scrollbar-color:#8793a2 #d3d9e0!important;
+}
+html[data-theme="light"] *::-webkit-scrollbar-track{
+  background:#d3d9e0!important;
+}
+html[data-theme="light"] *::-webkit-scrollbar-thumb{
+  background:#8793a2!important;
+  border-color:#d3d9e0!important;
+}
+
+/* Small orange accents */
+html[data-theme="light"] input[type=checkbox],
+html[data-theme="light"] input[type=radio]{
+  accent-color:var(--brand-orange)!important;
+}
+html[data-theme="light"] a,
+html[data-theme="light"] .linkish{
+  color:#d95a00!important;
+}
+html[data-theme="light"] .db-status.ok i{
+  background:var(--brand-orange)!important;
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -853,7 +1089,7 @@ html[data-theme="light"] .draft-badge{color:#674700!important}
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.23</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.24</div>
   
   <script>
 const state={
@@ -2782,7 +3018,7 @@ window.openGallery=function(query='',viewMode=null){
   root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const raw=String(b.dataset.galleryChild||''),cut=raw.lastIndexOf('|');if(cut<1)return;startGalleryChild(raw.slice(0,cut),raw.slice(cut+1));});
 };
 
-// NEWFLOW v0.23 — derivadas da Galeria usam handlers locais do modal.
+// NEWFLOW v0.24 — derivadas da Galeria usam handlers locais do modal.
 window.startGalleryChild=startGalleryChild;
 
 window.openMyChurch=function(tab='pastor'){
@@ -3105,7 +3341,7 @@ async function drawTextLayer(ctx,c,l,text,fontFamily){
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
 
-// NEWFLOW v0.23 — Modo Detalhado removido do fluxo atual.
+// NEWFLOW v0.24 — Modo Detalhado removido do fluxo atual.
 // O arquivo completo anterior foi preservado separadamente como backup.
 // O produto atual inicia diretamente no Modo Rápido.
 function quickDefaultLogo(){
@@ -3718,9 +3954,9 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.23</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.24</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
-  // NEWFLOW v0.23: the coordinate system MUST be the real exported bitmap, not the requested target.
+  // NEWFLOW v0.24: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
   // object-fit creates an invisible coordinate mismatch and logos move on export.
   const stageBaseImg=ov.querySelector('[data-logo-stage] > img');
@@ -4111,7 +4347,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
-// NEWFLOW v0.23 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
+// NEWFLOW v0.24 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
 let churchDesignAppStarted=false;
 async function startAuthenticatedApp(){
