@@ -532,7 +532,7 @@
 @media(max-width:850px){.logo-assistant-body{grid-template-columns:1fr;overflow:auto}.logo-assistant-stage-wrap{min-height:420px}.logo-assistant-stage{max-width:92vw}.logo-palette{grid-template-columns:repeat(3,1fr)}}
 
 
-/* NEWFLOW v0.21 — authentication */
+/* NEWFLOW v0.22 — authentication */
 .auth-gate{position:fixed;inset:0;z-index:10000;background:#090b0f;display:grid;place-items:center;padding:20px}
 .auth-gate.hidden{display:none}.auth-card{width:min(430px,96vw);background:#111318;border:1px solid #2a2e37;border-radius:20px;padding:26px;box-shadow:0 30px 100px rgba(0,0,0,.55)}
 .auth-card h1{margin:0 0 6px;font-size:26px}.auth-card>p{margin:0 0 20px;color:#969dac;font-size:12px;line-height:1.5}
@@ -543,7 +543,7 @@
 .account-signout{width:100%;margin-top:10px}.account-email{display:block;color:#969dac;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:8px}
 
 
-/* NEWFLOW v0.21 — mobile creation wizard. Desktop layout remains unchanged. */
+/* NEWFLOW v0.22 — mobile creation wizard. Desktop layout remains unchanged. */
 .mobile-quick-wizard{display:none}
 @media(max-width:900px){
   body.mobile-wizard-active{background:#090b0f}
@@ -627,7 +627,73 @@
   .logo-assistant-overlay .logo-assistant-actions button{min-height:50px;font-size:13px}
 }
 
-\n/* NEWFLOW v0.21 — ChurchDesign brand + light/dark appearance */\n:root{--brand-logo:url('/churchdesign-logo-dark.png')}\nhtml[data-theme="light"]{\n  --bg:#f5f6f8;--panel:#ffffff;--panel2:#f0f2f5;--line:#d9dde5;--text:#17191e;--muted:#6c7480;\n  --brand-logo:url('/churchdesign-logo-light.png');\n}\nhtml[data-theme="dark"]{--brand-logo:url('/churchdesign-logo-dark.png')}\n.brand-logo{display:block;width:min(220px,80%);height:58px;background-image:var(--brand-logo);background-repeat:no-repeat;background-position:left center;background-size:contain}\n.sidebar .brand{padding:8px 8px 14px!important;display:flex;align-items:center}\n.sidebar .brand-logo{width:100%;max-width:210px;height:56px}\n.auth-card .brand-logo{height:72px!important;background-position:center left}\n.theme-toggle{display:flex;gap:5px;padding:4px;background:var(--panel2);border:1px solid var(--line);border-radius:11px}\n.theme-toggle button{border:0;background:transparent;color:var(--muted);border-radius:8px;padding:7px 9px;font-size:10px;font-weight:800;cursor:pointer}\n.theme-toggle button.active{background:var(--panel);color:var(--text);box-shadow:0 1px 6px rgba(0,0,0,.12)}\nhtml[data-theme="light"] body{background:#fff;color:#17191e}\nhtml[data-theme="light"] .sidebar,html[data-theme="light"] .topbar,html[data-theme="light"] .card,html[data-theme="light"] .mobile-app-card{background:#fff!important;color:#17191e}\nhtml[data-theme="light"] .sidebar{border-right-color:#dfe3ea}\nhtml[data-theme="light"] .topbar{border-bottom-color:#dfe3ea}\nhtml[data-theme="light"] .content{background:#fff}\nhtml[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{background:#fff!important;color:#17191e!important;border-color:#d5dae2!important}\nhtml[data-theme="light"] .mini-btn,html[data-theme="light"] .btn.ghost{color:#272b32}\nhtml[data-theme="light"] .mobile-wizard-nav{background:rgba(255,255,255,.96);border-color:#d9dde5}\nhtml[data-theme="light"] .mobile-logo-explainer{background:#f4f6f8;border-color:#d8dde5}\nhtml[data-theme="light"] .auth-gate{background:#fff}\nhtml[data-theme="light"] .auth-card{background:#fff;color:#17191e;border-color:#d9dde5}\nhtml[data-theme="light"] .auth-field input{background:#fff;color:#17191e}\nhtml[data-theme="light"] .mobile-wizard-progress strong,html[data-theme="light"] .mobile-app-card>h2{color:#17191e}\nhtml[data-theme="light"] .mobile-app-card>.mobile-step-copy,html[data-theme="light"] .mobile-wizard-progress span{color:#6c7480}\n@media(max-width:900px){\n  .brand-logo{width:190px;height:48px}\n  body.mobile-wizard-active .topbar>div:last-child{gap:7px!important}\n  body.mobile-wizard-active .topbar .progress{display:none!important}\n  body.mobile-wizard-active .theme-toggle button{padding:7px 8px}\n}\n
+/* NEWFLOW v0.22 — ChurchDesign logo + complete light/dark appearance */
+:root{--brand-logo:url("/churchdesign-logo-dark.png")}
+html[data-theme="dark"]{--brand-logo:url("/churchdesign-logo-dark.png")}
+html[data-theme="light"]{
+  --bg:#ffffff;--panel:#ffffff;--panel2:#f3f4f6;--line:#dde1e7;--text:#17191d;--muted:#6f7682;
+  --shadow:0 10px 30px rgba(18,24,35,.07);--brand-logo:url("/churchdesign-logo-light.png")
+}
+.brand-logo{display:block;width:min(220px,100%);height:58px;background-image:var(--brand-logo);background-repeat:no-repeat;background-position:left center;background-size:contain}
+.sidebar .brand{padding:4px 8px 18px!important;display:flex;align-items:center}
+.sidebar .brand-logo{width:100%;max-width:216px;height:58px}
+.auth-card .brand-logo{width:270px!important;max-width:100%!important;height:74px!important;background-position:left center;margin:0 0 14px!important}
+.theme-toggle{display:flex;gap:4px;padding:4px;background:var(--panel2);border:1px solid var(--line);border-radius:12px}
+.theme-toggle button{border:0;background:transparent;color:var(--muted);border-radius:9px;padding:7px 10px;font-size:10px;font-weight:800;cursor:pointer}
+.theme-toggle button.active{background:var(--panel);color:var(--text);box-shadow:0 1px 5px rgba(0,0,0,.12)}
+.google-login-inner{display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.google-login-inner svg{width:18px;height:18px;flex:0 0 18px}
+
+html[data-theme="light"] body{background:#fff!important;color:#17191d!important}
+html[data-theme="light"] .app-shell,html[data-theme="light"] .main,html[data-theme="light"] .content{background:#fff!important;color:#17191d!important}
+html[data-theme="light"] .sidebar{background:#f8f9fb!important;border-color:#e0e3e8!important;color:#17191d!important}
+html[data-theme="light"] .topbar{background:#fff!important;border-color:#e2e5ea!important;color:#17191d!important}
+html[data-theme="light"] .card,html[data-theme="light"] .project-mini,html[data-theme="light"] .account-card,html[data-theme="light"] .mobile-app-card,
+html[data-theme="light"] .quick-format-card,html[data-theme="light"] .quick-asset,html[data-theme="light"] .inspiration-card,
+html[data-theme="light"] .selector-card,html[data-theme="light"] .reference-card,html[data-theme="light"] .asset-card,
+html[data-theme="light"] .variant-card,html[data-theme="light"] .font-field,html[data-theme="light"] .layer,
+html[data-theme="light"] .replacement,html[data-theme="light"] .generation-loader,html[data-theme="light"] .library-upload,
+html[data-theme="light"] .modal-panel,html[data-theme="light"] .modal-head{background:#fff!important;color:#17191d!important;border-color:#dde1e7!important}
+html[data-theme="light"] .field label,html[data-theme="light"] .logo-assistant-controls label,html[data-theme="light"] .font-field label{color:#545b66!important}
+html[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+html[data-theme="light"] select,html[data-theme="light"] textarea,html[data-theme="light"] .pastor-name-input,
+html[data-theme="light"] .reference-instruction,html[data-theme="light"] .variant-card textarea,html[data-theme="light"] .font-field select{
+  background:#f6f7f9!important;color:#17191d!important;border-color:#d6dbe2!important;box-shadow:none!important
+}
+html[data-theme="light"] input::placeholder,html[data-theme="light"] textarea::placeholder{color:#9aa1ab!important}
+html[data-theme="light"] .upload,html[data-theme="light"] .quick-upload-box,html[data-theme="light"] .canvas-wrap,
+html[data-theme="light"] .mobile-logo-explainer,html[data-theme="light"] .help,html[data-theme="light"] .asset-picker-card{
+  background:#f7f8fa!important;color:#272b31!important;border-color:#d8dde4!important
+}
+html[data-theme="light"] .quick-mode-toggle button,html[data-theme="light"] .mini-btn,html[data-theme="light"] .btn.ghost,
+html[data-theme="light"] .my-church-btn,html[data-theme="light"] .library-tab,html[data-theme="light"] .chip{
+  background:#f3f4f6!important;color:#272b31!important;border-color:#d8dde4!important
+}
+html[data-theme="light"] .btn.primary{background:#17191d!important;color:#fff!important}
+html[data-theme="light"] .nav-step{color:#737b87!important}
+html[data-theme="light"] .nav-step.active{background:#eceff3!important;color:#17191d!important}
+html[data-theme="light"] .nav-step.active b{color:#fff!important}
+html[data-theme="light"] .project-mini span,html[data-theme="light"] .sidebar-foot,html[data-theme="light"] .account-email,
+html[data-theme="light"] .card p,html[data-theme="light"] .quick-format-card small,html[data-theme="light"] .layer-info small,
+html[data-theme="light"] .mobile-step-copy,html[data-theme="light"] .mobile-wizard-progress span{color:#747c88!important}
+html[data-theme="light"] .quick-format-card strong,html[data-theme="light"] .layer-info strong,html[data-theme="light"] .mobile-app-card h2,
+html[data-theme="light"] .mobile-wizard-progress strong,html[data-theme="light"] .card h3{color:#17191d!important}
+html[data-theme="light"] .mobile-wizard-nav{background:rgba(255,255,255,.97)!important;border-color:#dde1e7!important}
+html[data-theme="light"] .auth-gate{background:#fff!important}
+html[data-theme="light"] .auth-card{background:#fff!important;color:#17191d!important;border-color:#dde1e7!important;box-shadow:0 20px 70px rgba(17,24,39,.10)!important}
+html[data-theme="light"] .auth-card>p,html[data-theme="light"] .auth-switch{color:#6f7682!important}
+html[data-theme="light"] .auth-switch button{color:#17191d!important}
+html[data-theme="light"] .auth-divider{color:#8b929d!important}
+html[data-theme="light"] .auth-divider:before,html[data-theme="light"] .auth-divider:after{background:#e0e3e8!important}
+html[data-theme="light"] .auth-google{background:#fff!important;color:#17191d!important;border:1px solid #d9dde3!important}
+html[data-theme="light"] .footer{background:rgba(255,255,255,.94)!important;border-color:#dde1e7!important}
+@media(max-width:900px){
+  .brand-logo{width:190px;height:48px}
+  body.mobile-wizard-active .topbar>div:last-child{gap:7px!important}
+  body.mobile-wizard-active .topbar .progress{display:none!important}
+  body.mobile-wizard-active .theme-toggle button{padding:7px 8px}
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -644,7 +710,7 @@
         <div class="auth-actions"><button id="authSubmit" class="btn primary" type="submit">Entrar</button></div>
       </form>
       <div class="auth-divider">ou</div>
-      <button id="googleLoginBtn" class="btn auth-google" type="button">Continuar com Google</button>
+      <button id="googleLoginBtn" class="btn auth-google" type="button"><span class="google-login-inner"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.92h5.38a4.6 4.6 0 0 1-2 3.02v2.54h3.24c1.9-1.75 2.98-4.33 2.98-7.41z"/><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.36l-3.24-2.54c-.9.6-2.05.96-3.38.96-2.61 0-4.82-1.76-5.61-4.13H3.04v2.62A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.39 13.93A6.02 6.02 0 0 1 6.07 12c0-.67.12-1.32.32-1.93V7.45H3.04A10 10 0 0 0 2 12c0 1.61.39 3.14 1.04 4.55l3.35-2.62z"/><path fill="#EA4335" d="M12 5.94c1.47 0 2.79.51 3.83 1.5l2.87-2.87C16.96 2.95 14.7 2 12 2a10 10 0 0 0-8.96 5.45l3.35 2.62C7.18 7.7 9.39 5.94 12 5.94z"/></svg><span>Continuar com Google</span></span></button>
       <div class="auth-switch"><span id="authSwitchText">Ainda não tem conta?</span> <button id="authSwitchBtn" type="button">Criar conta</button></div>
     </div>
   </div>
@@ -676,7 +742,7 @@
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.21</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.22</div>
   
   <script>
 const state={
@@ -2573,7 +2639,7 @@ window.openGallery=function(query=''){
   root.querySelectorAll('[data-gallery-child]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const raw=String(b.dataset.galleryChild||''),cut=raw.lastIndexOf('|');if(cut<1)return;startGalleryChild(raw.slice(0,cut),raw.slice(cut+1));});
 };
 
-// NEWFLOW v0.21 — derivadas da Galeria usam handlers locais do modal.
+// NEWFLOW v0.22 — derivadas da Galeria usam handlers locais do modal.
 window.startGalleryChild=startGalleryChild;
 
 window.openMyChurch=function(tab='pastor'){
@@ -2896,7 +2962,7 @@ async function drawTextLayer(ctx,c,l,text,fontFamily){
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
 
-// NEWFLOW v0.21 — Modo Detalhado removido do fluxo atual.
+// NEWFLOW v0.22 — Modo Detalhado removido do fluxo atual.
 // O arquivo completo anterior foi preservado separadamente como backup.
 // O produto atual inicia diretamente no Modo Rápido.
 function quickDefaultLogo(){
@@ -3509,9 +3575,9 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.21</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.22</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
-  // NEWFLOW v0.21: the coordinate system MUST be the real exported bitmap, not the requested target.
+  // NEWFLOW v0.22: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
   // object-fit creates an invisible coordinate mismatch and logos move on export.
   const stageBaseImg=ov.querySelector('[data-logo-stage] > img');
@@ -3902,7 +3968,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
-// NEWFLOW v0.21 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
+// NEWFLOW v0.22 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
 let churchDesignAppStarted=false;
 async function startAuthenticatedApp(){
