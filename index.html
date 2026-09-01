@@ -532,7 +532,7 @@
 @media(max-width:850px){.logo-assistant-body{grid-template-columns:1fr;overflow:auto}.logo-assistant-stage-wrap{min-height:420px}.logo-assistant-stage{max-width:92vw}.logo-palette{grid-template-columns:repeat(3,1fr)}}
 
 
-/* NEWFLOW v0.32 — authentication */
+/* NEWFLOW v0.34 — authentication */
 .auth-gate{position:fixed;inset:0;z-index:10000;background:#090b0f;display:grid;place-items:center;padding:20px}
 .auth-gate.hidden{display:none}.auth-card{width:min(430px,96vw);background:#111318;border:1px solid #2a2e37;border-radius:20px;padding:26px;box-shadow:0 30px 100px rgba(0,0,0,.55)}
 .auth-card h1{margin:0 0 6px;font-size:26px}.auth-card>p{margin:0 0 20px;color:#969dac;font-size:12px;line-height:1.5}
@@ -543,7 +543,7 @@
 .account-signout{width:100%;margin-top:10px}.account-email{display:block;color:#969dac;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:8px}
 
 
-/* NEWFLOW v0.32 — mobile creation wizard. Desktop layout remains unchanged. */
+/* NEWFLOW v0.34 — mobile creation wizard. Desktop layout remains unchanged. */
 .mobile-quick-wizard{display:none}
 @media(max-width:900px){
   body.mobile-wizard-active{background:#090b0f}
@@ -627,7 +627,7 @@
   .logo-assistant-overlay .logo-assistant-actions button{min-height:50px;font-size:13px}
 }
 
-/* NEWFLOW v0.32 — ChurchDesign logo + complete light/dark appearance */
+/* NEWFLOW v0.34 — ChurchDesign logo + complete light/dark appearance */
 :root{--brand-logo:url("/churchdesign-logo-dark.png")}
 html[data-theme="dark"]{--brand-logo:url("/churchdesign-logo-dark.png")}
 html[data-theme="light"]{
@@ -695,7 +695,7 @@ html[data-theme="light"] .footer{background:rgba(255,255,255,.94)!important;bord
 }
 
 
-/* NEWFLOW v0.32 — premium surface system + gallery search/list */
+/* NEWFLOW v0.34 — premium surface system + gallery search/list */
 :root{
   --field-bg:#11151c;--field-bg-2:#171c24;--field-border:#353c48;
   --soft-surface:#151a22;--soft-surface-2:#1c222c;--scroll-track:#151922;--scroll-thumb:#495261;
@@ -806,7 +806,7 @@ html[data-theme="light"] .draft-badge{color:#674700!important}
 }
 
 
-/* NEWFLOW v0.32 — higher-contrast light theme + orange identity */
+/* NEWFLOW v0.34 — higher-contrast light theme + orange identity */
 :root{
   --accent:#ff6a00!important;
   --accent2:#ff9a00!important;
@@ -1042,7 +1042,7 @@ html[data-theme="light"] .db-status.ok i{
 }
 
 
-/* NEWFLOW v0.32 — light treatment for derivative-art configuration panels */
+/* NEWFLOW v0.34 — light treatment for derivative-art configuration panels */
 html[data-theme="light"] .adapt-panel,
 html[data-theme="light"] .quick-adapt-panel,
 html[data-theme="light"] [id^="quickAdaptConfig-"]{
@@ -1087,7 +1087,7 @@ html[data-theme="light"] [id^="quickAdaptConfig-"] input[type=checkbox]{
 }
 
 
-/* NEWFLOW v0.32 — Telão occupancy selector + Modo Livre */
+/* NEWFLOW v0.34 — Telão occupancy selector + Modo Livre */
 .screen-occupancy-block{grid-column:1/-1;margin-top:4px;padding:12px;border:1px solid var(--field-border);background:var(--soft-surface);border-radius:12px}
 .screen-occupancy-block>strong{display:block;font-size:10px;margin-bottom:4px}
 .screen-occupancy-block>small{display:block;color:var(--muted);font-size:8px;line-height:1.45;margin-bottom:10px}
@@ -1113,7 +1113,7 @@ html[data-theme="light"] [id^="quickAdaptConfig-"] input[type=checkbox]{
 }
 
 
-/* NEWFLOW v0.32 — light fixes, screen ratio preview, gallery correction */
+/* NEWFLOW v0.34 — light fixes, screen ratio preview, gallery correction */
 html[data-theme="light"] .draft-badge{
   background:#f3dfc9!important;
   border-color:#d79a59!important;
@@ -1199,7 +1199,7 @@ html[data-theme="light"] .gallery-correct-btn{
 }
 
 
-/* NEWFLOW v0.32 — consistent selected-state system for clickable options */
+/* NEWFLOW v0.34 — consistent selected-state system for clickable options */
 :root{
   --selected-bg-dark:#332015;
   --selected-border-dark:#ff7a1a;
@@ -1283,7 +1283,7 @@ html[data-theme="light"] .project-mini .mini-btn.active{
 }
 
 
-/* NEWFLOW v0.32 — newest child first + result focus */
+/* NEWFLOW v0.34 — newest child first + result focus */
 .quick-adaptations{display:flex;flex-direction:column-reverse;gap:8px}
 .quick-correction-version-list{display:flex;flex-direction:column-reverse}
 .quick-result-card.newest-result-focus,
@@ -1293,7 +1293,7 @@ html[data-theme="light"] .project-mini .mini-btn.active{
 }
 
 
-/* NEWFLOW v0.32 — derivative Background Mode */
+/* NEWFLOW v0.34 — derivative Background Mode */
 .background-mode-box{padding:13px;border:1px solid var(--field-border);background:var(--soft-surface);border-radius:12px}
 .background-mode-desc{display:block;color:var(--muted);font-size:8px;line-height:1.45;margin:5px 0 10px}
 .background-mode-formats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:10px 0}
@@ -1305,6 +1305,31 @@ html[data-theme="light"] .background-format-option.active,
 html[data-theme="light"] .background-format-option.selected{background:#f6d8bf!important;color:#7a3500!important;border-color:#e07b2f!important}
 .background-derivative-note{grid-column:1/-1;font-size:8px;color:var(--muted);line-height:1.35;margin-top:-1px}
 @media(max-width:700px){.background-mode-formats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* NEWFLOW v0.34 — Telão Modo Tema + isolation from free/background modes */
+.screen-submode-row{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
+.screen-submode-btn{border:1px solid var(--field-border);background:var(--field-bg);color:var(--text);border-radius:10px;padding:10px 8px;font-size:9px;font-weight:850;cursor:pointer}
+.screen-submode-btn.active,.screen-submode-btn.selected{border-color:var(--brand-orange)!important;background:var(--selected-bg-dark)!important;color:var(--selected-text-dark)!important;box-shadow:0 0 0 2px rgba(255,122,26,.18)!important}
+html[data-theme="light"] .screen-submode-btn{background:#d2d8df!important;border-color:#a5afbb!important;color:#20252b!important}
+html[data-theme="light"] .screen-submode-btn.active,
+html[data-theme="light"] .screen-submode-btn.selected{background:#f6d8bf!important;border-color:#e07b2f!important;color:#7a3500!important}
+.screen-theme-note{grid-column:1/-1;padding:10px;border:1px solid var(--field-border);background:var(--soft-surface);border-radius:10px;color:var(--muted);font-size:8px;line-height:1.45}
+.screen-theme-note strong{color:var(--text);font-size:9px}
+.screen-theme-hidden{display:none!important}
+
+
+/* NEWFLOW v0.34 — requested UX fixes */
+.pastor-treatment-field.inactive{opacity:.58}
+.pastor-treatment-field.inactive select{cursor:not-allowed}
+.pastor-treatment-field small{display:block;margin-top:5px;font-size:8px;color:var(--muted);line-height:1.4}
+.missing-confirm-list{border:1px solid var(--field-border);border-radius:12px;padding:10px 12px;background:var(--field-bg);margin-bottom:14px;color:var(--text)}
+html[data-theme="light"] [data-missing-confirm-backdrop] .modal-panel,
+html[data-theme="light"] [data-missing-confirm-backdrop] .modal-head,
+html[data-theme="light"] [data-missing-confirm-backdrop] .modal-body{background:#f7f8fa!important;color:#171a1f!important;border-color:#b8c0ca!important}
+html[data-theme="light"] [data-missing-confirm-backdrop] .missing-confirm-list{background:#dfe4ea!important;border-color:#aab4c0!important;color:#252b33!important}
+html[data-theme="light"] .account-plan,
+html[data-theme="light"] #ownerPremiumBadge{background:#f2d6bd!important;border-color:#d7833e!important;color:#7b3800!important;box-shadow:none!important}
 
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
@@ -1354,7 +1379,7 @@ html[data-theme="light"] .background-format-option.selected{background:#f6d8bf!i
     </main>
   </div>
   <div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.32</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.34</div>
   
   <script>
 const state={
@@ -1371,7 +1396,7 @@ lastMarked:null,
 currentDraftId:null,
 artDirection:null,
 mode:'quick',
-quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',dominantColorMode:'custom',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoPosition:'',logoAssetId:null,omitChurchLogo:false,omitChurchName:false,eventLogoAssetId:null,eventLogoPosition:'',eventLogoSize:'small',pastorAssetIds:[],pastorNames:{},pastorPhotoTreatment:'ai',churchImageAssetId:null,correction:''},
+quick:{title:'',subtitle:'',date:'',time:'',address:'',effect:'none',dominantColor:'#ff5a1f',dominantColorMode:'reference',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoPosition:'',logoAssetId:null,omitChurchLogo:false,omitChurchName:false,eventLogoAssetId:null,eventLogoPosition:'',eventLogoSize:'small',pastorAssetIds:[],pastorNames:{},pastorPhotoTreatment:'',churchImageAssetId:null,correction:''},
 quickResults:[],
 mobileQuickStep:0,
 costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',actualStart:null,actualEnd:null,actualCost:null,requests:[],untrackedEstimate:0},
@@ -2304,26 +2329,6 @@ async function signOutChurchDesign(){
   state.library={assets:[],generations:[],drafts:[],ratings:[],dbReady:false};state.quickResults=[];showAuthGate();setAuthMode('login');
 }
 
-function tenantProbeHTML(){
-  const tenant=currentChurchId();
-  return `<div style="margin-top:8px;padding:9px 10px;border:1px solid #39465a;border-radius:10px;background:#10151d">
-    <small style="display:block;color:var(--muted);font-size:8px;margin-bottom:4px">TENANT ATUAL USADO PELO APP</small>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <code id="currentTenantProbe" style="font-size:10px;color:#fff;word-break:break-all">${esc(tenant)}</code>
-      <button class="mini-btn" type="button" onclick="copyCurrentTenantId(this)">Copiar tenant</button>
-    </div>
-  </div>`;
-}
-async function copyCurrentTenantId(btn){
-  const tenant=currentChurchId();
-  try{
-    await navigator.clipboard.writeText(tenant);
-    const old=btn.textContent;btn.textContent='Copiado ✓';setTimeout(()=>btn.textContent=old,1400);
-  }catch(e){
-    prompt('Copie o tenant atual:',tenant);
-  }
-}
-
 function apiJSON(action,options={}){const method=options.method||'GET';const churchId=currentChurchId();const url=`/api/church-data?action=${encodeURIComponent(action)}`;return authFetch(url,{method,headers:{'Content-Type':'application/json','x-church-id':churchId},body:method==='GET'?undefined:JSON.stringify(options.body||{})}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;});}
 
 
@@ -2859,7 +2864,7 @@ async function updateLibraryAssetMeta(id,patch={}){
   }
   return null;
 }
-async function deleteLibraryAsset(id){try{await apiJSON('delete-asset',{method:'DELETE',body:{id}});state.library.assets=state.library.assets.filter(a=>a.id!==id);openMyChurch();}catch(e){alert(e.message)}}
+async function deleteLibraryAsset(id,tab='pastor'){try{await apiJSON('delete-asset',{method:'DELETE',body:{id}});state.library.assets=state.library.assets.filter(a=>a.id!==id);openMyChurch(tab);}catch(e){alert(e.message)}}
 async function persistGeneration(images){
   try{
     const saved=[];
@@ -3308,14 +3313,14 @@ window.openGallery=function(query='',viewMode=null){
   });
 };
 
-// NEWFLOW v0.32 — derivadas da Galeria usam handlers locais do modal.
+// NEWFLOW v0.34 — derivadas da Galeria usam handlers locais do modal.
 window.startGalleryChild=startGalleryChild;
 
 window.openMyChurch=function(tab='pastor'){
   const root=document.querySelector('#modalRoot');
   const labels={pastor:'Pregadores',church:'Fotos da igreja',logo:'Logos',event_logo:'Logo de evento',reference:'Referências',graphic:'Elementos PNG',font:'Fontes',screen:'Telão'};
   const tabs=`<div class="library-tabs">${Object.entries(labels).map(([k,v])=>`<button class="library-tab ${tab===k?'active':''}" onclick="openMyChurch('${k}')">${v}</button>`).join('')}</div>`;
-  const shell=(body)=>`<div class="modal-backdrop"><div class="modal-panel my-church-panel"><div class="modal-head"><div><h2>Minha Igreja</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Banco conectado':'Configure o banco para persistir'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body">${tenantProbeHTML()}${tabs}${body}</div></div></div>`;
+  const shell=(body)=>`<div class="modal-backdrop"><div class="modal-panel my-church-panel"><div class="modal-head"><div><h2>Minha Igreja</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Banco conectado':'Configure o banco para persistir'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body">${tabs}${body}</div></div></div>`;
 
   if(tab==='screen'){
     const c=state.church.screenConfig||{preset:'16:9',width:1920,height:1080};
@@ -3343,8 +3348,8 @@ window.openMyChurch=function(tab='pastor'){
     :rawAssets;
 
   const cards=assets.map(a=>{
-    if(tab==='font')return `<div class="asset-card"><div class="font-preview" style="font-family:${a.cssFamily||'sans-serif'}">Aa Igreja 19:30</div><strong>${esc(a.name)}</strong><small>Fonte salva</small><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button></div>`;
-    if(tab==='pastor')return `<div class="asset-card"><img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong><small>Foto protegida</small><input class="pastor-library-name" data-pastor-library-name="${a.id}" value="${esc(a.meta?.displayName||'')}" placeholder="Nome do pregador"><div class="asset-save-state" data-pastor-save-state="${a.id}"></div><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button></div>`;
+    if(tab==='font')return `<div class="asset-card"><div class="font-preview" style="font-family:${a.cssFamily||'sans-serif'}">Aa Igreja 19:30</div><strong>${esc(a.name)}</strong><small>Fonte salva</small><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}','${tab}')">×</button></div>`;
+    if(tab==='pastor')return `<div class="asset-card"><img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong><small>Foto protegida</small><input class="pastor-library-name" data-pastor-library-name="${a.id}" value="${esc(a.meta?.displayName||'')}" placeholder="Nome do pregador"><div class="asset-save-state" data-pastor-save-state="${a.id}"></div><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}','${tab}')">×</button></div>`;
     if(tab==='logo'||isEventLogo){
       const variant=findLogoContrastVariant(a);
       return `<div class="asset-card logo-identity-card" style="align-items:stretch">
@@ -3355,10 +3360,10 @@ window.openMyChurch=function(tab='pastor'){
         <strong style="margin-top:8px">${esc(a.name)}</strong>
         <small>${variant?'✓ Variante de contraste cadastrada':'Recomendado: cadastre uma versão clara/escura alternativa'}</small>
         ${variant?`<button class="mini-btn" data-change-logo-variant="${a.id}" data-logo-variant-kind="${isEventLogo?'event':'church'}">Alterar variante</button>`:''}
-        <button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button>
+        <button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}','${tab}')">×</button>
       </div>`;
     }
-    return `<div class="asset-card"><img src="${a.url}"><strong>${esc(a.name)}</strong><small>Asset protegido</small><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}')">×</button></div>`;
+    return `<div class="asset-card"><img src="${a.url}"><strong>${esc(a.name)}</strong><small>Asset protegido</small><button class="asset-delete" onclick="event.stopPropagation();deleteLibraryAsset('${a.id}','${tab}')">×</button></div>`;
   }).join('');
 
   root.innerHTML=shell(`<div class="asset-grid">${cards}<label class="library-upload"><strong>+ Adicionar ${labels[tab]}</strong><span>${tab==='font'?'TTF, OTF, WOFF':'Você pode selecionar vários arquivos'}</span><input id="libraryUploadInput" type="file" ${tab==='font'?'accept=".ttf,.otf,.woff,.woff2,font/*"':'accept="image/*"'} hidden multiple></label><div id="libraryUploadInputLive" class="upload-live library-upload-progress"></div></div>`);
@@ -3462,7 +3467,7 @@ async function selectedAssetPayload(){
   const logo=getSelectedLogo();
   const pastorIds=(Array.isArray(state.quick?.pastorAssetIds)&&state.quick.pastorAssetIds.length?state.quick.pastorAssetIds:(state.finalConfig?.pastorAssetId?[state.finalConfig.pastorAssetId]:[])).slice(0,3);
   const pastors=[];
-  for(const [rank,id] of pastorIds.entries()){const a=state.library.assets.find(x=>x.id===id);if(a)pastors.push({id:a.id,name:(Object.prototype.hasOwnProperty.call(state.quick?.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||'')),role:rank===0?'PRINCIPAL':`AUXILIAR ${rank}`,rank,photoTreatment:state.quick?.pastorPhotoTreatment||'ai',image:await prepareImageForAI(a.url,1400,.92)});}
+  for(const [rank,id] of pastorIds.entries()){const a=state.library.assets.find(x=>x.id===id);if(a)pastors.push({id:a.id,name:(Object.prototype.hasOwnProperty.call(state.quick?.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||'')),role:rank===0?'PRINCIPAL':`AUXILIAR ${rank}`,rank,photoTreatment:state.quick?.pastorPhotoTreatment||'',image:await prepareImageForAI(a.url,1400,.92)});}
   const churchAsset=state.quick?.churchImageAssetId?state.library.assets.find(a=>a.id===state.quick.churchImageAssetId):null;
   const eventLogo=state.quick?.eventLogoAssetId?state.library.assets.find(a=>a.id===state.quick.eventLogoAssetId):null;
   return {logo:(logo&&!state.quick.omitChurchLogo)?{id:logo.id,name:logo.name,sourceUrl:logo.url,url:logo.url,meta:{...(logo.meta||{})}}:null,eventLogo:eventLogo?{id:eventLogo.id,name:eventLogo.name,sourceUrl:eventLogo.url,url:eventLogo.url,meta:{...(eventLogo.meta||{})},position:state.quick.eventLogoPosition||'',size:state.quick.eventLogoSize||'small'}:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.92)}:null};
@@ -3631,7 +3636,7 @@ async function drawTextLayer(ctx,c,l,text,fontFamily){
 async function drawCreativeOverlays(ctx,c,variantIndex){const ids=state.finalConfig.selectedElements;let n=0;for(const id of ids){if(id.startsWith('asset:')){const a=state.library.assets.find(x=>x.id===id.slice(6));if(a){const box={x:5+(n*17)%70,y:8+(n*23)%70,w:22,h:22};await drawAssetInBox(ctx,c,a.url,box,'original',false);n++;}}}}
 
 
-// NEWFLOW v0.32 — Modo Detalhado removido do fluxo atual.
+// NEWFLOW v0.34 — Modo Detalhado removido do fluxo atual.
 // O arquivo completo anterior foi preservado separadamente como backup.
 // O produto atual inicia diretamente no Modo Rápido.
 function quickDefaultLogo(){
@@ -3736,7 +3741,7 @@ async function quickPayload(variantLabel='Principal',correction='',signal=null){
   const ref=state.quick.reference?await prepareImageForAI(state.quick.reference,1400,.9):null;
   const logo=null; // NEWFLOW: logo é escolhida somente no Assistente de Logos.
   const pastorIds=(Array.isArray(state.quick.pastorAssetIds)?state.quick.pastorAssetIds:[]).slice(0,3);
-  const pastors=[];for(const [rank,id] of pastorIds.entries()){const a=state.library.assets.find(x=>x.id===id);if(a)pastors.push({id:a.id,name:(Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||'')),role:rank===0?'PRINCIPAL':`AUXILIAR ${rank}`,rank,photoTreatment:state.quick.pastorPhotoTreatment||'ai',image:await prepareImageForAI(a.url,1400,.94)});}
+  const pastors=[];for(const [rank,id] of pastorIds.entries()){const a=state.library.assets.find(x=>x.id===id);if(a)pastors.push({id:a.id,name:(Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||'')),role:rank===0?'PRINCIPAL':`AUXILIAR ${rank}`,rank,photoTreatment:state.quick.pastorPhotoTreatment||'',image:await prepareImageForAI(a.url,1400,.94)});}
   const churchAsset=state.quick.churchImageAssetId?state.library.assets.find(a=>a.id===state.quick.churchImageAssetId):null;
   const eventLogo=null; // NEWFLOW: logo de evento é escolhida somente no Assistente de Logos.
   const assets={logo:null,eventLogo:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.94)}:null};
@@ -3744,12 +3749,14 @@ async function quickPayload(variantLabel='Principal',correction='',signal=null){
   const refs=ref?[{image:ref,note:'STYLE ONLY / DESIGN DNA: extraia SOMENTE composição, hierarquia, proporções, escala do pregador, estilo/peso tipográfico, textura, recortes, geometria, sombras, brilhos, profundidade e linguagem visual. NÃO reutilize palavra, número, slogan, data, horário, endereço, nome, logo, símbolo institucional ou conteúdo semântico. Cores só inspiram quando o usuário não definiu cor.'}]:[];
   const target=quickTargetSpec(state.quick.format),learned=computePreferenceProfile(),youtubeCompositionInstruction=target.id==='youtube'?nextYoutubeCompositionInstruction():'';
   const names=pastors.filter(p=>p.name).map(p=>p.name);
-  const pastorPhotoTreatment=state.quick.pastorPhotoTreatment||'ai';
+  const pastorPhotoTreatment=state.quick.pastorPhotoTreatment||'';
   const pastorPhotoTreatmentInstruction=pastorPhotoTreatment==='original'
     ?'TRATAMENTO DOS PREGADORES: mantenha o filtro/tratamento cromático original das fotos. Não converta para P&B nem aplique novo filtro sobre a pessoa.'
     :pastorPhotoTreatment==='bw'
       ?'TRATAMENTO DOS PREGADORES: renderize todos os pregadores em PRETO E BRANCO / escala de cinza, preservando identidade e textura.'
-      :'TRATAMENTO DOS PREGADORES: a direção de arte pode escolher cor, P&B ou outro tratamento compatível, preservando a identidade.';
+      :pastorPhotoTreatment==='ai'
+        ?'TRATAMENTO DOS PREGADORES: a direção de arte pode escolher cor, P&B ou outro tratamento compatível, preservando a identidade.'
+        :'';
   const pastorHierarchy=pastors.length?`HIERARQUIA DE PREGADORES OBRIGATÓRIA: ${pastors.map((p,i)=>`${p.role}: ${p.name?`NOME EXATO = ${p.name}`:'SEM NOME — NÃO ESCREVER RÓTULO, PLACEHOLDER, FUNÇÃO OU NOME'}`).join(' | ')}. O PRINCIPAL é sempre a pessoa de maior prioridade visual, deve ficar numa posição mais central e geralmente maior. AUXILIAR 1 e AUXILIAR 2 são secundários, preferencialmente distribuídos nas laterais ou atrás do eixo do principal, sem encobri-lo. Nunca troque a identidade/ordem entre as pessoas.`:'';
   const base={church:{name:state.church.name,address:state.quick.address||state.church.address,hasLogo:!!assets.logo},format:state.quick.format,reference:ref,references:refs,assets,target,
     inspirationStyle:ref?null:{id:inspiration.id,name:inspiration.name,prompt:inspiration.prompt},audience:state.quick.audience?audienceLabel(state.quick.audience):null,designStyle:state.quick.designStyle?designStyleLabel(state.quick.designStyle):null,colorMode:state.quick.dominantColorMode||'custom',dominantColor:state.quick.dominantColor||null,logoPosition:null,omitChurchLogo:true,omitChurchName:!!state.quick.omitChurchName,eventLogoPosition:null,eventLogoSize:null,preferenceProfile:learned,manualLogoFlow:true,
@@ -3832,6 +3839,9 @@ function refreshQuickPastorUI(){
     }
   });
   const summary=document.querySelector('.pastor-order-summary');if(summary)summary.innerHTML=ids.map((id,i)=>{const a=pastors.find(x=>x.id===id);return `<span class="pastor-order-pill"><b>${i===0?'PRINCIPAL':`AUXILIAR ${i}`}</b>${a?` • ${esc(a.meta?.displayName||a.name)}`:''}</span>`}).join('');
+  const treatmentField=document.querySelector('.pastor-treatment-field'),treatment=document.querySelector('#qPastorPhotoTreatment'),hasPastor=ids.length>0;
+  if(treatmentField){treatmentField.classList.toggle('active',hasPastor);treatmentField.classList.toggle('inactive',!hasPastor);const note=treatmentField.querySelector('small');if(note)note.textContent=hasPastor?'Opcional. Se não escolher, nenhuma orientação extra de tratamento será enviada.':'Esta opção será habilitada depois que você selecionar uma foto.';}
+  if(treatment){treatment.disabled=!hasPastor;const empty=treatment.querySelector('option[value=""]');if(empty)empty.textContent=hasPastor?'Escolha o tratamento':'Selecione ao menos uma foto';}
 }
 function syncQuickRequiredFieldsFromDOM(){
   const pairs=[['qTitle','title'],['qSubtitle','subtitle'],['qDate','date'],['qTime','time'],['qAddress','address']];
@@ -3860,7 +3870,7 @@ function confirmQuickMissingItems(missing=[]){
         <div class="modal-head"><h2>Informações não preenchidas</h2><button class="close-modal" type="button" data-missing-cancel>×</button></div>
         <div class="modal-body">
           <p style="font-size:13px;line-height:1.55;margin:0 0 12px">Você tem certeza que deseja continuar sem informar estes itens?</p>
-          <div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#111318;margin-bottom:14px">
+          <div class="missing-confirm-list">
             ${missing.map(x=>`<div style="padding:5px 0;font-size:12px">• ${esc(x)}</div>`).join('')}
           </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
@@ -3992,11 +4002,11 @@ function screenQuickMode(){
   document.querySelector('#eyebrow').textContent='CRIAÇÃO';document.querySelector('#pageTitle').textContent='Crie em poucos campos';
   const selectedFormat=quickTargetSpec(state.quick.format);
   content.innerHTML=`<div class="quick-shell"><div class="help">Preencha o essencial. Você pode usar uma referência ou criar do zero a partir do Banco de Inspiração.</div><div class="quick-grid">
-  <div class="card"><div class="field"><label>Título principal</label><input id="qTitle" value="${esc(state.quick.title)}" placeholder="Ex.: O PREÇO DO PALÁCIO"></div><div class="field"><label>Subtítulo</label><input id="qSubtitle" value="${esc(state.quick.subtitle)}" placeholder="Opcional"></div><div class="grid2"><div class="field"><label>Público-alvo</label><select id="qAudience">${audienceOptions.map(o=>`<option value="${o[0]}" ${state.quick.audience===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div><div class="field"><label>Estilo</label><select id="qDesignStyle">${designStyleOptions.map(o=>`<option value="${o[0]}" ${state.quick.designStyle===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div></div><div class="grid2"><div class="field"><label>Data</label><input id="qDate" value="${esc(state.quick.date)}" placeholder="QUARTA - 18/06"></div><div class="field"><label>Horário</label><input id="qTime" value="${esc(state.quick.time)}" placeholder="19:30H"></div></div><div class="field"><label>Endereço</label><input id="qAddress" value="${esc(state.quick.address||state.church.address)}"></div><div class="grid2"><div class="field"><label>Cor predominante</label><div class="color-mode-row"><select id="qColorMode"><option value="reference" ${state.quick.dominantColorMode==='reference'?'selected':''}>A mesma da referência</option><option value="custom" ${state.quick.dominantColorMode!=='reference'?'selected':''}>Escolher cor</option></select><div id="qColorPickerWrap" class="color-picker-wrap ${state.quick.dominantColorMode==='reference'?'hidden':''}"><input id="qColor" class="quick-color" type="color" value="${esc(state.quick.dominantColor)}"></div></div></div><div class="field"><label>Efeito</label><select id="qEffect"><option value="none" ${state.quick.effect==='none'?'selected':''}>Nenhum</option>${effectCatalog.map(e=>`<option value="${e.id}" ${state.quick.effect===e.id?'selected':''}>${e.name}</option>`).join('')}</select></div></div><label class="layer" style="cursor:pointer"><input id="qIllustrate" type="checkbox" ${state.quick.illustrateTitle?'checked':''}><div class="layer-info"><strong>Ilustrar pelo título</strong><small>A IA adiciona elementos visuais ligados ao conceito do título.</small></div></label>
+  <div class="card"><div class="field"><label>Título principal</label><input id="qTitle" value="${esc(state.quick.title)}" placeholder="Ex.: O PREÇO DO PALÁCIO"></div><div class="field"><label>Subtítulo</label><input id="qSubtitle" value="${esc(state.quick.subtitle)}" placeholder="Opcional"></div><div class="grid2"><div class="field"><label>Público-alvo</label><select id="qAudience">${audienceOptions.map(o=>`<option value="${o[0]}" ${state.quick.audience===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div><div class="field"><label>Estilo</label><select id="qDesignStyle">${designStyleOptions.map(o=>`<option value="${o[0]}" ${state.quick.designStyle===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div></div><div class="grid2"><div class="field"><label>Data</label><input id="qDate" value="${esc(state.quick.date)}" placeholder="QUARTA - 18/06"></div><div class="field"><label>Horário</label><input id="qTime" value="${esc(state.quick.time)}" placeholder="19:30H"></div></div><div class="field"><label>Endereço</label><input id="qAddress" value="${esc(state.quick.address||state.church.address)}"></div><div class="grid2"><div class="field"><label>Cor predominante</label><div class="color-mode-row"><select id="qColorMode"><option value="reference" ${state.quick.dominantColorMode==='reference'?'selected':''}>Manter cores da referência</option><option value="custom" ${state.quick.dominantColorMode!=='reference'?'selected':''}>Escolher cor</option></select><div id="qColorPickerWrap" class="color-picker-wrap ${state.quick.dominantColorMode==='reference'?'hidden':''}"><input id="qColor" class="quick-color" type="color" value="${esc(state.quick.dominantColor)}"></div></div></div><div class="field"><label>Efeito</label><select id="qEffect"><option value="none" ${state.quick.effect==='none'?'selected':''}>Nenhum</option>${effectCatalog.map(e=>`<option value="${e.id}" ${state.quick.effect===e.id?'selected':''}>${e.name}</option>`).join('')}</select></div></div><label class="layer" style="cursor:pointer"><input id="qIllustrate" type="checkbox" ${state.quick.illustrateTitle?'checked':''}><div class="layer-info"><strong>Ilustrar pelo título</strong><small>A IA adiciona elementos visuais ligados ao conceito do título.</small></div></label>
   <h3 style="margin-top:18px">Tamanho da arte</h3><p style="margin-bottom:9px">Telão usa a configuração salva em Minha Igreja.</p><div class="quick-format-grid">${quickFormats.map(f=>{const t=f.id==='screen'?targetSpec('screen'):f;return `<div class="quick-format-card ${state.quick.format===f.id?'selected':''}" data-qformat="${f.id}"><div class="quick-format-sketch"><i style="${formatSketchStyle(t.width,t.height)}"></i></div><strong>${f.label}</strong><small>${f.id==='screen'?`${t.width}×${t.height}`:`${f.width}×${f.height}`}</small></div>`}).join('')}</div></div>
   <div class="card"><h3>Direção visual</h3><div class="quick-mode-toggle"><button class="mini-btn ${state.quick.referenceMode==='upload'?'selected-result':''}" id="qUseReference" type="button">Usar referência</button><button class="mini-btn ${state.quick.referenceMode==='inspiration'?'selected-result':''}" id="qUseInspiration" type="button">Criar do zero</button></div>
   ${state.quick.referenceMode==='upload'?`<p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p><div class="quick-ref-grid">${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><label class="quick-upload-box" style="margin-top:10px"><strong>+ Subir referências</strong><span style="display:block;font-size:9px;color:var(--muted);margin-top:3px">JPG, PNG ou WEBP • pode selecionar várias</span><input id="qRefUpload" type="file" accept="image/*" multiple hidden></label><div id="qRefUploadLive" class="upload-live"></div>`:`<p>Banco de Inspiração interno. A IA usa a linguagem escolhida sem copiar uma peça específica.</p><div class="inspiration-grid">${inspirationCatalog.map(x=>`<div class="inspiration-card ${state.quick.inspirationStyle===x.id?'selected':''}" data-inspiration="${x.id}"><strong>${x.name}</strong><small>${x.prompt}</small></div>`).join('')}</div>`}
-  <h3 style="margin-top:18px">Pregadores (opcional)</h3><p style="margin-bottom:4px">Selecione até 3 pessoas. A ordem de seleção define a hierarquia da composição.</p><div class="field" style="margin:10px 0 12px"><label>Tratamento das fotos dos pregadores</label><select id="qPastorPhotoTreatment"><option value="original" ${state.quick.pastorPhotoTreatment==='original'?'selected':''}>Manter filtro original da foto</option><option value="bw" ${state.quick.pastorPhotoTreatment==='bw'?'selected':''}>Foto preto e branco</option><option value="ai" ${!state.quick.pastorPhotoTreatment||state.quick.pastorPhotoTreatment==='ai'?'selected':''}>Deixar a I.A escolher</option></select></div><div class="pastor-order-summary">${(state.quick.pastorAssetIds||[]).slice(0,3).map((id,i)=>{const a=pastors.find(x=>x.id===id);return `<span class="pastor-order-pill"><b>${i===0?'PRINCIPAL':`AUXILIAR ${i}`}</b>${a?` • ${esc(a.meta?.displayName||a.name)}`:''}</span>`}).join('')}</div><p style="margin-bottom:4px;font-size:9px;color:var(--muted)">O PRINCIPAL terá prioridade de tamanho e posição mais central. Os auxiliares ficam visualmente secundários.</p><p style="margin-bottom:8px;font-size:9px;color:var(--muted)">O nome salvo em Minha Igreja é preenchido automaticamente. Se quiser esta arte sem o nome, apague o campo; em uma nova sessão o nome salvo volta.</p><div class="quick-pastor-grid">${pastors.map(a=>{const rank=(state.quick.pastorAssetIds||[]).indexOf(a.id);return `<div class="quick-asset ${rank>=0?'multi-selected':''}" data-qpastor="${a.id}" data-pastor-rank="${rank}">${rank>=0?`<span class="pastor-rank-badge">${rank===0?'PRINCIPAL':`AUXILIAR ${rank}`}</span>`:''}<img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong>${rank>=0?`<input class="pastor-name-input" data-pastor-name="${a.id}" value="${esc(Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||''))}" placeholder="Nome na arte">`:''}</div>`}).join('')}</div><h3 style="margin-top:18px">Imagem da igreja (opcional)</h3><p style="margin-bottom:8px">Se escolher uma foto, a IA deverá usá-la na composição do fundo/ambiente.</p><div class="church-image-grid">${churchImages.map(a=>`<div class="quick-asset ${state.quick.churchImageAssetId===a.id?'selected':''}" data-qchurch="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}<label class="library-upload"><strong>+ Foto da igreja</strong><span>Salvar em Minha Igreja</span><input id="qChurchUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>
+  <h3 style="margin-top:18px">Pregadores (opcional)</h3><p style="margin-bottom:4px">Selecione até 3 pessoas. A ordem de seleção define a hierarquia da composição.</p><div class="pastor-order-summary">${(state.quick.pastorAssetIds||[]).slice(0,3).map((id,i)=>{const a=pastors.find(x=>x.id===id);return `<span class="pastor-order-pill"><b>${i===0?'PRINCIPAL':`AUXILIAR ${i}`}</b>${a?` • ${esc(a.meta?.displayName||a.name)}`:''}</span>`}).join('')}</div><p style="margin-bottom:4px;font-size:9px;color:var(--muted)">O PRINCIPAL terá prioridade de tamanho e posição mais central. Os auxiliares ficam visualmente secundários.</p><p style="margin-bottom:8px;font-size:9px;color:var(--muted)">O nome salvo em Minha Igreja é preenchido automaticamente. Se quiser esta arte sem o nome, apague o campo; em uma nova sessão o nome salvo volta.</p><div class="quick-pastor-grid">${pastors.map(a=>{const rank=(state.quick.pastorAssetIds||[]).indexOf(a.id);return `<div class="quick-asset ${rank>=0?'multi-selected':''}" data-qpastor="${a.id}" data-pastor-rank="${rank}">${rank>=0?`<span class="pastor-rank-badge">${rank===0?'PRINCIPAL':`AUXILIAR ${rank}`}</span>`:''}<img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong>${rank>=0?`<input class="pastor-name-input" data-pastor-name="${a.id}" value="${esc(Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||''))}" placeholder="Nome na arte">`:''}</div>`}).join('')}</div><div class="field pastor-treatment-field ${(state.quick.pastorAssetIds||[]).length?'active':'inactive'}" style="margin:12px 0"><label>Tratamento das fotos dos pregadores</label><select id="qPastorPhotoTreatment" ${(state.quick.pastorAssetIds||[]).length?'':'disabled'}><option value="" ${!state.quick.pastorPhotoTreatment?'selected':''}>${(state.quick.pastorAssetIds||[]).length?'Escolha o tratamento':'Selecione ao menos uma foto'}</option><option value="original" ${state.quick.pastorPhotoTreatment==='original'?'selected':''}>Manter filtro original da foto</option><option value="bw" ${state.quick.pastorPhotoTreatment==='bw'?'selected':''}>Foto preto e branco</option><option value="ai" ${state.quick.pastorPhotoTreatment==='ai'?'selected':''}>Deixar a I.A escolher</option></select><small>${(state.quick.pastorAssetIds||[]).length?'Opcional. Se não escolher, nenhuma orientação extra de tratamento será enviada.':'Esta opção será habilitada depois que você selecionar uma foto.'}</small></div><h3 style="margin-top:18px">Imagem da igreja (opcional)</h3><p style="margin-bottom:8px">Se escolher uma foto, a IA deverá usá-la na composição do fundo/ambiente.</p><div class="church-image-grid">${churchImages.map(a=>`<div class="quick-asset ${state.quick.churchImageAssetId===a.id?'selected':''}" data-qchurch="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}<label class="library-upload"><strong>+ Foto da igreja</strong><span>Salvar em Minha Igreja</span><input id="qChurchUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>
   <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE BASE • ${selectedFormat.label}</button><div id="quickProgress" class="quick-progress"><div class="quick-progress-track"><i id="quickProgressBar"></i></div><div class="quick-progress-row"><span id="quickProgressText">Processando sua arte...</span><span id="quickProgressPct">0%</span></div></div><button id="quickCancel" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div>${costSupervisorHTML()}</div><div id="quickResultsWrap" style="margin-top:18px">${renderQuickResultsHTML()}${allArtworksHTML()}</div></div>`;
   applyLogoPreviewBackgrounds(content);
   const bind=(id,key)=>document.querySelector('#'+id).oninput=e=>state.quick[key]=e.target.value;bind('qTitle','title');bind('qSubtitle','subtitle');bind('qDate','date');bind('qTime','time');bind('qAddress','address');bind('qColor','dominantColor');
@@ -4012,7 +4022,7 @@ function screenQuickMode(){
   document.querySelectorAll('[data-event-size]').forEach(el=>el.onclick=()=>{state.quick.eventLogoSize=el.dataset.eventSize;screenQuickMode()});
   document.querySelectorAll('[data-event-pos]').forEach(el=>el.onclick=()=>{state.quick.eventLogoPosition=el.dataset.eventPos;screenQuickMode()});
   const qela=document.querySelector('#qEventLogoAuto');if(qela)qela.onchange=e=>{if(e.target.checked){state.quick.eventLogoPosition='';screenQuickMode();}};
-  const pastorTreatment=document.querySelector('#qPastorPhotoTreatment');if(pastorTreatment)pastorTreatment.onchange=()=>{state.quick.pastorPhotoTreatment=pastorTreatment.value||'ai'};
+  const pastorTreatment=document.querySelector('#qPastorPhotoTreatment');if(pastorTreatment)pastorTreatment.onchange=()=>{state.quick.pastorPhotoTreatment=pastorTreatment.value||''};
   document.querySelectorAll('[data-qpastor]').forEach(el=>el.onclick=e=>{
     if(e.target.matches('input'))return;
     const id=el.dataset.qpastor,arr=[...(state.quick.pastorAssetIds||[])],existing=arr.indexOf(id);
@@ -4254,9 +4264,9 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.32</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.34</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
-  // NEWFLOW v0.32: the coordinate system MUST be the real exported bitmap, not the requested target.
+  // NEWFLOW v0.34: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
   // object-fit creates an invisible coordinate mismatch and logos move on export.
   const stageBaseImg=ov.querySelector('[data-logo-stage] > img');
@@ -4393,16 +4403,33 @@ function openQuickAdaptConfig(i,f,explicitSourceKey=null){
 
   const target=quickTargetSpec(f);
   const screenRatio=(Number(target.width)>0&&Number(target.height)>0)?`${Number(target.width)}/${Number(target.height)}`:'16/9';
-  const occupancy=f==='screen'?`<div class="screen-occupancy-block" style="--screen-preview-ratio:${screenRatio}"><strong>Quanto da tela as informações devem ocupar?</strong><small>Escolha a proporção aproximada do conjunto de informações em relação à tela inteira.</small><div class="screen-occupancy-grid">${[5,20,30,40,50].map(p=>`<button type="button" class="screen-occupancy-option ${p===20?'active selected':''}" data-screen-occupancy="${p}"><div class="screen-occupancy-preview"><i></i></div><b>${p}%</b></button>`).join('')}</div></div><label class="dark-screen-option"><input type="checkbox" data-dark-screen>Versão escura para telão / transmissão</label>`:'';
+  const occupancy=f==='screen'?`<div class="screen-submode-row"><button type="button" class="screen-submode-btn active selected" data-screen-submode="occupancy">Proporção das informações</button><button type="button" class="screen-submode-btn" data-screen-submode="theme">Modo Tema</button></div><div class="screen-theme-note screen-theme-hidden" data-screen-theme-note><strong>Modo Tema</strong><br>Título e mais nada como conteúdo principal. O título deve ficar exatamente no centro horizontal e vertical, limitado a aproximadamente 30% da tela.</div><div class="screen-occupancy-block" data-screen-occupancy-block style="--screen-preview-ratio:${screenRatio}"><strong>Quanto da tela as informações devem ocupar?</strong><small>Escolha a proporção aproximada do conjunto de informações em relação à tela inteira.</small><div class="screen-occupancy-grid">${[5,20,30,40,50].map(p=>`<button type="button" class="screen-occupancy-option ${p===20?'active selected':''}" data-screen-occupancy="${p}"><div class="screen-occupancy-preview"><i></i></div><b>${p}%</b></button>`).join('')}</div></div><label class="dark-screen-option"><input type="checkbox" data-dark-screen>Versão escura para telão / transmissão</label>`:'';
   box.innerHTML=`<div class="adapt-config">${sourcePicker}<strong>${target.label}: o que deve ser omitido?</strong><div class="adapt-omit-grid"><label><input type="checkbox" data-omit="title">Omitir título</label><label><input type="checkbox" data-omit="subtitle">Omitir subtítulo</label><label><input type="checkbox" data-omit="date">Omitir data</label><label><input type="checkbox" data-omit="time">Omitir hora</label><label><input type="checkbox" data-omit="address">Omitir endereço</label><label><input type="checkbox" data-omit="churchName">Omitir nome da igreja</label><label><input type="checkbox" data-omit="pastorNames">Omitir nome do(s) pregador(es)</label><label><input type="checkbox" data-omit="pastorMain">Omitir pregador principal</label><label><input type="checkbox" data-omit="pastorAux1">Omitir pregador auxiliar 1</label><label><input type="checkbox" data-omit="pastorAux2">Omitir pregador auxiliar 2</label><label><input type="checkbox" data-omit="pastors">Omitir todos os pregadores</label><label><input type="checkbox" data-omit="churchImage">Omitir foto da igreja</label>${occupancy}</div><button class="mini-btn" data-confirm-adapt="${i}-${f}" style="width:100%;margin-top:8px">Gerar ${target.label}</button></div>`;
   box.querySelectorAll('[data-screen-occupancy]').forEach(b=>b.onclick=()=>{box.querySelectorAll('[data-screen-occupancy]').forEach(x=>x.classList.remove('active','selected'));b.classList.add('active','selected')});
+  box.querySelectorAll('[data-screen-submode]').forEach(b=>b.onclick=()=>{
+    box.querySelectorAll('[data-screen-submode]').forEach(x=>x.classList.remove('active','selected'));b.classList.add('active','selected');
+    const theme=b.dataset.screenSubmode==='theme';
+    box.querySelector('[data-screen-occupancy-block]')?.classList.toggle('screen-theme-hidden',theme);
+    box.querySelector('[data-screen-theme-note]')?.classList.toggle('screen-theme-hidden',!theme);
+    const omitBoxes=[...box.querySelectorAll('[data-omit]')];
+    omitBoxes.forEach(x=>{
+      if(theme){
+        const keepTitle=x.dataset.omit==='title';
+        x.checked=!keepTitle;
+        x.disabled=true;
+      }else{
+        x.disabled=false;
+      }
+    });
+  });
   box.querySelector('[data-confirm-adapt]').onclick=()=>{
     const omit=[...box.querySelectorAll('[data-omit]:checked')].map(x=>x.dataset.omit);
     const darkScreen=!!box.querySelector('[data-dark-screen]:checked');
-    const screenInfoPct=f==='screen'?Number(box.querySelector('[data-screen-occupancy].active')?.dataset.screenOccupancy||20):null;
+    const screenThemeMode=f==='screen'&&box.querySelector('[data-screen-submode].active')?.dataset.screenSubmode==='theme';
+    const screenInfoPct=(f==='screen'&&!screenThemeMode)?Number(box.querySelector('[data-screen-occupancy].active')?.dataset.screenOccupancy||20):null;
     const sourceKey=box.querySelector('[data-adapt-source]')?.value||defaultKey;
     const childCorrection=currentCorrectionForSource(sourceKey,i);
-    runQuickAdaptation(i,f,omit,darkScreen,sourceKey,false,childCorrection,{screenInfoPct});
+    runQuickAdaptation(i,f,omit,darkScreen,sourceKey,false,childCorrection,{screenInfoPct,screenOccupancyMode:f==='screen'&&!screenThemeMode,screenThemeMode});
   };
 }
 
@@ -4587,7 +4614,7 @@ async function normalizeArtworkToTarget(image,payload,target,signal=null){
   if(payload?.manualLogoFlow){
     let finalDataUrl=baseDataUrl;
     if(payload?.darkScreen)finalDataUrl=await applyDarkScreenTreatment(finalDataUrl,.36);
-    if(payload?.target?.id==='screen'&&[5,20,30,40,50].includes(Number(payload?.screenInfoPct))){
+    if(payload?.target?.id==='screen'&&payload?.screenOccupancyMode&&[5,20,30,40,50].includes(Number(payload?.screenInfoPct))){
       finalDataUrl=await applyScreenInfoByPercent(finalDataUrl,payload?.screenInfoContent||{},target,Number(payload.screenInfoPct));
     }
     return{image,dataUrl:finalDataUrl,baseDataUrl:finalDataUrl,logosComposed:false,logoPlacements:[],logoReceipt:[],logoAudit:{ok:true,expected:0,applied:0,manualFlow:true},occupancy:null,logoPlan:null,logoDegradations:[],manualLogoFlow:true,recomposed:false,aspectRatioFallback:normalized.aspectRatioFallback||false};
@@ -4686,10 +4713,16 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const required={...(source.requiredContent||parent.requiredContent||{})};
     const screenInfoContent={...required,pastorNames:Array.isArray(required.pastorNames)?[...required.pastorNames]:required.pastorNames};
     const discreteTitleText='';
-    const screenInfoPct=Number(adaptOptions?.screenInfoPct)||20;
+    const screenOccupancyMode=!!adaptOptions?.screenOccupancyMode;
+    const screenThemeMode=!!adaptOptions?.screenThemeMode;
+    const screenInfoPct=screenOccupancyMode?(Number(adaptOptions?.screenInfoPct)||20):null;
     const freeMode=!!adaptOptions?.freeMode;
     const backgroundMode=!!adaptOptions?.backgroundMode;
     const freeInstruction=String(adaptOptions?.freeInstruction||'').trim();
+    if(screenThemeMode){
+      ['subtitle','date','time','address','churchName'].forEach(k=>required[k]='');
+      required.pastorNames=[];
+    }
     if(backgroundMode){
       ['title','subtitle','date','time','address','churchName'].forEach(k=>required[k]='');
       required.pastorNames=[];
@@ -4698,8 +4731,8 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
       ['title','subtitle','date','time','address','churchName'].forEach(k=>required[k]='');
       required.pastorNames=[];
     }
-    if(target.id==='screen'&&[5,20,30,40,50].includes(screenInfoPct)){
-      // AI creates a clean visual base for every occupancy option; ChurchDesign composes the information block afterwards.
+    if(target.id==='screen'&&screenOccupancyMode&&[5,20,30,40,50].includes(screenInfoPct)){
+      // Only the explicit Telão occupancy submode uses the deterministic information compositor.
       ['title','subtitle','date','time','address','churchName'].forEach(k=>required[k]='');
       required.pastorNames=[];
     }
@@ -4709,7 +4742,7 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     assets.logo=null;
     assets.eventLogo=null; // NEWFLOW: derivadas também passam pelo Assistente de Logos.
     const originalPastors=[...(assets.pastors||[])];
-    const keptPastors=(freeMode||backgroundMode)?[]:originalPastors.filter((p,n)=>!(omit.includes('pastors')||(n===0&&omit.includes('pastorMain'))||(n===1&&omit.includes('pastorAux1'))||(n===2&&omit.includes('pastorAux2'))));
+    const keptPastors=(freeMode||backgroundMode||screenThemeMode)?[]:originalPastors.filter((p,n)=>!(omit.includes('pastors')||(n===0&&omit.includes('pastorMain'))||(n===1&&omit.includes('pastorAux1'))||(n===2&&omit.includes('pastorAux2'))));
     assets.pastors=keptPastors;assets.pastor=keptPastors[0]||null;
     if(omit.includes('churchImage'))assets.churchImage=null;
     const selective=[omit.includes('pastorMain')?'PREGADOR PRINCIPAL':null,omit.includes('pastorAux1')?'AUXILIAR 1':null,omit.includes('pastorAux2')?'AUXILIAR 2':null].filter(Boolean);
@@ -4725,17 +4758,18 @@ ${pastorRemoval}
 ${logoRemoval}
 ${eventLogoRemoval}
 ${churchRemoval}
-${target.id==='screen'?`TELÃO — OCUPAÇÃO ${screenInfoPct}% — PASSE DE FUNDO: NÃO renderize título, subtítulo, data, horário, endereço, nome da igreja ou nomes de pregadores nesta etapa. Gere somente o FUNDO/ATMOSFERA/IMAGEM, preservando a identidade visual e deixando área limpa para o bloco informacional. O ChurchDesign aplicará depois as informações de forma determinística na proporção escolhida. ${screenInfoPct===5?'Em 5%, o bloco ficará muito pequeno e centralizado na parte inferior.':'Em 20%, 30%, 40% e 50%, o bloco ficará centralizado horizontal e verticalmente e crescerá progressivamente conforme a porcentagem.'} Não preencha o espaço com slogans, letras gigantes, palavras decorativas ou texto inventado.`:''}
+${target.id==='screen'&&screenOccupancyMode?`TELÃO — OCUPAÇÃO ${screenInfoPct}% — PASSE DE FUNDO: NÃO renderize título, subtítulo, data, horário, endereço, nome da igreja ou nomes de pregadores nesta etapa. Gere somente o FUNDO/ATMOSFERA/IMAGEM, preservando a identidade visual e deixando área limpa para o bloco informacional. O ChurchDesign aplicará depois as informações de forma determinística na proporção escolhida. ${screenInfoPct===5?'Em 5%, o bloco ficará muito pequeno e centralizado na parte inferior.':'Em 20%, 30%, 40% e 50%, o bloco ficará centralizado horizontal e verticalmente e crescerá progressivamente conforme a porcentagem.'} Não preencha o espaço com slogans, letras gigantes, palavras decorativas ou texto inventado.`:''}
+${screenThemeMode?`TELÃO — MODO TEMA — HARD CONSTRAINT: mantenha SOMENTE O TÍTULO como conteúdo principal. Remova subtítulo, data, horário, endereço, nome da igreja, nomes de pregadores, pessoas/pregadores, selos, chamadas e qualquer outro texto informacional. Preserve o fundo/atmosfera e elementos visuais da campanha. O TÍTULO deve conservar o tratamento tipográfico/artístico da identidade original e ficar com o CENTRO GEOMÉTRICO exatamente em X=50% e Y=50% do canvas. O BLOCO VISUAL COMPLETO DO TÍTULO deve ficar contido em uma região central de aproximadamente 30% da tela e nunca descer para o centro inferior. Não alinhe pela linha de base; alinhe pelo centro da CAIXA VISUAL do título. Não crie conteúdo abaixo dele para equilibrar a composição.`:''}
 ${darkScreen?'VERSÃO ESCURA OBRIGATÓRIA: gere uma composição VISIVELMENTE MAIS ESCURA que a arte-base, com redução clara de luminosidade geral, pretos mais profundos e áreas médias rebaixadas para uso em telão/câmera. Não apenas preserve a aparência atual. Depois da geração o ChurchDesign ainda aplicará um escurecimento adicional determinístico.':''}
 ${target.id==='screen'&&['title','subtitle','date','time','address','churchName','logo','eventLogo','pastorNames','pastors','churchImage'].every(k=>omit.includes(k))?'FUNDO PURO OBRIGATÓRIO: gere SOMENTE o fundo visual/atmosférico. Nenhuma pessoa, logo, nome, título, texto, data, horário, endereço, selo ou placeholder pode aparecer.':''}
-${target.id==='youtube'&&!backgroundMode?nextYoutubeCompositionInstruction():''}
+${target.id==='youtube'&&!backgroundMode&&!freeMode&&!screenThemeMode?nextYoutubeCompositionInstruction():''}
 ${backgroundMode?`MODO FUNDO — HARD CONSTRAINT: gere uma peça SEM CONTEÚDO INFORMACIONAL e SEM PESSOAS. Preserve SOMENTE o fundo/atmosfera, os elementos visuais abstratos/gráficos e, caso exista na composição-base ou nos assets, a FOTO REAL DA IGREJA. Não renderize título, subtítulo, data, horário, endereço, nome da igreja, nomes, foto/figura de pregador, slogans, chamadas, logos, selos, preços ou qualquer texto. Não invente pessoas nem substitua a foto real da igreja por outra. O resultado deve funcionar como um fundo limpo da mesma campanha visual.`:''}
-${freeMode?`MODO LIVRE — REGRA DE PARTIDA OBRIGATÓRIA: use a arte-base SOMENTE como fonte de IDENTIDADE VISUAL, FUNDO/ATMOSFERA e, quando existir, a FOTO REAL DA IGREJA. Por padrão, REMOVA e NÃO reproduza nenhum outro conteúdo da arte original: título, subtítulo, nomes, foto/figura de pregador, data, horário, endereço, nome da igreja, slogans, selos, chamadas e demais textos/elementos de primeiro plano. NÃO copie esses dados só porque aparecem na referência. Reintroduza qualquer um deles SOMENTE quando as instruções livres do usuário pedirem explicitamente. A foto da igreja e o fundo devem permanecer como base por padrão, a menos que o usuário peça para removê-los ou substituí-los. Preserve linguagem, atmosfera, cores, tratamento, textura e DNA gráfico da campanha, mas monte uma NOVA PEÇA. INSTRUÇÕES LIVRES DO USUÁRIO (prioridade máxima): ${freeInstruction}`:''}
+${freeMode?`MODO LIVRE — ISOLAMENTO DE LAYOUT: ignore completamente regras de posicionamento do Telão, incluindo 5%, centro inferior, proporções e Modo Tema. Obedeça exclusivamente às coordenadas/posições pedidas pelo usuário. REGRA DE PARTIDA OBRIGATÓRIA: use a arte-base SOMENTE como fonte de IDENTIDADE VISUAL, FUNDO/ATMOSFERA e, quando existir, a FOTO REAL DA IGREJA. Por padrão, REMOVA e NÃO reproduza nenhum outro conteúdo da arte original: título, subtítulo, nomes, foto/figura de pregador, data, horário, endereço, nome da igreja, slogans, selos, chamadas e demais textos/elementos de primeiro plano. NÃO copie esses dados só porque aparecem na referência. Reintroduza qualquer um deles SOMENTE quando as instruções livres do usuário pedirem explicitamente. A foto da igreja e o fundo devem permanecer como base por padrão, a menos que o usuário peça para removê-los ou substituí-los. Preserve linguagem, atmosfera, cores, tratamento, textura e DNA gráfico da campanha, mas monte uma NOVA PEÇA. INSTRUÇÕES LIVRES DO USUÁRIO (prioridade máxima): ${freeInstruction}`:''}
 ${childCorrection?`CORREÇÃO SOLICITADA PARA ESTA ARTE DERIVADA — aplique esta alteração específica sem abandonar a identidade da arte-base: ${childCorrection}`:''}
 TEXTO DE FUNDO / TIPOGRAFIA DECORATIVA — REGRA DE SEGURANÇA: não invente palavras, letras, sílabas ou letreiros decorativos no fundo que possam se sobrepor e formar palavras aleatórias, duplicadas ou sem sentido. Se usar tipografia como textura de fundo, use apenas conteúdo real fornecido pelo usuário ou formas abstratas que NÃO pareçam texto legível. Nunca sobreponha fragmentos como "EN", "DE", letras repetidas ou partes do título de modo que criem novas palavras acidentais.
 COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referência ou ordem explícita. Evite caixas/cards/cápsulas desnecessários. Se a logo estiver mantida, use a original uma única vez, sem caixa/placa/selo e nunca repita ou extraia partes dela.`;
 
-    const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:'Use esta versão LOGO-FREE como base visual. Preserve identidade. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.'}],target,assets,requiredContent:required,instruction:`${source.instruction||parent.instruction||''}${childCorrection?`\nCORREÇÃO PARA A DERIVADA: ${childCorrection}`:''}`,finalInstruction,semanticMap:[],effects:[],artDirection:source.artDirection||parent.artDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:!assets.logo,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,freeMode,backgroundMode,freeInstruction,darkScreen:!!darkScreen};
+    const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:'Use esta versão LOGO-FREE como base visual. Preserve identidade. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.'}],target,assets,requiredContent:required,instruction:`${source.instruction||parent.instruction||''}${childCorrection?`\nCORREÇÃO PARA A DERIVADA: ${childCorrection}`:''}`,finalInstruction,semanticMap:[],effects:[],artDirection:source.artDirection||parent.artDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:!assets.logo,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,darkScreen:!!darkScreen};
 
     setQuickProgress(48,'Recompondo para o novo formato...');
     // V0.26: arte derivada = 1 geração + 1 fiscal; sem retry automático.
@@ -4744,7 +4778,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     const normalized=await normalizeArtworkToTarget(image,payload,target,signal);
     const dataUrl=normalized.dataUrl;
     parent.adaptations=parent.adaptations||[];
-    const child={id:crypto.randomUUID(),label:`${source.label} • ${target.label}`,format:formatId,target,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:image.url,omit,basedOnKey:source.key,basedOnLabel:source.label,artDirection:source.artDirection||parent.artDirection,requiredContent:required,assets,instruction:payload.instruction,logoPosition:null,eventLogoPosition:null,eventLogoSize:null,occupancy:null,logoPlan:null,logoReceipt:[],logoDegradations:[],screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,freeMode,backgroundMode,freeInstruction,darkScreen:!!darkScreen,manualLogoFlow:true,finalized:false,manualLogoPlacements:[],correction:childCorrection||''};
+    const child={id:crypto.randomUUID(),label:`${source.label} • ${target.label}`,format:formatId,target,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:image.url,omit,basedOnKey:source.key,basedOnLabel:source.label,artDirection:source.artDirection||parent.artDirection,requiredContent:required,assets,instruction:payload.instruction,logoPosition:null,eventLogoPosition:null,eventLogoSize:null,occupancy:null,logoPlan:null,logoReceipt:[],logoDegradations:[],screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,darkScreen:!!darkScreen,manualLogoFlow:true,finalized:false,manualLogoPlacements:[],correction:childCorrection||''};
     parent.adaptations.push(child);let savedChild=null;/* NEWFLOW: derivada base só é persistida após Finalizar arte no Assistente de Logos. */if(!payload.manualLogoFlow){savedChild=await persistGalleryArtwork(child,{kind:'arte derivada',parentArtworkId:parent.galleryId||parent.id||null,sourceArtworkId:source.galleryId||source.id||parent.galleryId||parent.id||null,format:formatId,basedOnKey:source.key,basedOnLabel:source.label});if(savedChild)child.galleryId=savedChild.galleryId;}
     setQuickProgress(100,'Pronto');
     if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte derivada base pronta. Clique em Prosseguir para finalizar as logos.</strong>';
@@ -4759,7 +4793,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
-// NEWFLOW v0.32 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
+// NEWFLOW v0.34 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
 let churchDesignAppStarted=false;
 async function startAuthenticatedApp(){
