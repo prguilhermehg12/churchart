@@ -1,4 +1,3 @@
-
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -10,17 +9,29 @@ async function requireChurchDesignUser(req){
   if(!r.ok||!user?.id)throw Object.assign(new Error("Sessão inválida ou expirada."),{statusCode:401});
   return user;
 }
-function churchIdFromUser(user){
-  return `usr_${String(user.id).replace(/[^a-zA-Z0-9_-]/g,"_").slice(0,76)}`;
+function serverCfg(){
+  const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
+  const key=process.env.SUPABASE_SECRET_KEY;
+  if(!raw||!key)throw Object.assign(new Error("SUPABASE_URL ou SUPABASE_SECRET_KEY não configuradas."),{statusCode:500});
+  return {url:raw,key};
+}
+async function serverRest(path,opt={}){
+  const c=serverCfg();const r=await fetch(`${c.url}/rest/v1/${path}`,{...opt,headers:{apikey:c.key,Authorization:`Bearer ${c.key}`,"Content-Type":"application/json",...(opt.headers||{})}});
+  const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
+  if(!r.ok)throw Object.assign(new Error(data?.message||data?.error||`Supabase ${r.status}`),{statusCode:r.status});return data;
+}
+function churchIdFromRequest(req){const id=String(req.headers['x-church-id']||req.body?.church_id||'').trim();if(!id)throw Object.assign(new Error("Igreja ativa não informada."),{statusCode:400});return id}
+async function requireChurchAccess(req,user){
+  const churchId=churchIdFromRequest(req);const rows=await serverRest(`church_members?church_id=eq.${encodeURIComponent(churchId)}&user_id=eq.${encodeURIComponent(user.id)}&status=eq.active&select=role`);
+  if(!rows?.length)throw Object.assign(new Error("Você não possui acesso a esta igreja."),{statusCode:403});return churchId;
+}
+function usageNumber(u,...paths){for(const path of paths){let v=u;for(const k of path.split('.'))v=v?.[k];if(Number.isFinite(Number(v)))return Number(v)}return null}
+async function logUsage({churchId,userId,operationType,model,endpoint,usage,imageCount=0,metadata={}}){
+  try{await serverRest("generation_usage",{method:"POST",body:JSON.stringify([{church_id:churchId,user_id:userId,operation_type:operationType,model,endpoint,input_tokens:usageNumber(usage,'input_tokens','prompt_tokens'),output_tokens:usageNumber(usage,'output_tokens','completion_tokens'),image_count:imageCount,metadata:{...metadata,usage:usage||null}}])})}catch(e){console.error("Usage log",e.message)}
 }
 
 module.exports.config={maxDuration:60};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
-function jobCfg(){const raw=process.env.SUPABASE_URL,key=process.env.SUPABASE_SECRET_KEY;if(!raw||!key)return null;return{url:raw.replace(/\/+$/,""),key};}
-async function jobRest(path,opts={}){const c=jobCfg();if(!c)return null;const r=await fetch(`${c.url}/rest/v1/${path}`,{...opts,headers:{apikey:c.key,Authorization:`Bearer ${c.key}`,"Content-Type":"application/json",...(opts.headers||{})}});const text=await r.text();if(!r.ok)throw new Error(`Checkpoint ${r.status}: ${text.slice(0,160)}`);return text?JSON.parse(text):null;}
-async function persistJobCheckpoint(jobId,patch={}){if(!jobId)return;try{
-    await requireChurchDesignUser(req);const churchId=patch.jobChurchId||"default";delete patch.jobChurchId;const rows=await jobRest(`church_drafts?id=eq.${encodeURIComponent(jobId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`);const current=rows?.[0]?.data||{};const next={...current,kind:"generation_job",...patch,updatedAt:new Date().toISOString()};await jobRest("church_drafts?on_conflict=id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify([{id:jobId,church_id:churchId,title:"__GENERATION_JOB__",data:next,updated_at:new Date().toISOString()}])});}catch(e){console.error("Generation checkpoint",e);}}
-
 
 const schema={
 type:"object",additionalProperties:false,
@@ -161,8 +172,10 @@ function outputText(d){if(typeof d.output_text==="string")return d.output_text;f
 
 module.exports=async function handler(req,res){
 if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
-if(!process.env.OPENAI_API_KEY)return res.status(error?.statusCode||500).json({error:"OPENAI_API_KEY não configurada."});
+if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY não configurada."});
 try{
+const authUser=await requireChurchDesignUser(req);
+const churchId=await requireChurchAccess(req,authUser);
 const data=req.body||{};if(!(data.references||[]).length&&!data.inspirationStyle)return res.status(400).json({error:"Envie uma referência ou escolha uma direção de inspiração."});
 const r=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
 model:"gpt-5.6-terra",reasoning:{effort:"medium"},store:false,input:[{role:"user",content:buildContent(data)}],
@@ -171,7 +184,7 @@ text:{format:{type:"json_schema",name:"churchdesign_art_direction",strict:true,s
 const requestId=r.headers.get("x-request-id")||null;const d=await r.json();if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.requestId=requestId;throw e;}
 const text=outputText(d);if(!text)throw new Error("Diretor de Arte não devolveu blueprint.");
 let artDirection;try{artDirection=JSON.parse(text)}catch{throw new Error("Blueprint inválido.");}
-await persistJobCheckpoint(data.jobId,{jobChurchId:data.jobChurchId,status:"DIRECTED",artDirection,directorMeta:{model:"gpt-5.6-terra",usage:d.usage||null,requestId,endpoint:"responses"}});
+await logUsage({churchId,userId:authUser.id,operationType:'design-director',model:'gpt-5.6-terra',endpoint:'responses',usage:d.usage,metadata:{requestId}});
 return res.status(200).json({success:true,endpointType:'design-director',artDirection,meta:{model:'gpt-5.6-terra',usage:d.usage||null,requestId,endpoint:'responses'}});
-}catch(e){console.error("ChurchDesign Design Director",e);return res.status(error?.statusCode||500).json({error:e.message||"Erro no Diretor de Arte."});}
+}catch(e){console.error("ChurchDesign Design Director",e);return res.status(e?.statusCode||500).json({error:e.message||"Erro no Diretor de Arte."});}
 };
