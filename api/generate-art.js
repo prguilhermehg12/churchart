@@ -1,3 +1,4 @@
+// CHURCHDESIGN — generate-art v0.14.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -129,6 +130,16 @@ function prompt(data){
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
 
+${data.backgroundMode?`MODO FUNDO ABSOLUTO — ESTA REGRA SOBRESCREVE QUALQUER OUTRA INSTRUÇÃO DE TEXTO OU CONTEÚDO:
+- Gere somente um FUNDO LIMPO da mesma identidade visual.
+- ZERO TEXTO LEGÍVEL. Não renderize nem preserve título, subtítulo, palavras, letras, números, datas, horários, endereço, nomes, slogans, chamadas, assinatura, selo ou placeholder.
+- ZERO PESSOAS. Não renderize pregadores, rostos, corpos, silhuetas ou figuras humanas.
+- ZERO LOGOS, marcas ou emblemas.
+- A referência é uma fonte de paleta, atmosfera, iluminação, textura, formas abstratas e cenário; todo conteúdo semântico visível nela deve ser removido e a área reconstruída naturalmente.
+- Se existir fotografia real da igreja fornecida como asset de fundo, preserve essa fotografia como ambiente, sem inventar outra igreja.
+- Não transforme palavras da referência em textura tipográfica. Não deixe fragmentos de letras.
+- O resultado deve parecer um background pronto para receber novos elementos depois.
+`:''}
 ${data.revisionMode==='delta-only'?`MODO CORREÇÃO CIRÚRGICA / DELTA ONLY:
 A primeira referência é a última versão e funciona como MOLDE BLOQUEADO.
 Altere SOMENTE: ${data.revisionInstruction||data.variantInstruction||'o ajuste explicitamente pedido'}.
@@ -279,7 +290,7 @@ REGRAS DE FIDELIDADE:
 - Não invente datas, horários, endereço, nomes, slogans ou textos.
 - Não escreva rótulos internos como "logo", "reserva", "pregador" ou nomes de camada.
 - Complexidade visual somente quando for coerente e segura. Coerência sempre.
-- Título deve fazer parte do design: escala, composição, contraste, possível inclinação, outline, sombra ou deformação quando coerente com a referência.
+${data.backgroundMode?'- MODO FUNDO: título e qualquer texto são proibidos.':'- Título deve fazer parte do design: escala, composição, contraste, possível inclinação, outline, sombra ou deformação quando coerente com a referência.'}
 - Integre pessoas, título e elementos em camadas, evitando aparência de formulário/cartões genéricos.
 - COMPOSIÇÃO LIMPA: salvo quando a referência ou o usuário pedir explicitamente, nunca crie um cartaz/quadro menor flutuando dentro de outro fundo, moldura ou canvas. A arte deve ocupar o canvas inteiro.
 - Evite caixas, cartões, cápsulas, placas e contornos em torno de data, hora, endereço e textos; só use quando a referência ou instrução justificar claramente.
