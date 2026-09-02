@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.56 -->
+<!-- CHURCHDESIGN — index v0.58 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1599,6 +1599,52 @@ html[data-theme="light"] .feed-detail-published{
   color:#7a828d;
 }
 
+
+/* CHURCHDESIGN v0.58 — Galeria compacta + links temporários */
+.gallery-actions-clean{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:5px!important;margin-top:9px!important;position:relative!important}
+.gallery-actions-clean .gallery-main-action,.gallery-actions-clean .gallery-more-btn{
+  min-height:29px!important;height:29px!important;padding:0 8px!important;border-radius:8px!important;
+  font-size:8.5px!important;font-weight:760!important;line-height:1!important;
+  border:1px solid var(--field-border)!important;background:var(--field-bg)!important;color:var(--text)!important;
+  white-space:nowrap!important;cursor:pointer!important
+}
+.gallery-actions-clean .gallery-main-action:hover,.gallery-actions-clean .gallery-more-btn:hover{background:var(--soft-surface-2)!important}
+.gallery-actions-clean .gallery-publish-btn{border-color:color-mix(in srgb,var(--brand-orange) 42%,var(--field-border))!important;background:color-mix(in srgb,var(--brand-orange) 7%,var(--field-bg))!important}
+.gallery-actions-clean .gallery-publish-btn.published{color:var(--good)!important;border-color:color-mix(in srgb,var(--good) 30%,var(--field-border))!important;background:color-mix(in srgb,var(--good) 6%,var(--field-bg))!important;cursor:default!important}
+.gallery-actions-clean .gallery-more-btn{width:31px!important;padding:0!important;font-size:13px!important;letter-spacing:1px!important}
+.gallery-action-popover-wrap{position:relative!important;display:inline-flex!important}
+.gallery-popover{display:none;position:absolute;z-index:120;top:calc(100% + 6px);left:0;width:220px;padding:6px;border:1px solid var(--field-border);border-radius:12px;background:var(--panel);box-shadow:0 18px 44px rgba(0,0,0,.28)}
+.gallery-popover.open{display:grid}
+.gallery-more-wrap .gallery-popover{left:auto;right:0;width:230px;max-height:390px;overflow:auto}
+.gallery-popover button{display:flex;align-items:center;gap:9px;width:100%;min-height:38px;padding:7px 9px;border:0;border-radius:8px;background:transparent;color:var(--text);text-align:left;cursor:pointer;font-size:10px}
+.gallery-popover button:hover{background:var(--soft-surface)}
+.gallery-download-popover button{display:block}
+.gallery-download-popover button strong,.gallery-download-popover button small{display:block}
+.gallery-download-popover button strong{font-size:10.5px}.gallery-download-popover button small{margin-top:3px;color:var(--muted);font-size:8.5px}
+.gallery-more-divider{height:1px;background:var(--field-border);margin:5px 3px}
+.gallery-more-subtitle{padding:5px 9px 3px;color:var(--muted);font-size:7.5px;font-weight:850;letter-spacing:.11em;text-transform:uppercase}
+.gallery-more-popover .danger{color:#ff8291}
+.gallery-child-actions{display:none!important}
+
+.share-builder-modal{width:min(650px,95vw)!important;border-radius:21px!important}
+.share-builder-modal .modal-head p{margin:5px 0 0;color:var(--muted);font-size:10.5px}
+.share-package-preview{display:grid;grid-template-columns:116px minmax(0,1fr);gap:16px;align-items:center;padding:14px;border:1px solid var(--field-border);border-radius:15px;background:var(--soft-surface)}
+.share-package-thumbs{height:86px;position:relative}
+.share-package-thumbs img{position:absolute;width:64px;height:78px;object-fit:cover;border-radius:8px;border:2px solid var(--panel);box-shadow:0 5px 15px rgba(0,0,0,.19);top:4px}
+.share-package-thumbs img:nth-child(1){left:0}.share-package-thumbs img:nth-child(2){left:16px;transform:rotate(2deg)}.share-package-thumbs img:nth-child(3){left:32px;transform:rotate(4deg)}.share-package-thumbs img:nth-child(4){left:48px;transform:rotate(6deg)}
+.share-package-preview strong,.share-package-preview span{display:block}.share-package-preview strong{font-size:14px}.share-package-preview span{margin-top:6px;color:var(--muted);font-size:10.5px}
+.share-expiry-field{display:grid;gap:8px;margin-top:18px}.share-expiry-field label{font-size:11px;font-weight:800}.share-expiry-field select{height:45px!important;border-radius:11px!important;padding:0 12px!important}.share-expiry-field small{font-size:9.5px;color:var(--muted);line-height:1.45}
+.share-created-box{margin-top:18px;padding:15px;border:1px solid color-mix(in srgb,var(--good) 30%,var(--field-border));border-radius:14px;background:color-mix(in srgb,var(--good) 5%,var(--soft-surface))}
+.share-created-badge{display:inline-flex;padding:4px 7px;border-radius:99px;background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good);font-size:7.5px;font-weight:900;letter-spacing:.1em}
+.share-created-box>strong{display:block;margin-top:9px;font-size:12px}.share-created-box>small{display:block;margin-top:9px;color:var(--muted);font-size:9px}
+.share-url-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-top:10px}.share-url-row input{height:39px!important;font-size:9px!important}.share-created-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+html[data-theme="light"] .gallery-popover{background:#fff!important;box-shadow:0 18px 40px rgba(26,34,45,.13)!important}
+@media(max-width:640px){
+  .gallery-actions-clean .gallery-main-action{padding:0 7px!important;font-size:8px!important}
+  .gallery-popover{position:fixed!important;left:12px!important;right:12px!important;bottom:12px!important;top:auto!important;width:auto!important;max-height:65vh!important;overflow:auto!important}
+  .share-package-preview{grid-template-columns:96px minmax(0,1fr)}.share-package-thumbs{transform:scale(.82);transform-origin:left center}
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -1661,7 +1707,7 @@ html[data-theme="light"] .feed-detail-published{
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.56</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.58</div>
   
   <script>
 const state={
@@ -3705,9 +3751,41 @@ function galleryActionsHTML(x,compact=false){
   const id=esc(String(x.galleryId||''));
   const published=!!(x?.recipe?.feedPublishedAt||x?.feedPublishedAt);
   const publishButton=compact?'':published
-    ?`<button class="mini-btn gallery-publish-btn published" type="button" disabled>✓ Postado</button>`
-    :`<button class="mini-btn gallery-publish-btn" type="button" data-gallery-publish="${id}">↑ Publicar</button>`;
-  return `<div class="${compact?'gallery-derivative-actions':'gallery-actions'}">${publishButton}<button class="mini-btn download-btn" data-gallery-download="${id}">↓ Baixar</button><button class="mini-btn" data-gallery-fullscreen="${id}">⛶ Tela cheia</button><button class="mini-btn art-report-btn" data-gallery-report="${id}">📝 Relatório</button><button class="mini-btn" data-gallery-rename="${id}">✎ Renomear projeto</button><button class="mini-btn" data-gallery-diagnostic="${id}">◎ Diagnóstico logos</button><button class="mini-btn" data-gallery-logo-assistant="${id}">Assistente de Logos</button>${compact?`<button class="mini-btn gallery-correct-btn" data-gallery-correct="${id}">Corrigir</button>`:''}<button class="mini-btn" data-gallery-reference="${id}">Usar como referência</button><button class="mini-btn" data-gallery-reopen="${id}">${x.recipe?'Reabrir projeto':'Reusar arte'}</button><button class="mini-btn" data-gallery-delete="${id}" style="border-color:#69333d;color:#ff9eac">Excluir</button></div>`;
+    ?`<button class="gallery-main-action gallery-publish-btn published" type="button" disabled>✓ Postado</button>`
+    :`<button class="gallery-main-action gallery-publish-btn" type="button" data-gallery-publish="${id}">↑ Publicar</button>`;
+  const reopenLabel=x.recipe?'Reabrir':'Reusar';
+  return `<div class="${compact?'gallery-derivative-actions':'gallery-actions'} gallery-actions-clean">
+    ${publishButton}
+    <div class="gallery-action-popover-wrap">
+      <button class="gallery-main-action download-btn" type="button" data-gallery-download-menu="${id}">↓ Baixar <span>⌄</span></button>
+      <div class="gallery-popover gallery-download-popover" data-gallery-download-popover="${id}">
+        <button type="button" data-gallery-download-direct="${id}"><strong>↓ Baixar direto</strong><small>Arquivo em alta resolução</small></button>
+        <button type="button" data-gallery-share="${id}"><strong>↗ Compartilhar link</strong><small>Página temporária com o pacote</small></button>
+      </div>
+    </div>
+    <button class="gallery-main-action" type="button" data-gallery-fullscreen="${id}">⛶ Tela cheia</button>
+    <button class="gallery-main-action" type="button" data-gallery-reopen="${id}">↻ ${reopenLabel}</button>
+    <div class="gallery-action-popover-wrap gallery-more-wrap">
+      <button class="gallery-more-btn" type="button" aria-label="Mais opções" data-gallery-more="${id}">•••</button>
+      <div class="gallery-popover gallery-more-popover" data-gallery-more-popover="${id}">
+        <button type="button" data-gallery-report="${id}">📝 <span>Relatório</span></button>
+        <button type="button" data-gallery-rename="${id}">✎ <span>Renomear projeto</span></button>
+        <button type="button" data-gallery-diagnostic="${id}">◎ <span>Diagnóstico de logos</span></button>
+        <button type="button" data-gallery-logo-assistant="${id}">◈ <span>Assistente de Logos</span></button>
+        ${compact?`<button type="button" data-gallery-correct="${id}">↺ <span>Corrigir</span></button>`:''}
+        <button type="button" data-gallery-reference="${id}">⊕ <span>Usar como referência</span></button>
+        <div class="gallery-more-divider"></div>
+        <div class="gallery-more-subtitle">Gerar derivadas</div>
+        <button type="button" data-gallery-child="${id}|youtube">▻ <span>YouTube</span></button>
+        <button type="button" data-gallery-child="${id}|screen">▰ <span>Telão</span></button>
+        <button type="button" data-gallery-child="${id}|story">▯ <span>Stories</span></button>
+        <button type="button" data-gallery-child="${id}|background">▧ <span>Fundo</span></button>
+        <button type="button" data-gallery-child="${id}|free">◇ <span>Modo Livre</span></button>
+        <div class="gallery-more-divider"></div>
+        <button class="danger" type="button" data-gallery-delete="${id}">⌫ <span>Excluir</span></button>
+      </div>
+    </div>
+  </div>`;
 }
 function galleryChildActionsHTML(x,compact=false){const id=esc(String(x.galleryId||''));return `<div class="gallery-child-actions" style="${compact?'margin-top:6px':''}"><strong style="font-size:${compact?'7':'8'}px;grid-column:1/-1">Gerar artes derivadas</strong><button class="mini-btn" data-gallery-child="${id}|youtube">YouTube</button><button class="mini-btn" data-gallery-child="${id}|screen">Telão</button><button class="mini-btn" data-gallery-child="${id}|story">Stories</button><button class="mini-btn" data-gallery-child="${id}|background">Fundo</button><span class="background-derivative-note">Mantém fundo, elementos visuais e foto da igreja (caso haja).</span><button class="mini-btn" data-gallery-child="${id}|free">Modo Livre</button></div>`}
 
@@ -3748,7 +3826,7 @@ function galleryFamilyListHTML(family){
   return `<div class="gallery-list-row">
     <div class="gallery-list-main-thumb" data-gallery-fullscreen="${id}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"></div>
     <div class="gallery-list-content">
-      <div class="gallery-list-meta"><div class="gallery-list-title">${esc(title)} ${galleryDraftBadge(x)}</div><div class="gallery-list-sub">${esc(x.target?.label||x.format||'')} • ${formatDateTime(x.createdAt)}</div>${galleryActionsHTML(x,true)}${galleryChildActionsHTML(x,true)}</div>
+      <div class="gallery-list-meta"><div class="gallery-list-title">${esc(title)} ${galleryDraftBadge(x)}</div><div class="gallery-list-sub">${esc(x.target?.label||x.format||'')} • ${formatDateTime(x.createdAt)}</div>${galleryActionsHTML(x,true)}</div>
       <div class="gallery-list-derivatives">${children.length?children.map(d=>`<div class="gallery-list-child"><div class="gallery-list-child-thumb" data-gallery-fullscreen="${esc(String(d.galleryId||''))}"><img src="${d.url||d.dataUrl}" alt="${esc(galleryThemeTitle(d))}"></div><small>${esc(d.target?.label||d.format||'Derivada')}</small></div>`).join(''):`<small style="color:var(--muted)">Sem artes derivadas</small>`}</div>
     </div>
   </div>`;
@@ -3756,8 +3834,8 @@ function galleryFamilyListHTML(family){
 
 function galleryFamilyHTML(family){
   const x=family.main,children=family.derivatives||[],title=galleryThemeTitle(x);
-  if(!children.length)return `<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"><div class="persistent-gallery-body"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}${galleryChildActionsHTML(x)}</div></div>`;
-  return `<div class="gallery-family-card"><div class="gallery-family-head"><div><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>Principal + artes derivadas reunidas no mesmo projeto</small></div><span class="gallery-family-count">${children.length} derivada${children.length===1?'':'s'}</span></div><div class="gallery-family-main"><div class="gallery-family-main-preview" data-gallery-fullscreen="${esc(String(x.galleryId))}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"></div><div class="gallery-family-info"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}${galleryChildActionsHTML(x)}</div></div><div class="gallery-family-derivatives">${children.map(d=>`<div class="gallery-derivative-card"><div class="gallery-derivative-preview" data-gallery-fullscreen="${esc(String(d.galleryId))}"><img src="${d.url||d.dataUrl}" alt="${esc(galleryThemeTitle(d))}"></div><div class="gallery-derivative-body"><strong>${esc(galleryThemeTitle(d))}${galleryDraftBadge(d)}</strong><small>${esc(d.target?.label||d.format||'')} • ${formatDateTime(d.createdAt)}</small>${galleryActionsHTML(d,true)}${galleryChildActionsHTML(d,true)}</div></div>`).join('')}</div></div>`;
+  if(!children.length)return `<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"><div class="persistent-gallery-body"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}</div></div>`;
+  return `<div class="gallery-family-card"><div class="gallery-family-head"><div><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>Principal + artes derivadas reunidas no mesmo projeto</small></div><span class="gallery-family-count">${children.length} derivada${children.length===1?'':'s'}</span></div><div class="gallery-family-main"><div class="gallery-family-main-preview" data-gallery-fullscreen="${esc(String(x.galleryId))}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"></div><div class="gallery-family-info"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}</div></div><div class="gallery-family-derivatives">${children.map(d=>`<div class="gallery-derivative-card"><div class="gallery-derivative-preview" data-gallery-fullscreen="${esc(String(d.galleryId))}"><img src="${d.url||d.dataUrl}" alt="${esc(galleryThemeTitle(d))}"></div><div class="gallery-derivative-body"><strong>${esc(galleryThemeTitle(d))}${galleryDraftBadge(d)}</strong><small>${esc(d.target?.label||d.format||'')} • ${formatDateTime(d.createdAt)}</small>${galleryActionsHTML(d,true)}</div></div>`).join('')}</div></div>`;
 }
 function isDataImage(value){
   return typeof value==='string' && /^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(value.trim());
@@ -3861,6 +3939,84 @@ function openGalleryLogoAssistant(id){
   source.id=crypto.randomUUID();source.galleryId=null;source.dataUrl=base;source.baseDataUrl=base;source.sourceUrl=base;source.finalized=false;source.finalizedWithoutLogo=false;source.manualLogoFlow=true;source.manualLogoPlacements=Array.isArray(item.recipe?.manualLogoPlacements)?JSON.parse(JSON.stringify(item.recipe.manualLogoPlacements)):[];source.sourceGalleryId=item.galleryId;source.parentArtworkId=item.parentArtworkId||item.recipe?.parentArtworkId||null;source.sourceArtworkId=item.sourceArtworkId||item.recipe?.sourceArtworkId||null;source.label=`${item.label||'Arte'} • logos`;
   state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:base,artDirection:item.recipe?.artDirection||null,recipe:item.recipe||null};state.quickResults=[source];closeModal();screenQuickMode();setTimeout(()=>openLogoAssistant('main:0',{returnToGallery:true,galleryItemId:item.galleryId}),80);
 }
+
+function closeGalleryActionPopovers(except=null){
+  document.querySelectorAll('.gallery-popover.open').forEach(p=>{if(p!==except)p.classList.remove('open')});
+}
+function galleryFamilyForItem(galleryId){
+  return galleryFamilies(allPersistentGalleryItems()).find(f=>(f.members||[]).some(x=>String(x.galleryId)===String(galleryId)))||null;
+}
+async function openShareDownloadAssistant(galleryId){
+  const item=findGalleryItem(galleryId);
+  if(!item)return appAlert('Arte não encontrada na Galeria.',{type:'error'});
+  const family=galleryFamilyForItem(galleryId),members=(family?.members||[item]).filter(x=>x?.recipe?.finalized!==false);
+  const root=document.querySelector('#modalRoot');
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel share-builder-modal">
+    <div class="modal-head">
+      <div><h2>Compartilhar pacote</h2><p>Crie um link temporário para baixar esta arte e suas variações.</p></div>
+      <button class="close-modal" type="button" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="share-package-preview">
+        <div class="share-package-thumbs">${members.slice(0,4).map((x,i)=>`<img src="${esc(x.url||x.dataUrl)}" alt="" style="z-index:${10-i}">`).join('')}</div>
+        <div><strong>${esc(galleryThemeTitle(family?.main||item))}</strong><span>${members.length} arquivo${members.length===1?'':'s'} neste pacote</span></div>
+      </div>
+      <div class="share-expiry-field">
+        <label for="shareExpirySelect">Validade do link</label>
+        <select id="shareExpirySelect">
+          <option value="24">24 horas</option>
+          <option value="72">3 dias</option>
+          <option value="168" selected>7 dias</option>
+          <option value="720">30 dias</option>
+        </select>
+        <small>Quando expirar, somente o link deixa de funcionar. As artes continuam normalmente na sua Galeria.</small>
+      </div>
+      <div id="shareGeneratedBox"></div>
+      <div class="church-profile-actions">
+        <button class="btn ghost" type="button" onclick="closeModal()">Cancelar</button>
+        <button class="btn primary" id="generateShareLinkBtn" type="button">Gerar link</button>
+      </div>
+    </div>
+  </div></div>`;
+  root.querySelector('.modal-backdrop')?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+  const generate=root.querySelector('#generateShareLinkBtn');
+  generate.onclick=async()=>{
+    try{
+      generate.disabled=true;generate.textContent='Gerando...';
+      const expiresHours=Number(root.querySelector('#shareExpirySelect')?.value||168);
+      const d=await apiJSON('create-art-share',{method:'POST',body:{galleryId,expiresHours}});
+      const url=new URL(d.sharePath||`/share.html?token=${encodeURIComponent(d.token)}`,location.origin).href;
+      const box=root.querySelector('#shareGeneratedBox');
+      box.innerHTML=`<div class="share-created-box">
+        <span class="share-created-badge">LINK PRONTO</span>
+        <strong>${esc(d.title||galleryThemeTitle(item))}</strong>
+        <div class="share-url-row"><input id="generatedShareUrl" readonly value="${esc(url)}"><button class="mini-btn" id="copyShareUrlBtn" type="button">Copiar</button></div>
+        <div class="share-created-actions">
+          <button class="mini-btn" id="openSharePageBtn" type="button">Abrir página</button>
+          <button class="mini-btn" id="shareViaWhatsappBtn" type="button">WhatsApp</button>
+          <button class="mini-btn" id="nativeShareBtn" type="button" style="${navigator.share?'':'display:none'}">Compartilhar…</button>
+        </div>
+        <small>Expira em ${esc(formatDateTime(d.expiresAt))}.</small>
+      </div>`;
+      root.querySelector('#copyShareUrlBtn').onclick=async()=>{
+        try{await navigator.clipboard.writeText(url);appToast('Link copiado.',{type:'success',title:'Compartilhar'})}
+        catch{const input=root.querySelector('#generatedShareUrl');input.select();document.execCommand('copy');appToast('Link copiado.',{type:'success',title:'Compartilhar'})}
+      };
+      root.querySelector('#openSharePageBtn').onclick=()=>window.open(url,'_blank','noopener');
+      root.querySelector('#shareViaWhatsappBtn').onclick=()=>{
+        const msg=`Veja as artes que acabei de gerar usando o ChurchDesign 😉\n\nBaixe aqui as artes desse pacote:\n${url}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank','noopener');
+      };
+      const native=root.querySelector('#nativeShareBtn');
+      if(native)native.onclick=()=>navigator.share?.({title:d.title||'Artes ChurchDesign',text:'Veja as artes que acabei de gerar usando o ChurchDesign 😉',url}).catch(()=>{});
+      generate.textContent='Gerar outro link';generate.disabled=false;
+    }catch(e){
+      generate.disabled=false;generate.textContent='Gerar link';
+      appAlert(e.message||'Não foi possível gerar o link.',{type:'error',title:'Compartilhamento'});
+    }
+  };
+}
+
 async function publishGalleryItemManually(galleryId,button=null){
   const item=findGalleryItem(galleryId);
   if(!item){
@@ -3957,10 +4113,32 @@ window.openGallery=function(query='',viewMode=null){
     search.onsearch=()=>openGallery(search.value,view);
   }
   root.querySelectorAll('[data-gallery-view]').forEach(b=>b.onclick=()=>openGallery(search?.value||'',b.dataset.galleryView));
+  root.onclick=e=>{if(!e.target.closest('.gallery-action-popover-wrap'))closeGalleryActionPopovers()};
   root.querySelectorAll('[data-gallery-report]').forEach(b=>b.onclick=e=>{e.stopPropagation();const item=findGalleryItem(b.dataset.galleryReport);if(item)openArtReport(item);});
   root.querySelectorAll('[data-gallery-rename]').forEach(b=>b.onclick=e=>{e.stopPropagation();renameGalleryProject(b.dataset.galleryRename,document.querySelector('#gallerySearch')?.value||'')});
   root.querySelectorAll('[data-gallery-publish]').forEach(b=>b.onclick=e=>{e.stopPropagation();publishGalleryItemManually(b.dataset.galleryPublish,b)});
-  root.querySelectorAll('[data-gallery-download]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDownload);if(x){const ok=await downloadDataUrl(x.url,`churchdesign-${(x.label||'arte').toLowerCase().replace(/\s+/g,'-')}.png`,{label:x.label});if(ok){markGalleryDownloaded(x);openGallery(document.querySelector('#gallerySearch')?.value||'')}}});
+
+  root.querySelectorAll('[data-gallery-download-menu]').forEach(b=>b.onclick=e=>{
+    e.preventDefault();e.stopPropagation();
+    const pop=root.querySelector(`[data-gallery-download-popover="${CSS.escape(b.dataset.galleryDownloadMenu)}"]`);
+    const opening=!pop?.classList.contains('open');closeGalleryActionPopovers(pop);pop?.classList.toggle('open',opening);
+  });
+  root.querySelectorAll('[data-gallery-more]').forEach(b=>b.onclick=e=>{
+    e.preventDefault();e.stopPropagation();
+    const pop=root.querySelector(`[data-gallery-more-popover="${CSS.escape(b.dataset.galleryMore)}"]`);
+    const opening=!pop?.classList.contains('open');closeGalleryActionPopovers(pop);pop?.classList.toggle('open',opening);
+  });
+  root.querySelectorAll('[data-gallery-download-direct]').forEach(b=>b.onclick=async e=>{
+    e.stopPropagation();closeGalleryActionPopovers();
+    const x=findGalleryItem(b.dataset.galleryDownloadDirect);
+    if(x){
+      const ok=await downloadDataUrl(x.url,`churchdesign-${(x.label||'arte').toLowerCase().replace(/\s+/g,'-')}.png`,{label:x.label});
+      if(ok){markGalleryDownloaded(x);openGallery(document.querySelector('#gallerySearch')?.value||'')}
+    }
+  });
+  root.querySelectorAll('[data-gallery-share]').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();closeGalleryActionPopovers();openShareDownloadAssistant(b.dataset.galleryShare);
+  });
   root.querySelectorAll('[data-gallery-fullscreen]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryFullscreen);if(x)openArtworkFullscreen(x.url,x.label||'Arte')});
   root.querySelectorAll('[data-gallery-diagnostic]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDiagnostic);if(!x)return;const a=galleryItemToQuickResult(x);openLogoDiagnostic(a)});
   root.querySelectorAll('[data-gallery-logo-assistant]').forEach(b=>b.onclick=e=>{e.stopPropagation();openGalleryLogoAssistant(b.dataset.galleryLogoAssistant)});
@@ -5049,7 +5227,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.56</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.58</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
