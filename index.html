@@ -1406,6 +1406,19 @@ html[data-theme="light"] .app-dialog-actions{background:#eef1f4!important}
 @keyframes appToastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(max-width:640px){.app-toast-stack{right:14px;bottom:14px}.app-dialog-actions{flex-direction:column-reverse}.app-dialog-actions button{width:100%}}
 
+
+
+/* NEWFLOW v0.41 — multi-church / native-ready account context */
+.church-switcher{margin:10px 0 12px;padding:10px;border:1px solid var(--field-border);background:var(--soft-surface);border-radius:11px}
+.church-switcher label{display:block;font-size:7px;font-weight:900;letter-spacing:.12em;color:var(--muted);margin-bottom:6px}
+.church-switcher select{width:100%;font-size:9px;font-weight:800}
+.church-switcher small{display:block;margin-top:6px;color:var(--muted);font-size:7px}
+.team-list{display:grid;gap:8px;margin-top:12px}.team-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--field-border);border-radius:10px;background:var(--field-bg)}
+.team-row strong{display:block;font-size:10px}.team-row small{display:block;color:var(--muted);font-size:8px;margin-top:2px}.team-role{font-size:7px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+.billing-plan-list{display:grid;gap:8px}.billing-plan-row{padding:10px;border:1px solid var(--field-border);border-radius:10px;background:var(--field-bg)}
+.billing-plan-row strong{display:block;font-size:10px}.billing-plan-row small{display:block;color:var(--muted);font-size:8px;margin-top:3px}
+html[data-theme="light"] .church-switcher{background:#e1e6ec!important}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -1431,6 +1444,7 @@ html[data-theme="light"] .app-dialog-actions{background:#eef1f4!important}
     <aside class="sidebar">
       <div class="brand"><span class="brand-logo" role="img" aria-label="ChurchDesign"></span></div>
       <button class="sidebar-project-btn" id="currentProjectBtn" type="button"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></button>
+      <div class="church-switcher" id="churchSwitcherWrap" style="display:none"><label>IGREJA ATIVA</label><select id="churchSwitcher"></select><small id="churchSwitcherRole"></small></div>
       <div class="sidebar-library-actions">
         <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
         <button class="gallery-btn" type="button" onclick="openGallery()">▦ Galeria</button>
@@ -1454,7 +1468,7 @@ html[data-theme="light"] .app-dialog-actions{background:#eef1f4!important}
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.40</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.41</div>
   
   <script>
 const state={
@@ -1476,19 +1490,12 @@ quickResults:[],
 mobileQuickStep:0,
 costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',actualStart:null,actualEnd:null,actualCost:null,requests:[],untrackedEstimate:0},
 library:{assets:[],generations:[],drafts:[],ratings:[],dbReady:false},
+churches:[],activeChurchId:null,activeChurchRole:null,accessContext:null,features:{},
 gallerySeed:null,
 gallerySavedIds:[],
 galleryViewMode:'grid',
 user:{id:null,email:null,plan:null,credits:null,isAdmin:false},
-billing:{
-  provider:'asaas',currency:'BRL',
-  plans:[
-    {id:'entrada',name:'Entrada',price:29.90,cycle:'MONTHLY'},
-    {id:'pro',name:'Pro',price:59.90,cycle:'MONTHLY'},
-    {id:'studio',name:'Premium',price:99.90,cycle:'MONTHLY'}
-  ],
-  adminUsers:[],coupons:[],selectedUserId:null
-},
+billing:{provider:null,currency:'BRL',plans:[],churches:[],members:[],subscriptions:[],coupons:[]},
 authSession:null,
 finalConfig:{
 logoAssetId:null,
@@ -1530,17 +1537,16 @@ const effectCatalog=[
 {id:'neobrutalism',name:'Neobrutalismo',kind:'generative',requiredPlan:'pro'},
 {id:'nostalgic_3d',name:'3D nostálgico',kind:'generative',requiredPlan:'studio'}
 ];
-const planRank={free:0,pro:0,studio:0};
-function canUseFeature(requiredPlan='free'){return true;}
-function referenceLibraryLimit(){return 30;}
-function planDisplayName(){return state.user.plan==='studio'?'PREMIUM':'';}
+const planRank={free:0,pro:1,studio:2};
+function canUseFeature(featureCode=''){const f=state.features?.[featureCode];return !f||f.enabled!==false;}
+function referenceLibraryLimit(){return Number(state.accessContext?.subscription?.plan?.reference_limit)||30;}
+function planDisplayName(){return state.accessContext?.subscription?.plan?.name||'';}
 function updateSidebarAccount(){
   const email=document.querySelector('#accountEmail');if(email)email.textContent=state.user?.email||'Conta autenticada';
-  const usage=document.querySelector('#accountRefUsage');if(usage)usage.textContent=`${(state.library.assets||[]).filter(a=>a.type==='reference').length} / 30`;
+  const usage=document.querySelector('#accountRefUsage');if(usage)usage.textContent=`${(state.library.assets||[]).filter(a=>a.type==='reference').length} / ${referenceLibraryLimit()}`;
   let badge=document.querySelector('#ownerPremiumBadge');
-  if(state.user?.plan==='studio'){
-    if(!badge){badge=document.createElement('span');badge.id='ownerPremiumBadge';badge.className='account-plan';badge.textContent='PREMIUM';email?.insertAdjacentElement('afterend',badge);}
-  }else badge?.remove();
+  const planName=planDisplayName();
+  if(planName){if(!badge){badge=document.createElement('span');badge.id='ownerPremiumBadge';badge.className='account-plan';email?.insertAdjacentElement('afterend',badge);}badge.textContent=String(planName).toUpperCase();}else badge?.remove();
 }
 function setNewflowStage(stage=1){
   document.querySelectorAll('#stepNav [data-flow-step]').forEach(el=>{
@@ -2269,9 +2275,37 @@ async function deleteDraftById(id){
   catch(e){showMapNotice('Erro',e.message);}
 }
 
-function currentChurchId(){
-  if(!state.user?.id)throw new Error("Sessão não autenticada.");
-  return `usr_${String(state.user.id).replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,76)}`;
+const ACTIVE_CHURCH_STORAGE_KEY='churchdesign.activeChurch.v1';
+function currentChurchId(){if(!state.user?.id)throw new Error("Sessão não autenticada.");if(!state.activeChurchId)throw new Error("Nenhuma igreja ativa selecionada.");return state.activeChurchId;}
+function accountJSON(action,options={}){const method=options.method||'GET',url=`/api/church-data?action=${encodeURIComponent(action)}`;return authFetch(url,{method,headers:{'Content-Type':'application/json'},body:method==='GET'?undefined:JSON.stringify(options.body||{})}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;});}
+function renderChurchSwitcher(){
+  const wrap=document.querySelector('#churchSwitcherWrap'),sel=document.querySelector('#churchSwitcher'),role=document.querySelector('#churchSwitcherRole');if(!wrap||!sel)return;
+  const churches=state.churches||[];wrap.style.display=churches.length?'block':'none';
+  sel.innerHTML=churches.map(c=>`<option value="${esc(c.church_id)}" ${c.church_id===state.activeChurchId?'selected':''}>${esc(c.name||'Igreja sem nome')}${c.is_owner?' • Minha':''}</option>`).join('');
+  const active=churches.find(c=>c.church_id===state.activeChurchId);if(role)role.textContent=active?.is_owner?'Responsável principal':'Colaborador';
+  sel.onchange=()=>switchActiveChurch(sel.value);
+}
+async function ensureChurchAccountContext(){
+  let d=await accountJSON('account-context');state.churches=d.churches||[];state.user.isAdmin=!!d.isAdmin;
+  const inviteToken=new URLSearchParams(location.search).get('invite');
+  if(inviteToken){await accountJSON('accept-invite',{method:'POST',body:{token:inviteToken}});const u=new URL(location.href);u.searchParams.delete('invite');history.replaceState(null,'',u.pathname+u.search+u.hash);d=await accountJSON('account-context');state.churches=d.churches||[];}
+  if(!state.churches.length){
+    const name=await appPrompt('Informe o nome da igreja que será o seu espaço principal no ChurchDesign.',{title:'Criar sua igreja',placeholder:'Nome da igreja',confirmText:'Criar igreja',cancelText:'Sair',icon:'⌂'});
+    if(!name){await signOutChurchDesign();throw new Error('É necessário criar ou receber acesso a uma igreja para usar o ChurchDesign.');}
+    await accountJSON('create-church',{method:'POST',body:{name:String(name).trim()}});d=await accountJSON('account-context');state.churches=d.churches||[];
+  }
+  let saved='';try{saved=localStorage.getItem(ACTIVE_CHURCH_STORAGE_KEY)||''}catch{}
+  const active=state.churches.find(c=>c.church_id===saved)||state.churches[0];state.activeChurchId=active?.church_id||null;state.activeChurchRole=active?.role||null;
+  try{if(state.activeChurchId)localStorage.setItem(ACTIVE_CHURCH_STORAGE_KEY,state.activeChurchId)}catch{}
+  const sab=document.querySelector('#subscriptionAdminBtn');if(sab)sab.style.display=state.user.isAdmin?'block':'none';renderChurchSwitcher();
+}
+async function loadActiveChurchAccess(){
+  const d=await apiJSON('access-context');state.accessContext=d.context||null;state.features=state.accessContext?.features||{};state.user.plan=state.accessContext?.subscription?.plan?.code||null;state.user.credits=state.accessContext?.credits_balance??null;state.activeChurchRole=d.membership?.role||state.activeChurchRole;renderChurchSwitcher();updateSidebarAccount();
+}
+async function switchActiveChurch(churchId){
+  if(!churchId||churchId===state.activeChurchId)return;state.activeChurchId=churchId;const m=state.churches.find(c=>c.church_id===churchId);state.activeChurchRole=m?.role||null;try{localStorage.setItem(ACTIVE_CHURCH_STORAGE_KEY,churchId)}catch{}
+  state.church={name:'',address:'',logo:null,screenConfig:{preset:'16:9',width:1920,height:1080}};state.library={assets:[],generations:[],drafts:[],ratings:[],dbReady:false};state.quickResults=[];state.gallerySavedIds=[];state.accessContext=null;state.features={};renderChurchSwitcher();
+  await loadActiveChurchAccess();await bootstrapLibrary();state.projectTitle=state.church.name||'Nova arte';screenQuickMode();appToast(`Igreja ativa: ${state.church.name||m?.name||'Igreja'}`,{type:'success',title:'Igreja alterada'});
 }
 
 
@@ -2299,7 +2333,8 @@ function authHeaders(extra={}){
   return token?{...extra,Authorization:`Bearer ${token}`}:{...extra};
 }
 async function authFetch(url,options={}){
-  return fetch(url,{...options,headers:authHeaders(options.headers||{})});
+  const headers=authHeaders(options.headers||{});if(String(url).startsWith('/api/')&&state.activeChurchId&&!headers['x-church-id'])headers['x-church-id']=state.activeChurchId;
+  return fetch(url,{...options,headers});
 }
 function saveAuthSession(session){
   state.authSession=session||null;
@@ -2342,11 +2377,8 @@ async function fetchAuthUser(session){
   const d=await r.json().catch(()=>null);return r.ok?d:null;
 }
 function applyAuthenticatedUser(user,session){
-  const isOwner=String(user.id||'')==='eebd32e2-95d2-4ced-b4fa-43709bc2b7b4';
-  state.authSession=session;state.user={id:user.id,email:user.email||'',plan:isOwner?'studio':null,credits:null,isAdmin:isOwner};
-  document.querySelector('#authGate')?.classList.add('hidden');
-  const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='visible';
-  const ae=document.querySelector('#accountEmail');if(ae)ae.textContent=state.user.email||'Conta autenticada';const sab=document.querySelector('#subscriptionAdminBtn');if(sab)sab.style.display=isOwner?'block':'none';if(isOwner)setTimeout(loadBillingAdminLocal,0);
+  state.authSession=session;state.user={id:user.id,email:user.email||'',plan:null,credits:null,isAdmin:false};
+  document.querySelector('#authGate')?.classList.add('hidden');const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='visible';const ae=document.querySelector('#accountEmail');if(ae)ae.textContent=state.user.email||'Conta autenticada';const sab=document.querySelector('#subscriptionAdminBtn');if(sab)sab.style.display='none';
 }
 function showAuthGate(){
   document.querySelector('#authGate')?.classList.remove('hidden');
@@ -2410,7 +2442,7 @@ async function signOutChurchDesign(){
     }
   }catch(e){console.warn('[Auth] logout',e)}
   saveAuthSession(null);state.authSession=null;state.user={id:null,email:null,plan:null,credits:null,isAdmin:false};
-  state.library={assets:[],generations:[],drafts:[],ratings:[],dbReady:false};state.quickResults=[];showAuthGate();setAuthMode('login');
+  state.library={assets:[],generations:[],drafts:[],ratings:[],dbReady:false};state.churches=[];state.activeChurchId=null;state.activeChurchRole=null;state.accessContext=null;state.features={};state.quickResults=[];showAuthGate();setAuthMode('login');
 }
 
 function apiJSON(action,options={}){const method=options.method||'GET';const churchId=currentChurchId();const url=`/api/church-data?action=${encodeURIComponent(action)}`;return authFetch(url,{method,headers:{'Content-Type':'application/json','x-church-id':churchId},body:method==='GET'?undefined:JSON.stringify(options.body||{})}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;});}
@@ -3509,116 +3541,54 @@ window.openGallery=function(query='',viewMode=null){
 window.startGalleryChild=startGalleryChild;
 
 
-const BILLING_STORAGE_KEY='churchdesign.billing.admin.v1';
 function billingBRL(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0)}
-function loadBillingAdminLocal(){
-  if(!state.user?.isAdmin)return;
-  try{
-    const saved=JSON.parse(localStorage.getItem(BILLING_STORAGE_KEY)||'{}');
-    state.billing.adminUsers=Array.isArray(saved.adminUsers)?saved.adminUsers:state.billing.adminUsers;
-    state.billing.coupons=Array.isArray(saved.coupons)?saved.coupons:state.billing.coupons;
-    if(!state.billing.adminUsers.some(x=>x.id===state.user.id))state.billing.adminUsers.unshift({id:state.user.id,name:'Administrador',email:state.user.email||'',church:state.church?.name||'',plan:'studio',status:'admin',monthlyArts:0,monthlyCostBRL:0,subscriptionValue:0,coupons:[]});
-  }catch(e){console.warn('[Billing] local scaffold',e)}
-}
-function saveBillingAdminLocal(){if(state.user?.isAdmin)localStorage.setItem(BILLING_STORAGE_KEY,JSON.stringify({adminUsers:state.billing.adminUsers,coupons:state.billing.coupons}))}
-function billingPlan(id){return state.billing.plans.find(x=>x.id===id)||state.billing.plans[0]}
-function billingUserProfit(u){const revenue=Number(u?.subscriptionValue??billingPlan(u?.plan).price)||0;return revenue-(Number(u?.monthlyCostBRL)||0)}
-function billingCouponActive(c){if(!c?.validUntil)return true;return new Date(c.validUntil+'T23:59:59')>=new Date()}
-function openSubscriptionAdmin(){
-  if(!state.user?.isAdmin)return;
-  loadBillingAdminLocal();
-  renderSubscriptionAdmin();
-}
-
-function billingCouponUsageLabel(c){
-  if(c.kind==='individual')return c.usedCount>0?'USADO / BLOQUEADO':'1 uso';
-  if(c.unlimited)return 'Ilimitado';
-  return `${Number(c.usedCount)||0}/${Number(c.maxAccounts)||0} contas`;
-}
-function billingCouponSignupLink(c){
-  const base=`${location.origin}${location.pathname}`;
-  return `${base}?coupon=${encodeURIComponent(c.code)}`;
-}
-function billingCouponEligible(c){
-  if(!billingCouponActive(c))return false;
-  if(c.kind==='individual')return Number(c.usedCount||0)<1;
-  if(c.unlimited)return true;
-  return Number(c.usedCount||0)<Number(c.maxAccounts||0);
-}
-function copyTextSafe(txt){
-  if(navigator.clipboard?.writeText)return navigator.clipboard.writeText(txt);
-  const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();return Promise.resolve();
-}
+async function billingAdminJSON(action='bootstrap',options={}){const method=options.method||'GET',url=`/api/billing-admin?action=${encodeURIComponent(action)}`;const r=await authFetch(url,{method,headers:{'Content-Type':'application/json'},body:method==='GET'?undefined:JSON.stringify(options.body||{})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;}
+function billingPlan(id){return (state.billing.plans||[]).find(x=>x.id===id)||null}
+function currentChurchSubscription(churchId){return (state.billing.subscriptions||[]).find(x=>x.church_id===churchId&&['trialing','active','past_due','paused'].includes(x.status))||null}
+function billingCouponActive(c){return c?.active!==false&&(!c?.valid_until||new Date(c.valid_until)>=new Date())}
+function billingCouponSignupLink(c){return `${location.origin}${location.pathname}?coupon=${encodeURIComponent(c.code)}`}
+function billingCouponUsageLabel(c){if(c.kind==='individual')return Number(c.usedCount||0)>0?'USADO / BLOQUEADO':'1 uso';if(c.unlimited)return'Ilimitado';return `${Number(c.usedCount)||0}/${Number(c.max_redemptions)||0} contas`}
+function copyTextSafe(txt){if(navigator.clipboard?.writeText)return navigator.clipboard.writeText(txt);const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();return Promise.resolve();}
+async function loadBillingAdmin(){if(!state.user?.isAdmin)return;const d=await billingAdminJSON('bootstrap');state.billing={...state.billing,...d};}
+async function openSubscriptionAdmin(){if(!state.user?.isAdmin)return;try{await loadBillingAdmin();renderSubscriptionAdmin()}catch(e){appAlert(e.message,{type:'error',title:'Gerenciamento de assinaturas'})}}
 function renderSubscriptionAdmin(){
-  if(!state.user?.isAdmin)return;
-  const root=document.querySelector('#modalRoot'),users=state.billing.adminUsers||[],coupons=state.billing.coupons||[];
-  const totalArts=users.reduce((a,u)=>a+(Number(u.monthlyArts)||0),0),totalCost=users.reduce((a,u)=>a+(Number(u.monthlyCostBRL)||0),0),totalRevenue=users.reduce((a,u)=>a+(Number(u.subscriptionValue??billingPlan(u.plan).price)||0),0);
-  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel billing-admin-panel"><div class="modal-head"><div><h2>Gerenciamento de assinaturas</h2><div class="billing-provider-pill">Administração • usuários, cupons e pagamentos</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body">
-    <div class="billing-kpis"><div class="billing-kpi"><small>USUÁRIOS</small><strong>${users.length}</strong></div><div class="billing-kpi"><small>ARTES NO MÊS</small><strong>${totalArts}</strong></div><div class="billing-kpi"><small>CUSTO IA NO MÊS</small><strong>${billingBRL(totalCost)}</strong></div><div class="billing-kpi"><small>RECEITA DO MÊS</small><strong>${billingBRL(totalRevenue)}</strong></div><div class="billing-kpi"><small>LUCRO ESTIMADO</small><strong>${billingBRL(totalRevenue-totalCost)}</strong></div></div>
-
-    <div class="billing-admin-grid">
-      <section class="billing-users-panel">
-        <div class="billing-section-title"><div><h3>Usuários</h3><small>Visão financeira por conta</small></div></div>
-        <div class="billing-table-wrap"><table class="billing-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Igreja</th><th>Plano</th><th>Artes</th><th>Custo/arte</th><th>Custo mês</th><th>Valor plano</th><th>Lucro</th></tr></thead><tbody>${users.map(u=>`<tr><td>${esc(u.name||'—')}</td><td>${esc(u.email||'—')}</td><td>${esc(u.church||'—')}</td><td>${esc(billingPlan(u.plan).name)}</td><td>${Number(u.monthlyArts)||0}</td><td>${billingBRL((Number(u.monthlyCostBRL)||0)/Math.max(1,Number(u.monthlyArts)||0))}</td><td>${billingBRL(u.monthlyCostBRL)}</td><td>${billingBRL(Number(u.subscriptionValue??billingPlan(u.plan).price)||0)}</td><td><strong>${billingBRL(billingUserProfit(u))}</strong></td></tr>`).join('')}</tbody></table></div>
-        <div class="billing-status">Os números de artes/custos já estão preparados para receber consolidação real por usuário no backend. Nesta fase continuam sendo dados de estrutura local.</div>
-      </section>
-
-      <section class="billing-coupon-panel">
-        <div class="billing-section-title"><div><h3>Gerador de cupons</h3><small>Desconto, gratuidade e criação de conta</small></div></div>
-        <div class="billing-form-grid">
-          <div class="field wide"><label>Código</label><input id="couponCode" placeholder="DESCONTACO"></div>
-          <div class="field"><label>Desconto (%)</label><input id="couponPercent" type="number" min="1" max="100" value="20"></div>
-          <div class="field"><label>Vigência do desconto (meses)</label><input id="couponDuration" type="number" min="1" max="60" value="6"></div>
-          <div class="field"><label>Válido até</label><input id="couponValidUntil" type="date"></div>
-          <div class="field"><label>Plano aplicável</label><select id="couponPlan">${state.billing.plans.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
-          <div class="field wide"><label>Tipo de cupom</label><div class="billing-coupon-kind"><button type="button" class="active" data-coupon-kind="individual">Individual</button><button type="button" data-coupon-kind="collective">Coletivo</button></div></div>
-          <div class="field wide screen-theme-hidden" id="couponCollectiveOptions">
-            <label>Limite de contas</label>
-            <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center"><input id="couponMaxAccounts" type="number" min="1" value="10"><label style="display:flex;align-items:center;gap:6px;font-size:9px"><input id="couponUnlimited" type="checkbox"> Ilimitado</label></div>
-          </div>
-        </div>
-        <button class="btn primary" id="createCouponBtn" style="width:100%;margin-top:10px">Gerar cupom + link</button>
-        <div class="billing-coupon-list">${coupons.map(c=>{const link=billingCouponSignupLink(c);return `<div class="billing-coupon-row"><div><strong>${esc(c.code)}</strong><small style="display:block;color:var(--muted)">${c.percent}% de desconto • ${billingPlan(c.plan).name} • usar até ${esc(c.validUntil||'sem limite')} • benefício por ${c.durationMonths} mês(es)<br>${c.kind==='individual'?'Cupom individual':`Cupom coletivo • ${billingCouponUsageLabel(c)}`} • ${billingCouponEligible(c)?'ATIVO':'INDISPONÍVEL'}</small><div class="billing-link-box"><input readonly value="${esc(link)}"><button class="mini-btn" data-copy-coupon="${esc(c.id)}">Copiar link</button></div></div><button class="mini-btn" data-delete-coupon="${esc(c.id)}">Excluir</button></div>`}).join('')||'<div class="billing-status">Nenhum cupom criado.</div>'}</div>
-        <div class="billing-status">100% funciona como gratuidade temporária do plano durante a vigência configurada. O link serve tanto para criar uma conta nova quanto para aplicar o cupom à conta já logada.</div>
-      </section>
-    </div>
-
-    <section class="billing-payments-panel">
-      <div class="billing-section-title"><div><h3>Pagamento</h3><small>Estrutura inicial, ainda sem cobrança real</small></div></div>
-      <div class="billing-payment-buttons"><button class="mini-btn" data-billing-method="RECURRENT">Assinatura recorrente</button><button class="mini-btn" data-billing-method="PIX">Pix</button><button class="mini-btn" data-billing-method="PIX_AUTO">Pix Automático</button></div>
-      <div id="billingPaymentStatus" class="billing-status">Integração financeira permanece bloqueada até configuração server-side do provedor e webhooks.</div>
-    </section>
-  </div></div></div>`;
-
-  let couponKind='individual';
-  const kindBtns=[...root.querySelectorAll('[data-coupon-kind]')],collectiveBox=root.querySelector('#couponCollectiveOptions');
-  kindBtns.forEach(btn=>btn.onclick=()=>{couponKind=btn.dataset.couponKind;kindBtns.forEach(x=>x.classList.toggle('active',x===btn));collectiveBox?.classList.toggle('screen-theme-hidden',couponKind!=='collective')});
-  root.querySelector('#couponUnlimited')?.addEventListener('change',e=>{const inp=root.querySelector('#couponMaxAccounts');if(inp)inp.disabled=e.target.checked});
-
-  root.querySelector('#createCouponBtn')?.addEventListener('click',()=>{
-    const code=String(root.querySelector('#couponCode')?.value||'').trim().toUpperCase().replace(/\s+/g,'');
-    const percent=Math.min(100,Math.max(1,Number(root.querySelector('#couponPercent')?.value)||0));
-    const validUntil=root.querySelector('#couponValidUntil')?.value||'';
-    const durationMonths=Math.max(1,Number(root.querySelector('#couponDuration')?.value)||1);
-    const plan=root.querySelector('#couponPlan')?.value||state.billing.plans[0].id;
-    const unlimited= couponKind==='collective' && !!root.querySelector('#couponUnlimited')?.checked;
-    const maxAccounts=couponKind==='individual'?1:Math.max(1,Number(root.querySelector('#couponMaxAccounts')?.value)||1);
-    if(!code)return appAlert('Informe o código do cupom.');
-    if(state.billing.coupons.some(c=>c.code===code))return appAlert('Esse cupom já existe.');
-    state.billing.coupons.unshift({id:crypto.randomUUID(),code,percent,validUntil,durationMonths,plan,kind:couponKind,maxAccounts,unlimited,usedCount:0,createdAt:new Date().toISOString()});
-    saveBillingAdminLocal();renderSubscriptionAdmin();
-  });
-
-  root.querySelectorAll('[data-delete-coupon]').forEach(btn=>btn.onclick=()=>{state.billing.coupons=state.billing.coupons.filter(c=>c.id!==btn.dataset.deleteCoupon);saveBillingAdminLocal();renderSubscriptionAdmin()});
-  root.querySelectorAll('[data-copy-coupon]').forEach(btn=>btn.onclick=async()=>{const c=state.billing.coupons.find(x=>x.id===btn.dataset.copyCoupon);if(!c)return;await copyTextSafe(billingCouponSignupLink(c));btn.textContent='Copiado ✓';setTimeout(()=>btn.textContent='Copiar link',1200)});
-  root.querySelectorAll('[data-billing-method]').forEach(btn=>btn.onclick=()=>{const st=root.querySelector('#billingPaymentStatus');if(st)st.textContent=`${btn.dataset.billingMethod==='PIX'?'Pix':btn.dataset.billingMethod==='PIX_AUTO'?'Pix Automático':'Assinatura recorrente'} selecionado. A cobrança real será conectada somente pelo backend.`});
+  if(!state.user?.isAdmin)return;const root=document.querySelector('#modalRoot'),churches=state.billing.churches||[],members=state.billing.members||[],coupons=(state.billing.coupons||[]).filter(c=>c.active!==false),plans=(state.billing.plans||[]).filter(p=>p.active!==false);
+  const totalArts=members.reduce((a,u)=>a+(Number(u.monthlyArts)||0),0),totalCost=members.reduce((a,u)=>a+(Number(u.monthlyCostBRL)||0),0),totalRevenue=churches.reduce((a,c)=>a+(Number(currentChurchSubscription(c.id)?.price_monthly)||0),0);
+  const memberRows=members.map(u=>{const ch=churches.find(c=>c.id===u.church_id),sub=currentChurchSubscription(u.church_id),plan=billingPlan(sub?.plan_id);return `<tr><td>${esc(u.name||'—')}</td><td>${esc(u.email||'—')}</td><td>${esc(ch?.name||'—')}</td><td>${esc(u.role==='owner'?'Responsável':'Colaborador')}</td><td>${esc(plan?.name||'Sem plano')}</td><td>${Number(u.monthlyArts)||0}</td><td>${billingBRL(u.monthlyCostBRL)}</td></tr>`}).join('');
+  const churchRows=churches.map(c=>{const sub=currentChurchSubscription(c.id),plan=billingPlan(sub?.plan_id);return `<div class="billing-plan-row"><strong>${esc(c.name||'Igreja sem nome')}</strong><small>${esc(plan?.name||'Sem assinatura ativa')} • ${billingBRL(sub?.price_monthly||0)}</small><div style="display:grid;grid-template-columns:1fr auto;gap:7px;margin-top:8px"><select data-sub-plan="${esc(c.id)}"><option value="">Selecionar plano…</option>${plans.map(p=>`<option value="${p.id}" ${p.id===sub?.plan_id?'selected':''}>${esc(p.name)} • ${billingBRL(p.price_monthly)}</option>`).join('')}</select><button class="mini-btn" data-save-sub="${esc(c.id)}">Aplicar</button></div></div>`}).join('');
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel billing-admin-panel"><div class="modal-head"><div><h2>Gerenciamento de assinaturas</h2><div class="billing-provider-pill">Supabase real • pagamento externo ainda desconectado</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body">
+  <div class="billing-kpis"><div class="billing-kpi"><small>IGREJAS</small><strong>${churches.length}</strong></div><div class="billing-kpi"><small>USUÁRIOS ATIVOS</small><strong>${members.length}</strong></div><div class="billing-kpi"><small>ARTES NO MÊS</small><strong>${totalArts}</strong></div><div class="billing-kpi"><small>RECEITA/MÊS</small><strong>${billingBRL(totalRevenue)}</strong></div><div class="billing-kpi"><small>CUSTO IA REGISTRADO</small><strong>${billingBRL(totalCost)}</strong></div></div>
+  <div class="billing-admin-grid"><section class="billing-users-panel"><div class="billing-section-title"><div><h3>Usuários e consumo</h3><small>Dados reais do tenant e generation_usage</small></div></div><div class="billing-table-wrap"><table class="billing-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Igreja</th><th>Função</th><th>Plano</th><th>Artes</th><th>Custo registrado</th></tr></thead><tbody>${memberRows||'<tr><td colspan="7">Nenhum usuário.</td></tr>'}</tbody></table></div><div class="billing-section-title" style="margin-top:14px"><div><h3>Assinatura por igreja</h3><small>Plano pertence à igreja, não ao usuário</small></div></div><div class="billing-plan-list">${churchRows||'<div class="billing-status">Nenhuma igreja.</div>'}</div></section>
+  <section class="billing-coupon-panel"><div class="billing-section-title"><div><h3>Planos</h3><small>Cadastre preços e limites quando decidir</small></div></div><div class="billing-form-grid"><div class="field"><label>Código</label><input id="planCode" placeholder="pro"></div><div class="field"><label>Nome</label><input id="planName" placeholder="Pro"></div><div class="field"><label>Preço mensal</label><input id="planPrice" type="number" min="0" step="0.01" value="0"></div><div class="field"><label>Créditos/mês</label><input id="planCredits" type="number" min="0" placeholder="deixar vazio"></div><div class="field"><label>Limite referências</label><input id="planRefs" type="number" min="0" placeholder="deixar vazio"></div><div class="field"><label>Usuários</label><input id="planUsers" type="number" min="1" max="3" value="3"></div></div><button class="btn primary" id="savePlanBtn" style="width:100%;margin-top:9px">Salvar plano</button><div class="billing-plan-list" style="margin-top:10px">${plans.map(p=>`<div class="billing-plan-row"><strong>${esc(p.name)} <span style="color:var(--muted)">(${esc(p.code)})</span></strong><small>${billingBRL(p.price_monthly)} • ${p.credits_monthly??'créditos indefinidos'} • ${p.reference_limit??'referências indefinidas'} • até ${p.user_limit} usuários</small></div>`).join('')||'<div class="billing-status">Nenhum plano cadastrado ainda.</div>'}</div><hr style="border:0;border-top:1px solid var(--line);margin:14px 0"><div class="billing-section-title"><div><h3>Gerador de cupons</h3><small>Persistência real no Supabase</small></div></div><div class="billing-form-grid"><div class="field wide"><label>Código</label><input id="couponCode" placeholder="DESCONTACO"></div><div class="field"><label>Desconto (%)</label><input id="couponPercent" type="number" min="1" max="100" value="20"></div><div class="field"><label>Vigência (meses)</label><input id="couponDuration" type="number" min="1" max="60" value="6"></div><div class="field"><label>Válido até</label><input id="couponValidUntil" type="date"></div><div class="field"><label>Plano</label><select id="couponPlan"><option value="">Todos</option>${plans.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div><div class="field wide"><label>Tipo</label><div class="billing-coupon-kind"><button type="button" class="active" data-coupon-kind="individual">Individual</button><button type="button" data-coupon-kind="collective">Coletivo</button></div></div><div class="field wide screen-theme-hidden" id="couponCollectiveOptions"><label>Limite de contas</label><div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center"><input id="couponMaxAccounts" type="number" min="1" value="10"><label style="display:flex;align-items:center;gap:6px;font-size:9px"><input id="couponUnlimited" type="checkbox"> Ilimitado</label></div></div></div><button class="btn primary" id="createCouponBtn" style="width:100%;margin-top:10px">Gerar cupom + link</button><div class="billing-coupon-list">${coupons.map(c=>`<div class="billing-coupon-row"><div><strong>${esc(c.code)}</strong><small style="display:block;color:var(--muted)">${Number(c.discount_value)||0}% • ${c.plan_id?esc(billingPlan(c.plan_id)?.name||'Plano'):'Todos os planos'} • ${billingCouponUsageLabel(c)} • ${billingCouponActive(c)?'ATIVO':'INDISPONÍVEL'}</small><div class="billing-link-box"><input readonly value="${esc(billingCouponSignupLink(c))}"><button class="mini-btn" data-copy-coupon="${esc(c.id)}">Copiar link</button></div></div><button class="mini-btn" data-delete-coupon="${esc(c.id)}">Desativar</button></div>`).join('')||'<div class="billing-status">Nenhum cupom ativo.</div>'}</div></section></div>
+  <section class="billing-payments-panel"><div class="billing-section-title"><div><h3>Pagamento</h3><small>Banco preparado; provedor e webhooks ainda não conectados</small></div></div><div class="billing-status">Nenhuma cobrança é criada por esta tela. Pix, Pix Automático e recorrência serão ligados somente no backend do provedor escolhido.</div></section></div></div></div>`;
+  let couponKind='individual';const kindBtns=[...root.querySelectorAll('[data-coupon-kind]')],collectiveBox=root.querySelector('#couponCollectiveOptions');kindBtns.forEach(btn=>btn.onclick=()=>{couponKind=btn.dataset.couponKind;kindBtns.forEach(x=>x.classList.toggle('active',x===btn));collectiveBox?.classList.toggle('screen-theme-hidden',couponKind!=='collective')});root.querySelector('#couponUnlimited')?.addEventListener('change',e=>{const inp=root.querySelector('#couponMaxAccounts');if(inp)inp.disabled=e.target.checked});
+  root.querySelector('#savePlanBtn')?.addEventListener('click',async()=>{try{await billingAdminJSON('save-plan',{method:'POST',body:{code:root.querySelector('#planCode')?.value,name:root.querySelector('#planName')?.value,priceMonthly:root.querySelector('#planPrice')?.value,creditsMonthly:root.querySelector('#planCredits')?.value,referenceLimit:root.querySelector('#planRefs')?.value,userLimit:root.querySelector('#planUsers')?.value}});await loadBillingAdmin();renderSubscriptionAdmin()}catch(e){appAlert(e.message)}});
+  root.querySelectorAll('[data-save-sub]').forEach(btn=>btn.onclick=async()=>{const churchId=btn.dataset.saveSub,planId=root.querySelector(`[data-sub-plan="${CSS.escape(churchId)}"]`)?.value;if(!planId)return appAlert('Selecione um plano.');try{await billingAdminJSON('set-subscription',{method:'POST',body:{churchId,planId}});await loadBillingAdmin();renderSubscriptionAdmin()}catch(e){appAlert(e.message)}});
+  root.querySelector('#createCouponBtn')?.addEventListener('click',async()=>{const code=String(root.querySelector('#couponCode')?.value||'').trim(),percent=Number(root.querySelector('#couponPercent')?.value)||0,validUntil=root.querySelector('#couponValidUntil')?.value||'',durationMonths=Number(root.querySelector('#couponDuration')?.value)||1,planId=root.querySelector('#couponPlan')?.value||null,unlimited=couponKind==='collective'&&!!root.querySelector('#couponUnlimited')?.checked,maxAccounts=couponKind==='individual'?1:Number(root.querySelector('#couponMaxAccounts')?.value)||1;try{await billingAdminJSON('create-coupon',{method:'POST',body:{code,percent,validUntil,durationMonths,planId,kind:couponKind,unlimited,maxAccounts}});await loadBillingAdmin();renderSubscriptionAdmin()}catch(e){appAlert(e.message)}});
+  root.querySelectorAll('[data-delete-coupon]').forEach(btn=>btn.onclick=async()=>{if(!(await appConfirm('Desativar este cupom?',{title:'Desativar cupom',confirmText:'Desativar'})))return;try{await billingAdminJSON('disable-coupon',{method:'POST',body:{couponId:btn.dataset.deleteCoupon}});await loadBillingAdmin();renderSubscriptionAdmin()}catch(e){appAlert(e.message)}});
+  root.querySelectorAll('[data-copy-coupon]').forEach(btn=>btn.onclick=async()=>{const c=coupons.find(x=>x.id===btn.dataset.copyCoupon);if(!c)return;await copyTextSafe(billingCouponSignupLink(c));btn.textContent='Copiado ✓';setTimeout(()=>btn.textContent='Copiar link',1200)});
 }
 
 window.openMyChurch=function(tab='pastor'){
   const root=document.querySelector('#modalRoot');
-  const labels={pastor:'Pregadores',church:'Fotos da igreja',logo:'Logos',event_logo:'Logo de evento',reference:'Referências',graphic:'Elementos PNG',font:'Fontes',screen:'Telão'};
+  const labels={pastor:'Pregadores',church:'Fotos da igreja',logo:'Logos',event_logo:'Logo de evento',reference:'Referências',graphic:'Elementos PNG',font:'Fontes',screen:'Telão'};if(state.activeChurchRole==='owner')labels.team='Equipe';
   const tabs=`<div class="library-tabs">${Object.entries(labels).map(([k,v])=>`<button class="library-tab ${tab===k?'active':''}" onclick="openMyChurch('${k}')">${v}</button>`).join('')}</div>`;
   const shell=(body)=>`<div class="modal-backdrop"><div class="modal-panel my-church-panel"><div class="modal-head"><div><h2>Minha Igreja</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Banco conectado':'Configure o banco para persistir'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body">${tabs}${body}</div></div></div>`;
+
+
+  if(tab==='team'){
+    root.innerHTML=shell(`<div class="card" style="box-shadow:none"><h3>Equipe da igreja</h3><p>O responsável pode manter até 2 colaboradores ativos. Todos compartilham os arquivos, galeria e créditos desta igreja.</p><div class="billing-status">Carregando equipe...</div></div>`);
+    apiJSON('team').then(data=>{
+      const inviteLink=i=>`${location.origin}${location.pathname}?invite=${encodeURIComponent(i.token||'')}`;
+      const team=data.team||[],invites=data.invites||[];
+      root.innerHTML=shell(`<div class="card" style="box-shadow:none"><h3>Equipe da igreja</h3><p>1 responsável + até 2 colaboradores.</p><div class="grid2"><div class="field"><label>E-mail do colaborador</label><input id="teamInviteEmail" type="email" placeholder="colaborador@email.com"></div><div class="field" style="align-self:end"><button id="teamInviteBtn" class="btn primary" style="width:100%">Criar convite</button></div></div><div id="teamInviteStatus" class="billing-status">O link de convite já funciona. O envio automático de e-mail será ligado quando configurarmos o provedor de e-mail.</div><div class="team-list">${team.map(m=>`<div class="team-row"><div><strong>${esc(m.name||m.email||'Usuário')}</strong><small>${esc(m.email||'')} • <span class="team-role">${m.role==='owner'?'Responsável':'Colaborador'}</span></small></div>${m.role==='collaborator'?`<button class="mini-btn" data-remove-member="${esc(m.user_id)}">Remover</button>`:''}</div>`).join('')}</div>${invites.length?`<h3 style="margin-top:16px">Convites pendentes</h3><div class="team-list">${invites.map(i=>`<div class="team-row"><div><strong>${esc(i.email)}</strong><small>Expira em ${new Date(i.expires_at).toLocaleString('pt-BR')}</small><div class="billing-link-box" style="margin-top:6px"><input readonly value="${esc(inviteLink(i))}"><button class="mini-btn" data-copy-invite="${esc(i.invite_id)}">Copiar link</button></div></div><button class="mini-btn" data-cancel-invite="${esc(i.invite_id)}">Cancelar</button></div>`).join('')}</div>`:''}</div>`);
+      root.querySelector('#teamInviteBtn')?.addEventListener('click',async()=>{const email=String(root.querySelector('#teamInviteEmail')?.value||'').trim();if(!email)return appAlert('Informe o e-mail do colaborador.');try{const d=await apiJSON('create-invite',{method:'POST',body:{email}});const link=`${location.origin}${location.pathname}?invite=${encodeURIComponent(d.invite?.token||'')}`;await copyTextSafe(link);appAlert('Convite criado e link copiado. O envio automático por e-mail será conectado depois.',{type:'success',title:'Convite criado'});openMyChurch('team')}catch(e){appAlert(e.message)}});
+      root.querySelectorAll('[data-remove-member]').forEach(b=>b.onclick=async()=>{if(!(await appConfirm('Remover este colaborador da igreja?',{title:'Remover colaborador',confirmText:'Remover'})))return;try{await apiJSON('remove-collaborator',{method:'POST',body:{userId:b.dataset.removeMember}});openMyChurch('team')}catch(e){appAlert(e.message)}});
+      root.querySelectorAll('[data-cancel-invite]').forEach(b=>b.onclick=async()=>{try{await apiJSON('cancel-invite',{method:'POST',body:{inviteId:b.dataset.cancelInvite}});openMyChurch('team')}catch(e){appAlert(e.message)}});
+      root.querySelectorAll('[data-copy-invite]').forEach(b=>b.onclick=async()=>{const i=invites.find(x=>x.invite_id===b.dataset.copyInvite);if(!i)return;await copyTextSafe(inviteLink(i));b.textContent='Copiado ✓'});
+    }).catch(e=>{root.innerHTML=shell(`<div class="card" style="box-shadow:none"><h3>Equipe da igreja</h3><div class="billing-status">${esc(e.message)}</div></div>`)});
+    return;
+  }
 
   if(tab==='screen'){
     const c=state.church.screenConfig||{preset:'16:9',width:1920,height:1080};
@@ -4563,7 +4533,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.40</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.41</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
@@ -5108,10 +5078,8 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
 next.onclick=()=>{};back.onclick=()=>{};
 let churchDesignAppStarted=false;
 async function startAuthenticatedApp(){
-  if(churchDesignAppStarted)return;
-  churchDesignAppStarted=true;
-  await bootstrapLibrary().catch(e=>console.error('[ChurchDesign] bootstrap',e));
-  state.mode='quick';updateSidebarAccount();screenQuickMode();
+  if(churchDesignAppStarted)return;churchDesignAppStarted=true;
+  try{await ensureChurchAccountContext();await loadActiveChurchAccess();await bootstrapLibrary();state.mode='quick';updateSidebarAccount();renderChurchSwitcher();screenQuickMode()}catch(e){churchDesignAppStarted=false;console.error('[ChurchDesign] start',e);appAlert(e.message||'Falha ao iniciar o ChurchDesign.',{type:'error'})}
 }
 document.querySelector('#authForm')?.addEventListener('submit',handleAuthSubmit);
 document.querySelector('#googleLoginBtn')?.addEventListener('click',loginWithGoogle);
