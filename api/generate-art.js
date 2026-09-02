@@ -1,4 +1,3 @@
-
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -10,8 +9,25 @@ async function requireChurchDesignUser(req){
   if(!r.ok||!user?.id)throw Object.assign(new Error("Sessão inválida ou expirada."),{statusCode:401});
   return user;
 }
-function churchIdFromUser(user){
-  return `usr_${String(user.id).replace(/[^a-zA-Z0-9_-]/g,"_").slice(0,76)}`;
+function serverCfg(){
+  const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
+  const key=process.env.SUPABASE_SECRET_KEY;
+  if(!raw||!key)throw Object.assign(new Error("SUPABASE_URL ou SUPABASE_SECRET_KEY não configuradas."),{statusCode:500});
+  return {url:raw,key};
+}
+async function serverRest(path,opt={}){
+  const c=serverCfg();const r=await fetch(`${c.url}/rest/v1/${path}`,{...opt,headers:{apikey:c.key,Authorization:`Bearer ${c.key}`,"Content-Type":"application/json",...(opt.headers||{})}});
+  const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
+  if(!r.ok)throw Object.assign(new Error(data?.message||data?.error||`Supabase ${r.status}`),{statusCode:r.status});return data;
+}
+function churchIdFromRequest(req){const id=String(req.headers['x-church-id']||req.body?.church_id||'').trim();if(!id)throw Object.assign(new Error("Igreja ativa não informada."),{statusCode:400});return id}
+async function requireChurchAccess(req,user){
+  const churchId=churchIdFromRequest(req);const rows=await serverRest(`church_members?church_id=eq.${encodeURIComponent(churchId)}&user_id=eq.${encodeURIComponent(user.id)}&status=eq.active&select=role`);
+  if(!rows?.length)throw Object.assign(new Error("Você não possui acesso a esta igreja."),{statusCode:403});return churchId;
+}
+function usageNumber(u,...paths){for(const path of paths){let v=u;for(const k of path.split('.'))v=v?.[k];if(Number.isFinite(Number(v)))return Number(v)}return null}
+async function logUsage({churchId,userId,operationType,model,endpoint,usage,imageCount=0,metadata={}}){
+  try{await serverRest("generation_usage",{method:"POST",body:JSON.stringify([{church_id:churchId,user_id:userId,operation_type:operationType,model,endpoint,input_tokens:usageNumber(usage,'input_tokens','prompt_tokens'),output_tokens:usageNumber(usage,'output_tokens','completion_tokens'),image_count:imageCount,metadata:{...metadata,usage:usage||null}}])})}catch(e){console.error("Usage log",e.message)}
 }
 
 // ChurchDesign NEWFLOW v0.12 — authentication only; V0.21 church-photo semantics unchanged
@@ -27,8 +43,8 @@ function cfg(){
   return{url:raw.replace(/\/+$/,""),key};
 }
 function encodePath(path){return String(path).split("/").filter(Boolean).map(encodeURIComponent).join("/");}
-async function saveBase64ToStorage(base64,label="art"){
-  const c=cfg(),path=`default/generated-final/${Date.now()}-${crypto.randomUUID()}-${String(label).replace(/[^a-z0-9_-]+/gi,"-")}.png`;
+async function saveBase64ToStorage(base64,churchId,label="art"){
+  const c=cfg(),path=`${churchId}/generated-final/${Date.now()}-${crypto.randomUUID()}-${String(label).replace(/[^a-z0-9_-]+/gi,"-")}.png`;
   const r=await fetch(`${c.url}/storage/v1/object/${encodeURIComponent(BUCKET)}/${encodePath(path)}`,{
     method:"POST",headers:{apikey:c.key,Authorization:`Bearer ${c.key}`,"Content-Type":"image/png","x-upsert":"true"},body:Buffer.from(base64,"base64")
   });
@@ -338,10 +354,14 @@ module.exports=async function handler(req,res){
   if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
   if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY não configurada."});
   try{
+    const authUser=await requireChurchDesignUser(req);
+    const churchId=await requireChurchAccess(req,authUser);
     const raw=req.body||{},data=pipelineGuard(raw);
     if(!data.inspirationStyle&&!data.artDirection&&data.revisionMode!=="delta-only"&&data.mode!=="adaptation")return res.status(400).json({error:"Direção visual ausente."});
     const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
-    const url=await saveBase64ToStorage(generated.base64,label);
-    const image={label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.usage||null,requestId:generated.requestId||null,endpoint:generated.endpoint,size:generated.size}};return res.status(200).json({success:true,endpointType:'generate-art',image});
-  }catch(e){console.error("ChurchDesign V0.28.4 generate",e);return res.status(e.statusCode||500).json({error:e.message||"Erro ao gerar."});}
+    const url=await saveBase64ToStorage(generated.base64,churchId,label);
+    const image={label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.usage||null,requestId:generated.requestId||null,endpoint:generated.endpoint,size:generated.size}};
+    await logUsage({churchId,userId:authUser.id,operationType:"generation",model:"gpt-image-2",endpoint:generated.endpoint,usage:generated.usage,imageCount:1,metadata:{requestId:generated.requestId||null,size:generated.size,label}});
+    return res.status(200).json({success:true,endpointType:'generate-art',image});
+  }catch(e){console.error("ChurchDesign generate",e);return res.status(e.statusCode||500).json({error:e.message||"Erro ao gerar."});}
 };
