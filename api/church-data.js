@@ -1,5 +1,5 @@
-// CHURCHDESIGN — church-data v0.36.0
-// ChurchDesign V0.36.0 — multi-church, membership validated, web/mobile-ready
+// CHURCHDESIGN — church-data v0.37.0
+// ChurchDesign V0.37.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
 function envCfg(){
@@ -199,23 +199,17 @@ module.exports=async function handler(req,res){
       const [membershipRows,isAdmin]=await Promise.all([userRpc(req,"get_my_churches",{}),userRpc(req,"is_app_admin",{})]);
       const memberships=Array.isArray(membershipRows)?membershipRows:[];
       const ids=memberships.map(x=>x.church_id).filter(Boolean);
-      let profiles=[],assets=[],memberRows=[],userProfiles=[],authUsers=[];
+      let profiles=[],memberRows=[],userProfiles=[],authUsers=[];
       if(ids.length){
-        const idFilter=ids.map(x=>`"${String(x).replace(/"/g,'')}"`).join(",");
-        [profiles,assets,memberRows,userProfiles,authUsers]=await Promise.all([
-          serviceRest(`church_profile?id=in.(${encodeURIComponent(idFilter)})&select=*`),
-          serviceRest(`church_assets?church_id=in.(${encodeURIComponent(idFilter)})&type=eq.logo&select=id,church_id,url,is_primary,created_at&order=created_at.desc`),
-          serviceRest(`church_members?church_id=in.(${encodeURIComponent(idFilter)})&role=eq.owner&status=eq.active&select=church_id,user_id`),
+        const idFilter=ids.map(x=>String(x).replace(/[(),]/g,"")).join(",");
+        [profiles,memberRows,userProfiles,authUsers]=await Promise.all([
+          serviceRest(`church_profile?id=in.(${idFilter})&select=*`),
+          serviceRest(`church_members?church_id=in.(${idFilter})&role=eq.owner&status=eq.active&select=church_id,user_id`),
           serviceRest("user_profiles?select=user_id,name"),
           listAuthUsers()
         ]);
       }
       const profileById=new Map((profiles||[]).map(p=>[p.id,p]));
-      const primaryLogoByChurch=new Map();
-      for(const a of (assets||[])){
-        const current=primaryLogoByChurch.get(a.church_id);
-        if(!current||a.is_primary)primaryLogoByChurch.set(a.church_id,a);
-      }
       const ownerIdByChurch=new Map((memberRows||[]).map(m=>[m.church_id,m.user_id]));
       const userProfileById=new Map((userProfiles||[]).map(p=>[p.user_id,p]));
       const authById=new Map((authUsers||[]).map(u=>[u.id,u]));
@@ -231,7 +225,7 @@ module.exports=async function handler(req,res){
           address:p.address||m.address||"",
           pastor_name:p.pastor_name||"",
           responsible_whatsapp:p.responsible_whatsapp||"",
-          logo_url:primaryLogoByChurch.get(m.church_id)?.url||null,
+          profile_logo_url:p.profile_logo_url||null,
           owner_name:ownerProfile.name||ownerAuth.user_metadata?.name||ownerAuth.user_metadata?.full_name||"",
           owner_email:ownerAuth.email||""
         };
@@ -245,6 +239,52 @@ module.exports=async function handler(req,res){
       if(churchId)await serviceRest(`church_profile?id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",body:JSON.stringify({label:cleanName})});
       return res.json({ok:true,churchId});
     }
+
+    if(action==="update-church"&&req.method==="POST"){
+      const b=req.body||{},targetChurchId=String(b.churchId||"").trim();
+      if(!targetChurchId)throw Object.assign(new Error("Igreja ausente."),{statusCode:400});
+      await requireMembership(authUser,targetChurchId,{owner:true});
+      const name=String(b.name||"").trim();
+      const label=String(b.label||"").trim();
+      if(!name)throw Object.assign(new Error("Nome oficial da igreja é obrigatório."),{statusCode:400});
+      const row={
+        name,
+        label:label||name,
+        pastor_name:String(b.pastorName||"").trim(),
+        responsible_whatsapp:String(b.responsibleWhatsapp||"").trim(),
+        address:String(b.address||"").trim(),
+        updated_at:new Date().toISOString()
+      };
+      const d=await serviceRest(`church_profile?id=eq.${encodeURIComponent(targetChurchId)}`,{
+        method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify(row)
+      });
+      return res.json({ok:true,church:d?.[0]||{id:targetChurchId,...row}});
+    }
+
+    if(action==="upload-church-profile-logo"&&req.method==="POST"){
+      const b=req.body||{},targetChurchId=String(b.churchId||"").trim();
+      if(!targetChurchId)throw Object.assign(new Error("Igreja ausente."),{statusCode:400});
+      await requireMembership(authUser,targetChurchId,{owner:true});
+      const mime=String(b.mimeType||"image/png");
+      if(!mime.startsWith("image/"))throw Object.assign(new Error("Envie um arquivo de imagem."),{statusCode:400});
+      const extension=(mime.split("/")[1]||"png").replace(/[^a-z0-9]/gi,"")||"png";
+      const objectPath=[targetChurchId,"profile",`church-profile-${Date.now()}.${extension}`].join("/");
+      const url=await uploadDataUrl(b.dataUrl,objectPath,mime);
+      const d=await serviceRest(`church_profile?id=eq.${encodeURIComponent(targetChurchId)}`,{
+        method:"PATCH",headers:{Prefer:"return=representation"},
+        body:JSON.stringify({profile_logo_url:url,updated_at:new Date().toISOString()})
+      });
+      return res.json({ok:true,url,church:d?.[0]||null});
+    }
+
+    if(action==="delete-church"&&req.method==="POST"){
+      const targetChurchId=String(req.body?.churchId||"").trim();
+      if(!targetChurchId)throw Object.assign(new Error("Igreja ausente."),{statusCode:400});
+      await requireMembership(authUser,targetChurchId,{owner:true});
+      await serviceRest(`church_profile?id=eq.${encodeURIComponent(targetChurchId)}`,{method:"DELETE"});
+      return res.json({ok:true,deletedChurchId:targetChurchId});
+    }
+
     if(action==="accept-invite"&&req.method==="POST"){
       const token=String(req.body?.token||'').trim();
       if(!token)throw Object.assign(new Error("Token de convite ausente."),{statusCode:400});
