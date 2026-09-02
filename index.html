@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.50 -->
+<!-- CHURCHDESIGN — index v0.51 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1507,9 +1507,12 @@ html[data-theme="light"] .account-card h4{color:#59616d!important}
 
 
 /* CHURCHDESIGN v0.50 — Feed + Notifications */
-.sidebar-community-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:-8px 0 18px}
-.sidebar-community-actions button{position:relative;min-height:40px;border:1px solid color-mix(in srgb,var(--field-border) 55%,transparent);border-radius:11px;background:transparent;color:var(--text);font-size:10.5px;font-weight:720;cursor:pointer}
-.sidebar-community-actions button:hover{background:var(--soft-surface)}
+.sidebar-primary-actions{display:grid;grid-template-columns:1fr;gap:7px;margin:-7px 0 18px}
+.sidebar-primary-actions button{position:relative;min-height:42px;border:1px solid color-mix(in srgb,var(--field-border) 48%,transparent);border-radius:11px;background:transparent;color:var(--text);font-size:11px;font-weight:760;cursor:pointer;text-align:left;padding:0 13px;transition:.16s ease}
+.sidebar-primary-actions button:hover{background:var(--soft-surface)}
+.sidebar-primary-actions button.active{background:color-mix(in srgb,var(--brand-orange) 11%,var(--field-bg));border-color:color-mix(in srgb,var(--brand-orange) 34%,var(--field-border));color:var(--text)}
+.sidebar-primary-actions .create-nav-btn{font-weight:850;letter-spacing:.04em}
+.sidebar-primary-actions .notifications-nav-btn{padding-right:34px}
 .notification-badge{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;padding:0 5px;border-radius:20px;align-items:center;justify-content:center;background:var(--brand-orange);color:#fff;font-size:8px;font-weight:850;border:2px solid var(--sidebar)}
 .feed-page,.notifications-page{max-width:1500px;margin:0 auto;padding-bottom:40px}
 .feed-toolbar,.notifications-head{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:22px}
@@ -1526,7 +1529,7 @@ html[data-theme="light"] .account-card h4{color:#59616d!important}
 .feed-settings-shell{padding:6px 2px}.feed-settings-head{display:flex;align-items:center;justify-content:space-between;gap:28px;padding:18px;border:1px solid color-mix(in srgb,var(--field-border) 52%,transparent);border-radius:16px;background:var(--soft-surface)}.feed-settings-head h3{font-size:15px;margin:0 0 7px}.feed-settings-head p{font-size:11px;line-height:1.55;color:var(--muted);margin:0;max-width:590px}.feed-settings-note{margin:12px 3px;color:var(--muted);font-size:10px;line-height:1.5}
 .premium-switch{position:relative;width:54px;height:31px;flex:none}.premium-switch input{position:absolute;opacity:0}.premium-switch span{position:absolute;inset:0;border-radius:30px;background:var(--field-border);cursor:pointer;transition:.18s}.premium-switch span:after{content:'';position:absolute;width:23px;height:23px;left:4px;top:4px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);transition:.18s}.premium-switch input:checked+span{background:var(--brand-orange)}.premium-switch input:checked+span:after{transform:translateX(23px)}
 .notification-list{display:grid;gap:9px}.notification-item{display:grid;grid-template-columns:40px minmax(0,1fr) 60px;align-items:center;gap:12px;width:100%;padding:12px 13px;border:1px solid color-mix(in srgb,var(--field-border) 45%,transparent);border-radius:14px;background:transparent;color:var(--text);text-align:left;cursor:pointer}.notification-item.unread{background:color-mix(in srgb,var(--brand-orange) 7%,var(--field-bg));border-color:color-mix(in srgb,var(--brand-orange) 25%,var(--field-border))}.notification-item strong{font-size:11.5px}.notification-item p{font-size:10.5px;line-height:1.4;margin:3px 0;color:var(--text)}.notification-item small{font-size:9px;color:var(--muted)}.notification-art{width:52px;height:52px;border-radius:9px;object-fit:cover;justify-self:end}
-html[data-theme='light'] .feed-card{background:#fff;border-color:#e1e5ea;box-shadow:0 8px 22px rgba(30,38,50,.05)}html[data-theme='light'] .sidebar-community-actions button{border-color:#dce1e7}html[data-theme='light'] .notification-item{border-color:#e1e5ea}html[data-theme='light'] .notification-item.unread{background:#fff5ed;border-color:#f0c29f}
+html[data-theme='light'] .feed-card{background:#fff;border-color:#e1e5ea;box-shadow:0 8px 22px rgba(30,38,50,.05)}html[data-theme='light'] .sidebar-primary-actions button{border-color:#dce1e7;background:#f6f7f9}html[data-theme='light'] .sidebar-primary-actions button.active{background:#fff2e8;border-color:#eab388}html[data-theme='light'] .notification-item{border-color:#e1e5ea}html[data-theme='light'] .notification-item.unread{background:#fff5ed;border-color:#f0c29f}
 @media(max-width:800px){.feed-grid{columns:1}.feed-card{border-radius:16px;margin-bottom:18px}.feed-art-wrap img{width:100%;max-height:none;object-fit:contain}.feed-view-toggle{display:flex}.feed-explore-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:110px;gap:3px}.feed-explore-item.landscape{grid-column:span 2}.feed-derivatives{grid-template-columns:repeat(2,minmax(0,1fr))}.feed-toolbar,.notifications-head{align-items:flex-start}.notification-item{grid-template-columns:36px minmax(0,1fr) 50px}.notification-art{width:46px;height:46px}}
 @media(min-width:801px){.feed-view-toggle [data-feed-view='feed']{display:none}.feed-view-toggle{background:transparent;padding:0}.feed-view-toggle [data-feed-view='explore']{display:none}}
 
@@ -1559,9 +1562,10 @@ html[data-theme='light'] .feed-card{background:#fff;border-color:#e1e5ea;box-sha
         <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
         <button class="gallery-btn" type="button" onclick="openGallery()">▦ Galeria</button>
       </div>
-      <div class="sidebar-community-actions">
-        <button class="feed-nav-btn" type="button" onclick="openFeed()">◫ Feed</button>
-        <button class="notifications-nav-btn" type="button" onclick="openNotifications()">♡ Notificações <span id="notificationBadge" class="notification-badge" style="display:none">0</span></button>
+      <div class="sidebar-primary-actions">
+        <button class="feed-nav-btn" id="feedNavBtn" type="button" onclick="openFeed()">◫ Feed</button>
+        <button class="create-nav-btn" id="createNavBtn" type="button" onclick="openCreateHome()">＋ CRIAR</button>
+        <button class="notifications-nav-btn" id="notificationsNavBtn" type="button" onclick="openNotifications()">♡ Notificações <span id="notificationBadge" class="notification-badge" style="display:none">0</span></button>
       </div>
       <nav id="stepNav" class="sidebar-flow">
         <div class="nav-step active" data-flow-step="1"><b>1</b><span>Criação da arte base</span></div>
@@ -1591,7 +1595,7 @@ html[data-theme='light'] .feed-card{background:#fff;border-color:#e1e5ea;box-sha
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.50</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.51</div>
   
   <script>
 const state={
@@ -3859,8 +3863,20 @@ function setCommunityScreen(title,eyebrow='COMUNIDADE'){
   document.querySelector('.footer').style.display='none';document.querySelectorAll('#stepNav .nav-step').forEach(x=>x.classList.remove('active','done'));
 }
 function restoreCreationFooter(){const f=document.querySelector('.footer');if(f)f.style.display='flex'}
+function updatePrimaryNavState(mode){
+  document.querySelector('#feedNavBtn')?.classList.toggle('active',mode==='feed');
+  document.querySelector('#createNavBtn')?.classList.toggle('active',mode==='quick');
+  document.querySelector('#notificationsNavBtn')?.classList.toggle('active',mode==='notifications');
+}
+window.openCreateHome=function(){
+  state.mode='quick';
+  updatePrimaryNavState('quick');
+  restoreCreationFooter();
+  screenQuickMode();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 window.openFeed=async function(){
-  state.mode='feed';setCommunityScreen('Feed');const root=document.querySelector('#content');root.innerHTML=`<div class="feed-page"><div class="feed-toolbar"><div><strong>Artes da comunidade</strong><small>Use criações finalizadas de outras igrejas como inspiração.</small></div><div class="feed-view-toggle"><button class="active" data-feed-view="feed">Feed</button><button data-feed-view="explore">Explorar</button></div></div><div id="feedContent" class="feed-grid"><div class="empty-state">Carregando Feed...</div></div></div>`;
+  state.mode='feed';updatePrimaryNavState('feed');setCommunityScreen('Inspire-se','FEED');const root=document.querySelector('#content');root.innerHTML=`<div class="feed-page"><div class="feed-toolbar"><div><strong>Artes da comunidade</strong><small>Use criações finalizadas de outras igrejas como inspiração.</small></div><div class="feed-view-toggle"><button class="active" data-feed-view="feed">Feed</button><button data-feed-view="explore">Explorar</button></div></div><div id="feedContent" class="feed-grid"><div class="empty-state">Carregando Feed...</div></div></div>`;
   document.querySelectorAll('[data-feed-view]').forEach(b=>b.onclick=()=>{state.feed.view=b.dataset.feedView;document.querySelectorAll('[data-feed-view]').forEach(x=>x.classList.toggle('active',x===b));renderFeedPosts()});
   try{const d=await apiJSON('feed-list');state.feed.posts=d.posts||[];renderFeedPosts()}catch(e){document.querySelector('#feedContent').innerHTML=`<div class="empty-state">${esc(e.message)}</div>`}
 }
@@ -3873,14 +3889,14 @@ function renderFeedPosts(){
   root.querySelectorAll('[data-feed-like]').forEach(b=>b.onclick=()=>toggleFeedLike(b.dataset.feedLike,b));
 }
 async function toggleFeedLike(postId,button){try{button.disabled=true;const d=await apiJSON('feed-toggle-like',{method:'POST',body:{postId}}),p=state.feed.posts.find(x=>x.id===postId);if(p){p.liked_by_me=d.liked;p.like_count=d.likeCount}button.classList.toggle('liked',d.liked);button.innerHTML=`${d.liked?'♥':'♡'} <span>${d.likeCount}</span>`;loadNotificationCount().catch(()=>{});}catch(e){appAlert(e.message,{type:'error',title:'Não foi possível curtir'})}finally{button.disabled=false}}
-function useFeedAsReference(postId){const p=state.feed.posts.find(x=>x.id===postId);if(!p)return;state.quick.reference=p.image_url;state.quick.referenceMode='feed';state.gallerySeed=null;state.mode='quick';restoreCreationFooter();screenQuickMode();window.scrollTo({top:0,behavior:'smooth'});appToast('A arte do Feed foi adicionada como referência visual.',{type:'success',title:'Referência adicionada'})}
+function useFeedAsReference(postId){const p=state.feed.posts.find(x=>x.id===postId);if(!p)return;state.quick.reference=p.image_url;state.quick.referenceMode='feed';state.gallerySeed=null;state.mode='quick';updatePrimaryNavState('quick');restoreCreationFooter();screenQuickMode();window.scrollTo({top:0,behavior:'smooth'});appToast('A arte do Feed foi adicionada como referência visual.',{type:'success',title:'Referência adicionada'})}
 window.openFeedDetail=async function(postId){
   const root=document.querySelector('#modalRoot');root.innerHTML='<div class="modal-backdrop"><div class="modal-panel feed-detail-panel"><div class="modal-body"><div class="empty-state">Carregando publicação...</div></div></div></div>';
   try{const d=await apiJSON('feed-detail',{method:'POST',body:{postId}}),p=d.post,der=d.derivatives||[];root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel feed-detail-panel"><div class="modal-head"><div class="feed-detail-author"><div class="feed-avatar large">${feedAvatarHTML(p)}</div><div><h2>${esc(p.church_label||'Igreja')}</h2><p>${esc(p.author_name||'Usuário')} • ${esc(p.author_email||'')}</p></div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="feed-detail-main"><img src="${esc(p.image_url)}" alt="${esc(p.label||'Arte')}"></div><div class="feed-detail-actions"><button class="feed-like ${p.liked_by_me?'liked':''}" data-detail-like>${p.liked_by_me?'♥':'♡'} <span>${p.like_count||0}</span></button><button class="btn primary" data-detail-reference>Usar como referência</button></div>${der.length?`<h3 class="feed-more-title">Ver mais desta criação</h3><div class="feed-derivatives">${der.map(x=>`<div class="feed-derivative"><img src="${esc(x.image_url)}" alt="${esc(x.label)}"><strong>${esc(x.label)}</strong></div>`).join('')}</div>`:''}</div></div></div>`;root.querySelector('[data-detail-reference]').onclick=()=>{closeModal();useFeedAsReference(postId)};root.querySelector('[data-detail-like]').onclick=async e=>{await toggleFeedLike(postId,e.currentTarget);const x=state.feed.posts.find(z=>z.id===postId);if(x)e.currentTarget.innerHTML=`${x.liked_by_me?'♥':'♡'} <span>${x.like_count}</span>`};root.querySelector('.modal-backdrop').onclick=e=>{if(e.target===e.currentTarget)closeModal()};}catch(e){root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel"><div class="modal-head"><h2>Feed</h2><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="empty-state">${esc(e.message)}</div></div></div></div>`}
 }
 async function loadNotificationCount(){try{const d=await apiJSON('notifications-count');state.notifications.unreadCount=Number(d.unreadCount)||0;const b=document.querySelector('#notificationBadge');if(b){b.textContent=state.notifications.unreadCount>99?'99+':String(state.notifications.unreadCount);b.style.display=state.notifications.unreadCount?'inline-flex':'none'}}catch(e){console.warn('notifications-count',e)}}
 window.openNotifications=async function(){
-  state.mode='notifications';setCommunityScreen('Notificações');const root=document.querySelector('#content');root.innerHTML='<div class="notifications-page"><div class="notifications-head"><div><strong>Atividade das suas artes</strong><small>Curtidas e interações recebidas.</small></div><button class="mini-btn" id="markAllNotifications">Marcar todas como lidas</button></div><div id="notificationsList"><div class="empty-state">Carregando notificações...</div></div></div>';
+  state.mode='notifications';updatePrimaryNavState('notifications');setCommunityScreen('Notificações');const root=document.querySelector('#content');root.innerHTML='<div class="notifications-page"><div class="notifications-head"><div><strong>Atividade das suas artes</strong><small>Curtidas e interações recebidas.</small></div><button class="mini-btn" id="markAllNotifications">Marcar todas como lidas</button></div><div id="notificationsList"><div class="empty-state">Carregando notificações...</div></div></div>';
   try{const d=await apiJSON('notifications-list');state.notifications.items=d.notifications||[];state.notifications.unreadCount=d.unreadCount||0;renderNotifications();document.querySelector('#markAllNotifications').onclick=async()=>{await apiJSON('notifications-read',{method:'POST',body:{}});state.notifications.items.forEach(x=>x.read_at=x.read_at||new Date().toISOString());renderNotifications();loadNotificationCount()};loadNotificationCount()}catch(e){document.querySelector('#notificationsList').innerHTML=`<div class="empty-state">${esc(e.message)}</div>`}
 }
 function renderNotifications(){const root=document.querySelector('#notificationsList');if(!root)return;const items=state.notifications.items||[];root.innerHTML=items.length?`<div class="notification-list">${items.map(n=>`<button class="notification-item ${n.read_at?'':'unread'}" data-notification-id="${esc(n.id)}" data-notification-post="${esc(n.feed_post_id||'')}"><div class="feed-avatar">${n.actor_church_logo?`<img src="${esc(n.actor_church_logo)}">`:`<span>${esc(feedInitials(n.actor_church_label))}</span>`}</div><div><strong>${esc(n.actor_name)}</strong><p>da ${esc(n.actor_church_label)} curtiu sua arte <b>${esc(n.post_label||'')}</b>.</p><small>${formatDateTime(n.created_at)}</small></div>${n.post_image_url?`<img class="notification-art" src="${esc(n.post_image_url)}">`:''}</button>`).join('')}</div>`:'<div class="empty-state">Nenhuma notificação por enquanto.</div>';root.querySelectorAll('[data-notification-id]').forEach(b=>b.onclick=async()=>{if(!b.classList.contains('unread')){if(b.dataset.notificationPost)openFeedDetail(b.dataset.notificationPost);return}await apiJSON('notifications-read',{method:'POST',body:{id:b.dataset.notificationId}});const n=state.notifications.items.find(x=>x.id===b.dataset.notificationId);if(n)n.read_at=new Date().toISOString();b.classList.remove('unread');loadNotificationCount();if(b.dataset.notificationPost)openFeedDetail(b.dataset.notificationPost)})}
@@ -4586,7 +4602,7 @@ function setupMobileQuickWizard(){
   mobileQuickGo(state.mobileQuickStep||0);
 }
 
-function screenQuickMode(){restoreCreationFooter();
+function screenQuickMode(){restoreCreationFooter();if(state.mode==='quick')updatePrimaryNavState('quick');
   setNewflowStage(1);updateSidebarAccount();
   quickDefaultLogo();quickDefaultPastor();
   const logos=state.library.assets.filter(a=>a.type==='logo'&&logoVariantRole(a)!=='contrast'),eventLogos=state.library.assets.filter(a=>((a.type==='graphic'&&a.meta?.category==='event_logo')||a.type==='event_logo')&&logoVariantRole(a)!=='contrast'),pastors=state.library.assets.filter(a=>a.type==='pastor'),churchImages=state.library.assets.filter(a=>a.type==='church'),refs=state.library.assets.filter(a=>a.type==='reference');
@@ -4856,7 +4872,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.50</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.51</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
@@ -5402,7 +5418,19 @@ next.onclick=()=>{};back.onclick=()=>{};
 let churchDesignAppStarted=false;
 async function startAuthenticatedApp(){
   if(churchDesignAppStarted)return;churchDesignAppStarted=true;
-  try{await ensureChurchAccountContext();await loadActiveChurchAccess();await bootstrapLibrary();state.mode='quick';updateSidebarAccount();renderChurchSwitcher();screenQuickMode()}catch(e){churchDesignAppStarted=false;console.error('[ChurchDesign] start',e);appAlert(e.message||'Falha ao iniciar o ChurchDesign.',{type:'error'})}
+  try{
+    await ensureChurchAccountContext();
+    await loadActiveChurchAccess();
+    await bootstrapLibrary();
+    updateSidebarAccount();
+    renderChurchSwitcher();
+    await openFeed();
+    loadNotificationCount().catch(()=>{});
+  }catch(e){
+    churchDesignAppStarted=false;
+    console.error('[ChurchDesign] start',e);
+    appAlert(e.message||'Falha ao iniciar o ChurchDesign.',{type:'error'});
+  }
 }
 document.querySelector('#authForm')?.addEventListener('submit',handleAuthSubmit);
 document.querySelector('#googleLoginBtn')?.addEventListener('click',loginWithGoogle);
