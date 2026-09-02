@@ -1,4 +1,5 @@
-// ChurchDesign V0.34.0 — multi-church, membership validated, web/mobile-ready
+// CHURCHDESIGN — church-data v0.36.0
+// ChurchDesign V0.36.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
 function envCfg(){
@@ -195,12 +196,53 @@ module.exports=async function handler(req,res){
     }
 
     if(action==="account-context"){
-      const [churches,isAdmin]=await Promise.all([userRpc(req,"get_my_churches",{}),userRpc(req,"is_app_admin",{})]);
-      return res.json({churches:Array.isArray(churches)?churches:[],isAdmin:!!isAdmin});
+      const [membershipRows,isAdmin]=await Promise.all([userRpc(req,"get_my_churches",{}),userRpc(req,"is_app_admin",{})]);
+      const memberships=Array.isArray(membershipRows)?membershipRows:[];
+      const ids=memberships.map(x=>x.church_id).filter(Boolean);
+      let profiles=[],assets=[],memberRows=[],userProfiles=[],authUsers=[];
+      if(ids.length){
+        const idFilter=ids.map(x=>`"${String(x).replace(/"/g,'')}"`).join(",");
+        [profiles,assets,memberRows,userProfiles,authUsers]=await Promise.all([
+          serviceRest(`church_profile?id=in.(${encodeURIComponent(idFilter)})&select=*`),
+          serviceRest(`church_assets?church_id=in.(${encodeURIComponent(idFilter)})&type=eq.logo&select=id,church_id,url,is_primary,created_at&order=created_at.desc`),
+          serviceRest(`church_members?church_id=in.(${encodeURIComponent(idFilter)})&role=eq.owner&status=eq.active&select=church_id,user_id`),
+          serviceRest("user_profiles?select=user_id,name"),
+          listAuthUsers()
+        ]);
+      }
+      const profileById=new Map((profiles||[]).map(p=>[p.id,p]));
+      const primaryLogoByChurch=new Map();
+      for(const a of (assets||[])){
+        const current=primaryLogoByChurch.get(a.church_id);
+        if(!current||a.is_primary)primaryLogoByChurch.set(a.church_id,a);
+      }
+      const ownerIdByChurch=new Map((memberRows||[]).map(m=>[m.church_id,m.user_id]));
+      const userProfileById=new Map((userProfiles||[]).map(p=>[p.user_id,p]));
+      const authById=new Map((authUsers||[]).map(u=>[u.id,u]));
+      const churches=memberships.map(m=>{
+        const p=profileById.get(m.church_id)||{};
+        const ownerId=ownerIdByChurch.get(m.church_id);
+        const ownerProfile=userProfileById.get(ownerId)||{};
+        const ownerAuth=authById.get(ownerId)||{};
+        return {
+          ...m,
+          name:p.name||m.name||"",
+          label:p.label||p.name||m.name||"",
+          address:p.address||m.address||"",
+          pastor_name:p.pastor_name||"",
+          responsible_whatsapp:p.responsible_whatsapp||"",
+          logo_url:primaryLogoByChurch.get(m.church_id)?.url||null,
+          owner_name:ownerProfile.name||ownerAuth.user_metadata?.name||ownerAuth.user_metadata?.full_name||"",
+          owner_email:ownerAuth.email||""
+        };
+      });
+      return res.json({churches,isAdmin:!!isAdmin});
     }
     if(action==="create-church"&&req.method==="POST"){
       const body=req.body||{};
-      const churchId=await userRpc(req,"create_my_church",{church_name:String(body.name||'').trim(),church_address:String(body.address||'').trim()});
+      const cleanName=String(body.name||'').trim();
+      const churchId=await userRpc(req,"create_my_church",{church_name:cleanName,church_address:String(body.address||'').trim()});
+      if(churchId)await serviceRest(`church_profile?id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",body:JSON.stringify({label:cleanName})});
       return res.json({ok:true,churchId});
     }
     if(action==="accept-invite"&&req.method==="POST"){
