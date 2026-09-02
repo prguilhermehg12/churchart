@@ -350,6 +350,54 @@ module.exports = async function handler(req, res) {
     }
 
 
+    if (action === "delete-gallery-item" && req.method === "DELETE") {
+      const body = req.body || {};
+      const generationId = body.generationId;
+      const galleryId = body.galleryId;
+
+      if (!generationId || !galleryId) {
+        throw new Error("generationId e galleryId são obrigatórios.");
+      }
+
+      const rows = await rest(
+        `church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`
+      );
+      const generation = rows?.[0];
+
+      // Idempotente: se já foi removido, a UI pode considerar a exclusão concluída.
+      if (!generation) {
+        return res.json({ ok: true, alreadyMissing: true });
+      }
+
+      const images = Array.isArray(generation.images) ? generation.images : [];
+      const remaining = images.filter(
+        im => String(im?.galleryId || "") !== String(galleryId)
+      );
+
+      if (remaining.length === images.length) {
+        return res.json({ ok: true, alreadyMissing: true });
+      }
+
+      if (remaining.length) {
+        await rest(
+          `church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}`,
+          {
+            method: "PATCH",
+            headers: { Prefer: "return=representation" },
+            body: JSON.stringify({ images: remaining })
+          }
+        );
+      } else {
+        await rest(
+          `church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}`,
+          { method: "DELETE" }
+        );
+      }
+
+      return res.json({ ok: true, deletedGalleryId: galleryId });
+    }
+
+
     if (action === "save-draft" && req.method === "POST") {
       const body = req.body || {};
       const id = body.id || crypto.randomUUID();
