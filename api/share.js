@@ -1,4 +1,4 @@
-// CHURCHDESIGN — share-api v0.1.0
+// CHURCHDESIGN — share-api v0.2.0
 const BUCKET="churchart-assets";
 
 function envCfg(){
