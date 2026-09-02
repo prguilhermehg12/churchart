@@ -1444,7 +1444,15 @@ html[data-theme="light"] .church-switcher{background:#e1e6ec!important}
     <aside class="sidebar">
       <div class="brand"><span class="brand-logo" role="img" aria-label="ChurchDesign"></span></div>
       <button class="sidebar-project-btn" id="currentProjectBtn" type="button"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></button>
-      <div class="church-switcher" id="churchSwitcherWrap" style="display:none"><label>IGREJA ATIVA</label><select id="churchSwitcher"></select><small id="churchSwitcherRole"></small></div>
+      <div class="church-switcher" id="churchSwitcherWrap" style="display:none">
+<label>IGREJA ATIVA</label>
+<select id="churchSwitcher"></select>
+<small id="churchSwitcherRole"></small>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">
+<button class="mini-btn" id="editChurchBtn" type="button" onclick="editActiveChurch()">Editar igreja</button>
+<button class="mini-btn" id="createChurchBtn" type="button" onclick="createAnotherChurch()">＋ Nova igreja</button>
+</div>
+</div>
       <div class="sidebar-library-actions">
         <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
         <button class="gallery-btn" type="button" onclick="openGallery()">▦ Galeria</button>
@@ -1468,7 +1476,7 @@ html[data-theme="light"] .church-switcher{background:#e1e6ec!important}
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.41</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.43</div>
   
   <script>
 const state={
@@ -2306,6 +2314,39 @@ async function switchActiveChurch(churchId){
   if(!churchId||churchId===state.activeChurchId)return;state.activeChurchId=churchId;const m=state.churches.find(c=>c.church_id===churchId);state.activeChurchRole=m?.role||null;try{localStorage.setItem(ACTIVE_CHURCH_STORAGE_KEY,churchId)}catch{}
   state.church={name:'',address:'',logo:null,screenConfig:{preset:'16:9',width:1920,height:1080}};state.library={assets:[],generations:[],drafts:[],ratings:[],dbReady:false};state.quickResults=[];state.gallerySavedIds=[];state.accessContext=null;state.features={};renderChurchSwitcher();
   await loadActiveChurchAccess();await bootstrapLibrary();state.projectTitle=state.church.name||'Nova arte';screenQuickMode();appToast(`Igreja ativa: ${state.church.name||m?.name||'Igreja'}`,{type:'success',title:'Igreja alterada'});
+}
+
+window.createAnotherChurch=async function(){
+  try{
+    const name=await appPrompt('Crie um novo espaço independente no ChurchDesign. Depois você poderá alternar entre suas igrejas pelo seletor acima.',{title:'Nova igreja',placeholder:'Nome da igreja',confirmText:'Criar igreja',cancelText:'Cancelar',icon:'⌂'});
+    const clean=String(name||'').trim();if(!clean)return;
+    const created=await accountJSON('create-church',{method:'POST',body:{name:clean}});
+    const d=await accountJSON('account-context');state.churches=d.churches||[];
+    const newId=created.churchId||state.churches.find(c=>String(c.name||'').trim()===clean&&c.is_owner)?.church_id;
+    renderChurchSwitcher();
+    if(newId)await switchActiveChurch(newId);
+    else appToast('Igreja criada. Ela já aparece no seletor.',{type:'success',title:'Nova igreja'});
+  }catch(e){appAlert(e.message,{type:'error',title:'Não foi possível criar a igreja'});}
+}
+
+window.editActiveChurch=async function(){
+  try{
+    if(!state.activeChurchId)throw new Error('Nenhuma igreja ativa.');
+    if(state.activeChurchRole!=='owner')throw new Error('Somente o responsável pode alterar os dados da igreja.');
+    const currentName=String(state.church?.name||state.churches.find(c=>c.church_id===state.activeChurchId)?.name||'').trim();
+    const currentAddress=String(state.church?.address||'').trim();
+    const name=await appPrompt('Altere o nome da igreja ativa.',{title:'Editar igreja',placeholder:'Nome da igreja',value:currentName,confirmText:'Continuar',cancelText:'Cancelar',icon:'✎'});
+    if(name===null||name===undefined)return;
+    const cleanName=String(name||'').trim();if(!cleanName)throw new Error('O nome da igreja não pode ficar vazio.');
+    const address=await appPrompt('Agora informe ou altere o endereço. Você pode deixar em branco.',{title:'Endereço da igreja',placeholder:'Endereço',value:currentAddress,confirmText:'Salvar',cancelText:'Cancelar',icon:'⌂'});
+    if(address===null||address===undefined)return;
+    const updated=await accountJSON('update-church',{method:'POST',body:{churchId:state.activeChurchId,name:cleanName,address:String(address||'').trim()}});
+    state.church={...(state.church||{}),name:updated.church?.name||cleanName,address:updated.church?.address||String(address||'').trim()};
+    state.churches=(state.churches||[]).map(c=>c.church_id===state.activeChurchId?{...c,name:state.church.name,address:state.church.address}:c);
+    renderChurchSwitcher();
+    renderAll();
+    appToast('Dados da igreja atualizados.',{type:'success',title:'Igreja salva'});
+  }catch(e){appAlert(e.message,{type:'error',title:'Não foi possível editar a igreja'});}
 }
 
 
@@ -3542,7 +3583,7 @@ window.startGalleryChild=startGalleryChild;
 
 
 function billingBRL(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0)}
-async function billingAdminJSON(action='bootstrap',options={}){const method=options.method||'GET',url=`/api/billing-admin?action=${encodeURIComponent(action)}`;const r=await authFetch(url,{method,headers:{'Content-Type':'application/json'},body:method==='GET'?undefined:JSON.stringify(options.body||{})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;}
+async function billingAdminJSON(action='bootstrap',options={}){const method=options.method||'GET',url=`/api/church-data?action=${encodeURIComponent('billing-'+action)}`;const r=await authFetch(url,{method,headers:{'Content-Type':'application/json'},body:method==='GET'?undefined:JSON.stringify(options.body||{})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;}
 function billingPlan(id){return (state.billing.plans||[]).find(x=>x.id===id)||null}
 function currentChurchSubscription(churchId){return (state.billing.subscriptions||[]).find(x=>x.church_id===churchId&&['trialing','active','past_due','paused'].includes(x.status))||null}
 function billingCouponActive(c){return c?.active!==false&&(!c?.valid_until||new Date(c.valid_until)>=new Date())}
@@ -4533,7 +4574,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.41</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.43</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
