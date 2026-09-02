@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.54 -->
+<!-- CHURCHDESIGN — index v0.56 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1565,6 +1565,40 @@ html[data-theme="light"] .gallery-publish-btn.published{
 .feed-reference-badge{position:absolute!important;top:8px!important;left:8px!important;z-index:3!important;display:inline-flex!important;align-items:center!important;min-height:22px!important;padding:0 8px!important;border-radius:999px!important;background:rgba(255,94,31,.95)!important;color:#fff!important;font-size:8px!important;font-weight:900!important;letter-spacing:.09em!important;box-shadow:0 4px 12px rgba(0,0,0,.18)!important}
 html[data-theme="light"] .feed-reference-card.selected{border-color:#e59a64!important;box-shadow:0 0 0 2px rgba(229,154,100,.13)!important}
 
+
+/* CHURCHDESIGN v0.55 — avatar circular + stronger screen bounds */
+.church-rail-logo,
+.church-profile-logo-box,
+.feed-avatar{
+  border-radius:50%!important;
+}
+.church-profile-logo-box img,
+.church-rail-logo,
+.feed-avatar img{
+  object-fit:cover!important;
+}
+
+
+/* CHURCHDESIGN v0.56 — data/hora de publicação no Feed */
+.feed-published-at{
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  font-size:8.5px;
+  line-height:1.25;
+}
+.feed-detail-published{
+  display:block;
+  margin-top:5px;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.35;
+}
+html[data-theme="light"] .feed-published-at,
+html[data-theme="light"] .feed-detail-published{
+  color:#7a828d;
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -1627,7 +1661,7 @@ html[data-theme="light"] .feed-reference-card.selected{border-color:#e59a64!impo
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.54</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.56</div>
   
   <script>
 const state={
@@ -2572,7 +2606,9 @@ window.editChurchDetails=function(churchId){
     input.onchange=async()=>{
       const file=input.files?.[0];if(!file)return;
       if(!String(file.type||'').startsWith('image/')){appAlert('Escolha um arquivo de imagem.',{type:'warning',title:'Arquivo inválido'});return;}
-      pendingLogo={dataUrl:await fileAsDataUrl(file),mimeType:file.type||'image/png'};
+      const cropped=await cropImageBeforeUpload(file,'profile_logo');
+      if(!cropped){input.value='';return;}
+      pendingLogo={dataUrl:await fileAsDataUrl(cropped),mimeType:cropped.type||'image/png'};
       document.querySelector('#churchProfileLogoPreview').innerHTML=`<img src="${pendingLogo.dataUrl}" alt="">`;
     };
     document.querySelector('#saveChurchDetailsBtn').onclick=async()=>{
@@ -3152,11 +3188,12 @@ function cropDefaultAspect(type,img){
 function cropAspectOptions(type,img){
   const original=img.naturalWidth/img.naturalHeight;
   const base=[['original','Original',original],['square','1:1',1],['fourfive','4:5',4/5],['story','9:16',9/16],['wide','16:9',16/9]];
+  if(type==='profile_logo')return [['square','1:1',1]];
   if(type==='logo'||type==='event_logo'||type==='graphic')return [base[0],base[1],base[4]];
   return base;
 }
 function croppedCanvasToFile(canvas,original,type){
-  const preserveAlpha=type==='logo'||type==='event_logo'||type==='graphic'||original.type==='image/png';
+  const preserveAlpha=type==='profile_logo'||type==='logo'||type==='event_logo'||type==='graphic'||original.type==='image/png';
   const mime=preserveAlpha?'image/png':'image/jpeg';
   const ext=preserveAlpha?'png':'jpg';
   return new Promise(resolve=>canvas.toBlob(blob=>{
@@ -3178,7 +3215,7 @@ async function cropImageBeforeUpload(file,type){
       </div>
       <div data-crop-stage style="position:relative;margin:auto;background:#111;overflow:hidden;touch-action:none;border-radius:12px;max-width:640px;height:min(58vh,520px);display:grid;place-items:center">
         <canvas data-crop-preview style="width:100%;height:100%;display:block"></canvas>
-        <div data-crop-frame style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px #0008;pointer-events:none"></div>
+        <div data-crop-frame style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px #0008;pointer-events:none;${type==='profile_logo'?'border-radius:50%;':''}"></div>
       </div>
       <div style="display:grid;gap:10px;margin-top:14px">
         <div class="field"><label>Formato do recorte</label><div style="display:flex;gap:7px;flex-wrap:wrap">${aspects.map((a,i)=>`<button type="button" class="mini-btn ${i===0?'active':''}" data-crop-aspect="${a[0]}" data-ratio="${a[2]}">${a[1]}</button>`).join('')}</div></div>
@@ -4003,7 +4040,7 @@ window.openFeed=async function(){
 function renderFeedPosts(){
   const root=document.querySelector('#feedContent');if(!root)return;const posts=state.feed.posts||[],explore=state.feed.view==='explore';root.className=explore?'feed-explore-grid':'feed-grid';
   if(!posts.length){root.innerHTML='<div class="empty-state">Ainda não há artes publicadas no Feed.</div>';return}
-  root.innerHTML=posts.map(p=>explore?`<button class="feed-explore-item ${feedAspectClass(p)}" data-feed-open="${esc(p.id)}"><img src="${esc(p.image_url)}" alt="${esc(p.label||'Arte')}"><span>♥ ${p.like_count||0}</span></button>`:`<article class="feed-card"><div class="feed-card-head"><div class="feed-avatar">${feedAvatarHTML(p)}</div><div><strong>${esc(p.church_label||'Igreja')}</strong><small>${esc(p.label||'Arte')}</small></div></div><button class="feed-art-wrap" data-feed-open="${esc(p.id)}"><img src="${esc(p.image_url)}" alt="${esc(p.label||'Arte')}"></button><div class="feed-card-actions"><button class="feed-like ${p.liked_by_me?'liked':''}" data-feed-like="${esc(p.id)}">${p.liked_by_me?'♥':'♡'} <span>${p.like_count||0}</span></button><button class="mini-btn" data-feed-reference="${esc(p.id)}">Usar como referência</button>${p.derivative_count?`<button class="mini-btn" data-feed-open="${esc(p.id)}">Ver mais • ${p.derivative_count}</button>`:''}</div></article>`).join('');
+  root.innerHTML=posts.map(p=>explore?`<button class="feed-explore-item ${feedAspectClass(p)}" data-feed-open="${esc(p.id)}"><img src="${esc(p.image_url)}" alt="${esc(p.label||'Arte')}"><span>♥ ${p.like_count||0}</span></button>`:`<article class="feed-card"><div class="feed-card-head"><div class="feed-avatar">${feedAvatarHTML(p)}</div><div><strong>${esc(p.church_label||'Igreja')}</strong><small>${esc(p.label||'Arte')}</small><span class="feed-published-at">Publicado em ${esc(formatDateTime(p.published_at))}</span></div></div><button class="feed-art-wrap" data-feed-open="${esc(p.id)}"><img src="${esc(p.image_url)}" alt="${esc(p.label||'Arte')}"></button><div class="feed-card-actions"><button class="feed-like ${p.liked_by_me?'liked':''}" data-feed-like="${esc(p.id)}">${p.liked_by_me?'♥':'♡'} <span>${p.like_count||0}</span></button><button class="mini-btn" data-feed-reference="${esc(p.id)}">Usar como referência</button>${p.derivative_count?`<button class="mini-btn" data-feed-open="${esc(p.id)}">Ver mais • ${p.derivative_count}</button>`:''}</div></article>`).join('');
   root.querySelectorAll('[data-feed-open]').forEach(b=>b.onclick=()=>openFeedDetail(b.dataset.feedOpen));
   root.querySelectorAll('[data-feed-reference]').forEach(b=>b.onclick=()=>useFeedAsReference(b.dataset.feedReference));
   root.querySelectorAll('[data-feed-like]').forEach(b=>b.onclick=()=>toggleFeedLike(b.dataset.feedLike,b));
@@ -4030,7 +4067,7 @@ function useFeedAsReference(postId){
 }
 window.openFeedDetail=async function(postId){
   const root=document.querySelector('#modalRoot');root.innerHTML='<div class="modal-backdrop"><div class="modal-panel feed-detail-panel"><div class="modal-body"><div class="empty-state">Carregando publicação...</div></div></div></div>';
-  try{const d=await apiJSON('feed-detail',{method:'POST',body:{postId}}),p=d.post,der=d.derivatives||[];root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel feed-detail-panel"><div class="modal-head"><div class="feed-detail-author"><div class="feed-avatar large">${feedAvatarHTML(p)}</div><div><h2>${esc(p.church_label||'Igreja')}</h2><p>${esc(p.author_name||'Usuário')} • ${esc(p.author_email||'')}</p></div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="feed-detail-main"><img src="${esc(p.image_url)}" alt="${esc(p.label||'Arte')}"></div><div class="feed-detail-actions"><button class="feed-like ${p.liked_by_me?'liked':''}" data-detail-like>${p.liked_by_me?'♥':'♡'} <span>${p.like_count||0}</span></button><button class="btn primary" data-detail-reference>Usar como referência</button></div>${der.length?`<h3 class="feed-more-title">Ver mais desta criação</h3><div class="feed-derivatives">${der.map(x=>`<div class="feed-derivative"><img src="${esc(x.image_url)}" alt="${esc(x.label)}"><strong>${esc(x.label)}</strong></div>`).join('')}</div>`:''}</div></div></div>`;root.querySelector('[data-detail-reference]').onclick=()=>{closeModal();useFeedAsReference(postId)};root.querySelector('[data-detail-like]').onclick=async e=>{await toggleFeedLike(postId,e.currentTarget);const x=state.feed.posts.find(z=>z.id===postId);if(x)e.currentTarget.innerHTML=`${x.liked_by_me?'♥':'♡'} <span>${x.like_count}</span>`};root.querySelector('.modal-backdrop').onclick=e=>{if(e.target===e.currentTarget)closeModal()};}catch(e){root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel"><div class="modal-head"><h2>Feed</h2><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="empty-state">${esc(e.message)}</div></div></div></div>`}
+  try{const d=await apiJSON('feed-detail',{method:'POST',body:{postId}}),p=d.post,der=d.derivatives||[];root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel feed-detail-panel"><div class="modal-head"><div class="feed-detail-author"><div class="feed-avatar large">${feedAvatarHTML(p)}</div><div><h2>${esc(p.church_label||'Igreja')}</h2><p>${esc(p.author_name||'Usuário')} • ${esc(p.author_email||'')}</p><span class="feed-detail-published">Publicado em ${esc(formatDateTime(p.published_at))}</span></div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="feed-detail-main"><img src="${esc(p.image_url)}" alt="${esc(p.label||'Arte')}"></div><div class="feed-detail-actions"><button class="feed-like ${p.liked_by_me?'liked':''}" data-detail-like>${p.liked_by_me?'♥':'♡'} <span>${p.like_count||0}</span></button><button class="btn primary" data-detail-reference>Usar como referência</button></div>${der.length?`<h3 class="feed-more-title">Ver mais desta criação</h3><div class="feed-derivatives">${der.map(x=>`<div class="feed-derivative"><img src="${esc(x.image_url)}" alt="${esc(x.label)}"><strong>${esc(x.label)}</strong></div>`).join('')}</div>`:''}</div></div></div>`;root.querySelector('[data-detail-reference]').onclick=()=>{closeModal();useFeedAsReference(postId)};root.querySelector('[data-detail-like]').onclick=async e=>{await toggleFeedLike(postId,e.currentTarget);const x=state.feed.posts.find(z=>z.id===postId);if(x)e.currentTarget.innerHTML=`${x.liked_by_me?'♥':'♡'} <span>${x.like_count}</span>`};root.querySelector('.modal-backdrop').onclick=e=>{if(e.target===e.currentTarget)closeModal()};}catch(e){root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel"><div class="modal-head"><h2>Feed</h2><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="empty-state">${esc(e.message)}</div></div></div></div>`}
 }
 async function loadNotificationCount(){try{const d=await apiJSON('notifications-count');state.notifications.unreadCount=Number(d.unreadCount)||0;const b=document.querySelector('#notificationBadge');if(b){b.textContent=state.notifications.unreadCount>99?'99+':String(state.notifications.unreadCount);b.style.display=state.notifications.unreadCount?'inline-flex':'none'}}catch(e){console.warn('notifications-count',e)}}
 window.openNotifications=async function(){
@@ -5012,7 +5049,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.54</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.56</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
@@ -5354,7 +5391,13 @@ function screenPixelZone(target={},pct=20){
 // v0.45: a mesma seleção 5/20/30/40/50 também controla a caixa do título no Modo Tema.
 function screenPixelInstruction(target={},pct=20){
   const z=screenPixelZone(target,pct);
-  return `GRADE INVISÍVEL DE POSICIONAMENTO — canvas final EXATO ${z.W}×${z.H}px. O bloco informacional inteiro deve ficar ESTRITAMENTE dentro do retângulo X=${z.x} até ${z.x2}px e Y=${z.y} até ${z.y2}px (largura ${z.w}px × altura ${z.h}px; centro X=${z.cx}px, Y=${z.cy}px). Esse retângulo ocupa matematicamente ${z.pct}% da área total do canvas. Não ultrapasse nenhum limite. A grade é apenas geométrica e NÃO deve ser desenhada na arte.`;
+  const padX=Math.max(12,Math.round(z.w*.035)),padY=Math.max(10,Math.round(z.h*.035));
+  const ix=z.x+padX,iy=z.y+padY,ix2=z.x2-padX,iy2=z.y2-padY,iw=ix2-ix,ih=iy2-iy;
+  return `GRADE INVISÍVEL DE POSICIONAMENTO — canvas final EXATO ${z.W}×${z.H}px.
+CAIXA EXTERNA MATEMÁTICA: X=${z.x} até ${z.x2}px e Y=${z.y} até ${z.y2}px; largura ${z.w}px × altura ${z.h}px; centro X=${z.cx}px, Y=${z.cy}px. Essa caixa ocupa matematicamente ${z.pct}% da área total do canvas.
+HARD CONSTRAINT: nenhum pixel visível do bloco informacional/título pode ultrapassar essa caixa externa.
+MARGEM INTERNA DE SEGURANÇA OBRIGATÓRIA: mantenha letras, sombras, outlines, brilhos e demais pixels do bloco preferencialmente dentro de X=${ix} até ${ix2}px e Y=${iy} até ${iy2}px (${iw}×${ih}px). Use essa margem para absorver sombras/efeitos sem vazar para fora dos ${z.pct}%.
+Não interprete ${z.pct}% como tamanho de fonte. É um LIMITE GEOMÉTRICO de toda a caixa visual. Se o texto não couber, REDUZA a escala do conjunto até caber. Nunca aumente para preencher toda a caixa. A grade é invisível e NÃO deve ser desenhada.`; 
 }
 async function applyScreenInfoByPercent(dataUrl,content={},target={},pct=20){
   const lines=screenInfoLines(content);if(!lines.length)return dataUrl;
@@ -5523,13 +5566,35 @@ ${screenThemeMode?`TELÃO — MODO TEMA — HARD CONSTRAINT: mantenha SOMENTE O 
 ${darkScreen?'TELÃO — MODO ESCURO: escureça SOMENTE O FUNDO, atmosfera, fotografia e elementos decorativos de fundo. NÃO aplique escurecimento, filtro, redução de opacidade ou perda de contraste sobre título, subtítulo, data, horário, endereço, nomes, logos ou qualquer informação de primeiro plano. As informações devem permanecer nítidas, luminosas e com contraste normal sobre o fundo escurecido. Não haverá overlay escuro posterior do ChurchDesign.':''}
 ${target.id==='screen'&&['title','subtitle','date','time','address','churchName','logo','eventLogo','pastorNames','pastors','churchImage'].every(k=>omit.includes(k))?'FUNDO PURO OBRIGATÓRIO: gere SOMENTE o fundo visual/atmosférico. Nenhuma pessoa, logo, nome, título, texto, data, horário, endereço, selo ou placeholder pode aparecer.':''}
 ${target.id==='youtube'&&!backgroundMode&&!freeMode&&!screenThemeMode?nextYoutubeCompositionInstruction():''}
-${backgroundMode?`MODO FUNDO — HARD CONSTRAINT: gere uma peça SEM CONTEÚDO INFORMACIONAL e SEM PESSOAS. Preserve SOMENTE o fundo/atmosfera, os elementos visuais abstratos/gráficos e, caso exista na composição-base ou nos assets, a FOTO REAL DA IGREJA. Não renderize título, subtítulo, data, horário, endereço, nome da igreja, nomes, foto/figura de pregador, slogans, chamadas, logos, selos, preços ou qualquer texto. Não invente pessoas nem substitua a foto real da igreja por outra. O resultado deve funcionar como um fundo limpo da mesma campanha visual.`:''}
+${backgroundMode?`MODO FUNDO — PRIORIDADE MÁXIMA / HARD CONSTRAINT:
+A IMAGEM DE REFERÊNCIA CONTÉM ELEMENTOS PROIBIDOS. NÃO OS COPIE.
+Gere SOMENTE o fundo visual limpo da campanha.
+ZERO texto legível: nenhum título, subtítulo, palavra, letra, número, data, horário, endereço, nome, slogan, chamada, assinatura, selo ou placeholder.
+ZERO pessoas: nenhum pregador, rosto, corpo, silhueta ou figura humana.
+ZERO logos/marcas.
+Preserve apenas paleta, atmosfera, iluminação, textura, formas abstratas, elementos gráficos NÃO textuais e, se existir, a fotografia real da igreja como ambiente de fundo.
+Se uma forma gráfica da referência contiver letras ou palavras integradas, reconstrua a forma SEM essas letras/palavras.
+O resultado deve poder receber novos textos posteriormente sem carregar qualquer conteúdo informacional da peça original.`:''}
 ${freeMode?`MODO LIVRE — ISOLAMENTO DE LAYOUT: ignore completamente regras de posicionamento do Telão, incluindo 5%, centro inferior, proporções e Modo Tema. Obedeça exclusivamente às coordenadas/posições pedidas pelo usuário. REGRA DE PARTIDA OBRIGATÓRIA: use a arte-base SOMENTE como fonte de IDENTIDADE VISUAL, FUNDO/ATMOSFERA e, quando existir, a FOTO REAL DA IGREJA. Por padrão, REMOVA e NÃO reproduza nenhum outro conteúdo da arte original: título, subtítulo, nomes, foto/figura de pregador, data, horário, endereço, nome da igreja, slogans, selos, chamadas e demais textos/elementos de primeiro plano. NÃO copie esses dados só porque aparecem na referência. Reintroduza qualquer um deles SOMENTE quando as instruções livres do usuário pedirem explicitamente. A foto da igreja e o fundo devem permanecer como base por padrão, a menos que o usuário peça para removê-los ou substituí-los. Preserve linguagem, atmosfera, cores, tratamento, textura e DNA gráfico da campanha, mas monte uma NOVA PEÇA. INSTRUÇÕES LIVRES DO USUÁRIO (prioridade máxima): ${freeInstruction}`:''}
 ${childCorrection?`CORREÇÃO SOLICITADA PARA ESTA ARTE DERIVADA — aplique esta alteração específica sem abandonar a identidade da arte-base: ${childCorrection}`:''}
 TEXTO DE FUNDO / TIPOGRAFIA DECORATIVA — REGRA DE SEGURANÇA: não invente palavras, letras, sílabas ou letreiros decorativos no fundo que possam se sobrepor e formar palavras aleatórias, duplicadas ou sem sentido. Se usar tipografia como textura de fundo, use apenas conteúdo real fornecido pelo usuário ou formas abstratas que NÃO pareçam texto legível. Nunca sobreponha fragmentos como "EN", "DE", letras repetidas ou partes do título de modo que criem novas palavras acidentais.
 COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referência ou ordem explícita. Evite caixas/cards/cápsulas desnecessários. Se a logo estiver mantida, use a original uma única vez, sem caixa/placa/selo e nunca repita ou extraia partes dela.`;
 
-    const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:'Use esta versão LOGO-FREE como base visual. Preserve identidade. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.'}],target,assets,requiredContent:required,instruction:`${source.instruction||parent.instruction||''}${childCorrection?`\nCORREÇÃO PARA A DERIVADA: ${childCorrection}`:''}`,finalInstruction,semanticMap:[],effects:[],artDirection:source.artDirection||parent.artDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:!assets.logo,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,darkScreen:!!darkScreen};
+    const sourceDirection=source.artDirection||parent.artDirection||null;
+    const backgroundDirection=backgroundMode&&sourceDirection?{
+      ...sourceDirection,
+      typography:{},
+      generation_prompt:'MODO FUNDO: preserve somente paleta, atmosfera, textura, iluminação, geometria abstrata, cenário e foto real da igreja quando existir. ZERO texto, ZERO letras, ZERO números, ZERO pessoas, ZERO logos, ZERO selos.',
+      preserve_rules:[...(sourceDirection.preserve_rules||[]).filter(x=>!/t[ií]tulo|texto|tipograf|nome|data|hora|logo|pregador|pessoa/i.test(String(x)))],
+      avoid_rules:[...(sourceDirection.avoid_rules||[]),'qualquer texto legível','qualquer pessoa','qualquer logo ou marca','título ou fragmento do título']
+    }:sourceDirection;
+    const adaptationInstruction=backgroundMode
+      ?'MODO FUNDO ABSOLUTO. Use a referência apenas para reconstruir o FUNDO visual da campanha. Ignore e remova todo conteúdo semântico da arte de origem.'
+      :`${source.instruction||parent.instruction||''}${childCorrection?`\nCORREÇÃO PARA A DERIVADA: ${childCorrection}`:''}`;
+    const referenceNote=backgroundMode
+      ?'REFERÊNCIA CONTAMINADA COM CONTEÚDO QUE DEVE SER APAGADO: preserve somente fundo, atmosfera, cores, texturas, formas abstratas e foto real da igreja quando houver. REMOVA COMPLETAMENTE título, subtítulo, letras, números, datas, horários, nomes, slogans, pessoas, logos, selos e qualquer conteúdo legível.'
+      :'Use esta versão LOGO-FREE como base visual. Preserve identidade. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.';
+    const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:referenceNote}],target,assets,requiredContent:required,instruction:adaptationInstruction,finalInstruction,semanticMap:[],effects:[],artDirection:backgroundDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:true,omitChurchName:backgroundMode,allowedTexts:backgroundMode?[]:undefined,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,darkScreen:!!darkScreen};
 
     setQuickProgress(48,'Recompondo para o novo formato...');
     // V0.26: arte derivada = 1 geração + 1 fiscal; sem retry automático.
