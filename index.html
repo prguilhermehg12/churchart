@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.47 -->
+<!-- CHURCHDESIGN — index v0.48 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1594,6 +1594,66 @@ html[data-theme="light"] .church-row-menu{background:#fff!important;border-color
   .church-profile-field.full{grid-column:auto}
 }
 
+
+/* CHURCHDESIGN v0.48 — church list refinement */
+.church-switcher-premium{
+  border-top:1px solid color-mix(in srgb,var(--line) 48%,transparent)!important;
+}
+.church-rail{gap:4px!important}
+.church-rail-row{
+  grid-template-columns:minmax(0,1fr) 32px!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:11px!important;
+  background:transparent!important;
+  overflow:hidden!important;
+  padding:0!important;
+  box-shadow:none!important;
+}
+.church-rail-row:hover{
+  background:color-mix(in srgb,var(--field-bg) 58%,transparent)!important;
+}
+.church-rail-row.active{
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:color-mix(in srgb,var(--brand-orange) 10%,var(--field-bg))!important;
+}
+.church-rail-switch{
+  min-height:48px!important;
+  padding:7px 5px 7px 8px!important;
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+}
+.church-row-more{
+  align-self:stretch!important;
+  width:32px!important;
+  height:auto!important;
+  min-height:48px!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.church-row-more:hover{
+  background:color-mix(in srgb,var(--text) 6%,transparent)!important;
+}
+.church-rail-logo{
+  border:0!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] .church-rail-row.active{
+  border:0!important;
+  background:#fff4eb!important;
+}
+html[data-theme="light"] .church-rail-row:hover{
+  background:#f5f6f8!important;
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -1652,7 +1712,7 @@ html[data-theme="light"] .church-row-menu{background:#fff!important;border-color
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.47</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.48</div>
   
   <script>
 const state={
@@ -2609,6 +2669,11 @@ function accountJSON(action,options={}){const method=options.method||'GET',url=`
 function churchDisplayLabel(c){return String(c?.label||c?.name||'Igreja sem nome').trim()||'Igreja sem nome';}
 function churchInitials(c){const s=churchDisplayLabel(c);return s.split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'IG';}
 function closeChurchRowMenu(){document.querySelector('.church-row-menu')?.remove();}
+window.closeModal=function(){
+  const root=document.querySelector('#modalRoot');
+  if(root)root.innerHTML='';
+}
+
 function toggleChurchRowMenu(churchId,button){
   closeChurchRowMenu();
   const c=(state.churches||[]).find(x=>x.church_id===churchId);if(!c||!c.is_owner)return;
@@ -2709,9 +2774,10 @@ window.editChurchDetails=function(churchId){
     input.onchange=async()=>{
       const file=input.files?.[0];if(!file)return;
       if(!String(file.type||'').startsWith('image/')){appAlert('Escolha um arquivo de imagem.',{type:'warning'});return;}
-      pendingLogo={dataUrl:await fileAsDataUrl(file),mimeType:file.type||'image/png'};
+      pendingLogo={dataUrl:await blobToDataUrl(file),mimeType:file.type||'image/png'};
       document.querySelector('#churchProfileLogoPreview').innerHTML=`<img src="${pendingLogo.dataUrl}" alt="">`;
     };
+    root.querySelector('.modal-backdrop')?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
     document.querySelector('#saveChurchDetailsBtn').onclick=async()=>{
       const btn=document.querySelector('#saveChurchDetailsBtn');
       try{
@@ -2732,7 +2798,7 @@ window.editChurchDetails=function(churchId){
           const cur=state.churches.find(x=>x.church_id===churchId);
           if(cur)state.church={...(state.church||{}),name:cur.name||'',address:cur.address||''};
         }
-        renderChurchSwitcher();closeModal();renderAll();appToast('Dados da igreja atualizados.',{type:'success',title:'Igreja salva'});
+        renderChurchSwitcher();closeModal();updateSidebarAccount();screenQuickMode();appToast('Dados da igreja atualizados.',{type:'success',title:'Igreja salva'});
       }catch(e){
         btn.disabled=false;btn.textContent='Salvar alterações';appAlert(e.message,{type:'error',title:'Não foi possível salvar'});
       }
