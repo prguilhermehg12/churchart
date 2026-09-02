@@ -1,5 +1,5 @@
-// CHURCHDESIGN — church-data v0.40.0
-// ChurchDesign V0.40.0 — multi-church, membership validated, web/mobile-ready
+// CHURCHDESIGN — church-data v0.42.0
+// ChurchDesign V0.42.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
 function envCfg(){
@@ -77,6 +77,15 @@ async function requireAppAdmin(req,user){
 
 function cleanInValue(v){return String(v||"").replace(/[(),\s]/g,"")}
 function inList(values=[]){return values.map(cleanInValue).filter(Boolean).join(",")}
+
+function shareToken(){
+  return `${crypto.randomUUID().replace(/-/g,"")}${crypto.randomUUID().replace(/-/g,"")}`;
+}
+function shareExpiryISO(hours=168){
+  const safe=[24,72,168,720].includes(Number(hours))?Number(hours):168;
+  return new Date(Date.now()+safe*60*60*1000).toISOString();
+}
+
 async function latestGalleryMap(churchId){
   const rows=await serviceRest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=id,images,created_at&order=created_at.desc&limit=300`);
   const map=new Map();
@@ -523,6 +532,73 @@ module.exports=async function handler(req,res){
         }
       }
       return res.json({ok:true,downloadedAt:found.recipe.downloadedAt,published:!!post,postId:post?.id||null,publishedAt:post?.published_at||null,generationId:foundGeneration});
+    }
+
+
+    if(action==="create-art-share"&&req.method==="POST"){
+      const galleryId=String(req.body?.galleryId||"").trim();
+      const expiresHours=Number(req.body?.expiresHours)||168;
+      if(!galleryId)throw Object.assign(new Error("Arte não informada."),{statusCode:400});
+
+      const gm=await latestGalleryMap(churchId);
+      const source=gm.get(galleryId);
+      if(!source)throw Object.assign(new Error("Arte não encontrada na Galeria desta igreja."),{statusCode:404});
+      if(source?.recipe?.finalized===false)throw Object.assign(new Error("A arte ainda é um rascunho."),{statusCode:409});
+
+      const byId=new Map([...gm.entries()].map(([id,x])=>[String(id),x]));
+      function parentId(x){return String(x?.parentArtworkId||x?.recipe?.parentArtworkId||"")}
+      function rootId(x){
+        let cur=x,seen=new Set();
+        while(cur){
+          const id=String(cur.galleryId||"");
+          if(!id||seen.has(id))break;
+          seen.add(id);
+          const pid=parentId(cur);
+          if(!pid||!byId.has(pid))return id;
+          cur=byId.get(pid);
+        }
+        return String(x?.galleryId||"");
+      }
+
+      const root=rootId(source);
+      const packageItems=[...gm.values()]
+        .filter(x=>rootId(x)===root && x?.recipe?.finalized!==false)
+        .sort((a,b)=>{
+          if(String(a.galleryId)===root)return -1;
+          if(String(b.galleryId)===root)return 1;
+          return new Date(a.generationCreatedAt||0)-new Date(b.generationCreatedAt||0);
+        });
+
+      const galleryIds=packageItems.map(x=>String(x.galleryId)).filter(Boolean);
+      if(!galleryIds.length)throw Object.assign(new Error("Nenhuma arte finalizada disponível para compartilhar."),{statusCode:409});
+
+      const main=byId.get(root)||source;
+      const title=String(main?.recipe?.projectName||main?.projectName||main?.recipe?.quick?.title||main?.label||"Pacote de artes").trim().slice(0,160);
+      const token=shareToken(),expiresAt=shareExpiryISO(expiresHours);
+
+      const saved=await serviceRest("art_share_links",{
+        method:"POST",
+        headers:{Prefer:"return=representation"},
+        body:JSON.stringify([{
+          token,
+          church_id:churchId,
+          created_by:authUser.id,
+          root_gallery_id:root,
+          gallery_ids:galleryIds,
+          title,
+          expires_at:expiresAt
+        }])
+      });
+
+      return res.json({
+        ok:true,
+        token,
+        expiresAt,
+        title,
+        artCount:galleryIds.length,
+        sharePath:`/share.html?token=${encodeURIComponent(token)}`,
+        share:saved?.[0]||null
+      });
     }
 
     if(action==="access-context"){
