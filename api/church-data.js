@@ -1,5 +1,5 @@
-// CHURCHDESIGN — church-data v0.38.0
-// ChurchDesign V0.38.0 — multi-church, membership validated, web/mobile-ready
+// CHURCHDESIGN — church-data v0.39.0
+// ChurchDesign V0.39.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
 function envCfg(){
@@ -99,10 +99,10 @@ function isFinalDerivative(item,parentGalleryId){
   const kind=String(item?.kind||r.kind||"").toLowerCase();
   return parent===String(parentGalleryId||"") && r.finalized!==false && kind.includes("derivada") && !kind.includes("rascunho");
 }
-async function publishFeedPostForItem(churchId,item,fallbackAuthorId){
+async function publishFeedPostForItem(churchId,item,fallbackAuthorId,{force=false}={}){
   if(!isFinalMother(item))return null;
   const profile=(await serviceRest(`church_profile?id=eq.${encodeURIComponent(churchId)}&select=feed_publish_all`))?.[0];
-  if(!profile?.feed_publish_all)return null;
+  if(!force&&!profile?.feed_publish_all)return null;
   const existing=(await serviceRest(`feed_posts?church_id=eq.${encodeURIComponent(churchId)}&gallery_id=eq.${encodeURIComponent(item.galleryId)}&select=*&limit=1`))?.[0];
   const r=item.recipe||{};
   const authorId=existing?.author_user_id||r.createdByUserId||fallbackAuthorId;
@@ -461,6 +461,32 @@ module.exports=async function handler(req,res){
       return res.json({ok:true,publishAll:enabled,published});
     }
 
+
+    if(action==="publish-gallery-item"&&req.method==="POST"){
+      const galleryId=String(req.body?.galleryId||"").trim();
+      if(!galleryId)throw Object.assign(new Error("galleryId obrigatório."),{statusCode:400});
+      const rows=await serviceRest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=id,images,created_at&order=created_at.desc&limit=300`);
+      let found=null,foundGeneration=null,foundImages=null,foundPos=-1;
+      for(const g of (rows||[])){
+        const images=Array.isArray(g.images)?g.images:[];
+        const pos=images.findIndex(im=>String(im?.galleryId||"")===galleryId);
+        if(pos<0)continue;
+        found={...images[pos],generationId:g.id};foundGeneration=g.id;foundImages=images;foundPos=pos;break;
+      }
+      if(!found)throw Object.assign(new Error("Arte não encontrada na galeria desta igreja."),{statusCode:404});
+      if(!isFinalMother(found))throw Object.assign(new Error("Somente a arte principal finalizada pode ser publicada no Feed."),{statusCode:409});
+      const now=new Date().toISOString();
+      found.recipe={...(found.recipe||{}),downloadedAt:found.recipe?.downloadedAt||now,createdByUserId:found.recipe?.createdByUserId||authUser.id,createdByEmail:found.recipe?.createdByEmail||authUser.email||""};
+      found.downloadedAt=found.recipe.downloadedAt;
+      const post=await publishFeedPostForItem(churchId,found,authUser.id,{force:true});
+      if(!post)throw Object.assign(new Error("Não foi possível publicar esta arte."),{statusCode:500});
+      found.recipe.feedPublishedAt=found.recipe.feedPublishedAt||post.published_at||now;
+      found.feedPublishedAt=found.recipe.feedPublishedAt;
+      foundImages[foundPos]={...foundImages[foundPos],...found};
+      await serviceRest(`church_generations?id=eq.${encodeURIComponent(foundGeneration)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",body:JSON.stringify({images:foundImages})});
+      return res.json({ok:true,published:true,postId:post.id,publishedAt:found.recipe.feedPublishedAt});
+    }
+
     if(action==="mark-gallery-downloaded"&&req.method==="POST"){
       const galleryId=String(req.body?.galleryId||"").trim();
       if(!galleryId)throw Object.assign(new Error("galleryId obrigatório."),{statusCode:400});
@@ -478,7 +504,16 @@ module.exports=async function handler(req,res){
       if(!found)throw Object.assign(new Error("Arte não encontrada na galeria desta igreja."),{statusCode:404});
       if(found.recipe?.finalized===false)throw Object.assign(new Error("A arte ainda é um rascunho e não pode ser publicada."),{statusCode:409});
       const post=await publishFeedPostForItem(churchId,found,authUser.id);
-      return res.json({ok:true,downloadedAt:found.recipe.downloadedAt,published:!!post,postId:post?.id||null,generationId:foundGeneration});
+      if(post){
+        const rows2=await serviceRest(`church_generations?id=eq.${encodeURIComponent(foundGeneration)}&church_id=eq.${encodeURIComponent(churchId)}&select=images&limit=1`);
+        const images2=Array.isArray(rows2?.[0]?.images)?rows2[0].images:[];
+        const pos2=images2.findIndex(im=>String(im?.galleryId||"")===galleryId);
+        if(pos2>=0){
+          images2[pos2]={...images2[pos2],feedPublishedAt:post.published_at||new Date().toISOString(),recipe:{...(images2[pos2].recipe||{}),feedPublishedAt:post.published_at||new Date().toISOString()}};
+          await serviceRest(`church_generations?id=eq.${encodeURIComponent(foundGeneration)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",body:JSON.stringify({images:images2})});
+        }
+      }
+      return res.json({ok:true,downloadedAt:found.recipe.downloadedAt,published:!!post,postId:post?.id||null,publishedAt:post?.published_at||null,generationId:foundGeneration});
     }
 
     if(action==="access-context"){
