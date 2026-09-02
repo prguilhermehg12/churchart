@@ -1,5 +1,5 @@
-// CHURCHDESIGN — church-data v0.37.0
-// ChurchDesign V0.37.0 — multi-church, membership validated, web/mobile-ready
+// CHURCHDESIGN — church-data v0.38.0
+// ChurchDesign V0.38.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
 function envCfg(){
@@ -72,6 +72,84 @@ async function requireAppAdmin(req,user){
   const ok=await userRpc(req,"is_app_admin",{});
   if(!ok)throw Object.assign(new Error("Acesso administrativo negado."),{statusCode:403});
   return user;
+}
+
+
+function cleanInValue(v){return String(v||"").replace(/[(),\s]/g,"")}
+function inList(values=[]){return values.map(cleanInValue).filter(Boolean).join(",")}
+async function latestGalleryMap(churchId){
+  const rows=await serviceRest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=id,images,created_at&order=created_at.desc&limit=300`);
+  const map=new Map();
+  for(const g of (rows||[])){
+    for(const im of (Array.isArray(g.images)?g.images:[])){
+      const gid=String(im?.galleryId||"");
+      if(gid&&!map.has(gid))map.set(gid,{...im,generationId:g.id,generationCreatedAt:g.created_at});
+    }
+  }
+  return map;
+}
+function isFinalMother(item){
+  const r=item?.recipe||{};
+  const parent=item?.parentArtworkId||r.parentArtworkId||null;
+  return !!item?.galleryId && !parent && r.finalized!==false && !String(item?.kind||r.kind||"").toLowerCase().includes("rascunho");
+}
+function isFinalDerivative(item,parentGalleryId){
+  const r=item?.recipe||{};
+  const parent=String(item?.parentArtworkId||r.parentArtworkId||"");
+  const kind=String(item?.kind||r.kind||"").toLowerCase();
+  return parent===String(parentGalleryId||"") && r.finalized!==false && kind.includes("derivada") && !kind.includes("rascunho");
+}
+async function publishFeedPostForItem(churchId,item,fallbackAuthorId){
+  if(!isFinalMother(item))return null;
+  const profile=(await serviceRest(`church_profile?id=eq.${encodeURIComponent(churchId)}&select=feed_publish_all`))?.[0];
+  if(!profile?.feed_publish_all)return null;
+  const existing=(await serviceRest(`feed_posts?church_id=eq.${encodeURIComponent(churchId)}&gallery_id=eq.${encodeURIComponent(item.galleryId)}&select=*&limit=1`))?.[0];
+  const r=item.recipe||{};
+  const authorId=existing?.author_user_id||r.createdByUserId||fallbackAuthorId;
+  const row={
+    church_id:churchId,gallery_id:String(item.galleryId),generation_id:item.generationId||null,
+    author_user_id:authorId,image_url:item.url||item.dataUrl||null,label:item.label||r.projectName||"Arte",
+    format:item.format||r.format||item.target?.id||"feed",target:item.target||r.target||{},
+    meta:{projectName:r.projectName||item.projectName||"",downloadedAt:r.downloadedAt||item.downloadedAt||null},
+    active:true,updated_at:new Date().toISOString()
+  };
+  const saved=await serviceRest("feed_posts?on_conflict=church_id,gallery_id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify([row])});
+  return saved?.[0]||existing||null;
+}
+async function feedIdentityMaps(posts=[]){
+  const churchIds=[...new Set(posts.map(p=>p.church_id).filter(Boolean))];
+  const authorIds=[...new Set(posts.map(p=>p.author_user_id).filter(Boolean))];
+  const [churches,profiles,authUsers]=await Promise.all([
+    churchIds.length?serviceRest(`church_profile?id=in.(${inList(churchIds)})&select=id,name,label,profile_logo_url`):[],
+    authorIds.length?serviceRest(`user_profiles?user_id=in.(${inList(authorIds)})&select=user_id,name`):[],
+    listAuthUsers()
+  ]);
+  return {
+    churchById:new Map((churches||[]).map(x=>[x.id,x])),
+    profileById:new Map((profiles||[]).map(x=>[x.user_id,x])),
+    authById:new Map((authUsers||[]).map(x=>[x.id,x]))
+  };
+}
+async function enrichFeedPosts(posts,viewerId){
+  const ids=posts.map(p=>p.id).filter(Boolean);
+  const likes=ids.length?await serviceRest(`feed_likes?post_id=in.(${inList(ids)})&select=post_id,user_id`):[];
+  const likeCounts=new Map(),liked=new Set();
+  for(const l of (likes||[])){
+    likeCounts.set(l.post_id,(likeCounts.get(l.post_id)||0)+1);
+    if(String(l.user_id)===String(viewerId))liked.add(l.post_id);
+  }
+  const maps=await feedIdentityMaps(posts);
+  const galleryByChurch=new Map();
+  for(const churchId of [...new Set(posts.map(p=>p.church_id).filter(Boolean))])galleryByChurch.set(churchId,await latestGalleryMap(churchId));
+  return posts.map(p=>{
+    const ch=maps.churchById.get(p.church_id)||{},up=maps.profileById.get(p.author_user_id)||{},au=maps.authById.get(p.author_user_id)||{};
+    const gm=galleryByChurch.get(p.church_id)||new Map();
+    let derivativeCount=0;
+    for(const im of gm.values())if(isFinalDerivative(im,p.gallery_id))derivativeCount++;
+    return {...p,church_name:ch.name||"",church_label:ch.label||ch.name||"Igreja",profile_logo_url:ch.profile_logo_url||null,
+      author_name:up.name||au.user_metadata?.name||au.user_metadata?.full_name||"",author_email:au.email||"",
+      like_count:likeCounts.get(p.id)||0,liked_by_me:liked.has(p.id),derivative_count:derivativeCount};
+  });
 }
 
 function safeName(name="file"){return String(name).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9._-]+/g,"-").replace(/^-+|-+$/g,"").slice(0,100)||"file"}
@@ -294,6 +372,114 @@ module.exports=async function handler(req,res){
 
     const churchId=requestedChurchId(req);
     const membership=await requireMembership(authUser,churchId);
+
+
+    if(action==="feed-list"){
+      const posts=await serviceRest("feed_posts?active=eq.true&select=*&order=published_at.desc&limit=80");
+      return res.json({posts:await enrichFeedPosts(posts||[],authUser.id)});
+    }
+
+    if(action==="feed-detail"){
+      const postId=String(req.query.postId||req.body?.postId||"").trim();
+      if(!postId)throw Object.assign(new Error("Post ausente."),{statusCode:400});
+      const post=(await serviceRest(`feed_posts?id=eq.${encodeURIComponent(postId)}&active=eq.true&select=*&limit=1`))?.[0];
+      if(!post)throw Object.assign(new Error("Publicação não encontrada."),{statusCode:404});
+      const enriched=(await enrichFeedPosts([post],authUser.id))?.[0];
+      const gm=await latestGalleryMap(post.church_id);
+      const derivatives=[...gm.values()].filter(im=>isFinalDerivative(im,post.gallery_id)).map(im=>({
+        gallery_id:im.galleryId,label:im.label||"Arte derivada",image_url:im.url||null,format:im.format||im.recipe?.format||"",target:im.target||im.recipe?.target||{}
+      }));
+      return res.json({post:enriched,derivatives});
+    }
+
+    if(action==="feed-toggle-like"&&req.method==="POST"){
+      const postId=String(req.body?.postId||"").trim();
+      if(!postId)throw Object.assign(new Error("Post ausente."),{statusCode:400});
+      const post=(await serviceRest(`feed_posts?id=eq.${encodeURIComponent(postId)}&active=eq.true&select=*&limit=1`))?.[0];
+      if(!post)throw Object.assign(new Error("Publicação não encontrada."),{statusCode:404});
+      const existing=(await serviceRest(`feed_likes?post_id=eq.${encodeURIComponent(postId)}&user_id=eq.${encodeURIComponent(authUser.id)}&select=id&limit=1`))?.[0];
+      if(existing){
+        await serviceRest(`feed_likes?id=eq.${encodeURIComponent(existing.id)}`,{method:"DELETE"});
+        await serviceRest(`notifications?recipient_user_id=eq.${encodeURIComponent(post.author_user_id)}&actor_user_id=eq.${encodeURIComponent(authUser.id)}&feed_post_id=eq.${encodeURIComponent(postId)}&type=eq.feed_like&read_at=is.null`,{method:"DELETE"});
+      }else{
+        await serviceRest("feed_likes",{method:"POST",body:JSON.stringify([{post_id:postId,user_id:authUser.id}])});
+        if(String(post.author_user_id)!==String(authUser.id))await serviceRest("notifications",{method:"POST",body:JSON.stringify([{
+          recipient_user_id:post.author_user_id,actor_user_id:authUser.id,actor_church_id:churchId,feed_post_id:postId,type:"feed_like"
+        }])});
+      }
+      const rows=await serviceRest(`feed_likes?post_id=eq.${encodeURIComponent(postId)}&select=user_id`);
+      return res.json({ok:true,liked:!existing,likeCount:(rows||[]).length});
+    }
+
+    if(action==="notifications-list"){
+      const rows=await serviceRest(`notifications?recipient_user_id=eq.${encodeURIComponent(authUser.id)}&select=*&order=created_at.desc&limit=80`);
+      const actorIds=[...new Set((rows||[]).map(n=>n.actor_user_id).filter(Boolean))],churchIds=[...new Set((rows||[]).map(n=>n.actor_church_id).filter(Boolean))],postIds=[...new Set((rows||[]).map(n=>n.feed_post_id).filter(Boolean))];
+      const [profiles,users,churches,posts]=await Promise.all([
+        actorIds.length?serviceRest(`user_profiles?user_id=in.(${inList(actorIds)})&select=user_id,name`):[],listAuthUsers(),
+        churchIds.length?serviceRest(`church_profile?id=in.(${inList(churchIds)})&select=id,name,label,profile_logo_url`):[],
+        postIds.length?serviceRest(`feed_posts?id=in.(${inList(postIds)})&select=id,label,image_url`):[]
+      ]);
+      const pm=new Map((profiles||[]).map(x=>[x.user_id,x])),um=new Map((users||[]).map(x=>[x.id,x])),cm=new Map((churches||[]).map(x=>[x.id,x])),fm=new Map((posts||[]).map(x=>[x.id,x]));
+      const notifications=(rows||[]).map(n=>{const up=pm.get(n.actor_user_id)||{},au=um.get(n.actor_user_id)||{},ch=cm.get(n.actor_church_id)||{},fp=fm.get(n.feed_post_id)||{};return {...n,
+        actor_name:up.name||au.user_metadata?.name||au.user_metadata?.full_name||au.email||"Alguém",actor_email:au.email||"",
+        actor_church_label:ch.label||ch.name||"uma igreja",actor_church_logo:ch.profile_logo_url||null,post_label:fp.label||"sua arte",post_image_url:fp.image_url||null};});
+      return res.json({notifications,unreadCount:notifications.filter(n=>!n.read_at).length});
+    }
+
+    if(action==="notifications-read"&&req.method==="POST"){
+      const id=String(req.body?.id||"").trim(),now=new Date().toISOString();
+      if(id)await serviceRest(`notifications?id=eq.${encodeURIComponent(id)}&recipient_user_id=eq.${encodeURIComponent(authUser.id)}`,{method:"PATCH",body:JSON.stringify({read_at:now})});
+      else await serviceRest(`notifications?recipient_user_id=eq.${encodeURIComponent(authUser.id)}&read_at=is.null`,{method:"PATCH",body:JSON.stringify({read_at:now})});
+      return res.json({ok:true});
+    }
+
+    if(action==="notifications-count"){
+      const rows=await serviceRest(`notifications?recipient_user_id=eq.${encodeURIComponent(authUser.id)}&read_at=is.null&select=id`);
+      return res.json({unreadCount:(rows||[]).length});
+    }
+
+    if(action==="feed-settings"){
+      if(membership.role!=="owner")throw Object.assign(new Error("Somente o responsável pode alterar a publicação no Feed."),{statusCode:403});
+      const profile=(await serviceRest(`church_profile?id=eq.${encodeURIComponent(churchId)}&select=feed_publish_all`))?.[0];
+      return res.json({publishAll:!!profile?.feed_publish_all});
+    }
+
+    if(action==="set-feed-settings"&&req.method==="POST"){
+      if(membership.role!=="owner")throw Object.assign(new Error("Somente o responsável pode alterar a publicação no Feed."),{statusCode:403});
+      const enabled=!!req.body?.publishAll;
+      await serviceRest(`church_profile?id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",body:JSON.stringify({feed_publish_all:enabled,updated_at:new Date().toISOString()})});
+      let published=0;
+      if(enabled){
+        const gm=await latestGalleryMap(churchId),legacyIds=new Set((req.body?.downloadedGalleryIds||[]).map(String));
+        for(const im of gm.values()){
+          const downloaded=!!im?.recipe?.downloadedAt||legacyIds.has(String(im.galleryId||""));
+          if(!downloaded||!isFinalMother(im))continue;
+          im.recipe={...(im.recipe||{}),downloadedAt:im.recipe?.downloadedAt||new Date().toISOString()};
+          if(await publishFeedPostForItem(churchId,im,authUser.id))published++;
+        }
+      }
+      return res.json({ok:true,publishAll:enabled,published});
+    }
+
+    if(action==="mark-gallery-downloaded"&&req.method==="POST"){
+      const galleryId=String(req.body?.galleryId||"").trim();
+      if(!galleryId)throw Object.assign(new Error("galleryId obrigatório."),{statusCode:400});
+      const rows=await serviceRest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=id,images,created_at&order=created_at.desc&limit=300`);
+      let found=null,foundGeneration=null;
+      for(const g of (rows||[])){
+        const images=Array.isArray(g.images)?g.images:[];
+        const pos=images.findIndex(im=>String(im?.galleryId||"")===galleryId);
+        if(pos<0)continue;
+        const current=images[pos],recipe={...(current.recipe||{}),downloadedAt:current.recipe?.downloadedAt||new Date().toISOString(),createdByUserId:current.recipe?.createdByUserId||authUser.id,createdByEmail:current.recipe?.createdByEmail||authUser.email||""};
+        images[pos]={...current,downloadedAt:recipe.downloadedAt,recipe};
+        await serviceRest(`church_generations?id=eq.${encodeURIComponent(g.id)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",body:JSON.stringify({images})});
+        found={...images[pos],generationId:g.id};foundGeneration=g.id;break;
+      }
+      if(!found)throw Object.assign(new Error("Arte não encontrada na galeria desta igreja."),{statusCode:404});
+      if(found.recipe?.finalized===false)throw Object.assign(new Error("A arte ainda é um rascunho e não pode ser publicada."),{statusCode:409});
+      const post=await publishFeedPostForItem(churchId,found,authUser.id);
+      return res.json({ok:true,downloadedAt:found.recipe.downloadedAt,published:!!post,postId:post?.id||null,generationId:foundGeneration});
+    }
 
     if(action==="access-context"){
       const context=await userRpc(req,"get_church_access_context",{target_church_id:churchId});
