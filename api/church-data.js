@@ -1,5 +1,5 @@
-// CHURCHDESIGN — church-data v0.39.0
-// ChurchDesign V0.39.0 — multi-church, membership validated, web/mobile-ready
+// CHURCHDESIGN — church-data v0.40.0
+// ChurchDesign V0.40.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
 function envCfg(){
@@ -478,13 +478,22 @@ module.exports=async function handler(req,res){
       const now=new Date().toISOString();
       found.recipe={...(found.recipe||{}),downloadedAt:found.recipe?.downloadedAt||now,createdByUserId:found.recipe?.createdByUserId||authUser.id,createdByEmail:found.recipe?.createdByEmail||authUser.email||""};
       found.downloadedAt=found.recipe.downloadedAt;
-      const post=await publishFeedPostForItem(churchId,found,authUser.id,{force:true});
+      let post=await publishFeedPostForItem(churchId,found,authUser.id,{force:true});
       if(!post)throw Object.assign(new Error("Não foi possível publicar esta arte."),{statusCode:500});
-      found.recipe.feedPublishedAt=found.recipe.feedPublishedAt||post.published_at||now;
-      found.feedPublishedAt=found.recipe.feedPublishedAt;
+
+      // Publicação manual significa "postar agora": sobe para o topo do Feed.
+      const fresh=(await serviceRest(`feed_posts?id=eq.${encodeURIComponent(post.id)}`,{
+        method:"PATCH",
+        headers:{Prefer:"return=representation"},
+        body:JSON.stringify({published_at:now,updated_at:now,active:true})
+      }))?.[0];
+      post=fresh||post;
+
+      found.recipe.feedPublishedAt=now;
+      found.feedPublishedAt=now;
       foundImages[foundPos]={...foundImages[foundPos],...found};
       await serviceRest(`church_generations?id=eq.${encodeURIComponent(foundGeneration)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",body:JSON.stringify({images:foundImages})});
-      return res.json({ok:true,published:true,postId:post.id,publishedAt:found.recipe.feedPublishedAt});
+      return res.json({ok:true,published:true,postId:post.id,publishedAt:now});
     }
 
     if(action==="mark-gallery-downloaded"&&req.method==="POST"){
