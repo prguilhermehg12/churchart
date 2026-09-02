@@ -350,6 +350,46 @@ module.exports = async function handler(req, res) {
     }
 
 
+    if (action === "rename-gallery-project" && req.method === "POST") {
+      const body = req.body || {};
+      const generationId = body.generationId;
+      const galleryId = body.galleryId;
+      const projectName = String(body.projectName || "").trim();
+
+      if (!generationId || !galleryId || !projectName) {
+        throw new Error("generationId, galleryId e projectName são obrigatórios.");
+      }
+
+      const rows = await rest(
+        `church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`
+      );
+      const generation = rows?.[0];
+      if (!generation) throw new Error("Projeto não encontrado.");
+
+      let found = false;
+      const images = (Array.isArray(generation.images) ? generation.images : []).map(im => {
+        if (String(im?.galleryId || "") !== String(galleryId)) return im;
+        found = true;
+        return {
+          ...im,
+          projectName,
+          recipe: { ...(im.recipe || {}), projectName }
+        };
+      });
+      if (!found) throw new Error("Arte principal do projeto não encontrada.");
+
+      const updated = await rest(
+        `church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}`,
+        {
+          method: "PATCH",
+          headers: { Prefer: "return=representation" },
+          body: JSON.stringify({ images })
+        }
+      );
+      return res.json({ ok: true, projectName, generation: updated?.[0] || null });
+    }
+
+
     if (action === "delete-gallery-item" && req.method === "DELETE") {
       const body = req.body || {};
       const generationId = body.generationId;
