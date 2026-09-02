@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.58 -->
+<!-- CHURCHDESIGN — index v0.59 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1707,7 +1707,7 @@ html[data-theme="light"] .gallery-popover{background:#fff!important;box-shadow:0
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.58</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.59</div>
   
   <script>
 const state={
@@ -4003,12 +4003,22 @@ async function openShareDownloadAssistant(galleryId){
         catch{const input=root.querySelector('#generatedShareUrl');input.select();document.execCommand('copy');appToast('Link copiado.',{type:'success',title:'Compartilhar'})}
       };
       root.querySelector('#openSharePageBtn').onclick=()=>window.open(url,'_blank','noopener');
-      root.querySelector('#shareViaWhatsappBtn').onclick=()=>{
+      root.querySelector('#shareViaWhatsappBtn').onclick=async()=>{
         const msg=`Veja as artes que acabei de gerar usando o ChurchDesign 😉\n\nBaixe aqui as artes desse pacote:\n${url}`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank','noopener');
+        try{await navigator.clipboard.writeText(msg)}catch{}
+        const ua=navigator.userAgent||'';
+        const isMobile=/Android|iPhone|iPad|iPod/i.test(ua);
+        const waUrl=isMobile
+          ?`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`
+          :`https://web.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+        window.open(waUrl,'_blank','noopener');
+        appToast('Mensagem completa preparada para o WhatsApp.',{type:'success',title:'WhatsApp'});
       };
       const native=root.querySelector('#nativeShareBtn');
-      if(native)native.onclick=()=>navigator.share?.({title:d.title||'Artes ChurchDesign',text:'Veja as artes que acabei de gerar usando o ChurchDesign 😉',url}).catch(()=>{});
+      if(native)native.onclick=()=>{
+        const msg=`Veja as artes que acabei de gerar usando o ChurchDesign 😉\n\nBaixe aqui as artes desse pacote:\n${url}`;
+        navigator.share?.({title:d.title||'Artes ChurchDesign',text:msg}).catch(()=>{});
+      };
       generate.textContent='Gerar outro link';generate.disabled=false;
     }catch(e){
       generate.disabled=false;generate.textContent='Gerar link';
@@ -5227,7 +5237,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.58</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.59</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
