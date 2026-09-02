@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.46 -->
+<!-- CHURCHDESIGN — index v0.47 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1652,7 +1652,7 @@ html[data-theme="light"] .church-row-menu{background:#fff!important;border-color
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.46</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.47</div>
   
   <script>
 const state={
@@ -2458,6 +2458,150 @@ async function deleteDraftById(id){
   try{await apiJSON('delete-draft',{method:'DELETE',body:{id}});const data=await apiJSON('bootstrap');state.library.drafts=data.drafts||[];openDraftPicker();}
   catch(e){showMapNotice('Erro',e.message);}
 }
+
+const THEME_STORAGE_KEY='churchdesign.theme.v1';
+function applyChurchDesignTheme(theme){
+  const value=theme==='light'?'light':'dark';
+  document.documentElement.dataset.theme=value;
+  try{localStorage.setItem(THEME_STORAGE_KEY,value)}catch{}
+  document.querySelector('#themeLight')?.classList.toggle('active',value==='light');
+  document.querySelector('#themeDark')?.classList.toggle('active',value==='dark');
+}
+function initChurchDesignTheme(){
+  let saved='dark';try{saved=localStorage.getItem(THEME_STORAGE_KEY)||'dark'}catch{}
+  applyChurchDesignTheme(saved);
+  document.querySelector('#themeLight')?.addEventListener('click',()=>applyChurchDesignTheme('light'));
+  document.querySelector('#themeDark')?.addEventListener('click',()=>applyChurchDesignTheme('dark'));
+}
+
+const AUTH_STORAGE_KEY='churchdesign.auth.v1';
+let authConfig=null,authMode='login';
+
+function authHeaders(extra={}){
+  const token=state.authSession?.access_token;
+  return token?{...extra,Authorization:`Bearer ${token}`}:{...extra};
+}
+async function authFetch(url,options={}){
+  const headers=authHeaders(options.headers||{});if(String(url).startsWith('/api/')&&state.activeChurchId&&!headers['x-church-id'])headers['x-church-id']=state.activeChurchId;
+  return fetch(url,{...options,headers});
+}
+function saveAuthSession(session){
+  state.authSession=session||null;
+  if(session)localStorage.setItem(AUTH_STORAGE_KEY,JSON.stringify(session));
+  else localStorage.removeItem(AUTH_STORAGE_KEY);
+}
+function loadAuthSession(){
+  try{return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'null')}catch{return null}
+}
+async function loadAuthConfig(){
+  const r=await fetch('/api/auth-config');
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.error||'Configuração de autenticação indisponível.');
+  authConfig=d;return d;
+}
+function authMessage(text,type='error'){
+  const el=document.querySelector('#authMessage');if(!el)return;
+  el.textContent=text||'';el.className=`auth-message ${text?'show':''} ${type}`;
+}
+async function authRequest(path,body){
+  const c=authConfig||await loadAuthConfig();
+  const r=await fetch(`${c.supabaseUrl}/auth/v1/${path}`,{method:'POST',headers:{apikey:c.anonKey,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.msg||d.error_description||d.message||'Falha na autenticação.');
+  return d;
+}
+async function refreshAuthSession(session){
+  if(!session?.refresh_token)return null;
+  try{
+    const d=await authRequest('token?grant_type=refresh_token',{refresh_token:session.refresh_token});
+    if(d?.access_token){saveAuthSession(d);return d}
+  }catch(e){console.warn('[Auth] refresh failed',e)}
+  saveAuthSession(null);return null;
+}
+async function fetchAuthUser(session){
+  if(!session?.access_token)return null;
+  const c=authConfig||await loadAuthConfig();
+  const r=await fetch(`${c.supabaseUrl}/auth/v1/user`,{headers:{apikey:c.anonKey,Authorization:`Bearer ${session.access_token}`}});
+  if(r.status===401)return null;
+  const d=await r.json().catch(()=>null);return r.ok?d:null;
+}
+function applyAuthenticatedUser(user,session){
+  state.authSession=session;state.user={id:user.id,email:user.email||'',plan:null,credits:null,isAdmin:false};
+  document.querySelector('#authGate')?.classList.add('hidden');const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='visible';const ae=document.querySelector('#accountEmail');if(ae)ae.textContent=state.user.email||'Conta autenticada';const sab=document.querySelector('#subscriptionAdminBtn');if(sab)sab.style.display='none';
+}
+function showAuthGate(){
+  document.querySelector('#authGate')?.classList.remove('hidden');
+  const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='hidden';
+}
+async function completeAuth(session){
+  let active=session,user=await fetchAuthUser(active);
+  if(!user){active=await refreshAuthSession(active);user=await fetchAuthUser(active)}
+  if(!user)throw new Error('Sessão expirada. Entre novamente.');
+  saveAuthSession(active);applyAuthenticatedUser(user,active);return user;
+}
+function oauthSessionFromHash(){
+  const h=new URLSearchParams(location.hash.replace(/^#/,''));
+  if(!h.get('access_token'))return null;
+  const session={access_token:h.get('access_token'),refresh_token:h.get('refresh_token'),expires_in:Number(h.get('expires_in')||3600),token_type:h.get('token_type')||'bearer'};
+  history.replaceState(null,'',location.pathname+location.search);return session;
+}
+async function initializeAuth(){
+  await loadAuthConfig();
+  const oauth=oauthSessionFromHash();
+  const saved=oauth||loadAuthSession();
+  if(saved){try{await completeAuth(saved);return true}catch(e){authMessage(e.message)}}
+  showAuthGate();return false;
+}
+function setAuthMode(mode){
+  authMode=mode;const signup=mode==='signup';
+  document.querySelector('#authSubmit').textContent=signup?'Criar conta':'Entrar';
+  document.querySelector('#authSwitchText').textContent=signup?'Já tem uma conta?':'Ainda não tem conta?';
+  document.querySelector('#authSwitchBtn').textContent=signup?'Entrar':'Criar conta';
+  document.querySelector('#authPassword').autocomplete=signup?'new-password':'current-password';
+  authMessage('');
+}
+async function handleAuthSubmit(e){
+  e.preventDefault();authMessage('');
+  const email=document.querySelector('#authEmail').value.trim(),password=document.querySelector('#authPassword').value;
+  const btn=document.querySelector('#authSubmit');btn.disabled=true;
+  try{
+    if(authMode==='signup'){
+      const d=await authRequest('signup',{email,password});
+      if(d?.access_token){await completeAuth(d);await startAuthenticatedApp()}
+      else authMessage('Conta criada. Confira seu e-mail para confirmar o cadastro antes de entrar.','ok');
+    }else{
+      const d=await authRequest('token?grant_type=password',{email,password});
+      await completeAuth(d);await startAuthenticatedApp();
+    }
+  }catch(err){authMessage(err.message||'Não foi possível autenticar.')}
+  finally{btn.disabled=false}
+}
+async function loginWithGoogle(){
+  try{
+    const c=authConfig||await loadAuthConfig();
+    const redirect=location.origin+location.pathname;
+    location.href=`${c.supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirect)}`;
+  }catch(e){authMessage(e.message)}
+}
+async function signOutChurchDesign(){
+  try{
+    if(state.authSession?.access_token){
+      const c=authConfig||await loadAuthConfig();
+      await fetch(`${c.supabaseUrl}/auth/v1/logout`,{method:'POST',headers:{apikey:c.anonKey,Authorization:`Bearer ${state.authSession.access_token}`}});
+    }
+  }catch(e){console.warn('[Auth] logout',e)}
+  saveAuthSession(null);state.authSession=null;state.user={id:null,email:null,plan:null,credits:null,isAdmin:false};
+  state.library={assets:[],generations:[],drafts:[],ratings:[],dbReady:false};state.churches=[];state.activeChurchId=null;state.activeChurchRole=null;state.accessContext=null;state.features={};state.quickResults=[];showAuthGate();setAuthMode('login');
+}
+
+function apiJSON(action,options={}){const method=options.method||'GET';const churchId=currentChurchId();const url=`/api/church-data?action=${encodeURIComponent(action)}`;return authFetch(url,{method,headers:{'Content-Type':'application/json','x-church-id':churchId},body:method==='GET'?undefined:JSON.stringify(options.body||{})}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;});}
+
+
+
+
+
+
+
 
 const ACTIVE_CHURCH_STORAGE_KEY='churchdesign.activeChurch.v1';
 function currentChurchId(){if(!state.user?.id)throw new Error("Sessão não autenticada.");if(!state.activeChurchId)throw new Error("Nenhuma igreja ativa selecionada.");return state.activeChurchId;}
