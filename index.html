@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.52 -->
+<!-- CHURCHDESIGN — index v0.53 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1539,6 +1539,25 @@ html[data-theme='light'] .feed-card{background:#fff;border-color:#e1e5ea;box-sha
 .gallery-publish-btn:hover{background:color-mix(in srgb,var(--brand-orange) 14%,transparent)!important}
 .gallery-publish-btn.published{color:var(--good)!important;border-color:color-mix(in srgb,var(--good) 34%,var(--field-border))!important;background:color-mix(in srgb,var(--good) 7%,transparent)!important;opacity:.82!important;cursor:default!important}
 
+
+/* CHURCHDESIGN v0.53 — publish state */
+.gallery-publish-btn.publishing{
+  opacity:.72!important;
+  cursor:wait!important;
+}
+.gallery-publish-btn.published{
+  color:#55c98a!important;
+  border-color:rgba(85,201,138,.38)!important;
+  background:rgba(85,201,138,.09)!important;
+  opacity:1!important;
+  cursor:default!important;
+}
+html[data-theme="light"] .gallery-publish-btn.published{
+  color:#188451!important;
+  border-color:#addfc8!important;
+  background:#edf9f3!important;
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -1601,7 +1620,7 @@ html[data-theme='light'] .feed-card{background:#fff;border-color:#e1e5ea;box-sha
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.52</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.53</div>
   
   <script>
 const state={
@@ -3641,7 +3660,7 @@ function galleryActionsHTML(x,compact=false){
   const id=esc(String(x.galleryId||''));
   const published=!!(x?.recipe?.feedPublishedAt||x?.feedPublishedAt);
   const publishButton=compact?'':published
-    ?`<button class="mini-btn gallery-publish-btn published" type="button" disabled>✓ Publicado</button>`
+    ?`<button class="mini-btn gallery-publish-btn published" type="button" disabled>✓ Postado</button>`
     :`<button class="mini-btn gallery-publish-btn" type="button" data-gallery-publish="${id}">↑ Publicar</button>`;
   return `<div class="${compact?'gallery-derivative-actions':'gallery-actions'}">${publishButton}<button class="mini-btn download-btn" data-gallery-download="${id}">↓ Baixar</button><button class="mini-btn" data-gallery-fullscreen="${id}">⛶ Tela cheia</button><button class="mini-btn art-report-btn" data-gallery-report="${id}">📝 Relatório</button><button class="mini-btn" data-gallery-rename="${id}">✎ Renomear projeto</button><button class="mini-btn" data-gallery-diagnostic="${id}">◎ Diagnóstico logos</button><button class="mini-btn" data-gallery-logo-assistant="${id}">Assistente de Logos</button>${compact?`<button class="mini-btn gallery-correct-btn" data-gallery-correct="${id}">Corrigir</button>`:''}<button class="mini-btn" data-gallery-reference="${id}">Usar como referência</button><button class="mini-btn" data-gallery-reopen="${id}">${x.recipe?'Reabrir projeto':'Reusar arte'}</button><button class="mini-btn" data-gallery-delete="${id}" style="border-color:#69333d;color:#ff9eac">Excluir</button></div>`;
 }
@@ -3797,6 +3816,88 @@ function openGalleryLogoAssistant(id){
   source.id=crypto.randomUUID();source.galleryId=null;source.dataUrl=base;source.baseDataUrl=base;source.sourceUrl=base;source.finalized=false;source.finalizedWithoutLogo=false;source.manualLogoFlow=true;source.manualLogoPlacements=Array.isArray(item.recipe?.manualLogoPlacements)?JSON.parse(JSON.stringify(item.recipe.manualLogoPlacements)):[];source.sourceGalleryId=item.galleryId;source.parentArtworkId=item.parentArtworkId||item.recipe?.parentArtworkId||null;source.sourceArtworkId=item.sourceArtworkId||item.recipe?.sourceArtworkId||null;source.label=`${item.label||'Arte'} • logos`;
   state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:base,artDirection:item.recipe?.artDirection||null,recipe:item.recipe||null};state.quickResults=[source];closeModal();screenQuickMode();setTimeout(()=>openLogoAssistant('main:0',{returnToGallery:true,galleryItemId:item.galleryId}),80);
 }
+async function publishGalleryItemManually(galleryId,button=null){
+  const item=findGalleryItem(galleryId);
+  if(!item){
+    appAlert('Arte não encontrada na Galeria.',{type:'error',title:'Não foi possível publicar'});
+    return;
+  }
+
+  const originalText=button?.textContent||'↑ Publicar';
+
+  try{
+    if(button){
+      button.disabled=true;
+      button.textContent='Publicando...';
+      button.classList.add('publishing');
+    }
+
+    const d=await apiJSON('publish-gallery-item',{
+      method:'POST',
+      body:{galleryId}
+    });
+
+    if(!d?.published)throw new Error('O servidor não confirmou a publicação.');
+
+    const publishedAt=d.publishedAt||new Date().toISOString();
+
+    item.recipe=item.recipe||{};
+    item.recipe.feedPublishedAt=publishedAt;
+    item.feedPublishedAt=publishedAt;
+    item.recipe.downloadedAt=item.recipe.downloadedAt||publishedAt;
+    item.downloadedAt=item.recipe.downloadedAt;
+
+    // Atualiza também a estrutura persistente em memória da Galeria.
+    state.library.generations=(state.library.generations||[]).map(g=>({
+      ...g,
+      images:(g.images||[]).map(im=>{
+        if(String(im.galleryId||'')!==String(galleryId))return im;
+        return {
+          ...im,
+          feedPublishedAt:publishedAt,
+          downloadedAt:im.downloadedAt||publishedAt,
+          recipe:{
+            ...(im.recipe||{}),
+            feedPublishedAt:publishedAt,
+            downloadedAt:im.recipe?.downloadedAt||publishedAt
+          }
+        };
+      })
+    }));
+
+    const ids=galleryDownloadedIds();
+    ids.add(String(galleryId));
+    try{localStorage.setItem(GALLERY_DOWNLOADED_KEY,JSON.stringify([...ids]))}catch{}
+
+    if(button){
+      button.disabled=true;
+      button.classList.remove('publishing');
+      button.classList.add('published');
+      button.textContent='✓ Postado';
+      button.removeAttribute('data-gallery-publish');
+    }
+
+    // Mantém a Galeria aberta, mas já reflete o estado Postado.
+    const q=document.querySelector('#gallerySearch')?.value||'';
+    openGallery(q,state.galleryViewMode||'grid');
+
+    appToast('Arte postada no Feed e movida para o topo.',{
+      type:'success',
+      title:'Postado'
+    });
+  }catch(e){
+    if(button){
+      button.disabled=false;
+      button.classList.remove('publishing');
+      button.textContent=originalText;
+    }
+    appAlert(e.message||'Não foi possível publicar esta arte.',{
+      type:'error',
+      title:'Não foi possível publicar'
+    });
+  }
+}
+
 window.openGallery=function(query='',viewMode=null){
   const root=document.querySelector('#modalRoot'),items=allPersistentGalleryItems(),q=String(query||'').trim().toLowerCase();
   if(viewMode)state.galleryViewMode=viewMode;
@@ -4883,7 +4984,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.52</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.53</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
