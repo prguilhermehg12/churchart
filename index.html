@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.51 -->
+<!-- CHURCHDESIGN — index v0.52 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1533,6 +1533,12 @@ html[data-theme='light'] .feed-card{background:#fff;border-color:#e1e5ea;box-sha
 @media(max-width:800px){.feed-grid{columns:1}.feed-card{border-radius:16px;margin-bottom:18px}.feed-art-wrap img{width:100%;max-height:none;object-fit:contain}.feed-view-toggle{display:flex}.feed-explore-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:110px;gap:3px}.feed-explore-item.landscape{grid-column:span 2}.feed-derivatives{grid-template-columns:repeat(2,minmax(0,1fr))}.feed-toolbar,.notifications-head{align-items:flex-start}.notification-item{grid-template-columns:36px minmax(0,1fr) 50px}.notification-art{width:46px;height:46px}}
 @media(min-width:801px){.feed-view-toggle [data-feed-view='feed']{display:none}.feed-view-toggle{background:transparent;padding:0}.feed-view-toggle [data-feed-view='explore']{display:none}}
 
+
+/* CHURCHDESIGN v0.52 — manual gallery publishing */
+.gallery-publish-btn{border-color:color-mix(in srgb,var(--brand-orange) 46%,var(--field-border))!important;background:color-mix(in srgb,var(--brand-orange) 8%,transparent)!important;font-weight:800!important}
+.gallery-publish-btn:hover{background:color-mix(in srgb,var(--brand-orange) 14%,transparent)!important}
+.gallery-publish-btn.published{color:var(--good)!important;border-color:color-mix(in srgb,var(--good) 34%,var(--field-border))!important;background:color-mix(in srgb,var(--good) 7%,transparent)!important;opacity:.82!important;cursor:default!important}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -1595,7 +1601,7 @@ html[data-theme='light'] .feed-card{background:#fff;border-color:#e1e5ea;box-sha
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.51</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.52</div>
   
   <script>
 const state={
@@ -3629,11 +3635,15 @@ function markGalleryDownloaded(x){
   const ids=galleryDownloadedIds();ids.add(String(x.galleryId));
   try{localStorage.setItem(GALLERY_DOWNLOADED_KEY,JSON.stringify([...ids]))}catch{}
   x.recipe=x.recipe||{};x.recipe.downloadedAt=x.recipe.downloadedAt||new Date().toISOString();x.downloadedAt=x.recipe.downloadedAt;
-  apiJSON('mark-gallery-downloaded',{method:'POST',body:{galleryId:x.galleryId}}).then(d=>{if(d?.published)appToast('Esta arte foi publicada no Feed da sua igreja.',{type:'success',title:'Feed atualizado'});}).catch(e=>console.warn('mark-gallery-downloaded',e));
+  apiJSON('mark-gallery-downloaded',{method:'POST',body:{galleryId:x.galleryId}}).then(d=>{if(d?.published){x.recipe.feedPublishedAt=d.publishedAt||new Date().toISOString();x.feedPublishedAt=x.recipe.feedPublishedAt;appToast('Esta arte foi publicada no Feed da sua igreja.',{type:'success',title:'Feed atualizado'});}}).catch(e=>console.warn('mark-gallery-downloaded',e));
 }
 function galleryActionsHTML(x,compact=false){
   const id=esc(String(x.galleryId||''));
-  return `<div class="${compact?'gallery-derivative-actions':'gallery-actions'}"><button class="mini-btn download-btn" data-gallery-download="${id}">↓ Baixar</button><button class="mini-btn" data-gallery-fullscreen="${id}">⛶ Tela cheia</button><button class="mini-btn art-report-btn" data-gallery-report="${id}">📝 Relatório</button><button class="mini-btn" data-gallery-rename="${id}">✎ Renomear projeto</button><button class="mini-btn" data-gallery-diagnostic="${id}">◎ Diagnóstico logos</button><button class="mini-btn" data-gallery-logo-assistant="${id}">Assistente de Logos</button>${compact?`<button class="mini-btn gallery-correct-btn" data-gallery-correct="${id}">Corrigir</button>`:''}<button class="mini-btn" data-gallery-reference="${id}">Usar como referência</button><button class="mini-btn" data-gallery-reopen="${id}">${x.recipe?'Reabrir projeto':'Reusar arte'}</button><button class="mini-btn" data-gallery-delete="${id}" style="border-color:#69333d;color:#ff9eac">Excluir</button></div>`;
+  const published=!!(x?.recipe?.feedPublishedAt||x?.feedPublishedAt);
+  const publishButton=compact?'':published
+    ?`<button class="mini-btn gallery-publish-btn published" type="button" disabled>✓ Publicado</button>`
+    :`<button class="mini-btn gallery-publish-btn" type="button" data-gallery-publish="${id}">↑ Publicar</button>`;
+  return `<div class="${compact?'gallery-derivative-actions':'gallery-actions'}">${publishButton}<button class="mini-btn download-btn" data-gallery-download="${id}">↓ Baixar</button><button class="mini-btn" data-gallery-fullscreen="${id}">⛶ Tela cheia</button><button class="mini-btn art-report-btn" data-gallery-report="${id}">📝 Relatório</button><button class="mini-btn" data-gallery-rename="${id}">✎ Renomear projeto</button><button class="mini-btn" data-gallery-diagnostic="${id}">◎ Diagnóstico logos</button><button class="mini-btn" data-gallery-logo-assistant="${id}">Assistente de Logos</button>${compact?`<button class="mini-btn gallery-correct-btn" data-gallery-correct="${id}">Corrigir</button>`:''}<button class="mini-btn" data-gallery-reference="${id}">Usar como referência</button><button class="mini-btn" data-gallery-reopen="${id}">${x.recipe?'Reabrir projeto':'Reusar arte'}</button><button class="mini-btn" data-gallery-delete="${id}" style="border-color:#69333d;color:#ff9eac">Excluir</button></div>`;
 }
 function galleryChildActionsHTML(x,compact=false){const id=esc(String(x.galleryId||''));return `<div class="gallery-child-actions" style="${compact?'margin-top:6px':''}"><strong style="font-size:${compact?'7':'8'}px;grid-column:1/-1">Gerar artes derivadas</strong><button class="mini-btn" data-gallery-child="${id}|youtube">YouTube</button><button class="mini-btn" data-gallery-child="${id}|screen">Telão</button><button class="mini-btn" data-gallery-child="${id}|story">Stories</button><button class="mini-btn" data-gallery-child="${id}|background">Fundo</button><span class="background-derivative-note">Mantém fundo, elementos visuais e foto da igreja (caso haja).</span><button class="mini-btn" data-gallery-child="${id}|free">Modo Livre</button></div>`}
 
@@ -3803,6 +3813,7 @@ window.openGallery=function(query='',viewMode=null){
   root.querySelectorAll('[data-gallery-view]').forEach(b=>b.onclick=()=>openGallery(search?.value||'',b.dataset.galleryView));
   root.querySelectorAll('[data-gallery-report]').forEach(b=>b.onclick=e=>{e.stopPropagation();const item=findGalleryItem(b.dataset.galleryReport);if(item)openArtReport(item);});
   root.querySelectorAll('[data-gallery-rename]').forEach(b=>b.onclick=e=>{e.stopPropagation();renameGalleryProject(b.dataset.galleryRename,document.querySelector('#gallerySearch')?.value||'')});
+  root.querySelectorAll('[data-gallery-publish]').forEach(b=>b.onclick=e=>{e.stopPropagation();publishGalleryItemManually(b.dataset.galleryPublish,b)});
   root.querySelectorAll('[data-gallery-download]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDownload);if(x){const ok=await downloadDataUrl(x.url,`churchdesign-${(x.label||'arte').toLowerCase().replace(/\s+/g,'-')}.png`,{label:x.label});if(ok){markGalleryDownloaded(x);openGallery(document.querySelector('#gallerySearch')?.value||'')}}});
   root.querySelectorAll('[data-gallery-fullscreen]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryFullscreen);if(x)openArtworkFullscreen(x.url,x.label||'Arte')});
   root.querySelectorAll('[data-gallery-diagnostic]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDiagnostic);if(!x)return;const a=galleryItemToQuickResult(x);openLogoDiagnostic(a)});
@@ -4872,7 +4883,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.51</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.52</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
