@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.16.0
+// CHURCHDESIGN — generate-art v0.19.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -27,8 +27,74 @@ async function requireChurchAccess(req,user){
   if(!rows?.length)throw Object.assign(new Error("Você não possui acesso a esta igreja."),{statusCode:403});return churchId;
 }
 function usageNumber(u,...paths){for(const path of paths){let v=u;for(const k of path.split('.'))v=v?.[k];if(Number.isFinite(Number(v)))return Number(v)}return null}
+
+const USAGE_PRICE_VERSION="2026-08-18";
+const USAGE_COST_RATES={
+  "gpt-5.6-sol":{kind:"text",input:5,cached:.5,output:30},
+  "gpt-5.6":{kind:"text",input:5,cached:.5,output:30},
+  "gpt-5.6-terra":{kind:"text",input:2,cached:.2,output:12},
+  "gpt-5.6-luna":{kind:"text",input:.2,cached:.02,output:1.2},
+  "gpt-image-2":{kind:"image",text_input:5,text_cached:1.25,text_output:10,image_input:8,image_cached:2,image_output:30}
+};
+function usageCostEstimate(model,usage){
+  if(!usage)return 0;
+  const r=USAGE_COST_RATES[model]||USAGE_COST_RATES["gpt-5.6-sol"];
+  const num=(...paths)=>usageNumber(usage,...paths)||0;
+  if(r.kind==="text"){
+    const input=num("input_tokens","prompt_tokens"),output=num("output_tokens","completion_tokens"),cached=num("input_tokens_details.cached_tokens","prompt_tokens_details.cached_tokens");
+    return ((Math.max(0,input-cached)*r.input)+(cached*r.cached)+(output*r.output))/1e6;
+  }
+  const ti=num("input_tokens_details.text_tokens","input_details.text_tokens","text_input_tokens");
+  const ii=num("input_tokens_details.image_tokens","input_details.image_tokens","image_input_tokens");
+  const ci=num("input_tokens_details.cached_tokens","input_details.cached_tokens");
+  const to=num("output_tokens_details.text_tokens","output_details.text_tokens","text_output_tokens");
+  const io=num("output_tokens_details.image_tokens","output_details.image_tokens","image_output_tokens");
+  const input=num("input_tokens","prompt_tokens"),output=num("output_tokens","completion_tokens");
+  if(ti||ii||to||io){
+    const imageCached=Math.min(ii,ci),textCached=Math.max(0,ci-imageCached);
+    return ((Math.max(0,ti-textCached)*r.text_input)+(textCached*r.text_cached)+(Math.max(0,ii-imageCached)*r.image_input)+(imageCached*r.image_cached)+(to*r.text_output)+(io*r.image_output))/1e6;
+  }
+  return ((input*r.image_input)+(output*r.image_output))/1e6;
+}
+function costContextFromData(data={}){
+  const ctx=data.costContext||{},target=data.target||{};
+  let artType=ctx.artType||"";
+  if(!artType){
+    if(data.backgroundMode)artType="Fundo";
+    else if(data.freeMode)artType="Modo Livre";
+    else if(data.screenThemeMode)artType="Telão Tema";
+    else if(data.revisionMode)artType="Correção";
+    else if(data.mode==="adaptation")artType="Derivada";
+    else artType="Arte base";
+  }
+  return{
+    cost_session_id:String(data.costSessionId||ctx.sessionId||"")||null,
+    project_name:String(ctx.projectName||data.projectName||data.requiredContent?.title||"").trim()||null,
+    art_type:artType,
+    format:String(ctx.format||data.format||target.id||"").trim()||null,
+    target_label:String(ctx.targetLabel||target.label||"").trim()||null,
+    mode:String(data.mode||"").trim()||null,
+    variant_label:String(data.variantLabel||"").trim()||null,
+    background_mode:!!data.backgroundMode,
+    free_mode:!!data.freeMode,
+    screen_theme_mode:!!data.screenThemeMode,
+    revision_mode:String(data.revisionMode||"").trim()||null
+  };
+}
 async function logUsage({churchId,userId,operationType,model,endpoint,usage,imageCount=0,metadata={}}){
-  try{await serverRest("generation_usage",{method:"POST",body:JSON.stringify([{church_id:churchId,user_id:userId,operation_type:operationType,model,endpoint,input_tokens:usageNumber(usage,'input_tokens','prompt_tokens'),output_tokens:usageNumber(usage,'output_tokens','completion_tokens'),image_count:imageCount,metadata:{...metadata,usage:usage||null}}])})}catch(e){console.error("Usage log",e.message)}
+  try{
+    const costUSD=usageCostEstimate(model,usage),fx=Number(process.env.COST_USD_BRL_RATE)||null;
+    await serverRest("generation_usage",{method:"POST",body:JSON.stringify([{
+      church_id:churchId,user_id:userId,operation_type:operationType,model,endpoint,
+      input_tokens:usageNumber(usage,'input_tokens','prompt_tokens'),
+      output_tokens:usageNumber(usage,'output_tokens','completion_tokens'),
+      image_count:imageCount,
+      cost_usd:costUSD||0,
+      cost_brl:fx?costUSD*fx:null,
+      currency_rate:fx,
+      metadata:{...metadata,usage:usage||null,pricing_version:USAGE_PRICE_VERSION,cost_estimated:true}
+    }])});
+  }catch(e){console.error("Usage log",e.message)}
 }
 
 // ChurchDesign NEWFLOW v0.12 — authentication only; V0.21 church-photo semantics unchanged
@@ -369,8 +435,146 @@ REGRA DE CANVAS NATIVO — CRÍTICA:
 
 Entregue a arte final, não um mockup.`;
 }
+
+const IMAGE_PROMPT_SAFE_LIMIT=31800;
+function compactPromptText(v,max){
+  const s=String(v??"");
+  if(s.length<=max)return s;
+  return s.slice(0,Math.max(0,max-38)).trimEnd()+" …[direção herdada compactada]";
+}
+function compactPromptArray(v,maxItems=10,maxEach=160){
+  return Array.isArray(v)?v.slice(0,maxItems).map(x=>compactPromptText(x,maxEach)):[];
+}
+function compactPromptObject(v,max=1400){
+  if(!v||typeof v!=="object")return v||{};
+  const raw=JSON.stringify(v);
+  if(raw.length<=max)return v;
+  return {summary:compactPromptText(raw,max)};
+}
+function compactInheritedDirection(data,aggressive=false){
+  const a=data.artDirection||{};
+  const clone={...data,
+    inspirationStyle:data.inspirationStyle?{...data.inspirationStyle,prompt:compactPromptText(data.inspirationStyle.prompt,aggressive?500:1000)}:data.inspirationStyle,
+    artDirection:{
+      ...a,
+      visual_summary:compactPromptText(a.visual_summary,aggressive?500:900),
+      generation_prompt:compactPromptText(a.generation_prompt,aggressive?700:2200),
+      style_tags:compactPromptArray(a.style_tags,aggressive?6:10,90),
+      textures:compactPromptArray(a.textures,aggressive?6:10,110),
+      graphic_elements:compactPromptArray(a.graphic_elements,aggressive?8:14,120),
+      preserve_rules:compactPromptArray(a.preserve_rules,aggressive?6:12,aggressive?110:170),
+      avoid_rules:compactPromptArray(a.avoid_rules,aggressive?6:12,aggressive?110:170),
+      palette:compactPromptObject(a.palette,aggressive?500:900),
+      composition:compactPromptObject(a.composition,aggressive?700:1300),
+      typography:compactPromptObject(a.typography,aggressive?700:1300),
+      imagery:compactPromptObject(a.imagery,aggressive?700:1300)
+    }
+  };
+  return clone;
+}
+function emergencyPrompt(data){
+  const c=data.requiredContent||{},texts=[
+    c.title?`TÍTULO EXATO: ${compactPromptText(c.title,1200)}`:"",
+    c.subtitle?`SUBTÍTULO EXATO: ${compactPromptText(c.subtitle,1200)}`:"",
+    c.secondaryInfo?`INFORMAÇÃO SECUNDÁRIA EXATA: ${compactPromptText(c.secondaryInfo,1200)}`:"",
+    c.date?`DATA EXATA: ${compactPromptText(c.date,500)}`:"",
+    c.time?`HORÁRIO EXATO: ${compactPromptText(c.time,500)}`:"",
+    c.address?`ENDEREÇO EXATO: ${compactPromptText(c.address,1200)}`:"",
+    ...(Array.isArray(c.pastorNames)?c.pastorNames.slice(0,3).filter(Boolean).map((n,i)=>`${i===0?'PREGADOR PRINCIPAL':`PREGADOR AUXILIAR ${i}`} — NOME EXATO: ${compactPromptText(n,700)}`):[])
+  ].filter(Boolean).join("\n");
+
+  const correction=compactPromptText(data.revisionInstruction||data.variantInstruction||"",6000);
+  const allow=(data.allowedTexts||[]).slice(0,20).map(x=>compactPromptText(x,900));
+
+  return `Crie uma ARTE FINAL profissional para igreja.
+
+${data.revisionMode==='delta-only'?`CORREÇÃO CIRÚRGICA:
+A primeira imagem enviada é o MOLDE BLOQUEADO.
+ALTERE SOMENTE: ${correction||"o ajuste explicitamente solicitado"}.
+Preserve integralmente todo o restante: identidade das pessoas, rostos, mãos, roupas, poses, composição, cores, textos e efeitos não citados.
+Não redesenhe áreas que não precisam mudar.
+`:''}
+
+${data.backgroundMode?`MODO FUNDO:
+Gere fundo limpo. ZERO textos e ZERO logos.
+${data.addPastorOverride?'A única exceção humana é a PESSOA 1 fornecida, que deve permanecer claramente visível e reconhecível.':'ZERO pessoas.'}
+`:''}
+
+CONTEÚDO OBRIGATÓRIO:
+${texts||"Sem textos obrigatórios."}
+
+TEXTOS LEGÍVEIS PERMITIDOS:
+${JSON.stringify(allow)}
+Não invente nenhuma outra palavra, número, slogan, nome de igreja ou placeholder.
+
+LOGOS:
+ZERO logos, marcas ou emblemas no canvas generativo. Logos oficiais serão inseridas depois.
+
+PESSOAS:
+Use somente as pessoas realmente fornecidas como assets.
+Preserve identidade facial, cabelo, roupa, pose, mãos e objetos.
+Não invente pessoas nem funda identidades.
+
+NOME DA IGREJA:
+${c.churchName?`Pode aparecer SOMENTE como "${compactPromptText(c.churchName,900)}".`:`Não escreva o nome da igreja. A identificação será feita posteriormente por logo original.`}
+
+COMPOSIÇÃO:
+Mantenha todo texto, rosto, cabeça e informação essencial dentro de área segura, com folga das quatro bordas.
+Elementos decorativos podem sangrar; conteúdo essencial não.
+Não corte texto nem rosto.
+
+${data.addPastorOverride?`PESSOA 1 É OBRIGATÓRIA e deve permanecer claramente visível.`:''}
+
+FORMATO:
+${compactPromptText(data.target?.label||data.target?.id||data.format||"formato solicitado",500)}
+
+ESTILO:
+${compactPromptText(data.designStyle||data.artDirection?.visual_summary||data.inspirationStyle?.name||"profissional contemporâneo",1600)}
+
+A imagem enviada como referência de trabalho é a autoridade visual principal.
+Priorize fidelidade ao pedido do usuário e preserve tudo que não foi explicitamente solicitado para alteração.`;
+}
+
+function hardPromptBound(text){
+  const s=String(text||"");
+  if(s.length<=IMAGE_PROMPT_SAFE_LIMIT)return s;
+  // Última garantia técnica: nunca enviar acima do limite aceito pela API.
+  // O prompt essencial é construído com as instruções críticas no início.
+  return s.slice(0,IMAGE_PROMPT_SAFE_LIMIT);
+}
+
+function promptForApi(data){
+  let text=prompt(data);
+  if(text.length<=IMAGE_PROMPT_SAFE_LIMIT)return text;
+
+  // 1. Reduz somente a direção herdada/redundante.
+  let compact=compactInheritedDirection(data,false);
+  text=prompt(compact);
+  if(text.length<=IMAGE_PROMPT_SAFE_LIMIT)return text;
+
+  // 2. Compactação mais forte, sem remover o pedido atual.
+  compact=compactInheritedDirection(data,true);
+  if(data.revisionMode==='delta-only'){
+    compact.artDirection={
+      ...compact.artDirection,
+      generation_prompt:"",
+      preserve_rules:compactPromptArray(data.artDirection?.preserve_rules,4,90),
+      avoid_rules:compactPromptArray(data.artDirection?.avoid_rules,4,90),
+      composition:{},
+      typography:{},
+      imagery:{}
+    };
+  }
+  text=prompt(compact);
+  if(text.length<=IMAGE_PROMPT_SAFE_LIMIT)return text;
+
+  // 3. Fallback operacional: prompt essencial curto.
+  // Não falha por tamanho; mantém correção, textos, pessoas, logos e safe area.
+  text=emergencyPrompt(data);
+  return hardPromptBound(text);
+}
 async function generate(data){
-  const images=collectInputImages(data),size=modelSize(data.target),text=prompt(data);
+  const images=collectInputImages(data),size=modelSize(data.target),text=promptForApi(data);
   let r;
   if(images.length){
     // ZERO-COST PREFLIGHT: multiple edit inputs MUST use image[].
@@ -410,7 +614,7 @@ module.exports=async function handler(req,res){
     const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
     const url=await saveBase64ToStorage(generated.base64,churchId,label);
     const image={label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.usage||null,requestId:generated.requestId||null,endpoint:generated.endpoint,size:generated.size}};
-    await logUsage({churchId,userId:authUser.id,operationType:"generation",model:"gpt-image-2",endpoint:generated.endpoint,usage:generated.usage,imageCount:1,metadata:{requestId:generated.requestId||null,size:generated.size,label}});
+    await logUsage({churchId,userId:authUser.id,operationType:"generation",model:"gpt-image-2",endpoint:generated.endpoint,usage:generated.usage,imageCount:1,metadata:{...costContextFromData(data),requestId:generated.requestId||null,size:generated.size,label}});
     return res.status(200).json({success:true,endpointType:'generate-art',image});
   }catch(e){console.error("ChurchDesign generate",e);return res.status(e.statusCode||500).json({error:e.message||"Erro ao gerar."});}
 };
