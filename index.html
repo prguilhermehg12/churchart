@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.65 -->
+<!-- CHURCHDESIGN — index v0.67 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1866,28 +1866,363 @@ html[data-theme="light"] .gallery-popover{background:#fff!important;box-shadow:0
 }
 
 
-/* CHURCHDESIGN v0.65 — Galeria em janelas padronizadas */
-.screen-format-config-note{display:inline-block;margin-top:3px;font-size:7px;color:var(--muted);font-weight:650}
-.topbar-notifications-btn{position:relative;display:flex;align-items:center;gap:6px;height:34px;padding:0 10px;border:1px solid var(--field-border);border-radius:9px;background:var(--field-bg);color:var(--text);font-size:9px;font-weight:780;cursor:pointer}.topbar-notifications-btn:hover{background:var(--soft-surface)}
-.topbar-notification-badge{position:absolute;right:-5px;top:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:99px;place-items:center;background:var(--brand-orange);color:#fff;font-size:7px;border:2px solid var(--panel)}
-.persistent-gallery-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;align-items:start!important}
-.gallery-project-window{height:640px!important;min-height:640px!important;max-height:640px!important;overflow:visible!important}
-.gallery-project-card{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;border:1px solid #303744;background:#0b0e13;border-radius:16px;overflow:hidden;min-width:0}
-.gallery-project-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:13px 14px 10px;border-bottom:1px solid var(--line);min-height:70px}.gallery-project-card-head>div{min-width:0}.gallery-project-card-head strong,.gallery-project-card-head small{display:block}.gallery-project-card-head strong{font-size:11px;line-height:1.25}.gallery-project-card-head small{margin-top:4px;font-size:8px;color:var(--muted)}
-.gallery-project-scroll{min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 10px 74px;scrollbar-gutter:stable;scroll-snap-type:y proximity;overscroll-behavior:contain;background:#090b0f}.gallery-project-scroll::-webkit-scrollbar{width:7px}.gallery-project-scroll::-webkit-scrollbar-thumb{background:#343b47;border-radius:99px}.gallery-project-scroll::-webkit-scrollbar-track{background:#11151b}
-.gallery-project-art-slide{position:relative;scroll-snap-align:start;margin-bottom:14px;padding:8px;border:1px solid var(--line);border-radius:13px;background:#10141a;min-height:430px}.gallery-project-art-slide:not(:last-child){margin-bottom:-46px;padding-bottom:62px}.gallery-project-art-slide:not(:first-child){box-shadow:0 -10px 30px rgba(0,0,0,.22)}
-.gallery-project-art-label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}.gallery-project-art-label strong{font-size:9px}.gallery-project-art-label span{font-size:6px;font-weight:900;letter-spacing:.09em;color:var(--brand-orange);border:1px solid color-mix(in srgb,var(--brand-orange) 35%,transparent);border-radius:99px;padding:3px 5px}
-.gallery-project-art-preview{display:grid;place-items:center;width:100%;height:330px;padding:0;border:0;border-radius:10px;overflow:hidden;background:#07090c;cursor:pointer}.gallery-project-art-preview img{display:block;width:100%;height:100%;object-fit:contain}
-.gallery-project-art-mini-actions{display:flex;align-items:center;gap:5px;margin-top:8px;position:relative;z-index:8}.gallery-project-art-mini-actions>.mini-btn{height:27px!important;padding:0 7px!important;font-size:7px!important}.gallery-slide-more-wrap{margin-left:auto!important;flex:0 0 auto!important}.gallery-slide-more{width:30px!important}.gallery-slide-more-wrap .gallery-popover{top:auto!important;bottom:34px!important;right:0!important;left:auto!important}
-.gallery-project-fixed-actions{position:relative;z-index:20;padding:9px 10px 10px;border-top:1px solid var(--line);background:#0d1015;min-height:52px;overflow:visible}.gallery-project-fixed-actions .gallery-actions-clean{margin:0!important;display:flex!important;flex-wrap:nowrap!important;gap:5px!important;overflow:visible!important}.gallery-project-fixed-actions .gallery-main-action{flex:1 1 auto!important;min-width:0!important;padding:0 6px!important;font-size:7.5px!important}.gallery-project-fixed-actions .gallery-more-btn{flex:0 0 31px!important}.gallery-project-fixed-actions .gallery-action-popover-wrap{flex:1 1 auto!important;min-width:0!important}.gallery-project-fixed-actions .gallery-action-popover-wrap .gallery-main-action{width:100%!important}.gallery-project-fixed-actions .gallery-more-wrap{flex:0 0 auto!important}.gallery-project-fixed-actions .gallery-popover{bottom:38px!important;top:auto!important}
-.gallery-project-window:has(.gallery-popover.open){z-index:300!important}.gallery-project-window .gallery-popover.open{z-index:500!important}
-@media(max-width:1150px){.persistent-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
-@media(max-width:760px){.persistent-gallery-grid{grid-template-columns:1fr!important}.gallery-project-window{height:620px!important;min-height:620px!important;max-height:620px!important}.topbar-notifications-btn span{display:none}.gallery-project-art-preview{height:310px}}
+
+/* CHURCHDESIGN v0.66 — Galeria restaurada + limite inteligente */
+.persistent-gallery-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  align-items:start!important;
+}
+.gallery-project-wrap{
+  overflow:visible!important;
+}
+.gallery-family-card,
+.persistent-gallery-card{
+  max-height:760px!important;
+}
+.gallery-family-card{
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:visible!important;
+}
+.gallery-family-main{
+  flex:0 0 auto!important;
+}
+.gallery-family-derivatives{
+  flex:0 1 auto!important;
+  max-height:330px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:auto!important;
+  scrollbar-gutter:stable!important;
+  padding-right:4px!important;
+}
+.gallery-family-derivatives::-webkit-scrollbar{width:7px}
+.gallery-family-derivatives::-webkit-scrollbar-thumb{border-radius:99px}
+.gallery-family-derivatives-scroll-hint{
+  display:none;
+}
+.gallery-family-card:has(.gallery-family-derivatives[data-overflowing="true"]) .gallery-family-derivatives-scroll-hint{
+  display:block;
+  margin-top:7px;
+  color:var(--muted);
+  font-size:7px;
+  text-align:center;
+  letter-spacing:.05em;
+}
+.gallery-actions-clean{
+  max-width:100%!important;
+}
+.gallery-actions-clean .gallery-main-action,
+.gallery-actions-clean .gallery-more-btn{
+  min-width:0!important;
+}
+.gallery-family-info,
+.gallery-derivative-body,
+.persistent-gallery-body{
+  min-width:0!important;
+}
+.gallery-project-wrap:has(.gallery-popover.open){
+  z-index:250!important;
+}
+.gallery-popover.open{
+  z-index:1000!important;
+}
+
+/* MODO ESCURO — Galeria */
+html:not([data-theme="light"]) .persistent-gallery-card,
+html:not([data-theme="light"]) .gallery-family-card,
+html:not([data-theme="light"]) .gallery-derivative-card,
+html:not([data-theme="light"]) .gallery-list-row{
+  background:#0b0e13!important;
+  border-color:#303744!important;
+  color:#f5f7fb!important;
+}
+html:not([data-theme="light"]) .gallery-derivative-card{
+  background:#10141a!important;
+}
+html:not([data-theme="light"]) .gallery-family-main-preview,
+html:not([data-theme="light"]) .gallery-derivative-preview,
+html:not([data-theme="light"]) .gallery-list-main-thumb,
+html:not([data-theme="light"]) .gallery-list-child-thumb{
+  background:#07090c!important;
+}
+html:not([data-theme="light"]) .gallery-family-derivatives::-webkit-scrollbar-track{background:#11151b}
+html:not([data-theme="light"]) .gallery-family-derivatives::-webkit-scrollbar-thumb{background:#343b47}
+
+/* MODO CLARO — Galeria */
+html[data-theme="light"] .gallery-modal-panel,
+html[data-theme="light"] .gallery-modal-panel>.modal-body,
+html[data-theme="light"] .gallery-toolbar{
+  background:#f7f8fa!important;
+  color:#1a1e24!important;
+}
+html[data-theme="light"] .persistent-gallery-card,
+html[data-theme="light"] .gallery-family-card,
+html[data-theme="light"] .gallery-derivative-card,
+html[data-theme="light"] .gallery-list-row{
+  background:#ffffff!important;
+  border-color:#dfe3e8!important;
+  color:#1a1e24!important;
+  box-shadow:0 4px 16px rgba(30,38,48,.045)!important;
+}
+html[data-theme="light"] .gallery-family-head,
+html[data-theme="light"] .gallery-family-derivatives{
+  border-color:#e4e7eb!important;
+}
+html[data-theme="light"] .gallery-family-main-preview,
+html[data-theme="light"] .gallery-derivative-preview,
+html[data-theme="light"] .gallery-list-main-thumb,
+html[data-theme="light"] .gallery-list-child-thumb,
+html[data-theme="light"] .persistent-gallery-card>img{
+  background:#f0f2f5!important;
+}
+html[data-theme="light"] .gallery-family-head strong,
+html[data-theme="light"] .gallery-family-info>strong,
+html[data-theme="light"] .gallery-derivative-body strong,
+html[data-theme="light"] .persistent-gallery-body strong{
+  color:#171b21!important;
+}
+html[data-theme="light"] .gallery-family-head small,
+html[data-theme="light"] .gallery-family-info>small,
+html[data-theme="light"] .gallery-derivative-body small,
+html[data-theme="light"] .persistent-gallery-body small{
+  color:#737b86!important;
+}
+html[data-theme="light"] .gallery-actions-clean .gallery-main-action,
+html[data-theme="light"] .gallery-actions-clean .gallery-more-btn{
+  background:#f8f9fb!important;
+  border-color:#d9dee5!important;
+  color:#242a31!important;
+}
+html[data-theme="light"] .gallery-actions-clean .gallery-main-action:hover,
+html[data-theme="light"] .gallery-actions-clean .gallery-more-btn:hover{
+  background:#eef1f5!important;
+}
+html[data-theme="light"] .gallery-popover{
+  background:#ffffff!important;
+  border-color:#dce1e7!important;
+  color:#1b2027!important;
+  box-shadow:0 18px 42px rgba(24,31,40,.14)!important;
+}
+html[data-theme="light"] .gallery-popover button{
+  color:#222831!important;
+}
+html[data-theme="light"] .gallery-popover button:hover{
+  background:#f1f3f6!important;
+}
+html[data-theme="light"] .gallery-family-derivatives::-webkit-scrollbar-track{background:#edf0f3}
+html[data-theme="light"] .gallery-family-derivatives::-webkit-scrollbar-thumb{background:#c8ced6}
+
+@media(max-width:1150px){
+  .persistent-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:720px){
+  .persistent-gallery-grid{grid-template-columns:1fr!important}
+  .gallery-family-card,.persistent-gallery-card{max-height:none!important}
+  .gallery-family-derivatives{max-height:360px!important}
+}
 
 
-.gallery-project-scroll{position:relative!important}
-.gallery-project-scroll:after{content:"";position:sticky;display:block;left:0;right:0;bottom:-74px;height:34px;margin-top:-34px;pointer-events:none;background:linear-gradient(to bottom,transparent,rgba(9,11,15,.92))}
-.gallery-project-art-slide:first-child:not(:last-child):after{content:"DESLIZE PARA VER MAIS";display:block;margin:12px auto 0;text-align:center;font-size:6.5px;font-weight:850;letter-spacing:.08em;color:var(--muted)}
+/* CHURCHDESIGN v0.67 — navegação principal padronizada */
+.sidebar .nav-step,
+.sidebar .gallery-btn,
+.sidebar .sidebar-project-btn,
+.sidebar .account-card button,
+.sidebar [data-open-feed],
+.sidebar [data-open-create],
+.sidebar [data-open-notifications],
+.sidebar [data-open-church],
+.sidebar [data-open-gallery],
+.sidebar [data-nav-action],
+.topbar-notifications-btn{
+  min-height:38px!important;
+  height:38px!important;
+  border-radius:10px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:9px!important;
+  padding:0 11px!important;
+  line-height:1!important;
+  font-size:10px!important;
+  font-weight:780!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+  box-sizing:border-box!important;
+}
+.sidebar .nav-step *,
+.sidebar .gallery-btn *,
+.sidebar .sidebar-project-btn *,
+.topbar-notifications-btn *{
+  line-height:1!important;
+}
+.sidebar .nav-step>i,
+.sidebar .nav-step>.icon,
+.sidebar .gallery-btn>i,
+.sidebar .gallery-btn>.icon,
+.sidebar .sidebar-project-btn>i,
+.sidebar .sidebar-project-btn>.icon,
+.topbar-notifications-btn>i,
+.topbar-notifications-btn>.icon{
+  width:18px!important;
+  height:18px!important;
+  min-width:18px!important;
+  flex:0 0 18px!important;
+  display:grid!important;
+  place-items:center!important;
+  font-size:14px!important;
+  line-height:1!important;
+}
+.sidebar .nav-step svg,
+.sidebar .gallery-btn svg,
+.sidebar .sidebar-project-btn svg,
+.topbar-notifications-btn svg{
+  width:16px!important;
+  height:16px!important;
+  display:block!important;
+}
+.sidebar .nav-step span,
+.sidebar .gallery-btn span,
+.sidebar .sidebar-project-btn span,
+.topbar-notifications-btn span{
+  display:flex!important;
+  align-items:center!important;
+  min-width:0!important;
+  font-size:10px!important;
+  font-weight:780!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+  margin:0!important;
+}
+.sidebar .nav-step strong,
+.sidebar .gallery-btn strong,
+.sidebar .sidebar-project-btn strong{
+  font-size:10px!important;
+  font-weight:780!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+  margin:0!important;
+}
+.sidebar .nav-step,
+.sidebar .gallery-btn,
+.sidebar .sidebar-project-btn{
+  width:100%!important;
+  border:1px solid var(--field-border)!important;
+  background:var(--field-bg)!important;
+  color:var(--text)!important;
+  box-shadow:none!important;
+}
+.sidebar .nav-step:hover,
+.sidebar .gallery-btn:hover,
+.sidebar .sidebar-project-btn:hover{
+  background:var(--soft-surface)!important;
+  border-color:color-mix(in srgb,var(--brand-orange) 22%,var(--field-border))!important;
+}
+.sidebar .nav-step.active,
+.sidebar .gallery-btn.active,
+.sidebar .sidebar-project-btn.active{
+  background:color-mix(in srgb,var(--brand-orange) 9%,var(--field-bg))!important;
+  border-color:color-mix(in srgb,var(--brand-orange) 42%,var(--field-border))!important;
+  color:var(--text)!important;
+}
+.sidebar .nav-step.active:before,
+.sidebar .gallery-btn.active:before,
+.sidebar .sidebar-project-btn.active:before{
+  display:none!important;
+}
+
+/* Corrige botões que tinham ícone solto em texto/emoji */
+.sidebar .nav-step,
+.sidebar .gallery-btn,
+.sidebar .sidebar-project-btn,
+.topbar-notifications-btn{
+  white-space:nowrap!important;
+}
+.sidebar .nav-step::first-letter,
+.sidebar .gallery-btn::first-letter,
+.sidebar .sidebar-project-btn::first-letter{
+  font-size:14px;
+}
+
+/* Grupos com o mesmo ritmo vertical */
+.sidebar-flow,
+.sidebar-primary-nav,
+.sidebar-actions{
+  display:grid!important;
+  gap:6px!important;
+}
+.sidebar hr,
+.sidebar .sidebar-divider{
+  margin:10px 0!important;
+}
+
+/* Topbar Notificações acompanha o mesmo padrão */
+.topbar-notifications-btn{
+  justify-content:center!important;
+  background:var(--field-bg)!important;
+  border:1px solid var(--field-border)!important;
+  color:var(--text)!important;
+  padding:0 12px!important;
+}
+.topbar-notifications-btn:hover{
+  background:var(--soft-surface)!important;
+}
+
+/* MODO CLARO */
+html[data-theme="light"] .sidebar .nav-step,
+html[data-theme="light"] .sidebar .gallery-btn,
+html[data-theme="light"] .sidebar .sidebar-project-btn,
+html[data-theme="light"] .topbar-notifications-btn{
+  background:#ffffff!important;
+  color:#20252b!important;
+  border-color:#dfe3e8!important;
+}
+html[data-theme="light"] .sidebar .nav-step:hover,
+html[data-theme="light"] .sidebar .gallery-btn:hover,
+html[data-theme="light"] .sidebar .sidebar-project-btn:hover,
+html[data-theme="light"] .topbar-notifications-btn:hover{
+  background:#f3f5f7!important;
+  border-color:#cfd5dc!important;
+}
+html[data-theme="light"] .sidebar .nav-step.active,
+html[data-theme="light"] .sidebar .gallery-btn.active,
+html[data-theme="light"] .sidebar .sidebar-project-btn.active{
+  background:#fff6f1!important;
+  border-color:#f3b28e!important;
+  color:#1d2228!important;
+}
+
+/* MODO ESCURO */
+html:not([data-theme="light"]) .sidebar .nav-step,
+html:not([data-theme="light"]) .sidebar .gallery-btn,
+html:not([data-theme="light"]) .sidebar .sidebar-project-btn,
+html:not([data-theme="light"]) .topbar-notifications-btn{
+  background:#11151b!important;
+  color:#f0f3f7!important;
+  border-color:#2b323c!important;
+}
+html:not([data-theme="light"]) .sidebar .nav-step:hover,
+html:not([data-theme="light"]) .sidebar .gallery-btn:hover,
+html:not([data-theme="light"]) .sidebar .sidebar-project-btn:hover,
+html:not([data-theme="light"]) .topbar-notifications-btn:hover{
+  background:#171c24!important;
+  border-color:#3a4350!important;
+}
+html:not([data-theme="light"]) .sidebar .nav-step.active,
+html:not([data-theme="light"]) .sidebar .gallery-btn.active,
+html:not([data-theme="light"]) .sidebar .sidebar-project-btn.active{
+  background:#201814!important;
+  border-color:#6a402e!important;
+}
+@media(max-width:900px){
+  .sidebar .nav-step,
+  .sidebar .gallery-btn,
+  .sidebar .sidebar-project-btn{
+    min-height:40px!important;
+    height:40px!important;
+    font-size:10px!important;
+  }
+}
 
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
@@ -1929,7 +2264,7 @@ html[data-theme="light"] .gallery-popover{background:#fff!important;box-shadow:0
       </nav>
       <div class="church-switcher church-switcher-premium" id="churchSwitcherWrap" style="display:none">
         <div class="church-section-title">
-          <span>MINHAS IGREJAS</span>
+          <span>Minhas Igrejas</span>
           <button class="church-add-btn" type="button" onclick="createAnotherChurch()" title="Nova igreja" aria-label="Nova igreja">＋</button>
         </div>
         <select id="churchSwitcher" aria-hidden="true" tabindex="-1"></select>
@@ -1937,7 +2272,7 @@ html[data-theme="light"] .gallery-popover{background:#fff!important;box-shadow:0
         <small id="churchSwitcherRole" class="church-role-caption"></small>
       </div>
       <div class="account-card" id="sidebarAccount">
-        <h4>MINHA CONTA</h4>
+        <h4>Minha Conta</h4>
         <span class="account-email" id="accountEmail">—</span>
         <div class="account-row"><span>Referências salvas</span><strong id="accountRefUsage">0 / 30</strong></div>
         <button id="subscriptionAdminBtn" class="mini-btn" type="button" onclick="openSubscriptionAdmin()" style="display:none">Gerenciar assinaturas</button><button class="mini-btn account-signout" type="button" onclick="signOutChurchDesign()">Sair</button>
@@ -1951,7 +2286,7 @@ html[data-theme="light"] .gallery-popover{background:#fff!important;box-shadow:0
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.65</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.67</div>
   
   <script>
 const state={
@@ -4134,47 +4469,9 @@ function galleryFamilyListHTML(family){
 }
 
 function galleryFamilyHTML(family){
-  const x=family.main,children=family.derivatives||[],title=galleryThemeTitle(x),labels=galleryFamilyFormatLabels(family);
-  const all=[x,...children],wrapStart=`<div class="gallery-project-wrap gallery-project-window ${galleryProjectSelection.has(String(family.groupId))?'selected-project':''}" ${galleryProjectCardAttrs(family)}>${galleryProjectSelectionControl(family)}`,wrapEnd='</div>';
-  const artSlides=all.map((art,i)=>{
-    const artId=esc(String(art.galleryId||'')),label=labels.get(String(art.galleryId))||galleryFormatBaseLabel(art);
-    return `<section class="gallery-project-art-slide ${i===0?'cover-slide':''}">
-      <div class="gallery-project-art-label"><strong>${esc(label)}</strong>${i===0?'<span>CAPA</span>':''}</div>
-      <button type="button" class="gallery-project-art-preview" data-gallery-fullscreen="${artId}" aria-label="Abrir arte em tela cheia"><img src="${art.url||art.dataUrl}" alt="${esc(label)}"></button>
-      <div class="gallery-project-art-mini-actions">
-        <button type="button" class="mini-btn" data-gallery-download-menu="${artId}">↓ Baixar</button>
-        <button type="button" class="mini-btn" data-gallery-fullscreen="${artId}">⛶ Ver</button>
-        <div class="gallery-action-popover-wrap gallery-slide-more-wrap">
-          <button type="button" class="mini-btn gallery-slide-more" data-gallery-more="${artId}">•••</button>
-          <div class="gallery-popover gallery-download-popover" data-gallery-download-popover="${artId}">
-            <button type="button" data-gallery-download-direct="${artId}"><strong>↓ Baixar direto</strong><small>Arquivo em alta resolução</small></button>
-            <button type="button" data-gallery-share="${artId}"><strong>↗ Compartilhar link</strong><small>Página temporária com o pacote</small></button>
-          </div>
-          <div class="gallery-popover gallery-more-popover" data-gallery-more-popover="${artId}">
-            <button type="button" data-gallery-report="${artId}">📝 <span>Relatório</span></button>
-            <button type="button" data-gallery-rename="${artId}">✎ <span>Renomear projeto</span></button>
-            <button type="button" data-gallery-diagnostic="${artId}">◎ <span>Diagnóstico de logos</span></button>
-            <button type="button" data-gallery-logo-assistant="${artId}">◈ <span>Assistente de Logos</span></button>
-            ${i>0?`<button type="button" data-gallery-correct="${artId}">↺ <span>Corrigir</span></button>`:''}
-            <button type="button" data-gallery-reference="${artId}">⊕ <span>Usar como referência</span></button>
-            <div class="gallery-more-divider"></div><div class="gallery-more-subtitle">Gerar derivadas</div>
-            <button type="button" data-gallery-child="${artId}|youtube">▻ <span>YouTube</span></button>
-            <button type="button" data-gallery-child="${artId}|screen">▰ <span>Telão</span></button>
-            <button type="button" data-gallery-child="${artId}|story">▯ <span>Stories</span></button>
-            <button type="button" data-gallery-child="${artId}|background">▧ <span>Fundo</span></button>
-            <button type="button" data-gallery-child="${artId}|free">◇ <span>Modo Livre</span></button>
-            <div class="gallery-more-divider"></div>
-            <button class="danger" type="button" data-gallery-delete="${artId}">⌫ <span>Excluir esta arte</span></button>
-          </div>
-        </div>
-      </div>
-    </section>`;
-  }).join('');
-  return `${wrapStart}<article class="gallery-project-card">
-    <header class="gallery-project-card-head"><div><strong>${esc(title)}${galleryDraftBadge(x)}${family.merged?'<span class="merged-project-badge">MESCLADO</span>':''}</strong><small>${all.length} arte${all.length===1?'':'s'} no projeto</small></div><span class="gallery-family-count">${children.length?`${children.length} adicional${children.length===1?'':'is'}`:'Somente capa'}</span></header>
-    <div class="gallery-project-scroll" tabindex="0">${artSlides}</div>
-    <footer class="gallery-project-fixed-actions">${galleryActionsHTML(x)}</footer>
-  </article>${wrapEnd}`;
+  const x=family.main,children=family.derivatives||[],title=galleryThemeTitle(x),labels=galleryFamilyFormatLabels(family),wrapStart=`<div class="gallery-project-wrap ${galleryProjectSelection.has(String(family.groupId))?'selected-project':''}" ${galleryProjectCardAttrs(family)}>${galleryProjectSelectionControl(family)}`,wrapEnd='</div>';
+  if(!children.length)return `${wrapStart}<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"><div class="persistent-gallery-body"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(labels.get(String(x.galleryId))||galleryFormatBaseLabel(x))}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}</div><div class="gallery-family-derivatives-scroll-hint">Role para ver mais artes</div></div>${wrapEnd}`;
+  return `${wrapStart}<div class="gallery-family-card"><div class="gallery-family-head"><div><strong>${esc(title)}${galleryDraftBadge(x)}${family.merged?'<span class="merged-project-badge">MESCLADO</span>':''}</strong><small>${family.merged?'Projetos mesclados • capa preservada do projeto mais antigo':'Principal + artes derivadas reunidas no mesmo projeto'}</small></div><span class="gallery-family-count">${children.length} arte${children.length===1?'':'s'} adicional${children.length===1?'':'is'}</span></div><div class="gallery-family-main"><div class="gallery-family-main-preview" data-gallery-fullscreen="${esc(String(x.galleryId))}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"></div><div class="gallery-family-info"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(labels.get(String(x.galleryId))||galleryFormatBaseLabel(x))}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}</div></div><div class="gallery-family-derivatives">${children.map(d=>`<div class="gallery-derivative-card"><div class="gallery-derivative-preview" data-gallery-fullscreen="${esc(String(d.galleryId||''))}"><img src="${d.url||d.dataUrl}" alt="${esc(galleryThemeTitle(d))}"></div><div class="gallery-derivative-body"><strong>${esc(labels.get(String(d.galleryId))||galleryFormatBaseLabel(d))}${galleryDraftBadge(d)}</strong><small>${formatDateTime(d.createdAt)}</small>${galleryActionsHTML(d,true)}</div></div>`).join('')}</div></div>${wrapEnd}`;
 }
 function isDataImage(value){
   return typeof value==='string' && /^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(value.trim());
@@ -4521,6 +4818,26 @@ async function deleteGalleryProjectByArt(galleryId){
   }
 }
 
+
+function bindGalleryInnerScrollHandoff(root=document){
+  root.querySelectorAll('.gallery-family-derivatives').forEach(scroller=>{
+    const refreshOverflow=()=>scroller.dataset.overflowing=scroller.scrollHeight>scroller.clientHeight+2?'true':'false';
+    refreshOverflow();
+    scroller.addEventListener('wheel',e=>{
+      const down=e.deltaY>0,up=e.deltaY<0;
+      const atBottom=scroller.scrollTop+scroller.clientHeight>=scroller.scrollHeight-2;
+      const atTop=scroller.scrollTop<=2;
+      if((down&&atBottom)||(up&&atTop)){
+        const outer=scroller.closest('.gallery-modal-panel')?.querySelector(':scope > .modal-body')||scroller.closest('.modal-body');
+        if(outer){
+          outer.scrollTop+=e.deltaY;
+          e.preventDefault();
+        }
+      }
+    },{passive:false});
+    scroller.addEventListener('scroll',refreshOverflow,{passive:true});
+  });
+}
 window.openGallery=function(query='',viewMode=null){
   const root=document.querySelector('#modalRoot'),items=allPersistentGalleryItems(),q=String(query||'').trim().toLowerCase();
   if(viewMode)state.galleryViewMode=viewMode;
@@ -4535,6 +4852,7 @@ window.openGallery=function(query='',viewMode=null){
     search.onsearch=()=>openGallery(search.value,view);
   }
   root.querySelectorAll('[data-gallery-view]').forEach(b=>b.onclick=()=>openGallery(search?.value||'',b.dataset.galleryView));
+  bindGalleryInnerScrollHandoff(root);
   const selectProjectsBtn=root.querySelector('#gallerySelectProjectsBtn');
   if(selectProjectsBtn)selectProjectsBtn.onclick=()=>{const body=root.querySelector('.gallery-modal-panel>.modal-body');const y=body?.scrollTop||0;galleryProjectSelectMode=!galleryProjectSelectMode;if(!galleryProjectSelectMode)galleryProjectSelection.clear();openGallery(search?.value||'',view);requestAnimationFrame(()=>{const next=document.querySelector('.gallery-modal-panel>.modal-body');if(next)next.scrollTop=y})};
   const mergeSelectedBtn=root.querySelector('#galleryMergeSelectedBtn');if(mergeSelectedBtn)mergeSelectedBtn.onclick=()=>mergeGalleryProjects([...galleryProjectSelection]);
@@ -5445,7 +5763,7 @@ function screenQuickMode(){restoreCreationFooter();if(state.mode==='quick')updat
   <div class="card"><div class="field"><label>Título principal</label><input id="qTitle" value="${esc(state.quick.title)}" placeholder="Ex.: O PREÇO DO PALÁCIO"></div><div class="field"><label>Subtítulo</label><input id="qSubtitle" value="${esc(state.quick.subtitle)}" placeholder="Opcional"></div><div class="field"><label>Informação secundária</label><input id="qSecondaryInfo" value="${esc(state.quick.secondaryInfo||'')}" placeholder="Ex.: Entrada gratuita • Traga sua família"><small style="display:block;color:var(--muted);font-size:8px;margin-top:4px">Aparecerá menor que o título, deslocada para uma área aberta da composição.</small></div><div class="grid2"><div class="field"><label>Público-alvo</label><select id="qAudience">${audienceOptions.map(o=>`<option value="${o[0]}" ${state.quick.audience===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div><div class="field"><label>Estilo</label><select id="qDesignStyle">${designStyleOptions.map(o=>`<option value="${o[0]}" ${state.quick.designStyle===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div></div><div class="grid2"><div class="field"><label>Data</label><input id="qDate" value="${esc(state.quick.date)}" placeholder="QUARTA - 18/06"></div><div class="field"><label>Horário</label><input id="qTime" value="${esc(state.quick.time)}" placeholder="19:30H"></div></div><div class="field"><label>Endereço</label><input id="qAddress" value="${esc(state.quick.address||state.church.address)}"></div><div class="field church-name-mode-field"><label>Identificação da igreja</label><div class="church-name-mode-options"><label class="church-name-mode-option ${state.quick.churchNameMode==='text'?'selected':''}"><input type="radio" name="qChurchNameMode" value="text" ${state.quick.churchNameMode==='text'?'checked':''}><span><strong>Adicionar nome da igreja na arte</strong><small>O nome salvo em Minha Igreja será um texto autorizado da composição.</small></span></label><label class="church-name-mode-option ${state.quick.churchNameMode!=='text'?'selected':''}"><input type="radio" name="qChurchNameMode" value="logo-only" ${state.quick.churchNameMode!=='text'?'checked':''}><span><strong>Ocultar nome da igreja e inserir logomarca na próxima etapa</strong><small>O nome não poderá ser escrito pela I.A.; a logo original será adicionada no Assistente de Logos.</small></span></label></div></div><div class="grid2"><div class="field"><label>Cor predominante</label><div class="color-mode-row"><select id="qColorMode"><option value="reference" ${state.quick.dominantColorMode==='reference'?'selected':''}>Manter cores da referência</option><option value="custom" ${state.quick.dominantColorMode!=='reference'?'selected':''}>Escolher cor</option></select><div id="qColorPickerWrap" class="color-picker-wrap ${state.quick.dominantColorMode==='reference'?'hidden':''}"><input id="qColor" class="quick-color" type="color" value="${esc(state.quick.dominantColor)}"></div></div></div><div class="field"><label>Efeito</label><select id="qEffect"><option value="none" ${state.quick.effect==='none'?'selected':''}>Nenhum</option>${effectCatalog.map(e=>`<option value="${e.id}" ${state.quick.effect===e.id?'selected':''}>${e.name}</option>`).join('')}</select></div></div><label class="layer" style="cursor:pointer"><input id="qIllustrate" type="checkbox" ${state.quick.illustrateTitle?'checked':''}><div class="layer-info"><strong>Ilustrar pelo título</strong><small>A I.A se inspira no título principal e tenta ilustrar com imagem, vetor, letreiro ou elemento gráfico a ideia passada por ele em algum lugar da arte</small></div></label>
   <h3 style="margin-top:18px">Tamanho da arte</h3><div class="quick-format-grid">${quickFormats.map(f=>{const t=f.id==='screen'?targetSpec('screen'):f;return `<div class="quick-format-card ${state.quick.format===f.id?'selected':''}" data-qformat="${f.id}"><div class="quick-format-sketch"><i style="${formatSketchStyle(t.width,t.height)}"></i></div><strong>${f.label}</strong><small>${f.id==='screen'?`${t.width}×${t.height}<br><span class="screen-format-config-note">Configure em "Minha Igreja"</span>`:`${f.width}×${f.height}`}</small></div>`}).join('')}</div></div>
   <div class="card"><h3>Direção visual</h3><div class="quick-mode-toggle"><button class="mini-btn ${state.quick.referenceMode==='upload'?'selected-result':''}" id="qUseReference" type="button">Usar referência</button><button class="mini-btn ${state.quick.referenceMode==='inspiration'?'selected-result':''}" id="qUseInspiration" type="button">Criar do zero</button></div>
-  ${state.quick.referenceMode==='upload'?`<p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p><div class="quick-ref-grid">${state.quick.feedReference?.url?`<div class="quick-asset feed-reference-card ${state.quick.reference===state.quick.feedReference.url?'selected':''}" data-feed-current-reference><span class="feed-reference-badge">FEED</span><img src="${esc(state.quick.feedReference.url)}"><strong>${esc(state.quick.feedReference.label||'Arte do Feed')}</strong><small>${esc(state.quick.feedReference.churchLabel||'')}</small></div>`:''}${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><label class="quick-upload-box" style="margin-top:10px"><strong>+ Subir referências</strong><span style="display:block;font-size:9px;color:var(--muted);margin-top:3px">JPG, PNG ou WEBP • pode selecionar várias</span><input id="qRefUpload" type="file" accept="image/*" multiple hidden></label><div id="qRefUploadLive" class="upload-live"></div>`:`<p>Banco de Inspiração interno. A IA usa a linguagem escolhida sem copiar uma peça específica.</p><div class="inspiration-grid">${inspirationCatalog.map(x=>`<div class="inspiration-card ${state.quick.inspirationStyle===x.id?'selected':''}" data-inspiration="${x.id}"><strong>${x.name}</strong><small>${x.prompt}</small></div>`).join('')}</div>`}
+  ${state.quick.referenceMode==='upload'?`<p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p><div class="quick-ref-grid">${state.quick.feedReference?.url?`<div class="quick-asset feed-reference-card ${state.quick.reference===state.quick.feedReference.url?'selected':''}" data-feed-current-reference><span class="feed-reference-badge">Feed</span><img src="${esc(state.quick.feedReference.url)}"><strong>${esc(state.quick.feedReference.label||'Arte do Feed')}</strong><small>${esc(state.quick.feedReference.churchLabel||'')}</small></div>`:''}${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><label class="quick-upload-box" style="margin-top:10px"><strong>+ Subir referências</strong><span style="display:block;font-size:9px;color:var(--muted);margin-top:3px">JPG, PNG ou WEBP • pode selecionar várias</span><input id="qRefUpload" type="file" accept="image/*" multiple hidden></label><div id="qRefUploadLive" class="upload-live"></div>`:`<p>Banco de Inspiração interno. A IA usa a linguagem escolhida sem copiar uma peça específica.</p><div class="inspiration-grid">${inspirationCatalog.map(x=>`<div class="inspiration-card ${state.quick.inspirationStyle===x.id?'selected':''}" data-inspiration="${x.id}"><strong>${x.name}</strong><small>${x.prompt}</small></div>`).join('')}</div>`}
   <h3 style="margin-top:18px">Pregadores (opcional)</h3><p style="margin-bottom:4px">Selecione até 3 pessoas. A ordem de seleção define a hierarquia da composição.</p><div class="pastor-order-summary">${(state.quick.pastorAssetIds||[]).slice(0,3).map((id,i)=>{const a=pastors.find(x=>x.id===id);return `<span class="pastor-order-pill"><b>${i===0?'PRINCIPAL':`AUXILIAR ${i}`}</b>${a?` • ${esc(a.meta?.displayName||a.name)}`:''}</span>`}).join('')}</div><p style="margin-bottom:4px;font-size:9px;color:var(--muted)">O PRINCIPAL terá prioridade de tamanho e posição mais central. Os auxiliares ficam visualmente secundários.</p><p style="margin-bottom:8px;font-size:9px;color:var(--muted)">O nome salvo em Minha Igreja é preenchido automaticamente. Se quiser gerar uma arte sem o nome do pregador aparecendo, apague o campo aqui em baixo; em uma nova sessão o nome salvo volta.</p><div class="quick-pastor-grid">${pastors.map(a=>{const rank=(state.quick.pastorAssetIds||[]).indexOf(a.id);return `<div class="quick-asset ${rank>=0?'multi-selected':''}" data-qpastor="${a.id}" data-pastor-rank="${rank}">${rank>=0?`<span class="pastor-rank-badge">${rank===0?'PRINCIPAL':`AUXILIAR ${rank}`}</span>`:''}<img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong>${rank>=0?`<input class="pastor-name-input" data-pastor-name="${a.id}" value="${esc(Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||''))}" placeholder="Nome na arte">`:''}</div>`}).join('')}</div><div class="field pastor-treatment-field ${(state.quick.pastorAssetIds||[]).length?'active':'inactive'}" style="margin:12px 0"><label>Tratamento das fotos dos pregadores</label><select id="qPastorPhotoTreatment" ${(state.quick.pastorAssetIds||[]).length?'':'disabled'}><option value="" ${!state.quick.pastorPhotoTreatment?'selected':''}>${(state.quick.pastorAssetIds||[]).length?'Escolha o tratamento':'Selecione ao menos uma foto'}</option><option value="original" ${state.quick.pastorPhotoTreatment==='original'?'selected':''}>Manter filtro original da foto</option><option value="bw" ${state.quick.pastorPhotoTreatment==='bw'?'selected':''}>Foto preto e branco</option><option value="ai" ${state.quick.pastorPhotoTreatment==='ai'?'selected':''}>Deixar a I.A escolher</option></select><small>${(state.quick.pastorAssetIds||[]).length?'Opcional. Se não escolher, nenhuma orientação extra de tratamento será enviada.':'Esta opção será habilitada depois que você selecionar uma foto.'}</small></div><h3 style="margin-top:18px">Imagem da igreja / imagem de fundo (opcional)</h3><p style="margin-bottom:8px">Se escolher uma foto, a IA deverá usá-la na composição do fundo/ambiente.</p><div class="church-image-grid">${churchImages.map(a=>`<div class="quick-asset ${state.quick.churchImageAssetId===a.id?'selected':''}" data-qchurch="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}<label class="library-upload"><strong>+ Imagem da igreja / fundo</strong><span>Salvar em Minha Igreja</span><input id="qChurchUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>
   <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE BASE • ${selectedFormat.label}</button><div id="quickProgress" class="quick-progress"><div class="quick-progress-track"><i id="quickProgressBar"></i></div><div class="quick-progress-row"><span id="quickProgressText">Processando sua arte...</span><span id="quickProgressPct">0%</span></div></div><button id="quickCancel" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div>${costSupervisorHTML()}</div><div id="quickResultsWrap" style="margin-top:18px">${renderQuickResultsHTML()}${allArtworksHTML()}</div></div>`;
   applyLogoPreviewBackgrounds(content);
@@ -5711,7 +6029,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.65</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.67</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
