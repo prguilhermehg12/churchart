@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.68 -->
+<!-- CHURCHDESIGN — index v0.69 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -2483,6 +2483,28 @@ html:not([data-theme="light"]) .sidebar-flow .nav-step.active{
   color:#ffffff!important;
 }
 
+
+/* CHURCHDESIGN v0.69 — ajustes finais da sidebar */
+.sidebar-project-btn{
+  padding:9px 11px 8px 11px!important;
+  gap:5px!important;
+}
+.sidebar-project-btn .project-current-kicker{
+  align-self:flex-start!important;
+  margin:0 0 1px -2px!important;
+  padding:0!important;
+  font-size:7.5px!important;
+  line-height:1!important;
+  letter-spacing:.04em!important;
+}
+.sidebar-project-btn #projectName{
+  margin-top:1px!important;
+}
+/* Com Notificações removido da lateral, Feed e Criar permanecem iguais */
+.sidebar-primary-actions{
+  gap:7px!important;
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -2507,23 +2529,22 @@ html:not([data-theme="light"]) .sidebar-flow .nav-step.active{
   <div class="app-shell" id="appShell" style="visibility:hidden">
     <aside class="sidebar">
       <div class="brand"><span class="brand-logo" role="img" aria-label="ChurchDesign"></span></div>
-      <button class="sidebar-project-btn" id="currentProjectBtn" type="button"><span class="project-current-kicker">projeto atual</span><strong id="projectName">nova arte</strong></button>
+      <button class="sidebar-project-btn" id="currentProjectBtn" type="button"><span class="project-current-kicker">Projeto atual</span><strong id="projectName">nova arte</strong></button>
       <div class="sidebar-library-actions">
-        <button class="sidebar-unified-btn my-church-btn" type="button" onclick="openMyChurch()"><span class="sidebar-nav-icon">⌂</span><span class="sidebar-nav-label">minha igreja</span></button>
-        <button class="sidebar-unified-btn gallery-btn" type="button" onclick="openGallery()"><span class="sidebar-nav-icon">▦</span><span class="sidebar-nav-label">galeria</span></button>
+        <button class="sidebar-unified-btn my-church-btn" type="button" onclick="openMyChurch()"><span class="sidebar-nav-icon">⌂</span><span class="sidebar-nav-label">Minha igreja</span></button>
+        <button class="sidebar-unified-btn gallery-btn" type="button" onclick="openGallery()"><span class="sidebar-nav-icon">▦</span><span class="sidebar-nav-label">Galeria</span></button>
       </div>
       <div class="sidebar-primary-actions">
-        <button class="sidebar-unified-btn feed-nav-btn" id="feedNavBtn" type="button" onclick="openFeed()"><span class="sidebar-nav-icon">◫</span><span class="sidebar-nav-label">feed</span></button>
-        <button class="sidebar-unified-btn create-nav-btn" id="createNavBtn" type="button" onclick="openCreateHome()"><span class="sidebar-nav-icon">＋</span><span class="sidebar-nav-label">criar</span></button>
-        <button class="sidebar-unified-btn notifications-nav-btn" id="notificationsNavBtn" type="button" onclick="openNotifications()"><span class="sidebar-nav-icon">♡</span><span class="sidebar-nav-label">notificações</span><span id="notificationBadge" class="notification-badge" style="display:none">0</span></button>
+        <button class="sidebar-unified-btn feed-nav-btn" id="feedNavBtn" type="button" onclick="openFeed()"><span class="sidebar-nav-icon">◫</span><span class="sidebar-nav-label">Feed</span></button>
+        <button class="sidebar-unified-btn create-nav-btn" id="createNavBtn" type="button" onclick="openCreateHome()"><span class="sidebar-nav-icon">＋</span><span class="sidebar-nav-label">Criar</span></button>
       </div>
       <nav id="stepNav" class="sidebar-flow">
-        <div class="nav-step active" data-flow-step="1"><b>1</b><span>criação da arte base</span></div>
-        <div class="nav-step" data-flow-step="2"><b>2</b><span>assistente de logos</span></div>
+        <div class="nav-step active" data-flow-step="1"><b>1</b><span>Criação da arte base</span></div>
+        <div class="nav-step" data-flow-step="2"><b>2</b><span>Assistente de logos</span></div>
       </nav>
       <div class="church-switcher church-switcher-premium" id="churchSwitcherWrap" style="display:none">
         <div class="church-section-title">
-          <span>minhas igrejas</span>
+          <span>Minhas igrejas</span>
           <button class="church-add-btn" type="button" onclick="createAnotherChurch()" title="Nova igreja" aria-label="Nova igreja">＋</button>
         </div>
         <select id="churchSwitcher" aria-hidden="true" tabindex="-1"></select>
@@ -2531,7 +2552,7 @@ html:not([data-theme="light"]) .sidebar-flow .nav-step.active{
         <small id="churchSwitcherRole" class="church-role-caption"></small>
       </div>
       <div class="account-card" id="sidebarAccount">
-        <h4>minha conta</h4>
+        <h4>Minha conta</h4>
         <span class="account-email" id="accountEmail">—</span>
         <div class="account-row"><span>Referências salvas</span><strong id="accountRefUsage">0 / 30</strong></div>
         <button id="subscriptionAdminBtn" class="mini-btn" type="button" onclick="openSubscriptionAdmin()" style="display:none">Gerenciar assinaturas</button><button class="mini-btn account-signout" type="button" onclick="signOutChurchDesign()">Sair</button>
@@ -2545,7 +2566,7 @@ html:not([data-theme="light"]) .sidebar-flow .nav-step.active{
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.68</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.69</div>
   
   <script>
 const state={
@@ -6288,7 +6309,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.68</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.69</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
