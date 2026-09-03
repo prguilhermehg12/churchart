@@ -1,5 +1,5 @@
-// CHURCHDESIGN — church-data v0.42.0
-// ChurchDesign V0.42.0 — multi-church, membership validated, web/mobile-ready
+// CHURCHDESIGN — church-data v0.43.0
+// ChurchDesign V0.43.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
 function envCfg(){
@@ -86,6 +86,28 @@ function shareExpiryISO(hours=168){
   return new Date(Date.now()+safe*60*60*1000).toISOString();
 }
 
+
+function galleryItemParentId(item){
+  return String(item?.parentArtworkId||item?.recipe?.parentArtworkId||"");
+}
+function galleryItemNaturalRoot(item,byId){
+  let cur=item,seen=new Set();
+  while(cur){
+    const id=String(cur?.galleryId||"");
+    if(!id||seen.has(id))break;
+    seen.add(id);
+    const pid=galleryItemParentId(cur);
+    if(pid&&byId.has(pid)){cur=byId.get(pid);continue}
+    break;
+  }
+  return String(cur?.galleryId||item?.galleryId||"");
+}
+function galleryItemMergeGroup(item,byId){
+  return String(item?.recipe?.mergeGroupId||item?.mergeGroupId||galleryItemNaturalRoot(item,byId));
+}
+function galleryItemTime(item){
+  return new Date(item?.createdAt||item?.recipe?.createdAt||item?.generationCreatedAt||0).getTime()||0;
+}
 async function latestGalleryMap(churchId){
   const rows=await serviceRest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=id,images,created_at&order=created_at.desc&limit=300`);
   const map=new Map();
@@ -535,6 +557,60 @@ module.exports=async function handler(req,res){
     }
 
 
+
+    if(action==="merge-gallery-projects"&&req.method==="POST"){
+      const requested=[...new Set((Array.isArray(req.body?.projectIds)?req.body.projectIds:[]).map(String).filter(Boolean))];
+      if(requested.length<2)throw Object.assign(new Error("Selecione pelo menos dois projetos para mesclar."),{statusCode:400});
+
+      const gm=await latestGalleryMap(churchId);
+      const byId=new Map([...gm.entries()].map(([id,x])=>[String(id),x]));
+      const requestedGroups=new Set();
+      for(const id of requested){
+        const item=byId.get(String(id));
+        if(!item)throw Object.assign(new Error("Um dos projetos selecionados não foi encontrado."),{statusCode:404});
+        requestedGroups.add(galleryItemMergeGroup(item,byId));
+      }
+      if(requestedGroups.size<2)throw Object.assign(new Error("Esses projetos já pertencem ao mesmo grupo."),{statusCode:409});
+
+      const members=[...gm.values()].filter(x=>requestedGroups.has(galleryItemMergeGroup(x,byId)));
+      if(!members.length)throw Object.assign(new Error("Nenhuma arte encontrada para os projetos selecionados."),{statusCode:404});
+
+      // Capa sempre = arte original do projeto mais antigo.
+      const roots=members.filter(x=>galleryItemNaturalRoot(x,byId)===String(x.galleryId||""));
+      roots.sort((a,b)=>galleryItemTime(a)-galleryItemTime(b));
+      const oldestRoot=roots[0]||members.slice().sort((a,b)=>galleryItemTime(a)-galleryItemTime(b))[0];
+      const mergeGroupId=String(oldestRoot.galleryId);
+      const mergedAt=new Date().toISOString();
+
+      // Atualiza somente a ocorrência persistida mais recente de cada galleryId.
+      const rows=await serviceRest(`church_generations?church_id=eq.${encodeURIComponent(churchId)}&select=id,images,created_at&order=created_at.desc&limit=300`);
+      const targetIds=new Set(members.map(x=>String(x.galleryId)));
+      const updatedIds=new Set();
+      const patches=[];
+      for(const g of (rows||[])){
+        const images=Array.isArray(g.images)?g.images:[];
+        let changed=false;
+        const next=images.map(im=>{
+          const gid=String(im?.galleryId||"");
+          if(!gid||!targetIds.has(gid)||updatedIds.has(gid))return im;
+          updatedIds.add(gid);changed=true;
+          return {
+            ...im,
+            mergeGroupId,
+            recipe:{...(im.recipe||{}),mergeGroupId,mergedAt,mergeCoverGalleryId:mergeGroupId}
+          };
+        });
+        if(changed)patches.push({id:g.id,images:next});
+        if(updatedIds.size>=targetIds.size)break;
+      }
+      for(const p of patches){
+        await serviceRest(`church_generations?id=eq.${encodeURIComponent(p.id)}&church_id=eq.${encodeURIComponent(churchId)}`,{
+          method:"PATCH",body:JSON.stringify({images:p.images})
+        });
+      }
+      return res.json({ok:true,mergeGroupId,coverGalleryId:mergeGroupId,mergedProjects:requestedGroups.size,mergedArtworks:members.length});
+    }
+
     if(action==="create-art-share"&&req.method==="POST"){
       const galleryId=String(req.body?.galleryId||"").trim();
       const expiresHours=Number(req.body?.expiresHours)||168;
@@ -546,23 +622,9 @@ module.exports=async function handler(req,res){
       if(source?.recipe?.finalized===false)throw Object.assign(new Error("A arte ainda é um rascunho."),{statusCode:409});
 
       const byId=new Map([...gm.entries()].map(([id,x])=>[String(id),x]));
-      function parentId(x){return String(x?.parentArtworkId||x?.recipe?.parentArtworkId||"")}
-      function rootId(x){
-        let cur=x,seen=new Set();
-        while(cur){
-          const id=String(cur.galleryId||"");
-          if(!id||seen.has(id))break;
-          seen.add(id);
-          const pid=parentId(cur);
-          if(!pid||!byId.has(pid))return id;
-          cur=byId.get(pid);
-        }
-        return String(x?.galleryId||"");
-      }
-
-      const root=rootId(source);
+      const root=galleryItemMergeGroup(source,byId);
       const packageItems=[...gm.values()]
-        .filter(x=>rootId(x)===root && x?.recipe?.finalized!==false)
+        .filter(x=>galleryItemMergeGroup(x,byId)===root && x?.recipe?.finalized!==false)
         .sort((a,b)=>{
           if(String(a.galleryId)===root)return -1;
           if(String(b.galleryId)===root)return 1;
@@ -572,7 +634,7 @@ module.exports=async function handler(req,res){
       const galleryIds=packageItems.map(x=>String(x.galleryId)).filter(Boolean);
       if(!galleryIds.length)throw Object.assign(new Error("Nenhuma arte finalizada disponível para compartilhar."),{statusCode:409});
 
-      const main=byId.get(root)||source;
+      const main=byId.get(root)||packageItems.slice().sort((a,b)=>galleryItemTime(a)-galleryItemTime(b))[0]||source;
       const title=String(main?.recipe?.projectName||main?.projectName||main?.recipe?.quick?.title||main?.label||"Pacote de artes").trim().slice(0,160);
       const token=shareToken(),expiresAt=shareExpiryISO(expiresHours);
 
