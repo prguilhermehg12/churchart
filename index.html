@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.64 -->
+<!-- CHURCHDESIGN — index v0.65 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1865,6 +1865,30 @@ html[data-theme="light"] .gallery-popover{background:#fff!important;box-shadow:0
   }
 }
 
+
+/* CHURCHDESIGN v0.65 — Galeria em janelas padronizadas */
+.screen-format-config-note{display:inline-block;margin-top:3px;font-size:7px;color:var(--muted);font-weight:650}
+.topbar-notifications-btn{position:relative;display:flex;align-items:center;gap:6px;height:34px;padding:0 10px;border:1px solid var(--field-border);border-radius:9px;background:var(--field-bg);color:var(--text);font-size:9px;font-weight:780;cursor:pointer}.topbar-notifications-btn:hover{background:var(--soft-surface)}
+.topbar-notification-badge{position:absolute;right:-5px;top:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:99px;place-items:center;background:var(--brand-orange);color:#fff;font-size:7px;border:2px solid var(--panel)}
+.persistent-gallery-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;align-items:start!important}
+.gallery-project-window{height:640px!important;min-height:640px!important;max-height:640px!important;overflow:visible!important}
+.gallery-project-card{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;border:1px solid #303744;background:#0b0e13;border-radius:16px;overflow:hidden;min-width:0}
+.gallery-project-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:13px 14px 10px;border-bottom:1px solid var(--line);min-height:70px}.gallery-project-card-head>div{min-width:0}.gallery-project-card-head strong,.gallery-project-card-head small{display:block}.gallery-project-card-head strong{font-size:11px;line-height:1.25}.gallery-project-card-head small{margin-top:4px;font-size:8px;color:var(--muted)}
+.gallery-project-scroll{min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 10px 74px;scrollbar-gutter:stable;scroll-snap-type:y proximity;overscroll-behavior:contain;background:#090b0f}.gallery-project-scroll::-webkit-scrollbar{width:7px}.gallery-project-scroll::-webkit-scrollbar-thumb{background:#343b47;border-radius:99px}.gallery-project-scroll::-webkit-scrollbar-track{background:#11151b}
+.gallery-project-art-slide{position:relative;scroll-snap-align:start;margin-bottom:14px;padding:8px;border:1px solid var(--line);border-radius:13px;background:#10141a;min-height:430px}.gallery-project-art-slide:not(:last-child){margin-bottom:-46px;padding-bottom:62px}.gallery-project-art-slide:not(:first-child){box-shadow:0 -10px 30px rgba(0,0,0,.22)}
+.gallery-project-art-label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}.gallery-project-art-label strong{font-size:9px}.gallery-project-art-label span{font-size:6px;font-weight:900;letter-spacing:.09em;color:var(--brand-orange);border:1px solid color-mix(in srgb,var(--brand-orange) 35%,transparent);border-radius:99px;padding:3px 5px}
+.gallery-project-art-preview{display:grid;place-items:center;width:100%;height:330px;padding:0;border:0;border-radius:10px;overflow:hidden;background:#07090c;cursor:pointer}.gallery-project-art-preview img{display:block;width:100%;height:100%;object-fit:contain}
+.gallery-project-art-mini-actions{display:flex;align-items:center;gap:5px;margin-top:8px;position:relative;z-index:8}.gallery-project-art-mini-actions>.mini-btn{height:27px!important;padding:0 7px!important;font-size:7px!important}.gallery-slide-more-wrap{margin-left:auto!important;flex:0 0 auto!important}.gallery-slide-more{width:30px!important}.gallery-slide-more-wrap .gallery-popover{top:auto!important;bottom:34px!important;right:0!important;left:auto!important}
+.gallery-project-fixed-actions{position:relative;z-index:20;padding:9px 10px 10px;border-top:1px solid var(--line);background:#0d1015;min-height:52px;overflow:visible}.gallery-project-fixed-actions .gallery-actions-clean{margin:0!important;display:flex!important;flex-wrap:nowrap!important;gap:5px!important;overflow:visible!important}.gallery-project-fixed-actions .gallery-main-action{flex:1 1 auto!important;min-width:0!important;padding:0 6px!important;font-size:7.5px!important}.gallery-project-fixed-actions .gallery-more-btn{flex:0 0 31px!important}.gallery-project-fixed-actions .gallery-action-popover-wrap{flex:1 1 auto!important;min-width:0!important}.gallery-project-fixed-actions .gallery-action-popover-wrap .gallery-main-action{width:100%!important}.gallery-project-fixed-actions .gallery-more-wrap{flex:0 0 auto!important}.gallery-project-fixed-actions .gallery-popover{bottom:38px!important;top:auto!important}
+.gallery-project-window:has(.gallery-popover.open){z-index:300!important}.gallery-project-window .gallery-popover.open{z-index:500!important}
+@media(max-width:1150px){.persistent-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:760px){.persistent-gallery-grid{grid-template-columns:1fr!important}.gallery-project-window{height:620px!important;min-height:620px!important;max-height:620px!important}.topbar-notifications-btn span{display:none}.gallery-project-art-preview{height:310px}}
+
+
+.gallery-project-scroll{position:relative!important}
+.gallery-project-scroll:after{content:"";position:sticky;display:block;left:0;right:0;bottom:-74px;height:34px;margin-top:-34px;pointer-events:none;background:linear-gradient(to bottom,transparent,rgba(9,11,15,.92))}
+.gallery-project-art-slide:first-child:not(:last-child):after{content:"DESLIZE PARA VER MAIS";display:block;margin:12px auto 0;text-align:center;font-size:6.5px;font-weight:850;letter-spacing:.08em;color:var(--muted)}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -1921,13 +1945,13 @@ html[data-theme="light"] .gallery-popover{background:#fff!important;box-shadow:0
     </aside>
 
     <main class="main">
-      <header class="topbar"><div><p class="eyebrow" id="eyebrow">CONFIGURAÇÃO</p><h1 id="pageTitle">Identidade da igreja</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="theme-toggle" aria-label="Aparência"><button id="themeLight" type="button">Claro</button><button id="themeDark" type="button">Escuro</button></div><div class="progress"><span id="progressText">Etapa 1 de 2</span><div><i id="progressBar"></i></div></div></div></header><div id="mobileStepbar" class="mobile-stepbar"></div>
+      <header class="topbar"><div><p class="eyebrow" id="eyebrow">CONFIGURAÇÃO</p><h1 id="pageTitle">Identidade da igreja</h1></div><div style="display:flex;align-items:center;gap:10px"><button class="topbar-notifications-btn" id="topbarNotificationsBtn" type="button" onclick="openNotifications()" title="Notificações" aria-label="Notificações">♡ <span>Notificações</span><b id="topbarNotificationBadge" class="topbar-notification-badge" style="display:none">0</b></button><div class="theme-toggle" aria-label="Aparência"><button id="themeLight" type="button">Claro</button><button id="themeDark" type="button">Escuro</button></div><div class="progress"><span id="progressText">Etapa 1 de 2</span><div><i id="progressBar"></i></div></div></div></header><div id="mobileStepbar" class="mobile-stepbar"></div>
       <section id="content" class="content"></section>
       <footer class="footer"><button id="backBtn" class="btn ghost">← Voltar</button><button id="nextBtn" class="btn primary">Continuar →</button></footer>
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.64</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.65</div>
   
   <script>
 const state={
@@ -4009,7 +4033,7 @@ function galleryActionsHTML(x,compact=false){
         <button type="button" data-gallery-child="${id}|background">▧ <span>Fundo</span></button>
         <button type="button" data-gallery-child="${id}|free">◇ <span>Modo Livre</span></button>
         <div class="gallery-more-divider"></div>
-        <button class="danger" type="button" data-gallery-delete="${id}">⌫ <span>Excluir</span></button>
+        ${compact?`<button class="danger" type="button" data-gallery-delete="${id}">⌫ <span>Excluir esta arte</span></button>`:`<button class="danger" type="button" data-gallery-delete-project="${id}">⌫ <span>Excluir projeto</span></button>`}
       </div>
     </div>
   </div>`;
@@ -4091,8 +4115,12 @@ async function mergeGalleryProjects(projectIds=[]){
 }
 function toggleGalleryProjectSelection(id){
   id=String(id||'');if(!id)return;
+  const body=document.querySelector('.gallery-modal-panel>.modal-body');
+  const scrollTop=body?.scrollTop||0;
+  const windowY=window.scrollY;
   if(galleryProjectSelection.has(id))galleryProjectSelection.delete(id);else galleryProjectSelection.add(id);
   openGallery(document.querySelector('#gallerySearch')?.value||'',state.galleryViewMode||'grid');
+  requestAnimationFrame(()=>{const nextBody=document.querySelector('.gallery-modal-panel>.modal-body');if(nextBody)nextBody.scrollTop=scrollTop;window.scrollTo(0,windowY)});
 }
 
 function galleryFamilySearchText(family){
@@ -4106,9 +4134,47 @@ function galleryFamilyListHTML(family){
 }
 
 function galleryFamilyHTML(family){
-  const x=family.main,children=family.derivatives||[],title=galleryThemeTitle(x),labels=galleryFamilyFormatLabels(family),wrapStart=`<div class="gallery-project-wrap ${galleryProjectSelection.has(String(family.groupId))?'selected-project':''}" ${galleryProjectCardAttrs(family)}>${galleryProjectSelectionControl(family)}`,wrapEnd='</div>';
-  if(!children.length)return `${wrapStart}<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"><div class="persistent-gallery-body"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(labels.get(String(x.galleryId))||galleryFormatBaseLabel(x))}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}</div></div>${wrapEnd}`;
-  return `${wrapStart}<div class="gallery-family-card"><div class="gallery-family-head"><div><strong>${esc(title)}${galleryDraftBadge(x)}${family.merged?'<span class="merged-project-badge">MESCLADO</span>':''}</strong><small>${family.merged?'Projetos mesclados • capa preservada do projeto mais antigo':'Principal + artes derivadas reunidas no mesmo projeto'}</small></div><span class="gallery-family-count">${children.length} arte${children.length===1?'':'s'} adicional${children.length===1?'':'is'}</span></div><div class="gallery-family-main"><div class="gallery-family-main-preview" data-gallery-fullscreen="${esc(String(x.galleryId))}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"></div><div class="gallery-family-info"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(labels.get(String(x.galleryId))||galleryFormatBaseLabel(x))}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}</div></div><div class="gallery-family-derivatives">${children.map(d=>`<div class="gallery-derivative-card"><div class="gallery-derivative-preview" data-gallery-fullscreen="${esc(String(d.galleryId||''))}"><img src="${d.url||d.dataUrl}" alt="${esc(galleryThemeTitle(d))}"></div><div class="gallery-derivative-body"><strong>${esc(labels.get(String(d.galleryId))||galleryFormatBaseLabel(d))}${galleryDraftBadge(d)}</strong><small>${formatDateTime(d.createdAt)}</small>${galleryActionsHTML(d,true)}</div></div>`).join('')}</div></div>${wrapEnd}`;
+  const x=family.main,children=family.derivatives||[],title=galleryThemeTitle(x),labels=galleryFamilyFormatLabels(family);
+  const all=[x,...children],wrapStart=`<div class="gallery-project-wrap gallery-project-window ${galleryProjectSelection.has(String(family.groupId))?'selected-project':''}" ${galleryProjectCardAttrs(family)}>${galleryProjectSelectionControl(family)}`,wrapEnd='</div>';
+  const artSlides=all.map((art,i)=>{
+    const artId=esc(String(art.galleryId||'')),label=labels.get(String(art.galleryId))||galleryFormatBaseLabel(art);
+    return `<section class="gallery-project-art-slide ${i===0?'cover-slide':''}">
+      <div class="gallery-project-art-label"><strong>${esc(label)}</strong>${i===0?'<span>CAPA</span>':''}</div>
+      <button type="button" class="gallery-project-art-preview" data-gallery-fullscreen="${artId}" aria-label="Abrir arte em tela cheia"><img src="${art.url||art.dataUrl}" alt="${esc(label)}"></button>
+      <div class="gallery-project-art-mini-actions">
+        <button type="button" class="mini-btn" data-gallery-download-menu="${artId}">↓ Baixar</button>
+        <button type="button" class="mini-btn" data-gallery-fullscreen="${artId}">⛶ Ver</button>
+        <div class="gallery-action-popover-wrap gallery-slide-more-wrap">
+          <button type="button" class="mini-btn gallery-slide-more" data-gallery-more="${artId}">•••</button>
+          <div class="gallery-popover gallery-download-popover" data-gallery-download-popover="${artId}">
+            <button type="button" data-gallery-download-direct="${artId}"><strong>↓ Baixar direto</strong><small>Arquivo em alta resolução</small></button>
+            <button type="button" data-gallery-share="${artId}"><strong>↗ Compartilhar link</strong><small>Página temporária com o pacote</small></button>
+          </div>
+          <div class="gallery-popover gallery-more-popover" data-gallery-more-popover="${artId}">
+            <button type="button" data-gallery-report="${artId}">📝 <span>Relatório</span></button>
+            <button type="button" data-gallery-rename="${artId}">✎ <span>Renomear projeto</span></button>
+            <button type="button" data-gallery-diagnostic="${artId}">◎ <span>Diagnóstico de logos</span></button>
+            <button type="button" data-gallery-logo-assistant="${artId}">◈ <span>Assistente de Logos</span></button>
+            ${i>0?`<button type="button" data-gallery-correct="${artId}">↺ <span>Corrigir</span></button>`:''}
+            <button type="button" data-gallery-reference="${artId}">⊕ <span>Usar como referência</span></button>
+            <div class="gallery-more-divider"></div><div class="gallery-more-subtitle">Gerar derivadas</div>
+            <button type="button" data-gallery-child="${artId}|youtube">▻ <span>YouTube</span></button>
+            <button type="button" data-gallery-child="${artId}|screen">▰ <span>Telão</span></button>
+            <button type="button" data-gallery-child="${artId}|story">▯ <span>Stories</span></button>
+            <button type="button" data-gallery-child="${artId}|background">▧ <span>Fundo</span></button>
+            <button type="button" data-gallery-child="${artId}|free">◇ <span>Modo Livre</span></button>
+            <div class="gallery-more-divider"></div>
+            <button class="danger" type="button" data-gallery-delete="${artId}">⌫ <span>Excluir esta arte</span></button>
+          </div>
+        </div>
+      </div>
+    </section>`;
+  }).join('');
+  return `${wrapStart}<article class="gallery-project-card">
+    <header class="gallery-project-card-head"><div><strong>${esc(title)}${galleryDraftBadge(x)}${family.merged?'<span class="merged-project-badge">MESCLADO</span>':''}</strong><small>${all.length} arte${all.length===1?'':'s'} no projeto</small></div><span class="gallery-family-count">${children.length?`${children.length} adicional${children.length===1?'':'is'}`:'Somente capa'}</span></header>
+    <div class="gallery-project-scroll" tabindex="0">${artSlides}</div>
+    <footer class="gallery-project-fixed-actions">${galleryActionsHTML(x)}</footer>
+  </article>${wrapEnd}`;
 }
 function isDataImage(value){
   return typeof value==='string' && /^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(value.trim());
@@ -4400,6 +4466,61 @@ async function publishGalleryItemManually(galleryId,button=null){
   }
 }
 
+
+async function deleteGalleryProjectByArt(galleryId){
+  const item=findGalleryItem(galleryId);if(!item)return;
+  const family=galleryFamilyForItem(galleryId);
+  const members=(family?.members||[item]).slice();
+  const projectTitle=galleryThemeTitle(family?.main||item);
+  const ok=await appConfirm(`Excluir o projeto "${projectTitle}" e todas as artes reunidas nele?`,{
+    title:'Excluir projeto',
+    confirmText:'Excluir projeto',
+    cancelText:'Cancelar',
+    icon:'🗑'
+  });
+  if(!ok)return;
+  try{
+    for(const art of members){
+      if(art.generationId==='local-recovery'||art.recoveryOnly){
+        galleryRecoveryRemove(art.galleryId);
+        continue;
+      }
+      const generation=(state.library.generations||[]).find(g=>String(g.id)===String(art.generationId));
+      const imageIndex=(generation?.images||[]).findIndex(im=>{
+        if(im?.galleryId&&String(im.galleryId)===String(art.galleryId))return true;
+        if(!im?.galleryId&&art.url&&String(im.url||im.dataUrl||'')===String(art.url||art.dataUrl||''))return true;
+        return false;
+      });
+      await apiJSON('delete-gallery-item',{
+        method:'DELETE',
+        body:{
+          generationId:art.generationId,
+          galleryId:art.galleryId,
+          imageUrl:art.url||art.dataUrl||'',
+          label:art.label||'',
+          imageIndex
+        }
+      });
+      galleryRecoveryRemove(art.galleryId);
+    }
+    const memberIds=new Set(members.map(x=>String(x.galleryId)));
+    const memberUrls=new Set(members.map(x=>String(x.url||x.dataUrl||'')).filter(Boolean));
+    state.library.generations=(state.library.generations||[]).map(g=>({
+      ...g,
+      images:(g.images||[]).filter(im=>{
+        if(im?.galleryId&&memberIds.has(String(im.galleryId)))return false;
+        if(!im?.galleryId&&memberUrls.has(String(im.url||im.dataUrl||'')))return false;
+        return true;
+      })
+    })).filter(g=>(g.images||[]).length);
+    state.gallerySavedIds=(state.gallerySavedIds||[]).filter(id=>!memberIds.has(String(id)));
+    openGallery(document.querySelector('#gallerySearch')?.value||'',state.galleryViewMode||'grid');
+    appToast('Projeto excluído da Galeria.',{type:'success',title:'Galeria'});
+  }catch(err){
+    appAlert('Não foi possível excluir o projeto: '+err.message,{type:'error',title:'Excluir projeto'});
+  }
+}
+
 window.openGallery=function(query='',viewMode=null){
   const root=document.querySelector('#modalRoot'),items=allPersistentGalleryItems(),q=String(query||'').trim().toLowerCase();
   if(viewMode)state.galleryViewMode=viewMode;
@@ -4415,7 +4536,7 @@ window.openGallery=function(query='',viewMode=null){
   }
   root.querySelectorAll('[data-gallery-view]').forEach(b=>b.onclick=()=>openGallery(search?.value||'',b.dataset.galleryView));
   const selectProjectsBtn=root.querySelector('#gallerySelectProjectsBtn');
-  if(selectProjectsBtn)selectProjectsBtn.onclick=()=>{galleryProjectSelectMode=!galleryProjectSelectMode;if(!galleryProjectSelectMode)galleryProjectSelection.clear();openGallery(search?.value||'',view)};
+  if(selectProjectsBtn)selectProjectsBtn.onclick=()=>{const body=root.querySelector('.gallery-modal-panel>.modal-body');const y=body?.scrollTop||0;galleryProjectSelectMode=!galleryProjectSelectMode;if(!galleryProjectSelectMode)galleryProjectSelection.clear();openGallery(search?.value||'',view);requestAnimationFrame(()=>{const next=document.querySelector('.gallery-modal-panel>.modal-body');if(next)next.scrollTop=y})};
   const mergeSelectedBtn=root.querySelector('#galleryMergeSelectedBtn');if(mergeSelectedBtn)mergeSelectedBtn.onclick=()=>mergeGalleryProjects([...galleryProjectSelection]);
   root.querySelectorAll('[data-gallery-project-check]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();toggleGalleryProjectSelection(b.dataset.galleryProjectCheck)});
   root.querySelectorAll('[data-gallery-project]').forEach(card=>{
@@ -4458,7 +4579,37 @@ window.openGallery=function(query='',viewMode=null){
   root.querySelectorAll('[data-gallery-fullscreen]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryFullscreen);if(x)openArtworkFullscreen(x.url,x.label||'Arte')});
   root.querySelectorAll('[data-gallery-diagnostic]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDiagnostic);if(!x)return;const a=galleryItemToQuickResult(x);openLogoDiagnostic(a)});
   root.querySelectorAll('[data-gallery-logo-assistant]').forEach(b=>b.onclick=e=>{e.stopPropagation();openGalleryLogoAssistant(b.dataset.galleryLogoAssistant)});
-  root.querySelectorAll('[data-gallery-delete]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDelete);if(!x)return;if(!(await appConfirm(`Excluir "${x.label||'esta arte'}" da Galeria?`,{title:'Excluir arte',confirmText:'Excluir',cancelText:'Cancelar',icon:'🗑'})))return;b.disabled=true;b.textContent='Excluindo...';try{if(x.generationId==='local-recovery'||x.recoveryOnly){galleryRecoveryRemove(x.galleryId)}else{await apiJSON('delete-gallery-item',{method:'DELETE',body:{generationId:x.generationId,galleryId:x.galleryId}});galleryRecoveryRemove(x.galleryId)}state.library.generations=(state.library.generations||[]).map(g=>{if(g.id!==x.generationId)return g;return{...g,images:(g.images||[]).filter(im=>(im.galleryId||'')!==x.galleryId)}}).filter(g=>(g.images||[]).length);state.gallerySavedIds=(state.gallerySavedIds||[]).filter(id=>id!==x.galleryId);openGallery(query)}catch(err){appAlert('Não foi possível excluir: '+err.message);b.disabled=false;b.textContent='Excluir'}});
+  root.querySelectorAll('[data-gallery-delete-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();deleteGalleryProjectByArt(b.dataset.galleryDeleteProject)});
+  root.querySelectorAll('[data-gallery-delete]').forEach(b=>b.onclick=async e=>{
+    e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDelete);if(!x)return;
+    if(!(await appConfirm(`Excluir "${x.label||'esta arte'}" da Galeria?`,{title:'Excluir arte',confirmText:'Excluir',cancelText:'Cancelar',icon:'🗑'})))return;
+    b.disabled=true;b.textContent='Excluindo...';
+    try{
+      if(x.generationId==='local-recovery'||x.recoveryOnly){galleryRecoveryRemove(x.galleryId)}
+      else{
+        const generation=(state.library.generations||[]).find(g=>String(g.id)===String(x.generationId));
+        const imageIndex=(generation?.images||[]).findIndex(im=>{
+          if(im?.galleryId&&String(im.galleryId)===String(x.galleryId))return true;
+          if(!im?.galleryId&&x.url&&String(im.url||im.dataUrl||'')===String(x.url||x.dataUrl||''))return true;
+          return false;
+        });
+        await apiJSON('delete-gallery-item',{method:'DELETE',body:{generationId:x.generationId,galleryId:x.galleryId,imageUrl:x.url||x.dataUrl||'',label:x.label||'',imageIndex}});
+        galleryRecoveryRemove(x.galleryId);
+      }
+      state.library.generations=(state.library.generations||[]).map(g=>{
+        if(String(g.id)!==String(x.generationId))return g;
+        return {...g,images:(g.images||[]).filter(im=>{
+          if(im?.galleryId&&String(im.galleryId)===String(x.galleryId))return false;
+          if(!im?.galleryId&&x.url&&String(im.url||im.dataUrl||'')===String(x.url||x.dataUrl||''))return false;
+          return true;
+        })};
+      }).filter(g=>(g.images||[]).length);
+      state.gallerySavedIds=(state.gallerySavedIds||[]).filter(id=>String(id)!==String(x.galleryId));
+      openGallery(document.querySelector('#gallerySearch')?.value||'',state.galleryViewMode||'grid');
+      appToast('Arte excluída da Galeria.',{type:'success',title:'Galeria'});
+    }catch(err){appAlert('Não foi possível excluir: '+err.message,{type:'error'});b.disabled=false;b.textContent='Excluir esta arte'}
+  });
+  
   root.querySelectorAll('[data-gallery-reference]').forEach(b=>b.onclick=e=>{e.stopPropagation();useGalleryAsReference(b.dataset.galleryReference)});
   root.querySelectorAll('[data-gallery-reopen]').forEach(b=>b.onclick=e=>{e.stopPropagation();reopenGalleryProject(b.dataset.galleryReopen)});
   root.querySelectorAll('[data-gallery-correct]').forEach(b=>b.onclick=e=>{e.stopPropagation();correctGalleryArtwork(b.dataset.galleryCorrect)});
@@ -4507,6 +4658,13 @@ function renderSubscriptionAdmin(){
 
 function feedInitials(name='Igreja'){return String(name||'Igreja').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'IG'}
 function feedAspectClass(p){const t=p?.target||{},w=Number(t.width)||0,h=Number(t.height)||0,r=w&&h?w/h:0.8;if(r>1.25)return'landscape';if(r<.68)return'tall';if(r>.9&&r<1.1)return'square';return'portrait'}
+function feedCleanArtworkLabel(label){
+  const raw=String(label||'').trim();
+  if(!raw)return '';
+  if(/^principal$/i.test(raw))return '';
+  if(/^varia[cç][aã]o\s*\d+$/i.test(raw))return '';
+  return raw;
+}
 function feedAvatarHTML(p){return p.profile_logo_url?`<img src="${esc(p.profile_logo_url)}" alt="">`:`<span>${esc(feedInitials(p.church_label))}</span>`}
 function setCommunityScreen(title,eyebrow='COMUNIDADE'){
   document.querySelector('#eyebrow').textContent=eyebrow;document.querySelector('#pageTitle').textContent=title;
@@ -4534,7 +4692,7 @@ window.openFeed=async function(){
 function renderFeedPosts(){
   const root=document.querySelector('#feedContent');if(!root)return;const posts=state.feed.posts||[],explore=state.feed.view==='explore';root.className=explore?'feed-explore-grid':'feed-grid';
   if(!posts.length){root.innerHTML='<div class="empty-state">Ainda não há artes publicadas no Feed.</div>';return}
-  root.innerHTML=posts.map(p=>explore?`<button class="feed-explore-item ${feedAspectClass(p)}" data-feed-open="${esc(p.id)}"><img src="${esc(p.image_url)}" alt="${esc(p.label||'Arte')}"><span>♥ ${p.like_count||0}</span></button>`:`<article class="feed-card"><div class="feed-card-head"><div class="feed-avatar">${feedAvatarHTML(p)}</div><div><strong>${esc(p.church_label||'Igreja')}</strong><small>${esc(p.label||'Arte')}</small><span class="feed-published-at">Publicado em ${esc(formatDateTime(p.published_at))}</span></div></div><button class="feed-art-wrap" data-feed-open="${esc(p.id)}"><img src="${esc(p.image_url)}" alt="${esc(p.label||'Arte')}"></button><div class="feed-card-actions"><button class="feed-like ${p.liked_by_me?'liked':''}" data-feed-like="${esc(p.id)}">${p.liked_by_me?'♥':'♡'} <span>${p.like_count||0}</span></button><button class="mini-btn" data-feed-reference="${esc(p.id)}">Usar como referência</button>${p.derivative_count?`<button class="mini-btn" data-feed-open="${esc(p.id)}">Ver mais • ${p.derivative_count}</button>`:''}</div></article>`).join('');
+  root.innerHTML=posts.map(p=>explore?`<button class="feed-explore-item ${feedAspectClass(p)}" data-feed-open="${esc(p.id)}"><img src="${esc(p.image_url)}" alt="${esc(p.label||'Arte')}"><span>♥ ${p.like_count||0}</span></button>`:`<article class="feed-card"><div class="feed-card-head"><div class="feed-avatar">${feedAvatarHTML(p)}</div><div><strong>${esc(p.church_label||'Igreja')}</strong>${feedCleanArtworkLabel(p.label)?`<small>${esc(feedCleanArtworkLabel(p.label))}</small>`:''}<span class="feed-published-at">Publicado em ${esc(formatDateTime(p.published_at))}</span></div></div><button class="feed-art-wrap" data-feed-open="${esc(p.id)}"><img src="${esc(p.image_url)}" alt="${esc(p.label||'Arte')}"></button><div class="feed-card-actions"><button class="feed-like ${p.liked_by_me?'liked':''}" data-feed-like="${esc(p.id)}">${p.liked_by_me?'♥':'♡'} <span>${p.like_count||0}</span></button><button class="mini-btn" data-feed-reference="${esc(p.id)}">Usar como referência</button>${p.derivative_count?`<button class="mini-btn" data-feed-open="${esc(p.id)}">Ver mais • ${p.derivative_count}</button>`:''}</div></article>`).join('');
   root.querySelectorAll('[data-feed-open]').forEach(b=>b.onclick=()=>openFeedDetail(b.dataset.feedOpen));
   root.querySelectorAll('[data-feed-reference]').forEach(b=>b.onclick=()=>useFeedAsReference(b.dataset.feedReference));
   root.querySelectorAll('[data-feed-like]').forEach(b=>b.onclick=()=>toggleFeedLike(b.dataset.feedLike,b));
@@ -4563,7 +4721,7 @@ window.openFeedDetail=async function(postId){
   const root=document.querySelector('#modalRoot');root.innerHTML='<div class="modal-backdrop"><div class="modal-panel feed-detail-panel"><div class="modal-body"><div class="empty-state">Carregando publicação...</div></div></div></div>';
   try{const d=await apiJSON('feed-detail',{method:'POST',body:{postId}}),p=d.post,der=d.derivatives||[];root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel feed-detail-panel"><div class="modal-head"><div class="feed-detail-author"><div class="feed-avatar large">${feedAvatarHTML(p)}</div><div><h2>${esc(p.church_label||'Igreja')}</h2><p>${esc(p.author_name||'Usuário')} • ${esc(p.author_email||'')}</p><span class="feed-detail-published">Publicado em ${esc(formatDateTime(p.published_at))}</span></div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="feed-detail-main"><img src="${esc(p.image_url)}" alt="${esc(p.label||'Arte')}"></div><div class="feed-detail-actions"><button class="feed-like ${p.liked_by_me?'liked':''}" data-detail-like>${p.liked_by_me?'♥':'♡'} <span>${p.like_count||0}</span></button><button class="btn primary" data-detail-reference>Usar como referência</button></div>${der.length?`<h3 class="feed-more-title">Ver mais desta criação</h3><div class="feed-derivatives">${der.map(x=>`<div class="feed-derivative"><img src="${esc(x.image_url)}" alt="${esc(x.label)}"><strong>${esc(x.label)}</strong></div>`).join('')}</div>`:''}</div></div></div>`;root.querySelector('[data-detail-reference]').onclick=()=>{closeModal();useFeedAsReference(postId)};root.querySelector('[data-detail-like]').onclick=async e=>{await toggleFeedLike(postId,e.currentTarget);const x=state.feed.posts.find(z=>z.id===postId);if(x)e.currentTarget.innerHTML=`${x.liked_by_me?'♥':'♡'} <span>${x.like_count}</span>`};root.querySelector('.modal-backdrop').onclick=e=>{if(e.target===e.currentTarget)closeModal()};}catch(e){root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel"><div class="modal-head"><h2>Feed</h2><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="empty-state">${esc(e.message)}</div></div></div></div>`}
 }
-async function loadNotificationCount(){try{const d=await apiJSON('notifications-count');state.notifications.unreadCount=Number(d.unreadCount)||0;const b=document.querySelector('#notificationBadge');if(b){b.textContent=state.notifications.unreadCount>99?'99+':String(state.notifications.unreadCount);b.style.display=state.notifications.unreadCount?'inline-flex':'none'}}catch(e){console.warn('notifications-count',e)}}
+async function loadNotificationCount(){try{const d=await apiJSON('notifications-count');state.notifications.unreadCount=Number(d.unreadCount)||0;const text=state.notifications.unreadCount>99?'99+':String(state.notifications.unreadCount);const b=document.querySelector('#notificationBadge');if(b){b.textContent=text;b.style.display=state.notifications.unreadCount?'inline-flex':'none'}const top=document.querySelector('#topbarNotificationBadge');if(top){top.textContent=text;top.style.display=state.notifications.unreadCount?'grid':'none'}}catch(e){console.warn('notifications-count',e)}}
 window.openNotifications=async function(){
   state.mode='notifications';updatePrimaryNavState('notifications');setCommunityScreen('Notificações');const root=document.querySelector('#content');root.innerHTML='<div class="notifications-page"><div class="notifications-head"><div><strong>Atividade das suas artes</strong><small>Curtidas e interações recebidas.</small></div><button class="mini-btn" id="markAllNotifications">Marcar todas como lidas</button></div><div id="notificationsList"><div class="empty-state">Carregando notificações...</div></div></div>';
   try{const d=await apiJSON('notifications-list');state.notifications.items=d.notifications||[];state.notifications.unreadCount=d.unreadCount||0;renderNotifications();document.querySelector('#markAllNotifications').onclick=async()=>{await apiJSON('notifications-read',{method:'POST',body:{}});state.notifications.items.forEach(x=>x.read_at=x.read_at||new Date().toISOString());renderNotifications();loadNotificationCount()};loadNotificationCount()}catch(e){document.querySelector('#notificationsList').innerHTML=`<div class="empty-state">${esc(e.message)}</div>`}
@@ -5284,11 +5442,11 @@ function screenQuickMode(){restoreCreationFooter();if(state.mode==='quick')updat
   document.querySelector('#eyebrow').textContent='CRIAÇÃO';document.querySelector('#pageTitle').textContent='Crie em poucos campos';
   const selectedFormat=quickTargetSpec(state.quick.format);
   content.innerHTML=`<div class="quick-shell"><div class="help">Preencha o essencial. Você pode usar uma referência ou criar do zero a partir do Banco de Inspiração.</div><div class="quick-grid">
-  <div class="card"><div class="field"><label>Título principal</label><input id="qTitle" value="${esc(state.quick.title)}" placeholder="Ex.: O PREÇO DO PALÁCIO"></div><div class="field"><label>Subtítulo</label><input id="qSubtitle" value="${esc(state.quick.subtitle)}" placeholder="Opcional"></div><div class="field"><label>Informação secundária</label><input id="qSecondaryInfo" value="${esc(state.quick.secondaryInfo||'')}" placeholder="Ex.: Entrada gratuita • Traga sua família"><small style="display:block;color:var(--muted);font-size:8px;margin-top:4px">Aparecerá menor que o título, deslocada para uma área aberta da composição.</small></div><div class="grid2"><div class="field"><label>Público-alvo</label><select id="qAudience">${audienceOptions.map(o=>`<option value="${o[0]}" ${state.quick.audience===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div><div class="field"><label>Estilo</label><select id="qDesignStyle">${designStyleOptions.map(o=>`<option value="${o[0]}" ${state.quick.designStyle===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div></div><div class="grid2"><div class="field"><label>Data</label><input id="qDate" value="${esc(state.quick.date)}" placeholder="QUARTA - 18/06"></div><div class="field"><label>Horário</label><input id="qTime" value="${esc(state.quick.time)}" placeholder="19:30H"></div></div><div class="field"><label>Endereço</label><input id="qAddress" value="${esc(state.quick.address||state.church.address)}"></div><div class="field church-name-mode-field"><label>Identificação da igreja</label><div class="church-name-mode-options"><label class="church-name-mode-option ${state.quick.churchNameMode==='text'?'selected':''}"><input type="radio" name="qChurchNameMode" value="text" ${state.quick.churchNameMode==='text'?'checked':''}><span><strong>Adicionar nome da igreja na arte</strong><small>O nome salvo em Minha Igreja será um texto autorizado da composição.</small></span></label><label class="church-name-mode-option ${state.quick.churchNameMode!=='text'?'selected':''}"><input type="radio" name="qChurchNameMode" value="logo-only" ${state.quick.churchNameMode!=='text'?'checked':''}><span><strong>Ocultar nome da igreja e inserir logo na próxima etapa</strong><small>O nome não poderá ser escrito pela I.A.; a logo original será adicionada no Assistente de Logos.</small></span></label></div></div><div class="grid2"><div class="field"><label>Cor predominante</label><div class="color-mode-row"><select id="qColorMode"><option value="reference" ${state.quick.dominantColorMode==='reference'?'selected':''}>Manter cores da referência</option><option value="custom" ${state.quick.dominantColorMode!=='reference'?'selected':''}>Escolher cor</option></select><div id="qColorPickerWrap" class="color-picker-wrap ${state.quick.dominantColorMode==='reference'?'hidden':''}"><input id="qColor" class="quick-color" type="color" value="${esc(state.quick.dominantColor)}"></div></div></div><div class="field"><label>Efeito</label><select id="qEffect"><option value="none" ${state.quick.effect==='none'?'selected':''}>Nenhum</option>${effectCatalog.map(e=>`<option value="${e.id}" ${state.quick.effect===e.id?'selected':''}>${e.name}</option>`).join('')}</select></div></div><label class="layer" style="cursor:pointer"><input id="qIllustrate" type="checkbox" ${state.quick.illustrateTitle?'checked':''}><div class="layer-info"><strong>Ilustrar pelo título</strong><small>Obrigatório quando ativo: a IA deve materializar o tema com imagem, letreiro ou vetor / elemento gráfico integrado à identidade visual.</small></div></label>
-  <h3 style="margin-top:18px">Tamanho da arte</h3><p style="margin-bottom:9px">Telão usa a configuração salva em Minha Igreja.</p><div class="quick-format-grid">${quickFormats.map(f=>{const t=f.id==='screen'?targetSpec('screen'):f;return `<div class="quick-format-card ${state.quick.format===f.id?'selected':''}" data-qformat="${f.id}"><div class="quick-format-sketch"><i style="${formatSketchStyle(t.width,t.height)}"></i></div><strong>${f.label}</strong><small>${f.id==='screen'?`${t.width}×${t.height}`:`${f.width}×${f.height}`}</small></div>`}).join('')}</div></div>
+  <div class="card"><div class="field"><label>Título principal</label><input id="qTitle" value="${esc(state.quick.title)}" placeholder="Ex.: O PREÇO DO PALÁCIO"></div><div class="field"><label>Subtítulo</label><input id="qSubtitle" value="${esc(state.quick.subtitle)}" placeholder="Opcional"></div><div class="field"><label>Informação secundária</label><input id="qSecondaryInfo" value="${esc(state.quick.secondaryInfo||'')}" placeholder="Ex.: Entrada gratuita • Traga sua família"><small style="display:block;color:var(--muted);font-size:8px;margin-top:4px">Aparecerá menor que o título, deslocada para uma área aberta da composição.</small></div><div class="grid2"><div class="field"><label>Público-alvo</label><select id="qAudience">${audienceOptions.map(o=>`<option value="${o[0]}" ${state.quick.audience===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div><div class="field"><label>Estilo</label><select id="qDesignStyle">${designStyleOptions.map(o=>`<option value="${o[0]}" ${state.quick.designStyle===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div></div><div class="grid2"><div class="field"><label>Data</label><input id="qDate" value="${esc(state.quick.date)}" placeholder="QUARTA - 18/06"></div><div class="field"><label>Horário</label><input id="qTime" value="${esc(state.quick.time)}" placeholder="19:30H"></div></div><div class="field"><label>Endereço</label><input id="qAddress" value="${esc(state.quick.address||state.church.address)}"></div><div class="field church-name-mode-field"><label>Identificação da igreja</label><div class="church-name-mode-options"><label class="church-name-mode-option ${state.quick.churchNameMode==='text'?'selected':''}"><input type="radio" name="qChurchNameMode" value="text" ${state.quick.churchNameMode==='text'?'checked':''}><span><strong>Adicionar nome da igreja na arte</strong><small>O nome salvo em Minha Igreja será um texto autorizado da composição.</small></span></label><label class="church-name-mode-option ${state.quick.churchNameMode!=='text'?'selected':''}"><input type="radio" name="qChurchNameMode" value="logo-only" ${state.quick.churchNameMode!=='text'?'checked':''}><span><strong>Ocultar nome da igreja e inserir logomarca na próxima etapa</strong><small>O nome não poderá ser escrito pela I.A.; a logo original será adicionada no Assistente de Logos.</small></span></label></div></div><div class="grid2"><div class="field"><label>Cor predominante</label><div class="color-mode-row"><select id="qColorMode"><option value="reference" ${state.quick.dominantColorMode==='reference'?'selected':''}>Manter cores da referência</option><option value="custom" ${state.quick.dominantColorMode!=='reference'?'selected':''}>Escolher cor</option></select><div id="qColorPickerWrap" class="color-picker-wrap ${state.quick.dominantColorMode==='reference'?'hidden':''}"><input id="qColor" class="quick-color" type="color" value="${esc(state.quick.dominantColor)}"></div></div></div><div class="field"><label>Efeito</label><select id="qEffect"><option value="none" ${state.quick.effect==='none'?'selected':''}>Nenhum</option>${effectCatalog.map(e=>`<option value="${e.id}" ${state.quick.effect===e.id?'selected':''}>${e.name}</option>`).join('')}</select></div></div><label class="layer" style="cursor:pointer"><input id="qIllustrate" type="checkbox" ${state.quick.illustrateTitle?'checked':''}><div class="layer-info"><strong>Ilustrar pelo título</strong><small>A I.A se inspira no título principal e tenta ilustrar com imagem, vetor, letreiro ou elemento gráfico a ideia passada por ele em algum lugar da arte</small></div></label>
+  <h3 style="margin-top:18px">Tamanho da arte</h3><div class="quick-format-grid">${quickFormats.map(f=>{const t=f.id==='screen'?targetSpec('screen'):f;return `<div class="quick-format-card ${state.quick.format===f.id?'selected':''}" data-qformat="${f.id}"><div class="quick-format-sketch"><i style="${formatSketchStyle(t.width,t.height)}"></i></div><strong>${f.label}</strong><small>${f.id==='screen'?`${t.width}×${t.height}<br><span class="screen-format-config-note">Configure em "Minha Igreja"</span>`:`${f.width}×${f.height}`}</small></div>`}).join('')}</div></div>
   <div class="card"><h3>Direção visual</h3><div class="quick-mode-toggle"><button class="mini-btn ${state.quick.referenceMode==='upload'?'selected-result':''}" id="qUseReference" type="button">Usar referência</button><button class="mini-btn ${state.quick.referenceMode==='inspiration'?'selected-result':''}" id="qUseInspiration" type="button">Criar do zero</button></div>
   ${state.quick.referenceMode==='upload'?`<p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p><div class="quick-ref-grid">${state.quick.feedReference?.url?`<div class="quick-asset feed-reference-card ${state.quick.reference===state.quick.feedReference.url?'selected':''}" data-feed-current-reference><span class="feed-reference-badge">FEED</span><img src="${esc(state.quick.feedReference.url)}"><strong>${esc(state.quick.feedReference.label||'Arte do Feed')}</strong><small>${esc(state.quick.feedReference.churchLabel||'')}</small></div>`:''}${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><label class="quick-upload-box" style="margin-top:10px"><strong>+ Subir referências</strong><span style="display:block;font-size:9px;color:var(--muted);margin-top:3px">JPG, PNG ou WEBP • pode selecionar várias</span><input id="qRefUpload" type="file" accept="image/*" multiple hidden></label><div id="qRefUploadLive" class="upload-live"></div>`:`<p>Banco de Inspiração interno. A IA usa a linguagem escolhida sem copiar uma peça específica.</p><div class="inspiration-grid">${inspirationCatalog.map(x=>`<div class="inspiration-card ${state.quick.inspirationStyle===x.id?'selected':''}" data-inspiration="${x.id}"><strong>${x.name}</strong><small>${x.prompt}</small></div>`).join('')}</div>`}
-  <h3 style="margin-top:18px">Pregadores (opcional)</h3><p style="margin-bottom:4px">Selecione até 3 pessoas. A ordem de seleção define a hierarquia da composição.</p><div class="pastor-order-summary">${(state.quick.pastorAssetIds||[]).slice(0,3).map((id,i)=>{const a=pastors.find(x=>x.id===id);return `<span class="pastor-order-pill"><b>${i===0?'PRINCIPAL':`AUXILIAR ${i}`}</b>${a?` • ${esc(a.meta?.displayName||a.name)}`:''}</span>`}).join('')}</div><p style="margin-bottom:4px;font-size:9px;color:var(--muted)">O PRINCIPAL terá prioridade de tamanho e posição mais central. Os auxiliares ficam visualmente secundários.</p><p style="margin-bottom:8px;font-size:9px;color:var(--muted)">O nome salvo em Minha Igreja é preenchido automaticamente. Se quiser esta arte sem o nome, apague o campo; em uma nova sessão o nome salvo volta.</p><div class="quick-pastor-grid">${pastors.map(a=>{const rank=(state.quick.pastorAssetIds||[]).indexOf(a.id);return `<div class="quick-asset ${rank>=0?'multi-selected':''}" data-qpastor="${a.id}" data-pastor-rank="${rank}">${rank>=0?`<span class="pastor-rank-badge">${rank===0?'PRINCIPAL':`AUXILIAR ${rank}`}</span>`:''}<img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong>${rank>=0?`<input class="pastor-name-input" data-pastor-name="${a.id}" value="${esc(Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||''))}" placeholder="Nome na arte">`:''}</div>`}).join('')}</div><div class="field pastor-treatment-field ${(state.quick.pastorAssetIds||[]).length?'active':'inactive'}" style="margin:12px 0"><label>Tratamento das fotos dos pregadores</label><select id="qPastorPhotoTreatment" ${(state.quick.pastorAssetIds||[]).length?'':'disabled'}><option value="" ${!state.quick.pastorPhotoTreatment?'selected':''}>${(state.quick.pastorAssetIds||[]).length?'Escolha o tratamento':'Selecione ao menos uma foto'}</option><option value="original" ${state.quick.pastorPhotoTreatment==='original'?'selected':''}>Manter filtro original da foto</option><option value="bw" ${state.quick.pastorPhotoTreatment==='bw'?'selected':''}>Foto preto e branco</option><option value="ai" ${state.quick.pastorPhotoTreatment==='ai'?'selected':''}>Deixar a I.A escolher</option></select><small>${(state.quick.pastorAssetIds||[]).length?'Opcional. Se não escolher, nenhuma orientação extra de tratamento será enviada.':'Esta opção será habilitada depois que você selecionar uma foto.'}</small></div><h3 style="margin-top:18px">Imagem da igreja (opcional)</h3><p style="margin-bottom:8px">Se escolher uma foto, a IA deverá usá-la na composição do fundo/ambiente.</p><div class="church-image-grid">${churchImages.map(a=>`<div class="quick-asset ${state.quick.churchImageAssetId===a.id?'selected':''}" data-qchurch="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}<label class="library-upload"><strong>+ Foto da igreja</strong><span>Salvar em Minha Igreja</span><input id="qChurchUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>
+  <h3 style="margin-top:18px">Pregadores (opcional)</h3><p style="margin-bottom:4px">Selecione até 3 pessoas. A ordem de seleção define a hierarquia da composição.</p><div class="pastor-order-summary">${(state.quick.pastorAssetIds||[]).slice(0,3).map((id,i)=>{const a=pastors.find(x=>x.id===id);return `<span class="pastor-order-pill"><b>${i===0?'PRINCIPAL':`AUXILIAR ${i}`}</b>${a?` • ${esc(a.meta?.displayName||a.name)}`:''}</span>`}).join('')}</div><p style="margin-bottom:4px;font-size:9px;color:var(--muted)">O PRINCIPAL terá prioridade de tamanho e posição mais central. Os auxiliares ficam visualmente secundários.</p><p style="margin-bottom:8px;font-size:9px;color:var(--muted)">O nome salvo em Minha Igreja é preenchido automaticamente. Se quiser gerar uma arte sem o nome do pregador aparecendo, apague o campo aqui em baixo; em uma nova sessão o nome salvo volta.</p><div class="quick-pastor-grid">${pastors.map(a=>{const rank=(state.quick.pastorAssetIds||[]).indexOf(a.id);return `<div class="quick-asset ${rank>=0?'multi-selected':''}" data-qpastor="${a.id}" data-pastor-rank="${rank}">${rank>=0?`<span class="pastor-rank-badge">${rank===0?'PRINCIPAL':`AUXILIAR ${rank}`}</span>`:''}<img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong>${rank>=0?`<input class="pastor-name-input" data-pastor-name="${a.id}" value="${esc(Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||''))}" placeholder="Nome na arte">`:''}</div>`}).join('')}</div><div class="field pastor-treatment-field ${(state.quick.pastorAssetIds||[]).length?'active':'inactive'}" style="margin:12px 0"><label>Tratamento das fotos dos pregadores</label><select id="qPastorPhotoTreatment" ${(state.quick.pastorAssetIds||[]).length?'':'disabled'}><option value="" ${!state.quick.pastorPhotoTreatment?'selected':''}>${(state.quick.pastorAssetIds||[]).length?'Escolha o tratamento':'Selecione ao menos uma foto'}</option><option value="original" ${state.quick.pastorPhotoTreatment==='original'?'selected':''}>Manter filtro original da foto</option><option value="bw" ${state.quick.pastorPhotoTreatment==='bw'?'selected':''}>Foto preto e branco</option><option value="ai" ${state.quick.pastorPhotoTreatment==='ai'?'selected':''}>Deixar a I.A escolher</option></select><small>${(state.quick.pastorAssetIds||[]).length?'Opcional. Se não escolher, nenhuma orientação extra de tratamento será enviada.':'Esta opção será habilitada depois que você selecionar uma foto.'}</small></div><h3 style="margin-top:18px">Imagem da igreja / imagem de fundo (opcional)</h3><p style="margin-bottom:8px">Se escolher uma foto, a IA deverá usá-la na composição do fundo/ambiente.</p><div class="church-image-grid">${churchImages.map(a=>`<div class="quick-asset ${state.quick.churchImageAssetId===a.id?'selected':''}" data-qchurch="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}<label class="library-upload"><strong>+ Imagem da igreja / fundo</strong><span>Salvar em Minha Igreja</span><input id="qChurchUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>
   <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE BASE • ${selectedFormat.label}</button><div id="quickProgress" class="quick-progress"><div class="quick-progress-track"><i id="quickProgressBar"></i></div><div class="quick-progress-row"><span id="quickProgressText">Processando sua arte...</span><span id="quickProgressPct">0%</span></div></div><button id="quickCancel" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div>${costSupervisorHTML()}</div><div id="quickResultsWrap" style="margin-top:18px">${renderQuickResultsHTML()}${allArtworksHTML()}</div></div>`;
   applyLogoPreviewBackgrounds(content);
   const bind=(id,key)=>document.querySelector('#'+id).oninput=e=>state.quick[key]=e.target.value;bind('qTitle','title');bind('qSubtitle','subtitle');bind('qSecondaryInfo','secondaryInfo');bind('qDate','date');bind('qTime','time');bind('qAddress','address');bind('qColor','dominantColor');
@@ -5553,7 +5711,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.64</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.65</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
