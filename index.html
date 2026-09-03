@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.61 -->
+<!-- CHURCHDESIGN — index v0.62 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1661,6 +1661,21 @@ html[data-theme="light"] .gallery-popover{background:#fff!important;box-shadow:0
 .derivative-pastor-empty{padding:9px;border-radius:9px;background:var(--field-bg);color:var(--muted);font-size:8.5px;line-height:1.4}
 @media(max-width:600px){.derivative-pastor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+
+/* CHURCHDESIGN v0.62 — mesclagem de projetos */
+.gallery-project-wrap{position:relative;min-width:0;border-radius:17px;transition:.17s ease}
+.persistent-gallery-grid>.gallery-project-wrap{min-width:0}.gallery-project-wrap>.persistent-gallery-card,.gallery-project-wrap>.gallery-family-card{height:100%}
+.gallery-project-wrap.dragging-project{opacity:.48;transform:scale(.985)}
+.gallery-project-wrap.merge-drop-target{outline:2px solid var(--brand-orange);outline-offset:4px;background:color-mix(in srgb,var(--brand-orange) 5%,transparent)}
+.gallery-project-wrap.merge-drop-target:after{content:"SOLTE PARA MESCLAR";position:absolute;z-index:30;left:50%;top:16px;transform:translateX(-50%);padding:6px 10px;border-radius:99px;background:var(--brand-orange);color:#fff;font-size:7.5px;font-weight:900;letter-spacing:.08em;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.gallery-project-check{display:none;position:absolute;z-index:45;top:9px;right:9px;width:27px;height:27px;padding:0;border-radius:50%;border:2px solid rgba(255,255,255,.84);background:rgba(16,19,24,.72);color:#fff;place-items:center;font-size:11px;font-weight:950;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.22)}
+.gallery-project-check.show{display:grid}.gallery-project-check.selected{border-color:var(--brand-orange);background:var(--brand-orange)}
+.gallery-project-wrap.selected-project{outline:2px solid color-mix(in srgb,var(--brand-orange) 66%,transparent);outline-offset:3px}
+.gallery-project-selection-actions{display:flex;gap:6px;align-items:center}.gallery-project-selection-actions .active{border-color:var(--brand-orange)!important}.gallery-merge-selected-btn{border-color:color-mix(in srgb,var(--brand-orange) 50%,var(--field-border))!important;background:color-mix(in srgb,var(--brand-orange) 10%,var(--field-bg))!important;font-weight:850!important}
+.merged-project-badge{display:inline-flex!important;margin-left:7px!important;padding:3px 6px!important;border-radius:99px!important;background:color-mix(in srgb,var(--brand-orange) 11%,transparent)!important;border:1px solid color-mix(in srgb,var(--brand-orange) 30%,transparent)!important;color:var(--brand-orange)!important;font-size:6.5px!important;font-weight:900!important;letter-spacing:.08em!important;vertical-align:middle!important}
+.list-project{margin-bottom:10px}.list-project>.gallery-list-row{margin:0}
+@media(max-width:700px){.gallery-project-selection-actions{width:100%;order:4}.gallery-project-selection-actions button{flex:1}}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -1723,7 +1738,7 @@ html[data-theme="light"] .gallery-popover{background:#fff!important;box-shadow:0
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.61</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.62</div>
   
   <script>
 const state={
@@ -3740,17 +3755,24 @@ function galleryRootId(item,byId){
   }
   return String(cur?.galleryId||item?.galleryId||'');
 }
-function galleryFamilies(items=[]){
-  const byId=new Map(items.filter(x=>x?.galleryId).map(x=>[String(x.galleryId),x])),groups=new Map();
-  for(const item of items){const rid=galleryRootId(item,byId)||String(item.galleryId||crypto.randomUUID());if(!groups.has(rid))groups.set(rid,[]);groups.get(rid).push(item)}
-  const order=(a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0);
-  return [...groups.values()].map(members=>{
-    members.sort(order);const memberIds=new Set(members.map(x=>String(x.galleryId)));
-    const roots=members.filter(x=>{const p=galleryParentId(x);return !p||!memberIds.has(String(p))});
-    const main=(roots.sort(order)[0]||members[0]);
-    const derivatives=members.filter(x=>String(x.galleryId)!==String(main.galleryId)).sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
-    return{main,derivatives,members};
-  }).sort((a,b)=>new Date(b.main.createdAt||0)-new Date(a.main.createdAt||0));
+function galleryMergeGroupId(item,byId){
+  return String(item?.recipe?.mergeGroupId||item?.mergeGroupId||galleryRootId(item,byId));
+}
+function galleryItemTime(x){return new Date(x?.createdAt||x?.recipe?.createdAt||0).getTime()||0}
+function galleryFamilies(items){
+  const byId=new Map((items||[]).filter(x=>x?.galleryId).map(x=>[String(x.galleryId),x])),groups=new Map();
+  for(const item of items){
+    const gid=galleryMergeGroupId(item,byId)||String(item.galleryId||crypto.randomUUID());
+    if(!groups.has(gid))groups.set(gid,[]);
+    groups.get(gid).push(item);
+  }
+  return [...groups.entries()].map(([groupId,members])=>{
+    members.sort((a,b)=>galleryItemTime(a)-galleryItemTime(b));
+    const roots=members.filter(x=>galleryRootId(x,byId)===String(x.galleryId||'')).sort((a,b)=>galleryItemTime(a)-galleryItemTime(b));
+    const main=roots[0]||members[0];
+    const derivatives=members.filter(x=>String(x.galleryId)!==String(main.galleryId)).sort((a,b)=>galleryItemTime(a)-galleryItemTime(b));
+    return{groupId,main,derivatives,members,merged:roots.length>1||members.some(x=>x?.recipe?.mergeGroupId||x?.mergeGroupId),originalRoots:roots};
+  }).sort((a,b)=>galleryItemTime(b.main)-galleryItemTime(a.main));
 }
 const GALLERY_DOWNLOADED_KEY='churchdesign_gallery_downloaded_v1';
 function galleryDownloadedIds(){try{const x=JSON.parse(localStorage.getItem(GALLERY_DOWNLOADED_KEY)||'[]');return new Set(Array.isArray(x)?x.map(String):[])}catch{return new Set()}}
@@ -3832,26 +3854,72 @@ async function renameGalleryProject(galleryId,currentQuery=''){
     openGallery(currentQuery,state.galleryViewMode||'grid');
   }catch(e){appAlert('Não foi possível renomear o projeto: '+e.message,{type:'error'})}
 }
+
+let galleryProjectSelectMode=false;
+let galleryProjectSelection=new Set();
+let galleryDraggingProjectId=null;
+
+function galleryFormatBaseLabel(x){
+  const f=String(x?.target?.label||x?.format||x?.target?.id||'Arte').trim(),low=f.toLowerCase();
+  if(/youtube/.test(low))return 'YouTube';
+  if(/story|reels|9:16/.test(low))return 'Stories';
+  if(/tel[aã]o|screen|wide|16:9/.test(low))return 'Telão';
+  if(/fundo|background/.test(low)||x?.backgroundMode)return 'Fundo';
+  if(/livre|free/.test(low)||x?.freeMode)return 'Modo Livre';
+  if(/feed|instagram|4:5/.test(low))return 'Feed';
+  return f||'Arte';
+}
+function galleryFamilyFormatLabels(family){
+  const map=new Map(),groups=new Map();
+  for(const x of (family?.members||[]).slice().sort((a,b)=>galleryItemTime(a)-galleryItemTime(b))){
+    const base=galleryFormatBaseLabel(x);if(!groups.has(base))groups.set(base,[]);groups.get(base).push(x);
+  }
+  for(const [base,arr] of groups)arr.forEach((x,i)=>map.set(String(x.galleryId),arr.length>1?`${base} ${i+1}`:base));
+  return map;
+}
+function galleryProjectSelectionControl(family){
+  const id=esc(String(family?.groupId||family?.main?.galleryId||'')),checked=galleryProjectSelection.has(String(family?.groupId||family?.main?.galleryId||''));
+  return `<button type="button" class="gallery-project-check ${galleryProjectSelectMode?'show':''} ${checked?'selected':''}" data-gallery-project-check="${id}" aria-label="Selecionar projeto">${checked?'✓':''}</button>`;
+}
+function galleryProjectCardAttrs(family){
+  const id=esc(String(family?.groupId||family?.main?.galleryId||''));
+  return `data-gallery-project="${id}" draggable="${galleryProjectSelectMode?'false':'true'}"`;
+}
+async function mergeGalleryProjects(projectIds=[]){
+  const ids=[...new Set((projectIds||[]).map(String).filter(Boolean))];if(ids.length<2)return;
+  const families=galleryFamilies(allPersistentGalleryItems()).filter(f=>ids.includes(String(f.groupId||f.main?.galleryId)));if(families.length<2)return;
+  const oldest=families.slice().sort((a,b)=>galleryItemTime(a.main)-galleryItemTime(b.main))[0];
+  const question=families.length===2?'Deseja mesclar esses dois projetos?':`Deseja mesclar estes ${families.length} projetos?`;
+  const ok=await appConfirm(question,{title:'Mesclar projetos',confirmText:'Mesclar projetos',cancelText:'Cancelar',icon:'⇄',description:`As artes ficarão reunidas em um único projeto. A capa será preservada do projeto mais antigo: ${galleryThemeTitle(oldest.main)}.`});
+  if(!ok)return;
+  try{
+    const d=await apiJSON('merge-gallery-projects',{method:'POST',body:{projectIds:ids}}),mergedId=String(d.mergeGroupId||oldest.groupId||oldest.main.galleryId),affected=new Set(families.flatMap(f=>(f.members||[]).map(x=>String(x.galleryId))));
+    state.library.generations=(state.library.generations||[]).map(g=>({...g,images:(g.images||[]).map(im=>affected.has(String(im.galleryId))?{...im,mergeGroupId:mergedId,recipe:{...(im.recipe||{}),mergeGroupId:mergedId,mergeCoverGalleryId:mergedId,mergedAt:new Date().toISOString()}}:im)}));
+    galleryProjectSelection.clear();galleryProjectSelectMode=false;
+    appToast(`${d.mergedProjects||families.length} projetos mesclados.`,{type:'success',title:'Galeria'});
+    openGallery(document.querySelector('#gallerySearch')?.value||'',state.galleryViewMode||'grid');
+  }catch(e){appAlert(e.message||'Não foi possível mesclar os projetos.',{type:'error',title:'Mesclar projetos'})}
+}
+function toggleGalleryProjectSelection(id){
+  id=String(id||'');if(!id)return;
+  if(galleryProjectSelection.has(id))galleryProjectSelection.delete(id);else galleryProjectSelection.add(id);
+  openGallery(document.querySelector('#gallerySearch')?.value||'',state.galleryViewMode||'grid');
+}
+
 function galleryFamilySearchText(family){
   return (family?.members||[family?.main]).map(x=>[
     galleryThemeTitle(x),x?.label,x?.kind,x?.format,x?.target?.label,x?.recipe?.quick?.subtitle,x?.recipe?.quick?.date
   ].filter(Boolean).join(' ')).join(' ').toLowerCase();
 }
 function galleryFamilyListHTML(family){
-  const x=family.main,children=family.derivatives||[],title=galleryThemeTitle(x),id=esc(String(x.galleryId||''));
-  return `<div class="gallery-list-row">
-    <div class="gallery-list-main-thumb" data-gallery-fullscreen="${id}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"></div>
-    <div class="gallery-list-content">
-      <div class="gallery-list-meta"><div class="gallery-list-title">${esc(title)} ${galleryDraftBadge(x)}</div><div class="gallery-list-sub">${esc(x.target?.label||x.format||'')} • ${formatDateTime(x.createdAt)}</div>${galleryActionsHTML(x,true)}</div>
-      <div class="gallery-list-derivatives">${children.length?children.map(d=>`<div class="gallery-list-child"><div class="gallery-list-child-thumb" data-gallery-fullscreen="${esc(String(d.galleryId||''))}"><img src="${d.url||d.dataUrl}" alt="${esc(galleryThemeTitle(d))}"></div><small>${esc(d.target?.label||d.format||'Derivada')}</small></div>`).join(''):`<small style="color:var(--muted)">Sem artes derivadas</small>`}</div>
-    </div>
-  </div>`;
+  const x=family.main,children=family.derivatives||[],title=galleryThemeTitle(x),id=esc(String(x.galleryId||'')),labels=galleryFamilyFormatLabels(family);
+  return `<div class="gallery-project-wrap list-project ${galleryProjectSelection.has(String(family.groupId))?'selected-project':''}" ${galleryProjectCardAttrs(family)}>${galleryProjectSelectionControl(family)}<div class="gallery-list-row"><div class="gallery-list-main-thumb" data-gallery-fullscreen="${id}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"></div><div class="gallery-list-content"><div class="gallery-list-meta"><div class="gallery-list-title">${esc(title)} ${galleryDraftBadge(x)}${family.merged?'<span class="merged-project-badge">MESCLADO</span>':''}</div><div class="gallery-list-sub">${esc(labels.get(String(x.galleryId))||galleryFormatBaseLabel(x))} • ${formatDateTime(x.createdAt)}</div>${galleryActionsHTML(x,true)}</div><div class="gallery-list-derivatives">${children.length?children.map(d=>`<div class="gallery-list-child"><div class="gallery-list-child-thumb" data-gallery-fullscreen="${esc(String(d.galleryId||''))}"><img src="${d.url||d.dataUrl}" alt="${esc(galleryThemeTitle(d))}"></div><small>${esc(labels.get(String(d.galleryId))||galleryFormatBaseLabel(d))}</small></div>`).join(''):`<small style="color:var(--muted)">Sem artes derivadas</small>`}</div></div></div></div>`;
 }
 
 function galleryFamilyHTML(family){
-  const x=family.main,children=family.derivatives||[],title=galleryThemeTitle(x);
-  if(!children.length)return `<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"><div class="persistent-gallery-body"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}</div></div>`;
-  return `<div class="gallery-family-card"><div class="gallery-family-head"><div><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>Principal + artes derivadas reunidas no mesmo projeto</small></div><span class="gallery-family-count">${children.length} derivada${children.length===1?'':'s'}</span></div><div class="gallery-family-main"><div class="gallery-family-main-preview" data-gallery-fullscreen="${esc(String(x.galleryId))}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"></div><div class="gallery-family-info"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(x.target?.label||x.format||'')}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}</div></div><div class="gallery-family-derivatives">${children.map(d=>`<div class="gallery-derivative-card"><div class="gallery-derivative-preview" data-gallery-fullscreen="${esc(String(d.galleryId))}"><img src="${d.url||d.dataUrl}" alt="${esc(galleryThemeTitle(d))}"></div><div class="gallery-derivative-body"><strong>${esc(galleryThemeTitle(d))}${galleryDraftBadge(d)}</strong><small>${esc(d.target?.label||d.format||'')} • ${formatDateTime(d.createdAt)}</small>${galleryActionsHTML(d,true)}</div></div>`).join('')}</div></div>`;
+  const x=family.main,children=family.derivatives||[],title=galleryThemeTitle(x),labels=galleryFamilyFormatLabels(family),wrapStart=`<div class="gallery-project-wrap ${galleryProjectSelection.has(String(family.groupId))?'selected-project':''}" ${galleryProjectCardAttrs(family)}>${galleryProjectSelectionControl(family)}`,wrapEnd='</div>';
+  if(!children.length)return `${wrapStart}<div class="persistent-gallery-card ${galleryFormatClass(x)}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"><div class="persistent-gallery-body"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(x.kind||'arte')} • ${esc(labels.get(String(x.galleryId))||galleryFormatBaseLabel(x))}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}</div></div>${wrapEnd}`;
+  return `${wrapStart}<div class="gallery-family-card"><div class="gallery-family-head"><div><strong>${esc(title)}${galleryDraftBadge(x)}${family.merged?'<span class="merged-project-badge">MESCLADO</span>':''}</strong><small>${family.merged?'Projetos mesclados • capa preservada do projeto mais antigo':'Principal + artes derivadas reunidas no mesmo projeto'}</small></div><span class="gallery-family-count">${children.length} arte${children.length===1?'':'s'} adicional${children.length===1?'':'is'}</span></div><div class="gallery-family-main"><div class="gallery-family-main-preview" data-gallery-fullscreen="${esc(String(x.galleryId))}"><img src="${x.url||x.dataUrl}" alt="${esc(title)}"></div><div class="gallery-family-info"><strong>${esc(title)}${galleryDraftBadge(x)}</strong><small>${esc(labels.get(String(x.galleryId))||galleryFormatBaseLabel(x))}</small><small>${formatDateTime(x.createdAt)}${x.recoveryOnly?' • ⚠ recuperação local':''}</small>${galleryActionsHTML(x)}</div></div><div class="gallery-family-derivatives">${children.map(d=>`<div class="gallery-derivative-card"><div class="gallery-derivative-preview" data-gallery-fullscreen="${esc(String(d.galleryId||''))}"><img src="${d.url||d.dataUrl}" alt="${esc(galleryThemeTitle(d))}"></div><div class="gallery-derivative-body"><strong>${esc(labels.get(String(d.galleryId))||galleryFormatBaseLabel(d))}${galleryDraftBadge(d)}</strong><small>${formatDateTime(d.createdAt)}</small>${galleryActionsHTML(d,true)}</div></div>`).join('')}</div></div>${wrapEnd}`;
 }
 function isDataImage(value){
   return typeof value==='string' && /^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(value.trim());
@@ -4150,13 +4218,26 @@ window.openGallery=function(query='',viewMode=null){
   const galleryHTML=view==='list'
     ?`<div class="persistent-gallery-list">${families.map(galleryFamilyListHTML).join('')}</div>`
     :`<div class="persistent-gallery-grid">${families.map(galleryFamilyHTML).join('')}</div>`;
-  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel gallery-modal-panel"><div class="modal-head"><div><h2>Galeria</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Artes e receitas salvas':'Banco não conectado'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="gallery-toolbar"><div><strong>${items.length} arte(s)</strong><small style="display:block;color:var(--muted);margin-top:3px">Busque pelo tema/título da arte. Principal e derivadas permanecem reunidas.</small></div><div class="gallery-search-wrap"><input id="gallerySearch" type="search" placeholder="Buscar pelo tema da arte..." value="${esc(query||'')}"></div><div class="gallery-view-toggle"><button type="button" data-gallery-view="grid" class="${view==='grid'?'active':''}">▦ Grade</button><button type="button" data-gallery-view="list" class="${view==='list'?'active':''}">☷ Lista</button></div></div>${families.length?galleryHTML:`<div class="gallery-empty">Nenhuma arte encontrada para “${esc(query||'')}”.</div>`}</div></div></div>`;
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel gallery-modal-panel"><div class="modal-head"><div><h2>Galeria</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Artes e receitas salvas':'Banco não conectado'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="gallery-toolbar"><div><strong>${items.length} arte(s)</strong><small style="display:block;color:var(--muted);margin-top:3px">Busque pelo tema/título da arte. Arraste um projeto sobre outro para mesclar ou use Selecionar projetos.</small></div><div class="gallery-project-selection-actions"><button class="mini-btn ${galleryProjectSelectMode?'active':''}" id="gallerySelectProjectsBtn" type="button">${galleryProjectSelectMode?'Cancelar seleção':'Selecionar projetos'}</button><button class="mini-btn gallery-merge-selected-btn" id="galleryMergeSelectedBtn" type="button" style="${galleryProjectSelectMode&&galleryProjectSelection.size>=2?'':'display:none'}">⇄ Mesclar (${galleryProjectSelection.size})</button></div><div class="gallery-search-wrap"><input id="gallerySearch" type="search" placeholder="Buscar pelo tema da arte..." value="${esc(query||'')}"></div><div class="gallery-view-toggle"><button type="button" data-gallery-view="grid" class="${view==='grid'?'active':''}">▦ Grade</button><button type="button" data-gallery-view="list" class="${view==='list'?'active':''}">☷ Lista</button></div></div>${families.length?galleryHTML:`<div class="gallery-empty">Nenhuma arte encontrada para “${esc(query||'')}”.</div>`}</div></div></div>`;
   const search=root.querySelector('#gallerySearch');
   if(search){
     search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();openGallery(search.value,view)}};
     search.onsearch=()=>openGallery(search.value,view);
   }
   root.querySelectorAll('[data-gallery-view]').forEach(b=>b.onclick=()=>openGallery(search?.value||'',b.dataset.galleryView));
+  const selectProjectsBtn=root.querySelector('#gallerySelectProjectsBtn');
+  if(selectProjectsBtn)selectProjectsBtn.onclick=()=>{galleryProjectSelectMode=!galleryProjectSelectMode;if(!galleryProjectSelectMode)galleryProjectSelection.clear();openGallery(search?.value||'',view)};
+  const mergeSelectedBtn=root.querySelector('#galleryMergeSelectedBtn');if(mergeSelectedBtn)mergeSelectedBtn.onclick=()=>mergeGalleryProjects([...galleryProjectSelection]);
+  root.querySelectorAll('[data-gallery-project-check]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();toggleGalleryProjectSelection(b.dataset.galleryProjectCheck)});
+  root.querySelectorAll('[data-gallery-project]').forEach(card=>{
+    card.addEventListener('click',e=>{if(!galleryProjectSelectMode||e.target.closest('button,input,select,textarea,a'))return;e.preventDefault();e.stopPropagation();toggleGalleryProjectSelection(card.dataset.galleryProject)});
+    card.addEventListener('dragstart',e=>{if(galleryProjectSelectMode){e.preventDefault();return}galleryDraggingProjectId=String(card.dataset.galleryProject||'');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',galleryDraggingProjectId);card.classList.add('dragging-project')});
+    card.addEventListener('dragend',()=>{galleryDraggingProjectId=null;card.classList.remove('dragging-project');root.querySelectorAll('.gallery-project-wrap').forEach(x=>x.classList.remove('merge-drop-target'))});
+    card.addEventListener('dragover',e=>{const target=String(card.dataset.galleryProject||'');if(!galleryDraggingProjectId||target===galleryDraggingProjectId)return;e.preventDefault();e.dataTransfer.dropEffect='move';card.classList.add('merge-drop-target')});
+    card.addEventListener('dragleave',e=>{if(!card.contains(e.relatedTarget))card.classList.remove('merge-drop-target')});
+    card.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();card.classList.remove('merge-drop-target');const source=String(e.dataTransfer.getData('text/plain')||galleryDraggingProjectId||''),target=String(card.dataset.galleryProject||'');galleryDraggingProjectId=null;if(source&&target&&source!==target)mergeGalleryProjects([source,target])});
+  });
+
   root.onclick=e=>{if(!e.target.closest('.gallery-action-popover-wrap'))closeGalleryActionPopovers()};
   root.querySelectorAll('[data-gallery-report]').forEach(b=>b.onclick=e=>{e.stopPropagation();const item=findGalleryItem(b.dataset.galleryReport);if(item)openArtReport(item);});
   root.querySelectorAll('[data-gallery-rename]').forEach(b=>b.onclick=e=>{e.stopPropagation();renameGalleryProject(b.dataset.galleryRename,document.querySelector('#gallerySearch')?.value||'')});
@@ -5271,7 +5352,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.61</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.62</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
