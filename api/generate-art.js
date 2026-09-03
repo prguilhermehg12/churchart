@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.15.0
+// CHURCHDESIGN — generate-art v0.16.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -54,7 +54,7 @@ async function saveBase64ToStorage(base64,churchId,label="art"){
 }
 
 
-function allowedTexts(data={}){const c=data.requiredContent||{};return[c.title,c.subtitle,c.date,c.time,c.address,c.churchName,...(c.pastorNames||[])].map(x=>String(x||"").trim()).filter(Boolean);}
+function allowedTexts(data={}){const c=data.requiredContent||{};return[c.title,c.subtitle,c.secondaryInfo,c.date,c.time,c.address,c.churchName,...(c.pastorNames||[])].map(x=>String(x||"").trim()).filter(Boolean);}
 function pipelineGuard(input={}){const data={...input,assets:{...(input.assets||{})}};delete data.assets.logo;delete data.assets.eventLogo;delete data.assets.event_logo;const pastors=(data.assets.pastors||[data.assets.pastor].filter(Boolean)).slice(0,3);data.assets.pastors=pastors;data.assets.pastor=pastors[0]||null;data.allowedTexts=allowedTexts(data);data.referenceSemanticPolicy="style-only";return data;}
 
 function modelSize(target={}){
@@ -123,6 +123,7 @@ function prompt(data){
   const texts=[
     c.title?`TÍTULO EXATO: ${c.title}`:"",
     c.subtitle?`SUBTÍTULO EXATO: ${c.subtitle}`:"",
+    c.secondaryInfo?`INFORMAÇÃO SECUNDÁRIA EXATA: ${c.secondaryInfo}`:"",
     c.date?`DATA EXATA: ${c.date}`:"",
     c.time?`HORÁRIO EXATO: ${c.time}`:"",
     c.address?`ENDEREÇO EXATO: ${c.address}`:"",
@@ -173,6 +174,7 @@ LOGO-FREE CANVAS — HARD CONSTRAINT:
 - Se a referência contém qualquer logo, símbolo de igreja, wordmark, selo, marca de evento ou assinatura institucional, REMOVA completamente esse elemento e reconstrua naturalmente o fundo atrás dele.
 - Não copie símbolo, não deixe fantasma, não deixe marca d'água e não converta logo em texto.
 - Quando houver logo oficial selecionada para composição posterior, não escreva o nome da igreja como substituto da logo.
+- Mesmo sem logo selecionada, o nome da igreja só pode aparecer quando requiredContent.churchName estiver explicitamente preenchido.
 - NÃO reserve área visual para logos. Não abra buraco na composição, não deixe caixa vazia, contorno, moldura, halo, placa, selo ou placeholder.
 - Faça a arte parecer completamente finalizada MESMO SEM LOGOS. O compositor pós-arte analisará o resultado pronto e escolherá depois a melhor posição para os PNGs originais.
 
@@ -181,6 +183,14 @@ ${blueprint(data)}
 CONTEÚDO QUE DEVE APARECER EXATAMENTE:
 ${texts||"Sem textos obrigatórios."}
 
+${c.secondaryInfo?`HIERARQUIA DA INFORMAÇÃO SECUNDÁRIA — HARD CONSTRAINT:
+- "${c.secondaryInfo}" é INFORMAÇÃO SECUNDÁRIA, nunca título.
+- Deve ser visivelmente MENOR que o título principal em escala e peso.
+- Deve ficar DESLOCADA do título, em uma ÁREA ABERTA da composição.
+- Não empilhe como continuação do título, não centralize junto ao título por padrão e não a transforme em segundo headline.
+- Não cubra rosto, pessoa, logo futura ou elemento focal.
+`:''}
+
 TEXT ALLOWLIST — HARD CONSTRAINT:
 Os ÚNICOS textos legíveis permitidos são: ${JSON.stringify(data.allowedTexts||[])}.
 Não invente slogans, chamadas, nomes de culto, nomes de igreja, palavras de fundo, datas, números ou frases.
@@ -188,9 +198,23 @@ Não copie qualquer texto da referência original, porque ela é STYLE-ONLY.
 Se quiser reproduzir uma massa tipográfica da referência, use somente um texto autorizado ou geometria abstrata NÃO legível.
 Qualquer palavra legível fora da allowlist é erro crítico.
 
-IGREJA: ${data.church?.name||""}
+IGREJA — CONTEXTO INTERNO, NÃO AUTORIZAÇÃO DE TEXTO: ${data.church?.name||""}
+REGRA ABSOLUTA DO NOME DA IGREJA:
+${c.churchName?`- O usuário AUTORIZOU o nome da igreja nesta arte. Escreva SOMENTE o texto exato presente em NOME DA IGREJA / requiredContent.churchName: "${c.churchName}".`:`- O usuário NÃO autorizou nome de igreja como texto. NÃO escreva o nome institucional, mesmo que ele apareça neste contexto interno, na referência, em metadados ou em qualquer instrução herdada.
+- Não use nome da igreja como assinatura, rodapé, selo, chamada, placeholder ou substituto da logo.
+- A identificação institucional será feita por uma LOGO ORIGINAL em etapa posterior.`}
+- Nunca invente outro nome de igreja.
 PÚBLICO-ALVO ESCOLHIDO: ${data.audience||"não especificado"}\nPOSIÇÃO PRIORITÁRIA DA LOGO: ${data.logoPosition||"seguir referência / automática"}
 ESTILO ESCOLHIDO: ${data.designStyle||"não especificado"}
+${String(data.designStyle||'').toLowerCase()==='minimalista'?`ESTILO MINIMALISTA — HARD DIRECTION:
+- poucos elementos visuais;
+- bastante espaço negativo intencional;
+- hierarquia tipográfica limpa;
+- formas simples e precisas;
+- paleta contida;
+- zero ornamento gratuito, excesso de efeitos, ruído ou poluição;
+- resultado sofisticado e profissional pela redução e pelo equilíbrio.
+`:''}
 Se uma LOGO oficial foi fornecida, use a logo e NÃO repita o nome da igreja em texto separado.
 
 REGRA DE FOTO DA IGREJA:
