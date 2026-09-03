@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.67 -->
+<!-- CHURCHDESIGN — index v0.68 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -2224,6 +2224,265 @@ html:not([data-theme="light"]) .sidebar .sidebar-project-btn.active{
   }
 }
 
+
+/* CHURCHDESIGN v0.68 — sidebar realmente unificada */
+.sidebar{
+  padding-left:14px!important;
+  padding-right:14px!important;
+}
+
+/* projeto atual: bloco separado, mas tipografia coerente */
+.sidebar-project-btn{
+  width:100%!important;
+  min-height:46px!important;
+  height:46px!important;
+  padding:8px 11px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  gap:3px!important;
+  border-radius:10px!important;
+  text-align:left!important;
+  overflow:hidden!important;
+}
+.sidebar-project-btn .project-current-kicker{
+  display:block!important;
+  font-size:7.5px!important;
+  font-weight:800!important;
+  letter-spacing:.06em!important;
+  text-transform:none!important;
+  line-height:1!important;
+  color:var(--muted)!important;
+}
+.sidebar-project-btn #projectName{
+  display:block!important;
+  width:100%!important;
+  margin:0!important;
+  font-size:9.5px!important;
+  font-weight:760!important;
+  line-height:1.15!important;
+  text-transform:none!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+/* categoria 1: minha igreja + galeria, exatamente 50/50 */
+.sidebar-library-actions{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:7px!important;
+  margin:7px 0 11px!important;
+}
+.sidebar-library-actions>.sidebar-unified-btn{
+  width:100%!important;
+  min-width:0!important;
+}
+
+/* categoria 2: feed + criar + notificações */
+.sidebar-primary-actions{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:7px!important;
+  margin:0 0 11px!important;
+}
+
+/* estrutura idêntica para todos os botões de navegação */
+.sidebar-unified-btn{
+  width:100%!important;
+  height:42px!important;
+  min-height:42px!important;
+  max-height:42px!important;
+  padding:0 12px!important;
+  display:grid!important;
+  grid-template-columns:18px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  justify-items:start!important;
+  column-gap:12px!important;
+  border-radius:10px!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  text-align:left!important;
+  font-family:inherit!important;
+  font-size:10px!important;
+  font-weight:760!important;
+  line-height:1!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+}
+.sidebar-library-actions .sidebar-unified-btn{
+  height:42px!important;
+  min-height:42px!important;
+  max-height:42px!important;
+  padding:0 10px!important;
+  grid-template-columns:18px minmax(0,1fr)!important;
+  column-gap:10px!important;
+}
+.sidebar-nav-icon{
+  width:18px!important;
+  min-width:18px!important;
+  height:18px!important;
+  display:grid!important;
+  place-items:center!important;
+  margin:0!important;
+  padding:0!important;
+  font-size:13px!important;
+  font-weight:500!important;
+  line-height:1!important;
+  letter-spacing:0!important;
+  text-align:center!important;
+  color:inherit!important;
+}
+.sidebar-nav-label{
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  font-size:10px!important;
+  font-weight:760!important;
+  line-height:1.15!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+  white-space:normal!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  text-align:left!important;
+}
+
+/* mesma regra de quebra para os dois botões da primeira linha */
+.sidebar-library-actions .sidebar-nav-label{
+  line-height:1.1!important;
+  max-width:100%!important;
+}
+.sidebar-library-actions .my-church-btn .sidebar-nav-label,
+.sidebar-library-actions .gallery-btn .sidebar-nav-label{
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+/* contador não altera alinhamento */
+.notifications-nav-btn .notification-badge{
+  position:static!important;
+  justify-self:end!important;
+  margin:0!important;
+  min-width:18px!important;
+  height:18px!important;
+  padding:0 5px!important;
+  display:inline-grid;
+  place-items:center!important;
+  border-radius:99px!important;
+  font-size:7px!important;
+  line-height:1!important;
+}
+
+/* categoria 3: etapas 1 e 2, idênticas */
+.sidebar-flow{
+  display:grid!important;
+  gap:7px!important;
+  margin:0 0 14px!important;
+}
+.sidebar-flow .nav-step{
+  width:100%!important;
+  height:38px!important;
+  min-height:38px!important;
+  max-height:38px!important;
+  padding:0 11px!important;
+  display:grid!important;
+  grid-template-columns:24px minmax(0,1fr)!important;
+  align-items:center!important;
+  column-gap:12px!important;
+  border-radius:10px!important;
+  overflow:hidden!important;
+  text-transform:none!important;
+}
+.sidebar-flow .nav-step b{
+  width:24px!important;
+  min-width:24px!important;
+  height:24px!important;
+  margin:0!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:7px!important;
+  font-size:9px!important;
+  line-height:1!important;
+}
+.sidebar-flow .nav-step span{
+  min-width:0!important;
+  margin:0!important;
+  display:block!important;
+  font-size:9.5px!important;
+  font-weight:740!important;
+  line-height:1.1!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+/* nenhuma capitalização forçada na lateral */
+.sidebar button,
+.sidebar .nav-step,
+.sidebar h4,
+.sidebar .church-section-title span{
+  text-transform:none!important;
+}
+.sidebar .church-section-title span,
+.sidebar .account-card h4{
+  text-transform:none!important;
+}
+
+/* claro */
+html[data-theme="light"] .sidebar-unified-btn,
+html[data-theme="light"] .sidebar-project-btn,
+html[data-theme="light"] .sidebar-flow .nav-step{
+  background:#ffffff!important;
+  color:#1f252c!important;
+  border:1px solid #dfe3e8!important;
+}
+html[data-theme="light"] .sidebar-unified-btn:hover,
+html[data-theme="light"] .sidebar-project-btn:hover{
+  background:#f4f6f8!important;
+  border-color:#cfd5dc!important;
+}
+html[data-theme="light"] .sidebar-unified-btn.active,
+html[data-theme="light"] .feed-nav-btn.active{
+  background:#fff3ec!important;
+  border-color:#e6a07a!important;
+  color:#211b18!important;
+}
+html[data-theme="light"] .sidebar-flow .nav-step.active{
+  background:#f2f4f7!important;
+  color:#1d2228!important;
+}
+
+/* escuro */
+html:not([data-theme="light"]) .sidebar-unified-btn,
+html:not([data-theme="light"]) .sidebar-project-btn,
+html:not([data-theme="light"]) .sidebar-flow .nav-step{
+  background:#11151b!important;
+  color:#f1f3f6!important;
+  border:1px solid #2c333d!important;
+}
+html:not([data-theme="light"]) .sidebar-unified-btn:hover,
+html:not([data-theme="light"]) .sidebar-project-btn:hover{
+  background:#171c23!important;
+  border-color:#3a4350!important;
+}
+html:not([data-theme="light"]) .sidebar-unified-btn.active,
+html:not([data-theme="light"]) .feed-nav-btn.active{
+  background:#2a1b14!important;
+  border-color:#7a472f!important;
+  color:#ffffff!important;
+}
+html:not([data-theme="light"]) .sidebar-flow .nav-step.active{
+  background:#171c23!important;
+  color:#ffffff!important;
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -2248,23 +2507,23 @@ html:not([data-theme="light"]) .sidebar .sidebar-project-btn.active{
   <div class="app-shell" id="appShell" style="visibility:hidden">
     <aside class="sidebar">
       <div class="brand"><span class="brand-logo" role="img" aria-label="ChurchDesign"></span></div>
-      <button class="sidebar-project-btn" id="currentProjectBtn" type="button"><span>PROJETO ATUAL</span><strong id="projectName">Nova arte</strong></button>
+      <button class="sidebar-project-btn" id="currentProjectBtn" type="button"><span class="project-current-kicker">projeto atual</span><strong id="projectName">nova arte</strong></button>
       <div class="sidebar-library-actions">
-        <button class="my-church-btn" type="button" onclick="openMyChurch()">⌂ Minha Igreja</button>
-        <button class="gallery-btn" type="button" onclick="openGallery()">▦ Galeria</button>
+        <button class="sidebar-unified-btn my-church-btn" type="button" onclick="openMyChurch()"><span class="sidebar-nav-icon">⌂</span><span class="sidebar-nav-label">minha igreja</span></button>
+        <button class="sidebar-unified-btn gallery-btn" type="button" onclick="openGallery()"><span class="sidebar-nav-icon">▦</span><span class="sidebar-nav-label">galeria</span></button>
       </div>
       <div class="sidebar-primary-actions">
-        <button class="feed-nav-btn" id="feedNavBtn" type="button" onclick="openFeed()">◫ Feed</button>
-        <button class="create-nav-btn" id="createNavBtn" type="button" onclick="openCreateHome()">＋ CRIAR</button>
-        <button class="notifications-nav-btn" id="notificationsNavBtn" type="button" onclick="openNotifications()">♡ Notificações <span id="notificationBadge" class="notification-badge" style="display:none">0</span></button>
+        <button class="sidebar-unified-btn feed-nav-btn" id="feedNavBtn" type="button" onclick="openFeed()"><span class="sidebar-nav-icon">◫</span><span class="sidebar-nav-label">feed</span></button>
+        <button class="sidebar-unified-btn create-nav-btn" id="createNavBtn" type="button" onclick="openCreateHome()"><span class="sidebar-nav-icon">＋</span><span class="sidebar-nav-label">criar</span></button>
+        <button class="sidebar-unified-btn notifications-nav-btn" id="notificationsNavBtn" type="button" onclick="openNotifications()"><span class="sidebar-nav-icon">♡</span><span class="sidebar-nav-label">notificações</span><span id="notificationBadge" class="notification-badge" style="display:none">0</span></button>
       </div>
       <nav id="stepNav" class="sidebar-flow">
-        <div class="nav-step active" data-flow-step="1"><b>1</b><span>Criação da arte base</span></div>
-        <div class="nav-step" data-flow-step="2"><b>2</b><span>Assistente de logos</span></div>
+        <div class="nav-step active" data-flow-step="1"><b>1</b><span>criação da arte base</span></div>
+        <div class="nav-step" data-flow-step="2"><b>2</b><span>assistente de logos</span></div>
       </nav>
       <div class="church-switcher church-switcher-premium" id="churchSwitcherWrap" style="display:none">
         <div class="church-section-title">
-          <span>Minhas Igrejas</span>
+          <span>minhas igrejas</span>
           <button class="church-add-btn" type="button" onclick="createAnotherChurch()" title="Nova igreja" aria-label="Nova igreja">＋</button>
         </div>
         <select id="churchSwitcher" aria-hidden="true" tabindex="-1"></select>
@@ -2272,7 +2531,7 @@ html:not([data-theme="light"]) .sidebar .sidebar-project-btn.active{
         <small id="churchSwitcherRole" class="church-role-caption"></small>
       </div>
       <div class="account-card" id="sidebarAccount">
-        <h4>Minha Conta</h4>
+        <h4>minha conta</h4>
         <span class="account-email" id="accountEmail">—</span>
         <div class="account-row"><span>Referências salvas</span><strong id="accountRefUsage">0 / 30</strong></div>
         <button id="subscriptionAdminBtn" class="mini-btn" type="button" onclick="openSubscriptionAdmin()" style="display:none">Gerenciar assinaturas</button><button class="mini-btn account-signout" type="button" onclick="signOutChurchDesign()">Sair</button>
@@ -2286,7 +2545,7 @@ html:not([data-theme="light"]) .sidebar .sidebar-project-btn.active{
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.67</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.68</div>
   
   <script>
 const state={
@@ -6029,7 +6288,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.67</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.68</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
