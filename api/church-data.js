@@ -1,5 +1,5 @@
-// CHURCHDESIGN — church-data v0.43.0
-// ChurchDesign V0.43.0 — multi-church, membership validated, web/mobile-ready
+// CHURCHDESIGN — church-data v0.44.0
+// ChurchDesign V0.44.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
 function envCfg(){
@@ -752,12 +752,25 @@ module.exports=async function handler(req,res){
     }
 
     if(action==="delete-gallery-item"&&req.method==="DELETE"){
-      const body=req.body||{},generationId=body.generationId,galleryId=body.galleryId;if(!generationId||!galleryId)throw Object.assign(new Error("generationId e galleryId são obrigatórios."),{statusCode:400});
-      const rows=await serviceRest(`church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`),generation=rows?.[0];if(!generation)return res.json({ok:true,alreadyMissing:true});
-      const images=Array.isArray(generation.images)?generation.images:[],remaining=images.filter(im=>String(im?.galleryId||"")!==String(galleryId));if(remaining.length===images.length)return res.json({ok:true,alreadyMissing:true});
-      if(remaining.length)await serviceRest(`church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",body:JSON.stringify({images:remaining})});
+      const body=req.body||{},generationId=String(body.generationId||""),galleryId=String(body.galleryId||""),imageUrl=String(body.imageUrl||""),label=String(body.label||""),imageIndex=Number.isInteger(Number(body.imageIndex))?Number(body.imageIndex):-1;
+      if(!generationId)throw Object.assign(new Error("generationId é obrigatório."),{statusCode:400});
+      const rows=await serviceRest(`church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*`),generation=rows?.[0];
+      if(!generation)return res.json({ok:true,alreadyMissing:true});
+      const images=Array.isArray(generation.images)?generation.images:[];
+      let deleteIndex=-1;
+      if(galleryId)deleteIndex=images.findIndex(im=>String(im?.galleryId||"")===galleryId);
+      if(deleteIndex<0&&imageUrl)deleteIndex=images.findIndex(im=>String(im?.url||im?.dataUrl||"")===imageUrl);
+      if(deleteIndex<0&&imageIndex>=0&&imageIndex<images.length){
+        const candidate=images[imageIndex],candidateUrl=String(candidate?.url||candidate?.dataUrl||""),candidateLabel=String(candidate?.label||"");
+        if((!imageUrl||candidateUrl===imageUrl)&&(!label||candidateLabel===label))deleteIndex=imageIndex;
+      }
+      if(deleteIndex<0)return res.json({ok:true,alreadyMissing:true,reason:"image_not_found"});
+      const deleted=images[deleteIndex],remaining=images.filter((_,idx)=>idx!==deleteIndex);
+      if(remaining.length)await serviceRest(`church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify({images:remaining})});
       else await serviceRest(`church_generations?id=eq.${encodeURIComponent(generationId)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"DELETE"});
-      return res.json({ok:true,deletedGalleryId:galleryId});
+      const deletedGalleryId=String(deleted?.galleryId||galleryId||"");
+      if(deletedGalleryId){try{await serviceRest(`feed_posts?church_id=eq.${encodeURIComponent(churchId)}&gallery_id=eq.${encodeURIComponent(deletedGalleryId)}`,{method:"PATCH",body:JSON.stringify({active:false,updated_at:new Date().toISOString()})})}catch(feedErr){console.warn("delete-gallery-item: feed cleanup skipped",feedErr?.message||feedErr)}}
+      return res.json({ok:true,deletedGalleryId:deletedGalleryId||null,legacy:!deleted?.galleryId});
     }
 
     if(action==="save-draft"&&req.method==="POST"){
