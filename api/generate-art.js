@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.14.0
+// CHURCHDESIGN — generate-art v0.15.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -133,7 +133,7 @@ function prompt(data){
 ${data.backgroundMode?`MODO FUNDO ABSOLUTO — ESTA REGRA SOBRESCREVE QUALQUER OUTRA INSTRUÇÃO DE TEXTO OU CONTEÚDO:
 - Gere somente um FUNDO LIMPO da mesma identidade visual.
 - ZERO TEXTO LEGÍVEL. Não renderize nem preserve título, subtítulo, palavras, letras, números, datas, horários, endereço, nomes, slogans, chamadas, assinatura, selo ou placeholder.
-- ZERO PESSOAS. Não renderize pregadores, rostos, corpos, silhuetas ou figuras humanas.
+${data.addPastorOverride?`- EXCEÇÃO HUMANA OBRIGATÓRIA: renderize EXATAMENTE o pregador fornecido como PESSOA 1. A pessoa deve ficar claramente visível, reconhecível e integrada ao fundo; não inclua nenhuma outra pessoa.`:`- ZERO PESSOAS. Não renderize pregadores, rostos, corpos, silhuetas ou figuras humanas.`}
 - ZERO LOGOS, marcas ou emblemas.
 - A referência é uma fonte de paleta, atmosfera, iluminação, textura, formas abstratas e cenário; todo conteúdo semântico visível nela deve ser removido e a área reconstruída naturalmente.
 - Se existir fotografia real da igreja fornecida como asset de fundo, preserve essa fotografia como ambiente, sem inventar outra igreja.
@@ -146,6 +146,19 @@ Altere SOMENTE: ${data.revisionInstruction||data.variantInstruction||'o ajuste e
 Todo elemento não mencionado deve permanecer visualmente igual: rostos, mãos, dedos, roupas, poses, textos, palavras de fundo, efeitos, cores, posições e composição. Logos permanecem ausentes do canvas generativo e serão recoladas deterministicamente depois.
 Não reinterprete áreas não solicitadas. Se precisar reconstruir uma pequena região, consulte os assets originais e preserve a identidade exata.
 `:''}
+${data.addPastorOverride?`ADICIONAR PREGADOR — OVERRIDE ABSOLUTO / HARD CONSTRAINT:
+- A imagem PESSOA 1 é um ASSET OBRIGATÓRIO desta derivada.
+- O resultado final DEVE CONTER PESSOA 1 claramente visível. Não é opcional.
+- Mesmo que a working-base/referência tenha ZERO pessoas, RECOMPONHA o layout e INSIRA PESSOA 1.
+- Não preserve “ausência de pessoa” da referência.
+- Não substitua por pessoa da referência, modelo genérico, silhueta, sombra ou rosto inventado.
+- Preserve fortemente a identidade facial, cabelo, roupa, pose, gesto, mãos, microfone/objeto e orientação natural da foto enviada.
+- Rosto e cabeça inteiros devem permanecer dentro da safe area e não podem ficar escondidos por texto.
+- Esta ordem vence qualquer regra herdada de artDirection, referência ou modo que diga sem pessoas/remover pregador.
+- Em Modo Fundo, continue removendo textos e logos, mas mantenha PESSOA 1.
+- Em Modo Tema, mantenha somente o título como texto, mas mantenha PESSOA 1.
+`:''}
+
 ATIVOS SAGRADOS:
 Fotos de pregadores, logo da igreja e logo de evento são ativos independentes e invioláveis. Nunca misture símbolos, textos, membros, objetos ou identidades entre eles.
 Campo de nome vazio = nenhum texto ou placeholder para aquela pessoa.
@@ -229,6 +242,7 @@ TIPOGRAFIA FINAL:
 
 PREGADOR:
 - O sistema aceita NO MÁXIMO 3 pregadores.
+${data.addPastorOverride?'- OVERRIDE ATIVO: existe uma foto de pregador explicitamente selecionada para ADIÇÃO nesta derivada. A presença desse pregador é OBRIGATÓRIA, mesmo que a arte-base não tenha pessoa.':''}
 - A ordem dos assets é semântica e obrigatória: PESSOA 1 = PRINCIPAL; PESSOA 2 = AUXILIAR 1; PESSOA 3 = AUXILIAR 2.
 - TODA PESSOA HUMANA NA ARTE DE REFERÊNCIA É PLACEHOLDER DE COMPOSIÇÃO E DEVE SER REMOVIDA quando houver pregadores enviados, salvo comando explícito para preservar uma pessoa da referência.
 - JAMAIS mantenha o pregador/modelo/pessoa original da referência no lugar do PRINCIPAL enviado pelo usuário.
