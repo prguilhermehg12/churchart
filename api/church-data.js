@@ -1,5 +1,5 @@
-// CHURCHDESIGN — church-data v0.44.0
-// ChurchDesign V0.44.0 — multi-church, membership validated, web/mobile-ready
+// CHURCHDESIGN — church-data v0.47.0
+// ChurchDesign V0.47.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
 function envCfg(){
@@ -28,6 +28,19 @@ async function serviceRest(path,opt={}){
   });
   const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
   if(!r.ok)throw Object.assign(new Error(data?.message||data?.error||data?.hint||`Supabase REST ${r.status}`),{statusCode:r.status>=400&&r.status<500?r.status:500});
+  return data;
+}
+
+
+async function serviceRpc(name,body={}){
+  const c=envCfg();
+  const r=await fetch(`${c.url}/rest/v1/rpc/${encodeURIComponent(name)}`,{
+    method:"POST",
+    headers:{apikey:c.secret,Authorization:`Bearer ${c.secret}`,"Content-Type":"application/json"},
+    body:JSON.stringify(body)
+  });
+  const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
+  if(!r.ok)throw Object.assign(new Error(data?.message||data?.error||data?.hint||`RPC ${name} ${r.status}`),{statusCode:r.status>=400&&r.status<500?r.status:500});
   return data;
 }
 
@@ -74,6 +87,64 @@ async function requireAppAdmin(req,user){
   return user;
 }
 
+
+
+
+async function generationCreditPrice(artType,format){
+  const type=String(artType||"Arte base"),fmt=String(format||"");
+  const rows=await serviceRest(`generation_credit_prices?active=eq.true&select=art_type,format,credits,priority&order=priority.desc`);
+  const exact=(rows||[]).find(x=>x.art_type===type&&String(x.format||"")===fmt);
+  const byType=(rows||[]).find(x=>x.art_type===type&&!x.format);
+  const fallback=(rows||[]).find(x=>x.art_type==="*"&&!x.format);
+  return Math.max(0,Number((exact||byType||fallback)?.credits)||0);
+}
+async function persistAppError({churchId,userId,operationId=null,category="processing",stage="app",severity="error",userMessage="",technicalMessage="",stack="",metadata={}}){
+  try{
+    await serviceRest("app_error_logs",{method:"POST",body:JSON.stringify([{
+      church_id:churchId||null,user_id:userId||null,operation_id:operationId||null,category:String(category||"processing").slice(0,80),
+      stage:String(stage||"app").slice(0,120),severity:String(severity||"error").slice(0,30),user_message:String(userMessage||"").slice(0,2000),
+      technical_message:String(technicalMessage||"").slice(0,12000),stack:String(stack||"").slice(0,16000),metadata:metadata||{}
+    }])});
+  }catch(e){console.error("[ChurchDesign] app_error_logs",e.message)}
+}
+
+const HISTORY_COST_RATES={
+  "gpt-5.6-sol":{kind:"text",input:5,cached:.5,output:30},
+  "gpt-5.6":{kind:"text",input:5,cached:.5,output:30},
+  "gpt-5.6-terra":{kind:"text",input:2,cached:.2,output:12},
+  "gpt-5.6-luna":{kind:"text",input:.2,cached:.02,output:1.2},
+  "gpt-image-2":{kind:"image",text_input:5,text_cached:1.25,text_output:10,image_input:8,image_cached:2,image_output:30}
+};
+function historyNum(obj,...paths){for(const path of paths){let v=obj;for(const k of path.split("."))v=v?.[k];if(Number.isFinite(Number(v)))return Number(v)}return 0}
+function estimateHistoryCost(row){
+  const persisted=Number(row?.cost_usd)||0;if(persisted>0)return persisted;
+  const usage=row?.metadata?.usage||null;if(!usage)return 0;
+  const r=HISTORY_COST_RATES[row?.model]||HISTORY_COST_RATES["gpt-5.6-sol"];
+  if(r.kind==="text"){
+    const input=historyNum(usage,"input_tokens","prompt_tokens"),output=historyNum(usage,"output_tokens","completion_tokens"),cached=historyNum(usage,"input_tokens_details.cached_tokens","prompt_tokens_details.cached_tokens");
+    return ((Math.max(0,input-cached)*r.input)+(cached*r.cached)+(output*r.output))/1e6;
+  }
+  const ti=historyNum(usage,"input_tokens_details.text_tokens","input_details.text_tokens","text_input_tokens"),ii=historyNum(usage,"input_tokens_details.image_tokens","input_details.image_tokens","image_input_tokens"),ci=historyNum(usage,"input_tokens_details.cached_tokens","input_details.cached_tokens"),to=historyNum(usage,"output_tokens_details.text_tokens","output_details.text_tokens","text_output_tokens"),io=historyNum(usage,"output_tokens_details.image_tokens","output_details.image_tokens","image_output_tokens"),input=historyNum(usage,"input_tokens","prompt_tokens"),output=historyNum(usage,"output_tokens","completion_tokens");
+  if(ti||ii||to||io){const imageCached=Math.min(ii,ci),textCached=Math.max(0,ci-imageCached);return ((Math.max(0,ti-textCached)*r.text_input)+(textCached*r.text_cached)+(Math.max(0,ii-imageCached)*r.image_input)+(imageCached*r.image_cached)+(to*r.text_output)+(io*r.image_output))/1e6}
+  return ((input*r.image_input)+(output*r.image_output))/1e6;
+}
+function historyArtType(row){
+  const m=row?.metadata||{},explicit=String(m.art_type||"").trim();if(explicit)return explicit;
+  const label=String(m.label||m.variant_label||"").toLowerCase(),format=String(m.format||"").toLowerCase();
+  if(/fundo|background/.test(label+format))return"Fundo";
+  if(/modo livre|free/.test(label+format))return"Modo Livre";
+  if(/youtube/.test(label+format))return"YouTube";
+  if(/tel[aã]o|screen/.test(label+format))return"Telão";
+  if(/stor(y|ies)|9:16/.test(label+format))return"Stories";
+  if(/corre[cç]/.test(label))return"Correção";
+  if(/derivada/.test(label)||m.mode==="adaptation")return"Derivada";
+  return"Arte base";
+}
+function legacyProjectName(row){
+  const m=row?.metadata||{},name=String(m.project_name||"").trim();if(name)return name;
+  const label=String(m.label||"").trim();
+  return /^(principal|varia[cç][aã]o\s*\d+)$/i.test(label)?"Projeto legado":(label||"Projeto legado");
+}
 
 function cleanInValue(v){return String(v||"").replace(/[(),\s]/g,"")}
 function inList(values=[]){return values.map(cleanInValue).filter(Boolean).join(",")}
@@ -205,6 +276,132 @@ module.exports=async function handler(req,res){
     // Account-level actions: no active church required yet.
 
     // Platform-admin actions live here intentionally, so web/iOS/Android share one stable authenticated API route.
+
+
+    if(action==="generation-operation-start"&&req.method==="POST"){
+      const b=req.body||{},operationId=String(b.operationId||"").trim(),artType=String(b.artType||"Arte base").trim(),format=String(b.format||"").trim();
+      if(!operationId)throw Object.assign(new Error("Operação de geração ausente."),{statusCode:400});
+      await requireMembership(authUser,churchId);
+      const isAdmin=!!(await userRpc(req,"is_app_admin",{}).catch(()=>false));
+      const credits=isAdmin?0:await generationCreditPrice(artType,format);
+      let debit={balance:null,debited:0};
+      if(credits>0){
+        debit=await userRpc(req,"reserve_generation_credits",{p_church_id:churchId,p_operation_id:operationId,p_credits:credits,p_metadata:{art_type:artType,format,project_name:String(b.projectName||""),client_metadata:b.metadata||{}}});
+      }
+      const existing=(await serviceRest(`generation_operations?operation_id=eq.${encodeURIComponent(operationId)}&select=*&limit=1`))?.[0];
+      if(!existing)await serviceRest("generation_operations",{method:"POST",body:JSON.stringify([{operation_id:operationId,church_id:churchId,user_id:authUser.id,art_type:artType,format,project_name:String(b.projectName||""),credits_reserved:credits,status:"processing",metadata:b.metadata||{}}])});
+      return res.json({ok:true,operationId,credits,balance:debit?.balance??null});
+    }
+
+    if(action==="generation-operation-complete"&&req.method==="POST"){
+      const b=req.body||{},operationId=String(b.operationId||"").trim();if(!operationId)throw Object.assign(new Error("Operação ausente."),{statusCode:400});
+      await requireMembership(authUser,churchId);
+      await serviceRest(`generation_operations?operation_id=eq.${encodeURIComponent(operationId)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",body:JSON.stringify({status:"completed",completed_at:new Date().toISOString(),metadata:b.metadata||{}})});
+      const bal=await userRpc(req,"generation_credit_balance",{p_church_id:churchId}).catch(()=>null);
+      return res.json({ok:true,balance:typeof bal==="number"?bal:bal?.balance??null});
+    }
+
+    if(action==="generation-operation-fail"&&req.method==="POST"){
+      const b=req.body||{},operationId=String(b.operationId||"").trim();if(!operationId)throw Object.assign(new Error("Operação ausente."),{statusCode:400});
+      await requireMembership(authUser,churchId);
+      const op=(await serviceRest(`generation_operations?operation_id=eq.${encodeURIComponent(operationId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*&limit=1`))?.[0];
+      let refund={balance:null,refunded:0};
+      if(op?.credits_reserved>0)refund=await userRpc(req,"refund_generation_credits",{p_church_id:churchId,p_operation_id:operationId,p_metadata:{failure_class:b.failureClass||"processing",stage:b.stage||"generation"}});
+      await serviceRest(`generation_operations?operation_id=eq.${encodeURIComponent(operationId)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",body:JSON.stringify({status:b.failureClass==="cancelled"?"cancelled":"failed",failed_at:new Date().toISOString(),failure_class:String(b.failureClass||"processing"),failure_stage:String(b.stage||"generation"),failure_message:String(b.message||"").slice(0,8000),credits_refunded:Number(refund?.refunded)||0,metadata:b.metadata||{}})});
+      await persistAppError({churchId,userId:authUser.id,operationId,category:b.failureClass||"processing",stage:b.stage||"generation",technicalMessage:b.message||"",metadata:b.metadata||{}});
+      return res.json({ok:true,creditsRefunded:Number(refund?.refunded)||0,balance:refund?.balance??null});
+    }
+
+    if(action==="log-app-error"&&req.method==="POST"){
+      const b=req.body||{};await requireMembership(authUser,churchId);
+      await persistAppError({churchId,userId:authUser.id,operationId:b.operationId||null,category:b.category||"processing",stage:b.stage||"app",severity:b.severity||"error",userMessage:b.userMessage||"",technicalMessage:b.technicalMessage||"",stack:b.stack||"",metadata:b.metadata||{}});
+      return res.json({ok:true});
+    }
+
+    if(action==="billing-error-history"){
+      await requireAppAdmin(req,authUser);
+      const [rows,churches,profiles,users]=await Promise.all([
+        serviceRest("app_error_logs?select=*&order=created_at.desc&limit=3000"),
+        serviceRest("church_profile?select=id,name,label"),
+        serviceRest("user_profiles?select=user_id,name"),
+        listAuthUsers()
+      ]);
+      const cm=new Map((churches||[]).map(x=>[x.id,x.label||x.name||"Igreja"])),pm=new Map((profiles||[]).map(x=>[x.user_id,x.name||""])),um=new Map((users||[]).map(x=>[x.id,x.email||""]));
+      const errors=(rows||[]).map(x=>({id:x.id,createdAt:x.created_at,churchId:x.church_id,churchName:cm.get(x.church_id)||"—",userId:x.user_id,userName:pm.get(x.user_id)||"",userEmail:um.get(x.user_id)||"",operationId:x.operation_id||"",category:x.category,stage:x.stage,severity:x.severity,userMessage:x.user_message||"",technicalMessage:x.technical_message||"",stack:x.stack||"",metadata:x.metadata||{}}));
+      return res.json({errors});
+    }
+
+    if(action==="billing-cost-history"){
+      await requireAppAdmin(req,authUser);
+      const [usage,churches,profiles,users]=await Promise.all([
+        serviceRest("generation_usage?select=id,church_id,user_id,generation_id,operation_type,model,endpoint,input_tokens,output_tokens,image_count,cost_usd,cost_brl,currency_rate,metadata,created_at&order=created_at.asc&limit=5000"),
+        serviceRest("church_profile?select=id,name,label"),
+        serviceRest("user_profiles?select=user_id,name"),
+        listAuthUsers()
+      ]);
+      const churchById=new Map((churches||[]).map(x=>[x.id,x.label||x.name||"Igreja"]));
+      const profileById=new Map((profiles||[]).map(x=>[x.user_id,x.name||""]));
+      const emailById=new Map((users||[]).map(x=>[x.id,x.email||""]));
+      const sessions=new Map(),legacyState=new Map();
+
+      for(const row of (usage||[])){
+        const meta=row.metadata||{},explicit=String(meta.cost_session_id||"").trim();
+        let key=explicit?`tracked:${explicit}`:"";
+        if(!key){
+          const bucket=`${row.church_id}:${row.user_id}`,t=new Date(row.created_at).getTime()||0,prev=legacyState.get(bucket);
+          if(!prev||t-prev.last>10*60*1000){legacyState.set(bucket,{n:(prev?.n||0)+1,last:t});}
+          else prev.last=t;
+          const cur=legacyState.get(bucket);key=`legacy:${bucket}:${cur.n}`;
+        }
+        if(!sessions.has(key))sessions.set(key,{key,source:explicit?"tracked":"legacy",rows:[],createdAt:row.created_at,churchId:row.church_id,userId:row.user_id});
+        sessions.get(key).rows.push({...row,_cost:estimateHistoryCost(row)});
+      }
+
+      const arts=[];
+      let unassignedUSD=0,totalCalls=0;
+      for(const s of sessions.values()){
+        totalCalls+=s.rows.length;
+        const genRows=s.rows.filter(r=>r.operation_type==="generation"&&Number(r.image_count||0)>0);
+        const total=s.rows.reduce((a,r)=>a+r._cost,0),genDirect=genRows.reduce((a,r)=>a+r._cost,0),support=Math.max(0,total-genDirect);
+        if(!genRows.length){unassignedUSD+=total;continue}
+        const share=support/genRows.length;
+        genRows.forEach(r=>{
+          const m=r.metadata||{},type=historyArtType(r),format=String(m.format||m.target_label||"").trim()||type;
+          arts.push({
+            createdAt:r.created_at,
+            projectName:legacyProjectName(r),
+            type,format,
+            churchId:r.church_id,churchName:churchById.get(r.church_id)||"Igreja",
+            userId:r.user_id,userName:profileById.get(r.user_id)||"",userEmail:emailById.get(r.user_id)||"",
+            source:s.source,
+            costUSD:r._cost+share,
+            directImageUSD:r._cost,
+            allocatedSupportUSD:share,
+            sessionId:s.source==="tracked"?String(m.cost_session_id||""):null
+          });
+        });
+      }
+
+      arts.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+      const byTypeMap=new Map();
+      for(const a of arts){
+        const x=byTypeMap.get(a.type)||{type:a.type,count:0,totalUSD:0,minUSD:Infinity,maxUSD:0};
+        x.count++;x.totalUSD+=a.costUSD;x.minUSD=Math.min(x.minUSD,a.costUSD);x.maxUSD=Math.max(x.maxUSD,a.costUSD);byTypeMap.set(a.type,x);
+      }
+      const byType=[...byTypeMap.values()].map(x=>({...x,avgUSD:x.count?x.totalUSD/x.count:0,minUSD:Number.isFinite(x.minUSD)?x.minUSD:0})).sort((a,b)=>b.count-a.count);
+      const byUserMap=new Map();
+      for(const a of arts){
+        const k=a.userId||"unknown",x=byUserMap.get(k)||{userId:a.userId||"",userName:a.userName||"",userEmail:a.userEmail||"",count:0,totalUSD:0};
+        x.count++;x.totalUSD+=a.costUSD;byUserMap.set(k,x);
+      }
+      const byUser=[...byUserMap.values()].map(x=>({...x,avgUSD:x.count?x.totalUSD/x.count:0})).sort((a,b)=>b.totalUSD-a.totalUSD);
+      const totalUSD=arts.reduce((a,x)=>a+x.costUSD,0);
+      return res.json({
+        summary:{artCount:arts.length,totalUSD,avgUSD:arts.length?totalUSD/arts.length:0,legacyArts:arts.filter(x=>x.source==="legacy").length,totalCalls,unassignedUSD},
+        byType,byUser,arts:arts.slice(0,1500)
+      });
+    }
+
     if(action==="billing-bootstrap"){
       await requireAppAdmin(req,authUser);
       const [churches,members,profiles,plans,subs,coupons,redemptions,usage,users]=await Promise.all([
