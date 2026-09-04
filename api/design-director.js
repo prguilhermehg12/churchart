@@ -26,8 +26,74 @@ async function requireChurchAccess(req,user){
   if(!rows?.length)throw Object.assign(new Error("Você não possui acesso a esta igreja."),{statusCode:403});return churchId;
 }
 function usageNumber(u,...paths){for(const path of paths){let v=u;for(const k of path.split('.'))v=v?.[k];if(Number.isFinite(Number(v)))return Number(v)}return null}
+
+const USAGE_PRICE_VERSION="2026-08-18";
+const USAGE_COST_RATES={
+  "gpt-5.6-sol":{kind:"text",input:5,cached:.5,output:30},
+  "gpt-5.6":{kind:"text",input:5,cached:.5,output:30},
+  "gpt-5.6-terra":{kind:"text",input:2,cached:.2,output:12},
+  "gpt-5.6-luna":{kind:"text",input:.2,cached:.02,output:1.2},
+  "gpt-image-2":{kind:"image",text_input:5,text_cached:1.25,text_output:10,image_input:8,image_cached:2,image_output:30}
+};
+function usageCostEstimate(model,usage){
+  if(!usage)return 0;
+  const r=USAGE_COST_RATES[model]||USAGE_COST_RATES["gpt-5.6-sol"];
+  const num=(...paths)=>usageNumber(usage,...paths)||0;
+  if(r.kind==="text"){
+    const input=num("input_tokens","prompt_tokens"),output=num("output_tokens","completion_tokens"),cached=num("input_tokens_details.cached_tokens","prompt_tokens_details.cached_tokens");
+    return ((Math.max(0,input-cached)*r.input)+(cached*r.cached)+(output*r.output))/1e6;
+  }
+  const ti=num("input_tokens_details.text_tokens","input_details.text_tokens","text_input_tokens");
+  const ii=num("input_tokens_details.image_tokens","input_details.image_tokens","image_input_tokens");
+  const ci=num("input_tokens_details.cached_tokens","input_details.cached_tokens");
+  const to=num("output_tokens_details.text_tokens","output_details.text_tokens","text_output_tokens");
+  const io=num("output_tokens_details.image_tokens","output_details.image_tokens","image_output_tokens");
+  const input=num("input_tokens","prompt_tokens"),output=num("output_tokens","completion_tokens");
+  if(ti||ii||to||io){
+    const imageCached=Math.min(ii,ci),textCached=Math.max(0,ci-imageCached);
+    return ((Math.max(0,ti-textCached)*r.text_input)+(textCached*r.text_cached)+(Math.max(0,ii-imageCached)*r.image_input)+(imageCached*r.image_cached)+(to*r.text_output)+(io*r.image_output))/1e6;
+  }
+  return ((input*r.image_input)+(output*r.image_output))/1e6;
+}
+function costContextFromData(data={}){
+  const ctx=data.costContext||{},target=data.target||{};
+  let artType=ctx.artType||"";
+  if(!artType){
+    if(data.backgroundMode)artType="Fundo";
+    else if(data.freeMode)artType="Modo Livre";
+    else if(data.screenThemeMode)artType="Telão Tema";
+    else if(data.revisionMode)artType="Correção";
+    else if(data.mode==="adaptation")artType="Derivada";
+    else artType="Arte base";
+  }
+  return{
+    cost_session_id:String(data.costSessionId||ctx.sessionId||"")||null,
+    project_name:String(ctx.projectName||data.projectName||data.requiredContent?.title||"").trim()||null,
+    art_type:artType,
+    format:String(ctx.format||data.format||target.id||"").trim()||null,
+    target_label:String(ctx.targetLabel||target.label||"").trim()||null,
+    mode:String(data.mode||"").trim()||null,
+    variant_label:String(data.variantLabel||"").trim()||null,
+    background_mode:!!data.backgroundMode,
+    free_mode:!!data.freeMode,
+    screen_theme_mode:!!data.screenThemeMode,
+    revision_mode:String(data.revisionMode||"").trim()||null
+  };
+}
 async function logUsage({churchId,userId,operationType,model,endpoint,usage,imageCount=0,metadata={}}){
-  try{await serverRest("generation_usage",{method:"POST",body:JSON.stringify([{church_id:churchId,user_id:userId,operation_type:operationType,model,endpoint,input_tokens:usageNumber(usage,'input_tokens','prompt_tokens'),output_tokens:usageNumber(usage,'output_tokens','completion_tokens'),image_count:imageCount,metadata:{...metadata,usage:usage||null}}])})}catch(e){console.error("Usage log",e.message)}
+  try{
+    const costUSD=usageCostEstimate(model,usage),fx=Number(process.env.COST_USD_BRL_RATE)||null;
+    await serverRest("generation_usage",{method:"POST",body:JSON.stringify([{
+      church_id:churchId,user_id:userId,operation_type:operationType,model,endpoint,
+      input_tokens:usageNumber(usage,'input_tokens','prompt_tokens'),
+      output_tokens:usageNumber(usage,'output_tokens','completion_tokens'),
+      image_count:imageCount,
+      cost_usd:costUSD||0,
+      cost_brl:fx?costUSD*fx:null,
+      currency_rate:fx,
+      metadata:{...metadata,usage:usage||null,pricing_version:USAGE_PRICE_VERSION,cost_estimated:true}
+    }])});
+  }catch(e){console.error("Usage log",e.message)}
 }
 
 module.exports.config={maxDuration:60};
@@ -184,7 +250,7 @@ text:{format:{type:"json_schema",name:"churchdesign_art_direction",strict:true,s
 const requestId=r.headers.get("x-request-id")||null;const d=await r.json();if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.requestId=requestId;throw e;}
 const text=outputText(d);if(!text)throw new Error("Diretor de Arte não devolveu blueprint.");
 let artDirection;try{artDirection=JSON.parse(text)}catch{throw new Error("Blueprint inválido.");}
-await logUsage({churchId,userId:authUser.id,operationType:'design-director',model:'gpt-5.6-terra',endpoint:'responses',usage:d.usage,metadata:{requestId}});
+await logUsage({churchId,userId:authUser.id,operationType:'design-director',model:'gpt-5.6-terra',endpoint:'responses',usage:d.usage,metadata:{...costContextFromData(data),requestId}});
 return res.status(200).json({success:true,endpointType:'design-director',artDirection,meta:{model:'gpt-5.6-terra',usage:d.usage||null,requestId,endpoint:'responses'}});
 }catch(e){console.error("ChurchDesign Design Director",e);return res.status(e?.statusCode||500).json({error:e.message||"Erro no Diretor de Arte."});}
 };
