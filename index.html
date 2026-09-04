@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.71 -->
+<!-- CHURCHDESIGN — index v0.74 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -2809,6 +2809,34 @@ html:not([data-theme="light"]) .persistent-gallery-card>img{
   text-overflow:ellipsis!important;
 }
 
+
+/* CHURCHDESIGN v0.72 — histórico de custos */
+.billing-head-actions{display:flex;align-items:center;gap:8px}
+.cost-history-panel{width:min(1180px,96vw)!important;max-height:92dvh!important}
+.cost-history-subtitle{margin:5px 0 0;color:var(--muted);font-size:10px}
+.cost-history-note{padding:11px 13px;border:1px solid var(--field-border);border-radius:11px;background:var(--soft-surface);font-size:9px;line-height:1.5;color:var(--muted);margin-bottom:12px}
+.cost-history-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.cost-history-kpis>div{padding:12px;border:1px solid var(--field-border);border-radius:12px;background:var(--field-bg)}
+.cost-history-kpis small,.cost-history-kpis strong{display:block}.cost-history-kpis small{font-size:7px;letter-spacing:.08em;color:var(--muted)}.cost-history-kpis strong{margin-top:5px;font-size:15px}
+.cost-history-section{margin-top:14px}.cost-history-scroll{max-height:430px;overflow:auto}.cost-history-table td,.cost-history-table th{white-space:nowrap}
+.cost-history-source{display:inline-flex;padding:4px 6px;border-radius:99px;font-size:7px;font-weight:850}.cost-history-source.tracked{background:rgba(67,170,112,.13);color:#65c990}.cost-history-source.legacy{background:rgba(224,160,74,.13);color:#d8a158}
+html[data-theme="light"] .cost-history-note,html[data-theme="light"] .cost-history-kpis>div{background:#fff!important;border-color:#dfe4e9!important}
+html:not([data-theme="light"]) .cost-history-note,html:not([data-theme="light"]) .cost-history-kpis>div{background:#10141a!important;border-color:#303744!important}
+@media(max-width:760px){.cost-history-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* CHURCHDESIGN v0.73 — custos/exportações/diagnóstico */
+.cost-history-toolbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:10px 0 14px}
+.cost-history-toolbar select{height:34px;min-width:145px;border-radius:9px;border:1px solid var(--field-border);background:var(--field-bg);color:var(--text);padding:0 8px;font-size:8px}
+.cost-history-toolbar small{margin-left:auto;color:var(--muted);font-size:8px}
+.cost-user-ranking{display:grid;gap:5px}
+.cost-user-ranking>div{display:grid;grid-template-columns:26px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--field-border);border-radius:9px;background:var(--field-bg)}
+.cost-user-ranking b{width:22px;height:22px;display:grid;place-items:center;border-radius:7px;background:var(--soft-surface);font-size:8px}
+.cost-user-ranking span{font-size:9px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cost-user-ranking small{font-size:7px;color:var(--muted)}.cost-user-ranking strong{font-size:9px}
+html[data-theme="light"] .cost-history-toolbar select,html[data-theme="light"] .cost-user-ranking>div{background:#fff!important;border-color:#dfe4e9!important;color:#1b2026!important}
+html:not([data-theme="light"]) .cost-history-toolbar select,html:not([data-theme="light"]) .cost-user-ranking>div{background:#10141a!important;border-color:#303744!important;color:#f2f4f7!important}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -2873,7 +2901,7 @@ html:not([data-theme="light"]) .persistent-gallery-card>img{
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.71</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.74</div>
   
   <script>
 const state={
@@ -2901,6 +2929,7 @@ gallerySeed:null,
 gallerySavedIds:[],
 galleryViewMode:'grid',
 user:{id:null,email:null,plan:null,credits:null,isAdmin:false},
+activeGenerationOperation:null,
 billing:{provider:null,currency:'BRL',plans:[],churches:[],members:[],subscriptions:[],coupons:[]},
 feed:{posts:[],view:'feed',loading:false},notifications:{items:[],unreadCount:0},
 authSession:null,
@@ -4012,7 +4041,13 @@ function apiJSON(action,options={}){const method=options.method||'GET';const chu
 
 
 
-function clientPipelineGuard(payload={}){const p={...payload,assets:{...(payload.assets||{})}};if((p.assets.pastors||[]).length>3)throw new Error('Guardião: máximo de 3 pregadores.');p.allowedTexts=[p.requiredContent?.title,p.requiredContent?.subtitle,p.requiredContent?.secondaryInfo,p.requiredContent?.date,p.requiredContent?.time,p.requiredContent?.address,p.requiredContent?.churchName,...(p.requiredContent?.pastorNames||[])].map(x=>String(x||'').trim()).filter(Boolean);p.referenceSemanticPolicy='style-only';if(p.mode==='primary'&&!p.revisionMode&&!p.referenceRole)p.referenceRole='director-only';return p;}
+function clientPipelineGuard(payload={}){
+  const p={...payload,assets:{...(payload.assets||{})}};
+  const target=p.target||{};
+  const inferredType=p.backgroundMode?'Fundo':p.freeMode?'Modo Livre':p.screenThemeMode?'Telão Tema':p.revisionMode?'Correção':p.mode==='adaptation'?'Derivada':'Arte base';
+  p.costSessionId=p.costSessionId||state.costSupervisor?.sessionId||null;
+  p.operationId=p.operationId||state.activeGenerationOperation?.operationId||null;
+  p.costContext={...(p.costContext||{}),sessionId:p.costSessionId||null,operationId:p.operationId||null,projectName:p.costContext?.projectName||state.gallerySeed?.recipe?.projectName||state.quick?.title||p.requiredContent?.title||'',artType:p.costContext?.artType||state.activeGenerationOperation?.artType||inferredType,format:p.costContext?.format||state.activeGenerationOperation?.format||p.format||target.id||state.quick?.format||'',targetLabel:p.costContext?.targetLabel||target.label||''};if((p.assets.pastors||[]).length>3)throw new Error('Guardião: máximo de 3 pregadores.');p.allowedTexts=[p.requiredContent?.title,p.requiredContent?.subtitle,p.requiredContent?.secondaryInfo,p.requiredContent?.date,p.requiredContent?.time,p.requiredContent?.address,p.requiredContent?.churchName,...(p.requiredContent?.pastorNames||[])].map(x=>String(x||'').trim()).filter(Boolean);p.referenceSemanticPolicy='style-only';if(p.mode==='primary'&&!p.revisionMode&&!p.referenceRole)p.referenceRole='director-only';return p;}
 
 
 function logoVariantMeta(a){return a?.meta||a?.metadata||a?.data||{}}
@@ -5547,11 +5582,12 @@ function renderSubscriptionAdmin(){
   const totalArts=members.reduce((a,u)=>a+(Number(u.monthlyArts)||0),0),totalCost=members.reduce((a,u)=>a+(Number(u.monthlyCostBRL)||0),0),totalRevenue=churches.reduce((a,c)=>a+(Number(currentChurchSubscription(c.id)?.price_monthly)||0),0);
   const memberRows=members.map(u=>{const ch=churches.find(c=>c.id===u.church_id),sub=currentChurchSubscription(u.church_id),plan=billingPlan(sub?.plan_id);return `<tr><td>${esc(u.name||'—')}</td><td>${esc(u.email||'—')}</td><td>${esc(ch?.name||'—')}</td><td>${esc(u.role==='owner'?'Responsável':'Colaborador')}</td><td>${esc(plan?.name||'Sem plano')}</td><td>${Number(u.monthlyArts)||0}</td><td>${billingBRL(u.monthlyCostBRL)}</td></tr>`}).join('');
   const churchRows=churches.map(c=>{const sub=currentChurchSubscription(c.id),plan=billingPlan(sub?.plan_id);return `<div class="billing-plan-row"><strong>${esc(c.name||'Igreja sem nome')}</strong><small>${esc(plan?.name||'Sem assinatura ativa')} • ${billingBRL(sub?.price_monthly||0)}</small><div style="display:grid;grid-template-columns:1fr auto;gap:7px;margin-top:8px"><select data-sub-plan="${esc(c.id)}"><option value="">Selecionar plano…</option>${plans.map(p=>`<option value="${p.id}" ${p.id===sub?.plan_id?'selected':''}>${esc(p.name)} • ${billingBRL(p.price_monthly)}</option>`).join('')}</select><button class="mini-btn" data-save-sub="${esc(c.id)}">Aplicar</button></div></div>`}).join('');
-  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel billing-admin-panel"><div class="modal-head"><div><h2>Gerenciamento de assinaturas</h2><div class="billing-provider-pill">Supabase real • pagamento externo ainda desconectado</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body">
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel billing-admin-panel"><div class="modal-head"><div><h2>Gerenciamento de assinaturas</h2><div class="billing-provider-pill">Supabase real • pagamento externo ainda desconectado</div></div><div class="billing-head-actions"><button class="mini-btn" id="openCostHistoryBtn" type="button">Histórico de custos</button><button class="close-modal" onclick="closeModal()">×</button></div></div><div class="modal-body">
   <div class="billing-kpis"><div class="billing-kpi"><small>IGREJAS</small><strong>${churches.length}</strong></div><div class="billing-kpi"><small>USUÁRIOS ATIVOS</small><strong>${members.length}</strong></div><div class="billing-kpi"><small>ARTES NO MÊS</small><strong>${totalArts}</strong></div><div class="billing-kpi"><small>RECEITA/MÊS</small><strong>${billingBRL(totalRevenue)}</strong></div><div class="billing-kpi"><small>CUSTO IA REGISTRADO</small><strong>${billingBRL(totalCost)}</strong></div></div>
   <div class="billing-admin-grid"><section class="billing-users-panel"><div class="billing-section-title"><div><h3>Usuários e consumo</h3><small>Dados reais do tenant e generation_usage</small></div></div><div class="billing-table-wrap"><table class="billing-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Igreja</th><th>Função</th><th>Plano</th><th>Artes</th><th>Custo registrado</th></tr></thead><tbody>${memberRows||'<tr><td colspan="7">Nenhum usuário.</td></tr>'}</tbody></table></div><div class="billing-section-title" style="margin-top:14px"><div><h3>Assinatura por igreja</h3><small>Plano pertence à igreja, não ao usuário</small></div></div><div class="billing-plan-list">${churchRows||'<div class="billing-status">Nenhuma igreja.</div>'}</div></section>
   <section class="billing-coupon-panel"><div class="billing-section-title"><div><h3>Planos</h3><small>Cadastre preços e limites quando decidir</small></div></div><div class="billing-form-grid"><div class="field"><label>Código</label><input id="planCode" placeholder="pro"></div><div class="field"><label>Nome</label><input id="planName" placeholder="Pro"></div><div class="field"><label>Preço mensal</label><input id="planPrice" type="number" min="0" step="0.01" value="0"></div><div class="field"><label>Créditos/mês</label><input id="planCredits" type="number" min="0" placeholder="deixar vazio"></div><div class="field"><label>Limite referências</label><input id="planRefs" type="number" min="0" placeholder="deixar vazio"></div><div class="field"><label>Usuários</label><input id="planUsers" type="number" min="1" max="3" value="3"></div></div><button class="btn primary" id="savePlanBtn" style="width:100%;margin-top:9px">Salvar plano</button><div class="billing-plan-list" style="margin-top:10px">${plans.map(p=>`<div class="billing-plan-row"><strong>${esc(p.name)} <span style="color:var(--muted)">(${esc(p.code)})</span></strong><small>${billingBRL(p.price_monthly)} • ${p.credits_monthly??'créditos indefinidos'} • ${p.reference_limit??'referências indefinidas'} • até ${p.user_limit} usuários</small></div>`).join('')||'<div class="billing-status">Nenhum plano cadastrado ainda.</div>'}</div><hr style="border:0;border-top:1px solid var(--line);margin:14px 0"><div class="billing-section-title"><div><h3>Gerador de cupons</h3><small>Persistência real no Supabase</small></div></div><div class="billing-form-grid"><div class="field wide"><label>Código</label><input id="couponCode" placeholder="DESCONTACO"></div><div class="field"><label>Desconto (%)</label><input id="couponPercent" type="number" min="1" max="100" value="20"></div><div class="field"><label>Vigência (meses)</label><input id="couponDuration" type="number" min="1" max="60" value="6"></div><div class="field"><label>Válido até</label><input id="couponValidUntil" type="date"></div><div class="field"><label>Plano</label><select id="couponPlan"><option value="">Todos</option>${plans.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div><div class="field wide"><label>Tipo</label><div class="billing-coupon-kind"><button type="button" class="active" data-coupon-kind="individual">Individual</button><button type="button" data-coupon-kind="collective">Coletivo</button></div></div><div class="field wide screen-theme-hidden" id="couponCollectiveOptions"><label>Limite de contas</label><div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center"><input id="couponMaxAccounts" type="number" min="1" value="10"><label style="display:flex;align-items:center;gap:6px;font-size:9px"><input id="couponUnlimited" type="checkbox"> Ilimitado</label></div></div></div><button class="btn primary" id="createCouponBtn" style="width:100%;margin-top:10px">Gerar cupom + link</button><div class="billing-coupon-list">${coupons.map(c=>`<div class="billing-coupon-row"><div><strong>${esc(c.code)}</strong><small style="display:block;color:var(--muted)">${Number(c.discount_value)||0}% • ${c.plan_id?esc(billingPlan(c.plan_id)?.name||'Plano'):'Todos os planos'} • ${billingCouponUsageLabel(c)} • ${billingCouponActive(c)?'ATIVO':'INDISPONÍVEL'}</small><div class="billing-link-box"><input readonly value="${esc(billingCouponSignupLink(c))}"><button class="mini-btn" data-copy-coupon="${esc(c.id)}">Copiar link</button></div></div><button class="mini-btn" data-delete-coupon="${esc(c.id)}">Desativar</button></div>`).join('')||'<div class="billing-status">Nenhum cupom ativo.</div>'}</div></section></div>
   <section class="billing-payments-panel"><div class="billing-section-title"><div><h3>Pagamento</h3><small>Banco preparado; provedor e webhooks ainda não conectados</small></div></div><div class="billing-status">Nenhuma cobrança é criada por esta tela. Pix, Pix Automático e recorrência serão ligados somente no backend do provedor escolhido.</div></section></div></div></div>`;
+  root.querySelector('#openCostHistoryBtn')?.addEventListener('click',openCostHistory);
   let couponKind='individual';const kindBtns=[...root.querySelectorAll('[data-coupon-kind]')],collectiveBox=root.querySelector('#couponCollectiveOptions');kindBtns.forEach(btn=>btn.onclick=()=>{couponKind=btn.dataset.couponKind;kindBtns.forEach(x=>x.classList.toggle('active',x===btn));collectiveBox?.classList.toggle('screen-theme-hidden',couponKind!=='collective')});root.querySelector('#couponUnlimited')?.addEventListener('change',e=>{const inp=root.querySelector('#couponMaxAccounts');if(inp)inp.disabled=e.target.checked});
   root.querySelector('#savePlanBtn')?.addEventListener('click',async()=>{try{await billingAdminJSON('save-plan',{method:'POST',body:{code:root.querySelector('#planCode')?.value,name:root.querySelector('#planName')?.value,priceMonthly:root.querySelector('#planPrice')?.value,creditsMonthly:root.querySelector('#planCredits')?.value,referenceLimit:root.querySelector('#planRefs')?.value,userLimit:root.querySelector('#planUsers')?.value}});await loadBillingAdmin();renderSubscriptionAdmin()}catch(e){appAlert(e.message)}});
   root.querySelectorAll('[data-save-sub]').forEach(btn=>btn.onclick=async()=>{const churchId=btn.dataset.saveSub,planId=root.querySelector(`[data-sub-plan="${CSS.escape(churchId)}"]`)?.value;if(!planId)return appAlert('Selecione um plano.');try{await billingAdminJSON('set-subscription',{method:'POST',body:{churchId,planId}});await loadBillingAdmin();renderSubscriptionAdmin()}catch(e){appAlert(e.message)}});
@@ -5561,6 +5597,95 @@ function renderSubscriptionAdmin(){
 }
 
 
+
+function costHistoryMoney(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:4,maximumFractionDigits:4}).format(Number(v)||0)}
+function costHistorySourceLabel(v){return v==='tracked'?'Rastreado':'Legado estimado'}
+let costHistoryCache=null;
+function csvCell(v){const s=String(v??'');return `"${s.replace(/"/g,'""')}"`}
+function downloadTextFile(name,text,type='text/csv;charset=utf-8'){
+  const blob=new Blob(['\ufeff'+text],{type}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},300);
+}
+function tableRowsToCSV(rows,headers){return [headers.map(h=>csvCell(h.label)).join(','),...rows.map(r=>headers.map(h=>csvCell(typeof h.value==='function'?h.value(r):r[h.value])).join(','))].join('\n')}
+function tableRowsToExcel(rows,headers,title='ChurchDesign'){
+  const escx=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<!doctype html><html><head><meta charset="utf-8"></head><body><table border="1"><caption>${escx(title)}</caption><thead><tr>${headers.map(h=>`<th>${escx(h.label)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${headers.map(h=>`<td>${escx(typeof h.value==='function'?h.value(r):r[h.value])}</td>`).join('')}</tr>`).join('')}</tbody></table></body></html>`;
+}
+const COST_EXPORT_HEADERS=[
+  {label:'Data',value:r=>formatDateTime(r.createdAt)},{label:'Projeto',value:'projectName'},{label:'Tipo',value:'type'},{label:'Formato',value:'format'},
+  {label:'Igreja',value:'churchName'},{label:'Usuário',value:r=>r.userName||r.userEmail||''},{label:'E-mail',value:'userEmail'},
+  {label:'Fonte',value:r=>costHistorySourceLabel(r.source)},{label:'Custo USD',value:r=>Number(r.costUSD||0).toFixed(6)},
+  {label:'Custo BRL',value:r=>Number(r.costBRL||0).toFixed(4)},{label:'Custo direto USD',value:r=>Number(r.directImageUSD||0).toFixed(6)},
+  {label:'Rateio auxiliar USD',value:r=>Number(r.allocatedSupportUSD||0).toFixed(6)}
+];
+function filteredCostRows(){
+  const d=costHistoryCache||{},root=document.querySelector('#modalRoot'),user=root?.querySelector('#costFilterUser')?.value||'',type=root?.querySelector('#costFilterType')?.value||'',source=root?.querySelector('#costFilterSource')?.value||'',sort=root?.querySelector('#costSort')?.value||'date-desc';
+  let rows=[...(d.arts||[])].filter(x=>(!user||x.userId===user)&&(!type||x.type===type)&&(!source||x.source===source));
+  const name=x=>String(x.userName||x.userEmail||'').localeCompare('',undefined,{sensitivity:'base'});
+  rows.sort((a,b)=>{
+    if(sort==='cost-desc')return Number(b.costUSD||0)-Number(a.costUSD||0);
+    if(sort==='cost-asc')return Number(a.costUSD||0)-Number(b.costUSD||0);
+    if(sort==='user-az')return String(a.userName||a.userEmail||'').localeCompare(String(b.userName||b.userEmail||''),'pt-BR',{sensitivity:'base'});
+    if(sort==='user-za')return String(b.userName||b.userEmail||'').localeCompare(String(a.userName||a.userEmail||''),'pt-BR',{sensitivity:'base'});
+    return new Date(b.createdAt)-new Date(a.createdAt);
+  });return rows;
+}
+function renderCostHistoryRows(){
+  const root=document.querySelector('#modalRoot'),body=root?.querySelector('#costHistoryRows');if(!body)return;
+  const rows=filteredCostRows();body.innerHTML=rows.map(x=>`<tr><td>${esc(formatDateTime(x.createdAt))}</td><td>${esc(x.projectName||'—')}</td><td>${esc(x.type||'—')}</td><td>${esc(x.format||'—')}</td><td>${esc(x.churchName||'—')}</td><td>${esc(x.userName||x.userEmail||'—')}</td><td><span class="cost-history-source ${x.source==='tracked'?'tracked':'legacy'}">${esc(costHistorySourceLabel(x.source))}</span></td><td><strong>${costHistoryMoney(x.costUSD)}</strong>${Number(x.costBRL)>0?`<small style="display:block;color:var(--muted)">${new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(x.costBRL)}</small>`:''}</td></tr>`).join('')||'<tr><td colspan="8">Sem dados com estes filtros.</td></tr>';
+  const c=root.querySelector('#costFilteredCount');if(c)c.textContent=`${rows.length} registros`;
+}
+async function openCostHistory(){
+  if(!state.user?.isAdmin)return;
+  const root=document.querySelector('#modalRoot');
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel cost-history-panel"><div class="modal-head"><div><h2>Histórico de custos</h2><p class="cost-history-subtitle">Custos por arte, usuário e tipo.</p></div><button class="close-modal" onclick="renderSubscriptionAdmin()">×</button></div><div class="modal-body"><div class="empty-state">Calculando histórico...</div></div></div></div>`;
+  try{
+    const d=await billingAdminJSON('cost-history');costHistoryCache=d;
+    const summary=d.summary||{},types=d.byType||[],users=d.byUser||[],arts=d.arts||[],legacy=Number(summary.legacyArts)||0;
+    root.querySelector('.modal-body').innerHTML=`
+      <div class="cost-history-note"><strong>Como ler:</strong> registros novos são rastreados por sessão/operação; registros antigos aparecem como <b>Legado estimado</b>.</div>
+      <div class="cost-history-kpis"><div><small>ARTES</small><strong>${Number(summary.artCount)||0}</strong></div><div><small>CUSTO TOTAL EST.</small><strong>${costHistoryMoney(summary.totalUSD)}</strong></div><div><small>MÉDIA / ARTE</small><strong>${costHistoryMoney(summary.avgUSD)}</strong></div><div><small>LEGADO</small><strong>${legacy}</strong></div></div>
+      <div class="cost-history-toolbar">
+        <select id="costFilterUser"><option value="">Todos os usuários</option>${users.map(u=>`<option value="${esc(u.userId)}">${esc(u.userName||u.userEmail||'Usuário')} — ${costHistoryMoney(u.totalUSD)}</option>`).join('')}</select>
+        <select id="costFilterType"><option value="">Todos os tipos</option>${types.map(x=>`<option value="${esc(x.type)}">${esc(x.type)}</option>`).join('')}</select>
+        <select id="costFilterSource"><option value="">Todas as fontes</option><option value="tracked">Rastreado</option><option value="legacy">Legado estimado</option></select>
+        <select id="costSort"><option value="date-desc">Mais recentes</option><option value="cost-desc">Mais caro → barato</option><option value="cost-asc">Mais barato → caro</option><option value="user-az">Usuário A → Z</option><option value="user-za">Usuário Z → A</option></select>
+        <button class="mini-btn" id="exportCostCsv">Exportar CSV</button><button class="mini-btn" id="exportCostExcel">Exportar Excel</button><button class="mini-btn" id="openErrorHistory">Erros e bugs</button>
+        <small id="costFilteredCount">${arts.length} registros</small>
+      </div>
+      <section class="cost-history-section"><div class="billing-section-title"><div><h3>Usuários por custo</h3><small>Classificação do mais caro para o mais barato</small></div></div><div class="cost-user-ranking">${users.map((u,i)=>`<div><b>${i+1}</b><span>${esc(u.userName||u.userEmail||'Usuário')}</span><small>${u.count} artes</small><strong>${costHistoryMoney(u.totalUSD)}</strong></div>`).join('')||'<div class="billing-status">Sem dados.</div>'}</div></section>
+      <section class="cost-history-section"><div class="billing-section-title"><div><h3>Custo médio por tipo</h3><small>Base para créditos e margem</small></div></div><div class="billing-table-wrap"><table class="billing-table cost-history-table"><thead><tr><th>Tipo</th><th>Artes</th><th>Total</th><th>Média</th><th>Mínimo</th><th>Máximo</th></tr></thead><tbody>${types.map(x=>`<tr><td><strong>${esc(x.type)}</strong></td><td>${x.count}</td><td>${costHistoryMoney(x.totalUSD)}</td><td>${costHistoryMoney(x.avgUSD)}</td><td>${costHistoryMoney(x.minUSD)}</td><td>${costHistoryMoney(x.maxUSD)}</td></tr>`).join('')||'<tr><td colspan="6">Sem dados.</td></tr>'}</tbody></table></div></section>
+      <section class="cost-history-section"><div class="billing-section-title"><div><h3>Histórico por arte</h3><small>Filtros e exportação respeitam os registros exibidos</small></div></div><div class="billing-table-wrap cost-history-scroll"><table class="billing-table cost-history-table"><thead><tr><th>Data</th><th>Projeto</th><th>Tipo</th><th>Formato</th><th>Igreja</th><th>Usuário</th><th>Fonte</th><th>Custo</th></tr></thead><tbody id="costHistoryRows"></tbody></table></div></section>`;
+    ['costFilterUser','costFilterType','costFilterSource','costSort'].forEach(id=>root.querySelector('#'+id)?.addEventListener('change',renderCostHistoryRows));
+    root.querySelector('#exportCostCsv').onclick=()=>downloadTextFile(`churchdesign-custos-${new Date().toISOString().slice(0,10)}.csv`,tableRowsToCSV(filteredCostRows(),COST_EXPORT_HEADERS));
+    root.querySelector('#exportCostExcel').onclick=()=>downloadTextFile(`churchdesign-custos-${new Date().toISOString().slice(0,10)}.xls`,tableRowsToExcel(filteredCostRows(),COST_EXPORT_HEADERS,'ChurchDesign — Histórico de custos'),'application/vnd.ms-excel;charset=utf-8');
+    root.querySelector('#openErrorHistory').onclick=openErrorHistory;
+    renderCostHistoryRows();
+  }catch(e){root.querySelector('.modal-body').innerHTML=`<div class="empty-state">${esc(e.message)}</div>`}
+}
+const ERROR_EXPORT_HEADERS=[
+  {label:'Data',value:r=>formatDateTime(r.createdAt)},{label:'Categoria',value:'category'},{label:'Etapa',value:'stage'},{label:'Severidade',value:'severity'},
+  {label:'Igreja',value:'churchName'},{label:'Usuário',value:r=>r.userName||r.userEmail||''},{label:'E-mail',value:'userEmail'},
+  {label:'Operation ID',value:'operationId'},{label:'Mensagem técnica',value:'technicalMessage'},{label:'Mensagem usuário',value:'userMessage'}
+];
+let errorHistoryCache=[];
+function filteredErrorRows(){
+  const root=document.querySelector('#modalRoot'),category=root?.querySelector('#errorFilterCategory')?.value||'',user=root?.querySelector('#errorFilterUser')?.value||'',sort=root?.querySelector('#errorSort')?.value||'date-desc';
+  let rows=[...errorHistoryCache].filter(x=>(!category||x.category===category)&&(!user||x.userId===user));
+  rows.sort((a,b)=>sort==='user-az'?String(a.userName||a.userEmail||'').localeCompare(String(b.userName||b.userEmail||''),'pt-BR') : sort==='category'?String(a.category||'').localeCompare(String(b.category||''),'pt-BR') : new Date(b.createdAt)-new Date(a.createdAt));return rows;
+}
+function renderErrorRows(){const root=document.querySelector('#modalRoot'),body=root?.querySelector('#errorHistoryRows');if(!body)return;body.innerHTML=filteredErrorRows().map(x=>`<tr><td>${esc(formatDateTime(x.createdAt))}</td><td>${esc(x.category||'—')}</td><td>${esc(x.stage||'—')}</td><td>${esc(x.churchName||'—')}</td><td>${esc(x.userName||x.userEmail||'—')}</td><td>${esc(x.technicalMessage||'—')}</td></tr>`).join('')||'<tr><td colspan="6">Sem erros com estes filtros.</td></tr>'}
+async function openErrorHistory(){
+  const root=document.querySelector('#modalRoot');root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel cost-history-panel"><div class="modal-head"><div><h2>Histórico de erros e bugs</h2><p class="cost-history-subtitle">Diagnóstico interno. Não exibido aos clientes.</p></div><button class="close-modal" onclick="openCostHistory()">×</button></div><div class="modal-body"><div class="empty-state">Carregando...</div></div></div></div>`;
+  try{
+    const d=await billingAdminJSON('error-history');errorHistoryCache=d.errors||[];
+    const cats=[...new Set(errorHistoryCache.map(x=>x.category).filter(Boolean))],users=[...new Map(errorHistoryCache.filter(x=>x.userId).map(x=>[x.userId,x])).values()];
+    root.querySelector('.modal-body').innerHTML=`<div class="cost-history-toolbar"><select id="errorFilterCategory"><option value="">Todas as categorias</option>${cats.map(x=>`<option>${esc(x)}</option>`).join('')}</select><select id="errorFilterUser"><option value="">Todos os usuários</option>${users.map(x=>`<option value="${esc(x.userId)}">${esc(x.userName||x.userEmail||'Usuário')}</option>`).join('')}</select><select id="errorSort"><option value="date-desc">Mais recentes</option><option value="user-az">Usuário A → Z</option><option value="category">Categoria A → Z</option></select><button class="mini-btn" id="exportErrorsCsv">Exportar CSV</button><button class="mini-btn" id="exportErrorsExcel">Exportar Excel</button></div><div class="billing-table-wrap cost-history-scroll"><table class="billing-table cost-history-table"><thead><tr><th>Data</th><th>Categoria</th><th>Etapa</th><th>Igreja</th><th>Usuário</th><th>Mensagem técnica</th></tr></thead><tbody id="errorHistoryRows"></tbody></table></div>`;
+    ['errorFilterCategory','errorFilterUser','errorSort'].forEach(id=>root.querySelector('#'+id)?.addEventListener('change',renderErrorRows));
+    root.querySelector('#exportErrorsCsv').onclick=()=>downloadTextFile(`churchdesign-erros-${new Date().toISOString().slice(0,10)}.csv`,tableRowsToCSV(filteredErrorRows(),ERROR_EXPORT_HEADERS));
+    root.querySelector('#exportErrorsExcel').onclick=()=>downloadTextFile(`churchdesign-erros-${new Date().toISOString().slice(0,10)}.xls`,tableRowsToExcel(filteredErrorRows(),ERROR_EXPORT_HEADERS,'ChurchDesign — Erros e bugs'),'application/vnd.ms-excel;charset=utf-8');
+    renderErrorRows();
+  }catch(e){root.querySelector('.modal-body').innerHTML=`<div class="empty-state">${esc(e.message)}</div>`}
+}
 function feedInitials(name='Igreja'){return String(name||'Igreja').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'IG'}
 function feedAspectClass(p){const t=p?.target||{},w=Number(t.width)||0,h=Number(t.height)||0,r=w&&h?w/h:0.8;if(r>1.25)return'landscape';if(r<.68)return'tall';if(r>.9&&r<1.1)return'square';return'portrait'}
 function feedCleanArtworkLabel(label){
@@ -5876,6 +6001,74 @@ async function callQualityInspector(payload,signal=null){
     };
   }
 }
+
+function generationArtTypeFromContext({replaceIndex=null,format=null,backgroundMode=false,freeMode=false,screenThemeMode=false}={}){
+  if(replaceIndex!==null)return 'Correção';
+  if(backgroundMode)return 'Fundo';
+  if(freeMode)return 'Modo Livre';
+  if(screenThemeMode)return 'Telão Tema';
+  if(format==='youtube')return 'YouTube';
+  if(format==='story')return 'Stories';
+  if(format==='screen')return 'Telão';
+  return 'Arte base';
+}
+function generationFailureClass(e){
+  const msg=String(e?.message||e||'').toLowerCase();
+  if(e?.name==='AbortError')return 'cancelled';
+  if(/429|rate limit|timeout|timed out|500|502|503|504|openai|upstream|temporar|indispon/i.test(msg))return 'provider_instability';
+  if(/network|fetch|conex|econn|socket/i.test(msg))return 'network';
+  return 'processing';
+}
+async function startGenerationOperation(meta={}){
+  const operationId=crypto.randomUUID();
+  const d=await apiJSON('generation-operation-start',{method:'POST',body:{operationId,artType:meta.artType||'Arte base',format:meta.format||state.quick?.format||'',projectName:meta.projectName||state.quick?.title||state.projectTitle||'',metadata:meta}});
+  state.activeGenerationOperation={operationId,credits:Number(d.credits)||0,balance:d.balance??state.user.credits,artType:meta.artType||'Arte base',format:meta.format||'',startedAt:Date.now()};
+  if(d.balance!==undefined&&d.balance!==null){state.user.credits=Number(d.balance);updateSidebarAccount();}
+  return state.activeGenerationOperation;
+}
+async function finishGenerationOperation(success=true,error=null,extra={}){
+  const op=state.activeGenerationOperation;if(!op)return null;
+  try{
+    if(success){
+      const d=await apiJSON('generation-operation-complete',{method:'POST',body:{operationId:op.operationId,metadata:extra}});
+      if(d.balance!==undefined&&d.balance!==null){state.user.credits=Number(d.balance);updateSidebarAccount();}
+      return d;
+    }
+    const failureClass=generationFailureClass(error);
+    const d=await apiJSON('generation-operation-fail',{method:'POST',body:{
+      operationId:op.operationId,
+      failureClass,
+      stage:extra.stage||'generation',
+      message:String(error?.message||error||'Falha sem mensagem'),
+      metadata:{...extra,name:error?.name||null,stack:String(error?.stack||'').slice(0,4000)}
+    }});
+    if(d.balance!==undefined&&d.balance!==null){state.user.credits=Number(d.balance);updateSidebarAccount();}
+    return d;
+  }finally{state.activeGenerationOperation=null}
+}
+async function logAppIssue(error,context={}){
+  try{
+    await apiJSON('log-app-error',{method:'POST',body:{
+      operationId:state.activeGenerationOperation?.operationId||context.operationId||null,
+      category:context.category||generationFailureClass(error),
+      stage:context.stage||'app',
+      severity:context.severity||'error',
+      userMessage:context.userMessage||'',
+      technicalMessage:String(error?.message||error||'Falha sem mensagem').slice(0,8000),
+      stack:String(error?.stack||'').slice(0,12000),
+      metadata:context
+    }});
+  }catch(logErr){console.warn('[ChurchDesign] error log failed',logErr)}
+}
+function friendlyGenerationFailurePopup(refund,errorClass='processing'){
+  const refunded=Number(refund?.creditsRefunded)||0,balance=refund?.balance;
+  const provider=errorClass==='provider_instability';
+  const title=refunded>0?'Seus créditos estão seguros':'Não conseguimos concluir agora';
+  const body=provider
+    ?`O serviço de inteligência artificial encontrou uma instabilidade temporária e esta geração não foi concluída.${refunded>0?`\n\n${refunded} créditos foram devolvidos automaticamente.`:''}${balance!==undefined&&balance!==null?`\nSaldo atual: ${balance} créditos.`:''}`
+    :`Houve uma interrupção temporária durante o processamento e a arte não foi concluída.${refunded>0?`\n\n${refunded} créditos foram devolvidos automaticamente.`:''}${balance!==undefined&&balance!==null?`\nSaldo atual: ${balance} créditos.`:''}`;
+  appAlert(body,{type:'warning',title,duration:8500});
+}
 async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null){
   payload=clientPipelineGuard(payload);let lastReview=null,lastImage=null;
   const retryInstructions=['','Corrija apenas os erros objetivos apontados pelo fiscal. Preserve o restante da composição. Se houver risco de degradar rosto, logo ou tipografia, simplifique.'];
@@ -5912,7 +6105,10 @@ async function requestArtDirection(base,signal=null){
     audience:base.audience||null,designStyle:base.designStyle||null,preferenceProfile:base.preferenceProfile||null,
     requiredContent:base.requiredContent||{},colorMode:base.colorMode||null,dominantColor:base.dominantColor||null,
     logoPosition:base.logoPosition||null,eventLogoPosition:base.eventLogoPosition||null,eventLogoSize:base.eventLogoSize||null,
-    omitChurchLogo:base.omitChurchLogo||false
+    omitChurchLogo:base.omitChurchLogo||false,
+    operationId:state.activeGenerationOperation?.operationId||base.operationId||null,
+    costSessionId:state.costSupervisor?.sessionId||base.costSessionId||null,
+    costContext:{operationId:state.activeGenerationOperation?.operationId||null,sessionId:state.costSupervisor?.sessionId||null,projectName:state.quick?.title||base.requiredContent?.title||'',artType:state.activeGenerationOperation?.artType||'Arte base',format:state.activeGenerationOperation?.format||base.format||'',targetLabel:base.target?.label||''}
   }),signal});
   const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,220)||`Diretor de arte: resposta inválida (${r.status})`);}
   if(!r.ok)throw new Error(data.error||`Diretor de arte: erro ${r.status}`);
@@ -6616,7 +6812,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.71</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.74</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
@@ -7094,6 +7290,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
   if(label==='Principal'&&replaceIndex===null)beginCostSession('Modo Rápido • primeira arte');
   const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent='Processando sua arte...';
   try{
+    const op=await startGenerationOperation({artType:generationArtTypeFromContext({replaceIndex,format:state.quick?.format}),format:state.quick?.format||'',projectName:state.quick?.title||state.projectTitle||'',replaceIndex,variationIndex});
     const payload=await quickPayload(label,correction,signal);
     if(replaceIndex!==null){applyLogoCorrectionIntent(payload,correction);const parent=state.quickResults[replaceIndex],latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent,logoFreeSource=latest?.baseDataUrl||latest?.sourceUrl||latest?.dataUrl;if(logoFreeSource){const lockedBase=await prepareImageForAI(logoFreeSource,1600,.96);payload.reference=lockedBase;payload.references=[{image:lockedBase,note:'MOLDE VISUAL BLOQUEADO DA ÚLTIMA VERSÃO. Preserve exatamente tudo que não foi mencionado.'}];payload.revisionMode='delta-only';payload.lockedBase=true;payload.revisionInstruction=correction||'';payload.variantInstruction=`CORREÇÃO CIRÚRGICA: altere SOMENTE: ${correction||'o ajuste solicitado'}. Todo elemento não mencionado está BLOQUEADO e deve permanecer visualmente igual à versão-base.`;}}
     setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;if(!payload.variantInstruction)payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual. Se houver ANOTAÇÃO / INSTRUÇÃO EXPLÍCITA DO USUÁRIO no prompt, ela é obrigatória e deve aparecer de forma visualmente verificável nesta variação; não a trate como sugestão opcional.`;
@@ -7110,9 +7307,15 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
     if(savedGallery){galleryCandidate.galleryId=savedGallery.galleryId;galleryCandidate.galleryPersisted=savedGallery.persisted!==false;galleryCandidate.gallerySaveError=savedGallery.error||null} 
     state.gallerySeed=null;
     setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte base pronta. Clique em Prosseguir para inserir as logos ou exportar sem logo.</strong>'+((savedGallery&&savedGallery.persisted===false)?`<span style="display:block;font-size:8px;color:#ffd19c;margin-top:3px">⚠ A arte ficou disponível na Galeria local, mas o banco não confirmou o salvamento: ${esc(savedGallery.error||'erro desconhecido')}.</span>`:'')+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();
+    await finishGenerationOperation(true,null,{stage:'completed',galleryId:galleryCandidate.galleryId||null});
     if(isMobileCreationFlow()&&replaceIndex===null&&variationIndex===0){const createdIndex=state.quickResults.indexOf(result);setTimeout(()=>openLogoAssistant(`main:${Math.max(0,createdIndex)}`),120);}
-  }catch(e){if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível concluir.</strong><br>${esc(e.message)}`;}
-  finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}
+  }catch(e){
+    const errorClass=generationFailureClass(e);
+    if(!state.activeGenerationOperation)await logAppIssue(e,{stage:e.name==='AbortError'?'cancelled':'quick-generation',category:errorClass,artType:generationArtTypeFromContext({replaceIndex,format:state.quick?.format}),format:state.quick?.format||''});
+    const refund=await finishGenerationOperation(false,e,{stage:e.name==='AbortError'?'cancelled':'quick-generation'}).catch(()=>null);
+    if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado. Seus créditos, quando debitados, foram devolvidos.';setQuickProgress(0,'Cancelado');}
+    else{if(status)status.innerHTML='<strong style="color:#ffd19c">A geração foi interrompida temporariamente.</strong><br>Se houve débito, os créditos foram devolvidos automaticamente.';friendlyGenerationFailurePopup(refund,errorClass);}
+  }finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}
 }
 function assertDerivativePipelineReady(){
   const required=['prepareImageForAI','isDataImage','hydrateGalleryAssets','generateWithInvisibleReview','normalizeArtworkToTarget','quickTargetSpec','resolveQuickReferenceCandidate','restoreRecipeToQuick','galleryItemToQuickResult','openQuickAdaptConfig'];
@@ -7128,6 +7331,7 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
   const signal=beginProcess(),target=quickTargetSpec(formatId),status=document.querySelector('#quickStatus'),cancel=document.querySelector('#quickCancel');
   if(cancel)cancel.style.display='block';setQuickProgress(18,`Adaptando para ${target.label}...`);if(status)status.textContent='Processando sua arte...';
   try{
+    const op=await startGenerationOperation({artType:generationArtTypeFromContext({format:formatId,backgroundMode:!!adaptOptions.backgroundMode,freeMode:!!adaptOptions.freeMode,screenThemeMode:!!adaptOptions.screenThemeMode}),format:formatId,projectName:state.quick?.title||state.projectTitle||'',sourceKey:sourceKey||null});
     const sourceRef=await prepareImageForAI(source.baseDataUrl||source.sourceUrl||source.dataUrl,1400,.9);
     const required={...(source.requiredContent||parent.requiredContent||{})};
     const screenInfoContent={...required,pastorNames:Array.isArray(required.pastorNames)?[...required.pastorNames]:required.pastorNames};
@@ -7248,13 +7452,17 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte derivada base pronta. Clique em Prosseguir para finalizar as logos.</strong>';
     const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();
     bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();
+    await finishGenerationOperation(true,null,{stage:'completed-derivative',childId:child.id||null});
     requestAnimationFrame(()=>{
       const card=document.querySelector(`[data-qadapt-id="${child.id}"]`)?.closest('.quick-adapt-item');
       if(card){card.classList.add('newest-result-focus');card.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>card.classList.remove('newest-result-focus'),2200);}
     });
   }catch(e){
-    if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');}
-    else if(status)status.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;
+    const errorClass=generationFailureClass(e);
+    if(!state.activeGenerationOperation)await logAppIssue(e,{stage:e.name==='AbortError'?'cancelled':'quick-adaptation',category:errorClass,artType:generationArtTypeFromContext({format:formatId}),format:formatId});
+    const refund=await finishGenerationOperation(false,e,{stage:e.name==='AbortError'?'cancelled':'quick-adaptation'}).catch(()=>null);
+    if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado. Seus créditos, quando debitados, foram devolvidos.';setQuickProgress(0,'Cancelado');}
+    else{if(status)status.innerHTML='<strong style="color:#ffd19c">A adaptação foi interrompida temporariamente.</strong><br>Se houve débito, os créditos foram devolvidos automaticamente.';friendlyGenerationFailurePopup(refund,errorClass);}
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
 // NEWFLOW v0.40 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
