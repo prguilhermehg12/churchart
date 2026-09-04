@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.77 -->
+<!-- CHURCHDESIGN — index v0.78 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -2943,6 +2943,132 @@ html:not([data-theme="light"]) .ti-setup>div,html:not([data-theme="light"]) .ref
 html[data-theme="light"] .ti-effect-chips span{background:#fff!important;border-color:#dfe4e9!important}
 html:not([data-theme="light"]) .ti-effect-chips span{background:#10151d!important;border-color:#303744!important}
 
+
+/* CHURCHDESIGN v0.78 — tutorial readability + premium motion */
+.tutorial-panel{
+  padding:30px 42px 24px!important;
+}
+.tutorial-grid{
+  padding:0 22px!important;
+  grid-template-columns:minmax(0,.98fr) minmax(360px,1.02fr)!important;
+  gap:46px!important;
+}
+.tutorial-copy{
+  padding-left:18px!important;
+  padding-right:4px!important;
+}
+.tutorial-copy small{
+  font-size:10px!important;
+}
+.tutorial-copy h2{
+  font-size:34px!important;
+  margin:14px 0 16px!important;
+}
+.tutorial-copy>p{
+  font-size:13.5px!important;
+  line-height:1.55!important;
+  max-width:560px!important;
+}
+.tutorial-tips{
+  gap:10px!important;
+}
+.tutorial-tips>div{
+  min-height:54px!important;
+  padding:10px 14px!important;
+  grid-template-columns:42px 1fr!important;
+  align-items:center!important;
+}
+.tutorial-tips>div>span{
+  width:38px!important;
+  height:38px!important;
+  font-size:16px!important;
+}
+.tutorial-tips p{
+  margin:0!important;
+  font-size:12.5px!important;
+  line-height:1.35!important;
+  font-weight:650!important;
+}
+.tutorial-visual{
+  padding-right:8px!important;
+}
+.tutorial-illustration-shell{
+  width:min(410px,100%)!important;
+  max-height:410px!important;
+}
+.ti-reference-sources{
+  grid-template-columns:1fr auto 1fr auto 1fr!important;
+  align-items:center!important;
+  position:relative!important;
+  padding-bottom:38px!important;
+}
+.ti-reference-sources .ref-or{
+  font-size:9px!important;
+  font-weight:900!important;
+  color:var(--muted)!important;
+  letter-spacing:.08em!important;
+}
+.ti-reference-sources>p{
+  position:absolute!important;
+  left:0!important;right:0!important;bottom:0!important;
+  margin:0!important;
+  text-align:center!important;
+  font-size:8px!important;
+  color:var(--muted)!important;
+}
+.ref-source{
+  animation:tutorialFloat 4.8s ease-in-out infinite;
+}
+.ref-source:nth-of-type(2){animation-delay:.45s}
+.ref-source:nth-of-type(3){animation-delay:.9s}
+.ti-setup>div{
+  animation:tutorialRise .45s cubic-bezier(.2,.8,.2,1) both;
+}
+.ti-setup>div:nth-child(2){animation-delay:.08s}
+.ti-setup>div:nth-child(3){animation-delay:.16s}
+.ti-title-illustrated>em{animation:tutorialSpark 2.2s ease-in-out infinite}
+.ti-formats i{animation:tutorialFloat 4.4s ease-in-out infinite}
+.ti-formats i:nth-child(2){animation-delay:.35s}
+.ti-formats i:nth-child(3){animation-delay:.7s}
+.ti-effect-chips span{animation:tutorialPulse 3.2s ease-in-out infinite}
+.ti-effect-chips span:nth-child(2){animation-delay:.3s}
+.ti-effect-chips span:nth-child(3){animation-delay:.6s}
+.ti-effect-chips span:nth-child(4){animation-delay:.9s}
+.ti-real-art{animation:tutorialRise .55s cubic-bezier(.2,.8,.2,1) both}
+.ti-correction>i{animation:tutorialArrow 1.7s ease-in-out infinite}
+.ti-review>div{animation:tutorialRise .45s cubic-bezier(.2,.8,.2,1) both}
+.ti-review>div:nth-child(2){animation-delay:.08s}.ti-review>div:nth-child(3){animation-delay:.16s}
+@keyframes tutorialFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes tutorialRise{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes tutorialSpark{0%,100%{transform:scale(.92) rotate(-5deg);opacity:.7}50%{transform:scale(1.12) rotate(5deg);opacity:1}}
+@keyframes tutorialPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes tutorialArrow{0%,100%{transform:translateX(-3px)}50%{transform:translateX(5px)}}
+@media (prefers-reduced-motion:reduce){
+  .tutorial-panel *{animation:none!important;transition:none!important}
+}
+@media(max-height:720px){
+  .tutorial-panel{padding:18px 30px 14px!important}
+  .tutorial-grid{padding:0 14px!important;gap:28px!important}
+  .tutorial-copy{padding-left:12px!important}
+  .tutorial-copy h2{font-size:27px!important;margin:8px 0 10px!important}
+  .tutorial-copy>p{font-size:11px!important;line-height:1.4!important}
+  .tutorial-tips{gap:6px!important}
+  .tutorial-tips>div{min-height:42px!important;padding:6px 10px!important;grid-template-columns:34px 1fr!important}
+  .tutorial-tips>div>span{width:31px!important;height:31px!important;font-size:13px!important}
+  .tutorial-tips p{font-size:10px!important}
+  .tutorial-illustration-shell{width:min(320px,100%)!important;max-height:320px!important}
+}
+@media(max-width:820px){
+  .tutorial-panel{padding:14px 18px!important}
+  .tutorial-grid{padding:0 8px!important;gap:14px!important}
+  .tutorial-copy{padding-left:8px!important}
+  .tutorial-copy h2{font-size:23px!important}
+  .tutorial-copy>p{font-size:9.5px!important}
+  .tutorial-tips>div{min-height:38px!important;grid-template-columns:31px 1fr!important;padding:5px 7px!important}
+  .tutorial-tips>div>span{width:29px!important;height:29px!important;font-size:12px!important}
+  .tutorial-tips p{font-size:8.3px!important}
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -3011,7 +3137,7 @@ html:not([data-theme="light"]) .ti-effect-chips span{background:#10151d!importan
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.77</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.78</div>
   
   <script>
 const state={
@@ -5799,16 +5925,16 @@ async function openErrorHistory(){
 
 const CHURCHDESIGN_TUTORIAL_STEPS=[
 {kicker:'PASSO 1 DE 8',title:'Prepare o ambiente',text:'Antes de criar, deixe a biblioteca da igreja pronta. Isso reduz improvisos durante a geração e ajuda o ChurchDesign a trabalhar sempre com os arquivos corretos.',tips:['Faça upload das melhores fotos dos pregadores.','Cadastre fotos da igreja que possam servir como cenário ou fundo.','Salve a logo oficial e, quando possível, versões claras e escuras para fundos diferentes.'],art:'setup'},
-{kicker:'PASSO 2 DE 8',title:'Escolha boas referências',text:'Uma referência ajuda a IA a entender direção visual, atmosfera e composição. Você pode usar uma arte do próprio Feed do ChurchDesign ou buscar inspiração em plataformas especializadas.',tips:['Explore o Feed e use uma arte aprovada como referência.','Pinterest é útil para pesquisar estilos, paletas e composições.','Behance é uma ótima fonte de projetos profissionais e identidades visuais mais sofisticadas.'],art:'reference'},
+{kicker:'PASSO 2 DE 8',title:'Escolha boas referências',text:'Uma referência ajuda a IA a entender direção visual, atmosfera e composição. Escolha uma boa fonte de inspiração e use somente o que realmente combina com a arte que você pretende criar.',tips:['Pesquise no Feed do ChurchDesign para encontrar artes já produzidas por outras igrejas.','Pesquise no Pinterest quando quiser explorar estilos, paletas, tipografia e composições.','Pesquise no Behance quando quiser referências de projetos profissionais e identidades visuais mais sofisticadas.'],art:'reference'},
 {kicker:'PASSO 3 DE 8',title:'Comece pelo título e pela clareza',text:'Use um título principal curto e objetivo. Ele orienta a hierarquia da arte e também pode servir de ponto de partida visual para a IA.',tips:['Prefira de 2 a 6 palavras no título.','Evite colocar data, hora e endereço dentro do título.','A opção “Ilustrar pelo título” faz a IA interpretar a ideia do título e tentar representá-la em algum lugar da arte com imagem, vetor, letreiro ou elemento gráfico.'],art:'title'},
-{kicker:'PASSO 4 DE 8',title:'Organize as informações com clareza',text:'Título, complemento, data, horário e endereço têm pesos diferentes. O ChurchDesign lê esses campos separadamente para montar uma hierarquia visual mais limpa.',tips:['Título = mensagem principal.','Informação secundária = complemento.','Data, hora e endereço = dados objetivos e de leitura rápida.'],art:'hierarchy'},
+{kicker:'PASSO 4 DE 8',title:'Organize as informações com cuidado',text:'Título, complemento, data, horário e endereço têm pesos diferentes. Revise tudo antes de gerar: informações incorretas ou mal distribuídas podem produzir uma arte que precise ser refeita e causar uso indesejado de créditos.',tips:['Título = mensagem principal.','Informação secundária = complemento.','Confira nomes, data, horário e endereço antes de tocar em Gerar.'],art:'hierarchy'},
 {kicker:'PASSO 5 DE 8',title:'Escolha formato e efeitos com intenção',text:'Feed, Story, YouTube e Telão possuem proporções diferentes. Os efeitos também influenciam o resultado, mas funcionam como uma orientação visual — não como uma posição rígida.',tips:['Escolha o formato antes de gerar para evitar cortes e recomposição.','Ao selecionar um efeito, a IA tenta encaixá-lo em algum lugar da arte onde faça sentido visualmente.','Efeitos não garantem posição exata; eles orientam atmosfera, textura e linguagem gráfica da composição.'],art:'formats'},
 {kicker:'PASSO 6 DE 8',title:'Use fotos de pregadores com boa leitura',text:'Prefira fotos nítidas, com o rosto visível e pouca obstrução. Ao lado, mostramos um exemplo real de arte produzida no ChurchDesign para demonstrar como uma boa foto pode ser integrada à composição.',tips:['Rosto maior e bem iluminado ajuda a preservar a identidade.','Evite fotos muito pequenas ou muito comprimidas.','Selecione somente as pessoas que realmente precisam aparecer.'],art:'pastor'},
 {kicker:'PASSO 7 DE 8',title:'Variações e correções são possíveis',text:'Você pode pedir uma variação ou uma correção quando realmente precisar. Antes de gerar, a IA lê o texto digitado no campo de instrução e usa esse conteúdo para orientar a nova versão.',tips:['Em variações, descreva o que deseja explorar sem apagar a identidade da arte.','Em correções, seja específico: diga exatamente o que precisa mudar.','Correções e variações podem consumir créditos; vale revisar o pedido antes de gerar.'],art:'correction'},
 {kicker:'PASSO 8 DE 8',title:'Finalize, salve e compartilhe',text:'As artes ficam registradas na Galeria da igreja. Depois de revisar e aplicar a logo oficial, você pode baixar, compartilhar por link e também publicar a arte para outras pessoas verem no Feed.',tips:['A Galeria mantém o histórico do projeto e suas versões.','Compartilhar link cria uma página prática para enviar o pacote sem anexar arquivos.','Quando fizer sentido, publique a arte no Feed para inspirar outras igrejas e facilitar novos usos como referência.'],art:'review'}
 ];
 function tutorialRealArtwork(){
-  return '/tutorial-pregador-example.png';
+  return '/tutorial-pregador-example-v2.png';
 }
 function tutorialIllustration(kind){
  const shell=x=>`<div class="tutorial-illustration-shell">${x}</div>`;
@@ -5816,7 +5942,7 @@ function tutorialIllustration(kind){
  if(kind==='title')return shell(`<div class="ti-poster ti-title-illustrated"><span>TÍTULO</span><b>NOITE DE<br>ALIANÇA</b><i></i><small>QUARTA • 19:30</small><em aria-hidden="true">✦</em><strong>ideia do título → elemento visual</strong></div>`);
  if(kind==='hierarchy')return shell(`<div class="ti-hierarchy"><strong>CONFERÊNCIA</strong><span>Uma noite para toda a família</span><em>SEXTA • 19:30</em><small>Av. principal, 5050</small></div>`);
  if(kind==='formats')return shell(`<div class="ti-effects-wrap"><div class="ti-formats"><i class="f-feed"><span>4:5</span></i><i class="f-story"><span>9:16</span></i><i class="f-wide"><span>16:9</span></i></div><div class="ti-effect-chips"><span>Glow</span><span>Grão</span><span>Luz</span><span>Textura</span></div><small>A IA encaixa o efeito onde fizer sentido na composição</small></div>`);
- if(kind==='reference')return shell(`<div class="ti-reference ti-reference-sources"><div class="ref-source"><b>FEED</b><small>ChurchDesign</small></div><span>+</span><div class="ref-source"><b>P</b><small>Pinterest</small></div><span>+</span><div class="ref-source"><b>Bē</b><small>Behance</small></div></div>`);
+ if(kind==='reference')return shell(`<div class="ti-reference ti-reference-sources"><div class="ref-source"><b>FEED</b><small>ChurchDesign</small></div><span class="ref-or">OU</span><div class="ref-source"><b>P</b><small>Pinterest</small></div><span class="ref-or">OU</span><div class="ref-source"><b>Bē</b><small>Behance</small></div><p>Escolha um bom lugar para pesquisar inspiração.</p></div>`);
  if(kind==='pastor'){
    const real=tutorialRealArtwork();
    if(real)return shell(`<div class="ti-real-art"><img src="${esc(real)}" alt="Exemplo de arte da Galeria"><div class="ti-real-caption"><b>Exemplo real</b><span>arte da sua Galeria</span></div></div>`);
@@ -6965,7 +7091,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.77</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.78</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
