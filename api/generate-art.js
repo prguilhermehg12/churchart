@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.19.0
+// CHURCHDESIGN — generate-art v0.20.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -230,6 +230,14 @@ ATIVOS SAGRADOS:
 Fotos de pregadores, logo da igreja e logo de evento são ativos independentes e invioláveis. Nunca misture símbolos, textos, membros, objetos ou identidades entre eles.
 Campo de nome vazio = nenhum texto ou placeholder para aquela pessoa.
 Camadas humanas não podem se fundir. Objetos de um auxiliar não podem atravessar para frente do principal.
+
+REGRA ABSOLUTA DE ENQUADRAMENTO DOS PREGADORES / NÃO COMPLETAR CORPO:
+- NUNCA invente, complete ou gere pernas, quadris, cintura, pés ou qualquer parte inferior do corpo que não esteja claramente presente na fotografia original enviada.
+- NUNCA transforme uma foto de busto, meio-corpo ou recorte de torso em uma pessoa de corpo inteiro.
+- Preserve o recorte corporal original da foto. Se a imagem termina no peito, cintura ou torso, mantenha o personagem enquadrado/cortado nessa mesma região ou faça um crop ainda mais fechado.
+- É preferível cortar o pregador atrás de elementos gráficos, degradê, névoa, luz ou fora da borda da composição do que completar anatomia inexistente.
+- Não invente roupa abaixo do limite visível da fotografia para construir corpo adicional.
+- Esta regra vale para pregador principal, auxiliares, correções, variações e artes derivadas e vence qualquer instrução estética que sugira corpo inteiro.
 
 
 ${(data.references||[]).length?'Use as referências como referência real de DESIGN: composição, hierarquia, tratamento tipográfico, recortes, textura, paleta, profundidade e linguagem visual.':`CRIAÇÃO SEM REFERÊNCIA: desenvolva uma proposta original a partir desta direção: ${data.inspirationStyle?.name||''} — ${data.inspirationStyle?.prompt||''}. Não copie uma peça específica.`}
