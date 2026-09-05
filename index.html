@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.83 -->
+<!-- CHURCHDESIGN — index v0.84 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3118,6 +3118,59 @@ html:not([data-theme="light"]) .ti-effect-chips span{background:#10151d!importan
 #plansPageHost[hidden]{display:none!important}
 #plansPageHost .cdp-top .cdp-mark{cursor:pointer}
 
+
+.creator-credit-counter{
+  min-height:40px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:0 13px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:var(--panel2);
+  white-space:nowrap;
+}
+.creator-credit-counter span{
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.12em;
+  color:var(--muted);
+}
+.creator-credit-counter strong{
+  font-size:15px;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  color:var(--text);
+}
+html[data-theme="light"] .creator-credit-counter{background:#fff;border-color:#dfe4e9}
+html:not([data-theme="light"]) .creator-credit-counter{background:#11151c;border-color:#2a3039}
+@media(max-width:760px){
+  .creator-credit-counter{padding:0 9px;gap:6px}
+  .creator-credit-counter span{display:none}
+}
+
+
+#cdpRoot .cdp-plano.cdp-plano-atual{
+  border-color:var(--cd-flame)!important;
+  box-shadow:0 0 0 2px var(--cd-tint),0 18px 48px rgba(0,0,0,.16)!important;
+}
+#cdpRoot .cdp-plano.cdp-plano-atual::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  border-radius:inherit;
+  background:linear-gradient(180deg,var(--cd-tint-2),transparent 32%);
+}
+#cdpRoot .cdp-badge-atual{
+  background:var(--cd-flame)!important;
+  color:#fff!important;
+}
+#cdpRoot .cdp-plano.cdp-plano-atual [data-cd-plano]{
+  opacity:.68;
+  cursor:default;
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -3181,13 +3234,13 @@ html:not([data-theme="light"]) .ti-effect-chips span{background:#10151d!importan
     </aside>
 
     <main class="main">
-      <header class="topbar"><div><p class="eyebrow" id="eyebrow">CONFIGURAÇÃO</p><h1 id="pageTitle">Identidade da igreja</h1></div><div style="display:flex;align-items:center;gap:10px"><button class="topbar-notifications-btn" id="topbarNotificationsBtn" type="button" onclick="openNotifications()" title="Notificações" aria-label="Notificações">♡ <span>Notificações</span><b id="topbarNotificationBadge" class="topbar-notification-badge" style="display:none">0</b></button><div class="theme-toggle" aria-label="Aparência"><button id="themeLight" type="button">Claro</button><button id="themeDark" type="button">Escuro</button></div><div class="progress"><span id="progressText">Etapa 1 de 2</span><div><i id="progressBar"></i></div></div></div></header><div id="mobileStepbar" class="mobile-stepbar"></div>
+      <header class="topbar"><div><p class="eyebrow" id="eyebrow">CONFIGURAÇÃO</p><h1 id="pageTitle">Identidade da igreja</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="creator-credit-counter" id="creatorCreditCounter" title="Créditos disponíveis"><span>CRÉDITOS</span><strong id="creatorCreditValue">—</strong></div><button class="topbar-notifications-btn" id="topbarNotificationsBtn" type="button" onclick="openNotifications()" title="Notificações" aria-label="Notificações">♡ <span>Notificações</span><b id="topbarNotificationBadge" class="topbar-notification-badge" style="display:none">0</b></button><div class="theme-toggle" aria-label="Aparência"><button id="themeLight" type="button">Claro</button><button id="themeDark" type="button">Escuro</button></div><div class="progress"><span id="progressText">Etapa 1 de 2</span><div><i id="progressBar"></i></div></div></div></header><div id="mobileStepbar" class="mobile-stepbar"></div>
       <section id="content" class="content"></section>
       <footer class="footer"><button id="backBtn" class="btn ghost">← Voltar</button><button id="nextBtn" class="btn primary">Continuar →</button></footer>
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.83</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.84</div>
   
   <script>
 const state={
@@ -3282,6 +3335,8 @@ function planDisplayName(){
 function updateSidebarAccount(){
   const email=document.querySelector('#accountEmail');if(email)email.textContent=state.user?.email||'Conta autenticada';
   const usage=document.querySelector('#accountRefUsage');if(usage)usage.textContent=`${(state.library.assets||[]).filter(a=>a.type==='reference').length} / ${referenceLibraryLimit()}`;
+  const creditValue=document.querySelector('#creatorCreditValue');
+  if(creditValue)creditValue.textContent=state.user?.credits==null?'—':String(Math.max(0,Number(state.user.credits)||0));
   let badge=document.querySelector('#ownerPremiumBadge');
   const planName=planDisplayName();
   if(planName){if(!badge){badge=document.createElement('span');badge.id='ownerPremiumBadge';badge.className='account-plan';email?.insertAdjacentElement('afterend',badge);}badge.textContent=String(planName).toUpperCase();}else badge?.remove();
@@ -5896,6 +5951,13 @@ function openPlansPage(){
   host.scrollTop=0;
   document.body.dataset.cdPlansOpen='1';
   document.body.style.overflow='hidden';
+  const hasPlan=!!(state.user?.plan||state.accessContext?.subscription?.plan?.code);
+  if(hasPlan){
+    requestAnimationFrame(()=>{
+      const target=host.querySelector('#planos');
+      if(target)target.scrollIntoView({block:'start',behavior:'auto'});
+    });
+  }
 }
 function closePlansPage(){
   const host=document.getElementById('plansPageHost');if(!host)return;
@@ -5908,6 +5970,8 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('click',e=>{
   if(document.body.dataset.cdPlansOpen!=='1')return;
+  const back=e.target.closest?.('#cdpBackToApp');
+  if(back){closePlansPage();return;}
   const logo=e.target.closest?.('#cdpRoot .cdp-mark');
   if(logo){closePlansPage();return;}
   const planBtn=e.target.closest?.('#cdpRoot [data-cd-plano]');
@@ -7209,7 +7273,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.83</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.84</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
@@ -9211,7 +9275,7 @@ window.bootTutorialAfterLogin=bootTutorialAfterLogin;
 
 /* ---------- cards dos planos ---------- */
 .cdp-planos{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
-.cdp-plano{
+.cdp-plano{position:relative;
   position:relative;display:flex;flex-direction:column;
   padding:30px 28px 28px;border:1px solid var(--cd-line-2);border-radius:20px;
   background:var(--cd-panel);
@@ -9422,7 +9486,8 @@ window.bootTutorialAfterLogin=bootTutorialAfterLogin;
 <header class="cdp-top">
   <div class="cdp-wrap">
     <div class="cdp-mark" role="img" aria-label="ChurchDesign"></div>
-    <nav>
+    <nav style="display:flex;align-items:center;gap:10px">
+      <button class="cdp-btn cdp-outline" id="cdpBackToApp" type="button" style="height:42px;padding:0 20px;font-size:14px">← Voltar</button>
       <a class="cdp-btn cdp-solid" href="#planos" style="height:42px;padding:0 20px;font-size:14px">Ver planos</a>
     </nav>
   </div>
@@ -9748,8 +9813,8 @@ function renderPlanCards(){
     var atual=CURRENT_PLAN_ID===p.id;
     var temPlano=!!CURRENT_PLAN_ID;
     var texto=atual?'Plano atual':(temPlano?'Atualizar meu plano':p.cta);
-    return '<article class="cdp-plano'+(p.destaque?' cdp-destaque':'')+'">'+
-      (p.destaque&&p.selo?'<span class="cdp-badge">'+p.selo+'</span>':'')+
+    return '<article class="cdp-plano'+(p.destaque?' cdp-destaque':'')+(atual?' cdp-plano-atual':'')+'">'+
+      (atual?'<span class="cdp-badge cdp-badge-atual">PLANO ATUAL</span>':(p.destaque&&p.selo?'<span class="cdp-badge">'+p.selo+'</span>':''))+
       '<h3>'+p.nome+'</h3>'+
       '<p class="cdp-pos">'+p.posicao+'</p>'+
       '<div class="cdp-preco"><small>R$</small><b>'+p.preco+'</b><span>/mês</span></div>'+
