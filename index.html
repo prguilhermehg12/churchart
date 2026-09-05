@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.79 -->
+<!-- CHURCHDESIGN — index v0.81 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3069,6 +3069,44 @@ html:not([data-theme="light"]) .ti-effect-chips span{background:#10151d!importan
   .tutorial-tips p{font-size:8.3px!important}
 }
 
+
+/* CHURCHDESIGN v0.81 — SOMENTE tamanhos de fontes e logo do tutorial */
+.cd-mark{width:12.2em!important;height:3em!important}
+
+.cd-count{font-size:1.04em!important}
+.cd-eyebrow{font-size:1em!important}
+.cd-copy h2{font-size:2.72em!important}
+.cd-lead{font-size:1.16em!important}
+.cd-tip>b{font-size:1.24em!important}
+.cd-tip>p{font-size:1.12em!important}
+.cd-btn{font-size:1.04em!important}
+
+.cd-stage-bar b{font-size:.9em!important}
+.cd-stage-bar em{font-size:.82em!important}
+.cd-chip{font-size:.82em!important}
+.cd-lib-row b{font-size:1em!important}
+.cd-lib-row small{font-size:.82em!important}
+.cd-upload div{font-size:.88em!important}
+.cd-refbar u{font-size:.7em!important}
+.cd-ref-name{font-size:.88em!important}
+.cd-ref-name small{font-size:.84em!important}
+.cd-or{font-size:.82em!important}
+.cd-switch{font-size:.96em!important}
+.cd-field label{font-size:.74em!important}
+.cd-field b{font-size:1.04em!important}
+.cd-field:first-child b{font-size:1.2em!important}
+.cd-warn{font-size:.84em!important}
+.cd-fakebtn{font-size:.88em!important}
+.cd-frame b{font-size:.74em!important}
+.cd-readbadge{font-size:.76em!important}
+.cd-compare figcaption{font-size:.8em!important}
+.cd-fixbox header{font-size:.82em!important}
+.cd-input{font-size:.9em!important}
+.cd-pair em{font-size:1.08em!important}
+.cd-readline{font-size:.82em!important}
+.cd-dest b{font-size:.88em!important}
+.cd-dest small{font-size:.76em!important}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -3137,7 +3175,7 @@ html:not([data-theme="light"]) .ti-effect-chips span{background:#10151d!importan
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.79</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.81</div>
   
   <script>
 const state={
@@ -3461,8 +3499,9 @@ function screenReference(){
   <div class="card" style="margin-bottom:18px">
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px"><div><h3>Referências da igreja</h3><p>Máximo de 20 imagens salvas.</p></div><span class="tag">${refs.length}/20</span></div>
     <div class="reference-library-grid">
+      ${refs.length<refLimit?`<label class="library-upload" style="min-height:170px"><strong>+ Subir referência</strong><span>JPG, PNG ou WEBP</span><input id="referenceUpload" type="file" accept="image/*" hidden multiple></label>`:''}
       ${refs.map(a=>`<div class="reference-card ${selectedIds.includes(a.id)?'selected':''}" data-ref-lib="${a.id}"><span class="ref-check">${selectedIds.includes(a.id)?'✓':'+'}</span><img src="${a.url}"><div class="ref-meta"><strong>${esc(a.name)}</strong><small>${selectedIds.includes(a.id)?'Selecionada':'Clique para usar'}</small></div></div>`).join('')}
-      ${refs.length<refLimit?`<label class="library-upload" style="min-height:170px"><strong>+ Subir referência</strong><span>JPG, PNG ou WEBP</span><input id="referenceUpload" type="file" accept="image/*" hidden multiple></label><div id="referenceUploadLive" class="upload-live" style="grid-column:1/-1"></div>`:''}
+      ${refs.length<refLimit?`<div id="referenceUploadLive" class="upload-live" style="grid-column:1/-1"></div>`:''}
     </div>
     <div class="reference-limit">Você pode selecionar até 3 referências para uma mesma geração.</div>
   </div>
@@ -6826,7 +6865,7 @@ function screenQuickMode(){restoreCreationFooter();if(state.mode==='quick')updat
   <div class="card"><div class="field"><label>Título principal</label><input id="qTitle" value="${esc(state.quick.title)}" placeholder="Ex.: O PREÇO DO PALÁCIO"></div><div class="field"><label>Subtítulo</label><input id="qSubtitle" value="${esc(state.quick.subtitle)}" placeholder="Opcional"></div><div class="field"><label>Informação secundária</label><input id="qSecondaryInfo" value="${esc(state.quick.secondaryInfo||'')}" placeholder="Ex.: Entrada gratuita • Traga sua família"><small style="display:block;color:var(--muted);font-size:8px;margin-top:4px">Aparecerá menor que o título, deslocada para uma área aberta da composição.</small></div><div class="grid2"><div class="field"><label>Público-alvo</label><select id="qAudience">${audienceOptions.map(o=>`<option value="${o[0]}" ${state.quick.audience===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div><div class="field"><label>Estilo</label><select id="qDesignStyle">${designStyleOptions.map(o=>`<option value="${o[0]}" ${state.quick.designStyle===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div></div><div class="grid2"><div class="field"><label>Data</label><input id="qDate" value="${esc(state.quick.date)}" placeholder="QUARTA - 18/06"></div><div class="field"><label>Horário</label><input id="qTime" value="${esc(state.quick.time)}" placeholder="19:30H"></div></div><div class="field"><label>Endereço</label><input id="qAddress" value="${esc(state.quick.address||state.church.address)}"></div><div class="field church-name-mode-field"><label>Identificação da igreja</label><div class="church-name-mode-options"><label class="church-name-mode-option ${state.quick.churchNameMode==='text'?'selected':''}"><input type="radio" name="qChurchNameMode" value="text" ${state.quick.churchNameMode==='text'?'checked':''}><span><strong>Adicionar nome da igreja na arte</strong><small>O nome salvo em Minha Igreja será um texto autorizado da composição.</small></span></label><label class="church-name-mode-option ${state.quick.churchNameMode!=='text'?'selected':''}"><input type="radio" name="qChurchNameMode" value="logo-only" ${state.quick.churchNameMode!=='text'?'checked':''}><span><strong>Ocultar nome da igreja e inserir logomarca na próxima etapa</strong><small>O nome não poderá ser escrito pela I.A.; a logo original será adicionada no Assistente de Logos.</small></span></label></div></div><div class="grid2"><div class="field"><label>Cor predominante</label><div class="color-mode-row"><select id="qColorMode"><option value="reference" ${state.quick.dominantColorMode==='reference'?'selected':''}>Manter cores da referência</option><option value="custom" ${state.quick.dominantColorMode!=='reference'?'selected':''}>Escolher cor</option></select><div id="qColorPickerWrap" class="color-picker-wrap ${state.quick.dominantColorMode==='reference'?'hidden':''}"><input id="qColor" class="quick-color" type="color" value="${esc(state.quick.dominantColor)}"></div></div></div><div class="field"><label>Efeito</label><select id="qEffect"><option value="none" ${state.quick.effect==='none'?'selected':''}>Nenhum</option>${effectCatalog.map(e=>`<option value="${e.id}" ${state.quick.effect===e.id?'selected':''}>${e.name}</option>`).join('')}</select></div></div><label class="layer" style="cursor:pointer"><input id="qIllustrate" type="checkbox" ${state.quick.illustrateTitle?'checked':''}><div class="layer-info"><strong>Ilustrar pelo título</strong><small>A I.A se inspira no título principal e tenta ilustrar com imagem, vetor, letreiro ou elemento gráfico a ideia passada por ele em algum lugar da arte</small></div></label>
   <h3 style="margin-top:18px">Tamanho da arte</h3><div class="quick-format-grid">${quickFormats.map(f=>{const t=f.id==='screen'?targetSpec('screen'):f;return `<div class="quick-format-card ${state.quick.format===f.id?'selected':''}" data-qformat="${f.id}"><div class="quick-format-sketch"><i style="${formatSketchStyle(t.width,t.height)}"></i></div><strong>${f.label}</strong><small>${f.id==='screen'?`${t.width}×${t.height}<br><span class="screen-format-config-note">Configure em "Minha Igreja"</span>`:`${f.width}×${f.height}`}</small></div>`}).join('')}</div></div>
   <div class="card"><h3>Direção visual</h3><div class="quick-mode-toggle"><button class="mini-btn ${state.quick.referenceMode==='upload'?'selected-result':''}" id="qUseReference" type="button">Usar referência</button><button class="mini-btn ${state.quick.referenceMode==='inspiration'?'selected-result':''}" id="qUseInspiration" type="button">Criar do zero</button></div>
-  ${state.quick.referenceMode==='upload'?`<p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p><div class="quick-ref-grid">${state.quick.feedReference?.url?`<div class="quick-asset feed-reference-card ${state.quick.reference===state.quick.feedReference.url?'selected':''}" data-feed-current-reference><span class="feed-reference-badge">Feed</span><img src="${esc(state.quick.feedReference.url)}"><strong>${esc(state.quick.feedReference.label||'Arte do Feed')}</strong><small>${esc(state.quick.feedReference.churchLabel||'')}</small></div>`:''}${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><label class="quick-upload-box" style="margin-top:10px"><strong>+ Subir referências</strong><span style="display:block;font-size:9px;color:var(--muted);margin-top:3px">JPG, PNG ou WEBP • pode selecionar várias</span><input id="qRefUpload" type="file" accept="image/*" multiple hidden></label><div id="qRefUploadLive" class="upload-live"></div>`:`<p>Banco de Inspiração interno. A IA usa a linguagem escolhida sem copiar uma peça específica.</p><div class="inspiration-grid">${inspirationCatalog.map(x=>`<div class="inspiration-card ${state.quick.inspirationStyle===x.id?'selected':''}" data-inspiration="${x.id}"><strong>${x.name}</strong><small>${x.prompt}</small></div>`).join('')}</div>`}
+  ${state.quick.referenceMode==='upload'?`<p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p><div class="quick-ref-grid"><label class="quick-upload-box"><strong>+ Subir referências</strong><span style="display:block;font-size:9px;color:var(--muted);margin-top:3px">JPG, PNG ou WEBP • pode selecionar várias</span><input id="qRefUpload" type="file" accept="image/*" multiple hidden></label>${state.quick.feedReference?.url?`<div class="quick-asset feed-reference-card ${state.quick.reference===state.quick.feedReference.url?'selected':''}" data-feed-current-reference><span class="feed-reference-badge">Feed</span><img src="${esc(state.quick.feedReference.url)}"><strong>${esc(state.quick.feedReference.label||'Arte do Feed')}</strong><small>${esc(state.quick.feedReference.churchLabel||'')}</small></div>`:''}${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><div id="qRefUploadLive" class="upload-live"></div>`:`<p>Banco de Inspiração interno. A IA usa a linguagem escolhida sem copiar uma peça específica.</p><div class="inspiration-grid">${inspirationCatalog.map(x=>`<div class="inspiration-card ${state.quick.inspirationStyle===x.id?'selected':''}" data-inspiration="${x.id}"><strong>${x.name}</strong><small>${x.prompt}</small></div>`).join('')}</div>`}
   <h3 style="margin-top:18px">Pregadores (opcional)</h3><p style="margin-bottom:4px">Selecione até 3 pessoas. A ordem de seleção define a hierarquia da composição.</p><div class="pastor-order-summary">${(state.quick.pastorAssetIds||[]).slice(0,3).map((id,i)=>{const a=pastors.find(x=>x.id===id);return `<span class="pastor-order-pill"><b>${i===0?'PRINCIPAL':`AUXILIAR ${i}`}</b>${a?` • ${esc(a.meta?.displayName||a.name)}`:''}</span>`}).join('')}</div><p style="margin-bottom:4px;font-size:9px;color:var(--muted)">O PRINCIPAL terá prioridade de tamanho e posição mais central. Os auxiliares ficam visualmente secundários.</p><p style="margin-bottom:8px;font-size:9px;color:var(--muted)">O nome salvo em Minha Igreja é preenchido automaticamente. Se quiser gerar uma arte sem o nome do pregador aparecendo, apague o campo aqui em baixo; em uma nova sessão o nome salvo volta.</p><div class="quick-pastor-grid">${pastors.map(a=>{const rank=(state.quick.pastorAssetIds||[]).indexOf(a.id);return `<div class="quick-asset ${rank>=0?'multi-selected':''}" data-qpastor="${a.id}" data-pastor-rank="${rank}">${rank>=0?`<span class="pastor-rank-badge">${rank===0?'PRINCIPAL':`AUXILIAR ${rank}`}</span>`:''}<img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong>${rank>=0?`<input class="pastor-name-input" data-pastor-name="${a.id}" value="${esc(Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||''))}" placeholder="Nome na arte">`:''}</div>`}).join('')}</div><div class="field pastor-treatment-field ${(state.quick.pastorAssetIds||[]).length?'active':'inactive'}" style="margin:12px 0"><label>Tratamento das fotos dos pregadores</label><select id="qPastorPhotoTreatment" ${(state.quick.pastorAssetIds||[]).length?'':'disabled'}><option value="" ${!state.quick.pastorPhotoTreatment?'selected':''}>${(state.quick.pastorAssetIds||[]).length?'Escolha o tratamento':'Selecione ao menos uma foto'}</option><option value="original" ${state.quick.pastorPhotoTreatment==='original'?'selected':''}>Manter filtro original da foto</option><option value="bw" ${state.quick.pastorPhotoTreatment==='bw'?'selected':''}>Foto preto e branco</option><option value="ai" ${state.quick.pastorPhotoTreatment==='ai'?'selected':''}>Deixar a I.A escolher</option></select><small>${(state.quick.pastorAssetIds||[]).length?'Opcional. Se não escolher, nenhuma orientação extra de tratamento será enviada.':'Esta opção será habilitada depois que você selecionar uma foto.'}</small></div><h3 style="margin-top:18px">Imagem da igreja / imagem de fundo (opcional)</h3><p style="margin-bottom:8px">Se escolher uma foto, a IA deverá usá-la na composição do fundo/ambiente.</p><div class="church-image-grid">${churchImages.map(a=>`<div class="quick-asset ${state.quick.churchImageAssetId===a.id?'selected':''}" data-qchurch="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}<label class="library-upload"><strong>+ Imagem da igreja / fundo</strong><span>Salvar em Minha Igreja</span><input id="qChurchUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>
   <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE BASE • ${selectedFormat.label}</button><div id="quickProgress" class="quick-progress"><div class="quick-progress-track"><i id="quickProgressBar"></i></div><div class="quick-progress-row"><span id="quickProgressText">Processando sua arte...</span><span id="quickProgressPct">0%</span></div></div><button id="quickCancel" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div>${costSupervisorHTML()}</div><div id="quickResultsWrap" style="margin-top:18px">${renderQuickResultsHTML()}${allArtworksHTML()}</div></div>`;
   applyLogoPreviewBackgrounds(content);
@@ -7092,7 +7131,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.79</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.81</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
@@ -8083,6 +8122,7 @@ document.addEventListener('click',e=>{if(e.target.closest?.('#tutorialNavBtn')){
   border:1px solid var(--cd-line-2);border-radius:.75em;background:var(--cd-panel);
   animation:cd-spot 10.5s ease-in-out infinite;
 }
+.cd-ref[href]{cursor:pointer}
 .cd-ref:nth-of-type(2){animation-delay:3.5s}
 .cd-ref:nth-of-type(3){animation-delay:7s}
 .cd-refbar{
@@ -8697,11 +8737,13 @@ function libRow(vis,name,sub){
   return '<div class="cd-lib-row">'+vis+'<div><b>'+name+'</b><small>'+sub+'</small></div>'+
          '<span class="cd-tick">'+I.check+'</span></div>';
 }
-function refWin(url,inner,name,sub){
-  return '<div class="cd-ref">'+
+function refWin(url,inner,name,sub,href){
+  var open=href?'<a class="cd-ref" href="'+href+'" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none">':'<div class="cd-ref">';
+  var close=href?'</a>':'</div>';
+  return open+
     '<div class="cd-refbar"><i></i><i></i><i></i><u>'+url+'</u></div>'+
     '<div class="cd-ref-view">'+inner+'</div>'+
-    '<div class="cd-ref-name">'+name+'<small>'+sub+'</small></div></div>';
+    '<div class="cd-ref-name">'+name+'<small>'+sub+'</small></div>'+close;
 }
 function field(label,value,weight){
   return '<div class="cd-field"><div><label>'+label+'</label><b>'+value+'</b></div>'+
@@ -8746,14 +8788,14 @@ function scene(id){
       refWin('churchdesign.app/feed',
         loop(block(feed,'cd-g2'),24),'Feed','artes de outras igrejas')+
       '<span class="cd-or">OU</span>'+
-      refWin('pinterest.com',
+      refWin('pinterest.com/search/pins',
         '<div class="cd-cols">'+
           loop(block(mosA),18)+
           loop(block(mosB),23,true)+
-        '</div>','Pinterest','estilos e paletas')+
+        '</div>','Pinterest','Pesquisar artes para eventos de igreja','https://www.pinterest.com/search/pins/?q=church%20event%20poster%20design')+
       '<span class="cd-or">OU</span>'+
-      refWin('behance.net',
-        loop(block(proj),20),'Behance','projetos profissionais')+
+      refWin('behance.net/search/projects',
+        loop(block(proj),20),'Behance','Pesquisar cartazes para eventos de igreja','https://www.behance.net/search/projects?search=church%20event%20poster%20design')+
     '</div></div>';
   }
 
