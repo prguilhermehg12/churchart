@@ -1,5 +1,5 @@
-// CHURCHDESIGN — church-data v0.47.0
-// ChurchDesign V0.47.0 — multi-church, membership validated, web/mobile-ready
+// CHURCHDESIGN — church-data v0.48.0
+// ChurchDesign V0.48.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
 function envCfg(){
@@ -502,7 +502,11 @@ module.exports=async function handler(req,res){
     }
 
     if(action==="account-context"){
-      const [membershipRows,isAdmin]=await Promise.all([userRpc(req,"get_my_churches",{}),userRpc(req,"is_app_admin",{})]);
+      const [membershipRows,isAdmin,viewerProfiles]=await Promise.all([
+        userRpc(req,"get_my_churches",{}),
+        userRpc(req,"is_app_admin",{}),
+        serviceRest(`user_profiles?user_id=eq.${encodeURIComponent(authUser.id)}&select=user_id,name,tutorial_completed_at`)
+      ]);
       const memberships=Array.isArray(membershipRows)?membershipRows:[];
       const ids=memberships.map(x=>x.church_id).filter(Boolean);
       let profiles=[],memberRows=[],userProfiles=[],authUsers=[];
@@ -536,7 +540,19 @@ module.exports=async function handler(req,res){
           owner_email:ownerAuth.email||""
         };
       });
-      return res.json({churches,isAdmin:!!isAdmin});
+      const viewerProfile=(viewerProfiles||[])[0]||{};
+      return res.json({churches,isAdmin:!!isAdmin,firstLogin:!viewerProfile.tutorial_completed_at,tutorialCompletedAt:viewerProfile.tutorial_completed_at||null});
+    }
+
+    if(action==="complete-tutorial"&&req.method==="POST"){
+      const completedAt=new Date().toISOString();
+      const rows=await serviceRest(`user_profiles?user_id=eq.${encodeURIComponent(authUser.id)}`,{
+        method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify({tutorial_completed_at:completedAt,updated_at:completedAt})
+      });
+      if(!rows?.length){
+        await serviceRest("user_profiles",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify([{user_id:authUser.id,name:"",tutorial_completed_at:completedAt}])});
+      }
+      return res.json({ok:true,tutorialCompletedAt:completedAt});
     }
     if(action==="create-church"&&req.method==="POST"){
       const body=req.body||{};
