@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.87 -->
+<!-- CHURCHDESIGN — index v0.89 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3221,6 +3221,76 @@ html[data-theme="light"] .creator-credit-counter strong{
   .topbar-right-row{gap:7px}
 }
 
+.theme-toggle .theme-icon{width:19px;height:19px;display:block}
+.theme-toggle button{border-radius:999px!important}
+
+/* CHURCHDESIGN v0.89 — geração persistente durante navegação interna */
+.background-generation-indicator{
+  width:100%;
+  max-width:300px;
+  min-height:42px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:9px;
+  padding:7px 10px;
+  border:1px solid rgba(255,116,23,.46);
+  border-radius:12px;
+  background:rgba(255,116,23,.08);
+  color:var(--text);
+  text-align:left;
+  cursor:pointer;
+}
+.background-generation-indicator[hidden]{display:none!important}
+.background-generation-dot{
+  width:9px;height:9px;border-radius:50%;
+  background:#ff7417;
+  box-shadow:0 0 0 4px rgba(255,116,23,.12);
+  animation:bgGenerationPulse 1.4s ease-in-out infinite;
+}
+.background-generation-copy{min-width:0;display:block}
+.background-generation-copy strong{
+  display:block;font-size:10px;line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.background-generation-copy small{
+  display:block;margin-top:2px;font-size:8px;line-height:1.25;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.background-generation-indicator>b{
+  font-size:11px;color:#ff7417;font-variant-numeric:tabular-nums;
+}
+.background-generation-indicator.done{
+  border-color:rgba(70,190,125,.5);
+  background:rgba(70,190,125,.08);
+}
+.background-generation-indicator.done .background-generation-dot{
+  background:var(--good);box-shadow:0 0 0 4px rgba(70,190,125,.12);animation:none;
+}
+.background-generation-indicator.done>b{color:var(--good)}
+.background-generation-indicator.failed{
+  border-color:rgba(235,90,100,.48);
+  background:rgba(235,90,100,.07);
+}
+.background-generation-indicator.failed .background-generation-dot{
+  background:#eb5a64;box-shadow:0 0 0 4px rgba(235,90,100,.12);animation:none;
+}
+html[data-theme="light"] .background-generation-indicator{
+  background:#fff6ef;border-color:#f1ad7a;color:#24282d;
+}
+html[data-theme="light"] .background-generation-indicator.done{
+  background:#f1faf5;border-color:#93cbaa;
+}
+html[data-theme="light"] .background-generation-indicator.failed{
+  background:#fff3f4;border-color:#e5a0a5;
+}
+@keyframes bgGenerationPulse{50%{opacity:.48;transform:scale(.84)}}
+@media(prefers-reduced-motion:reduce){.background-generation-dot{animation:none}}
+@media(max-width:760px){
+  .background-generation-indicator{max-width:230px}
+  .background-generation-copy small{display:none}
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -3284,13 +3354,13 @@ html[data-theme="light"] .creator-credit-counter strong{
     </aside>
 
     <main class="main">
-      <header class="topbar"><div><p class="eyebrow" id="eyebrow">CONFIGURAÇÃO</p><h1 id="pageTitle">Identidade da igreja</h1></div><div class="topbar-right-stack"><div class="creator-credit-counter" id="creatorCreditCounter" title="Créditos disponíveis"><span>CRÉDITOS</span><strong id="creatorCreditValue">—</strong></div><div class="topbar-right-row"><button class="topbar-notifications-btn" id="topbarNotificationsBtn" type="button" onclick="openNotifications()" title="Notificações" aria-label="Notificações">♡ <span>Notificações</span><b id="topbarNotificationBadge" class="topbar-notification-badge" style="display:none">0</b></button><div class="theme-toggle" aria-label="Aparência"><button id="themeLight" type="button" aria-label="Tema claro" title="Tema claro">☀</button><button id="themeDark" type="button" aria-label="Tema escuro" title="Tema escuro">☾</button></div><div class="progress"><span id="progressText">Etapa 1 de 2</span><div><i id="progressBar"></i></div></div></div></div></header><div id="mobileStepbar" class="mobile-stepbar"></div>
+      <header class="topbar"><div><p class="eyebrow" id="eyebrow">CONFIGURAÇÃO</p><h1 id="pageTitle">Identidade da igreja</h1></div><div class="topbar-right-stack"><div class="creator-credit-counter" id="creatorCreditCounter" title="Créditos disponíveis"><span>CRÉDITOS</span><strong id="creatorCreditValue">—</strong></div><button class="background-generation-indicator" id="backgroundGenerationIndicator" type="button" hidden title="Voltar para o criador"><span class="background-generation-dot"></span><span class="background-generation-copy"><strong id="backgroundGenerationTitle">Criando arte…</strong><small id="backgroundGenerationText">Preparando…</small></span><b id="backgroundGenerationPct">0%</b></button><div class="topbar-right-row"><button class="topbar-notifications-btn" id="topbarNotificationsBtn" type="button" onclick="openNotifications()" title="Notificações" aria-label="Notificações">♡ <span>Notificações</span><b id="topbarNotificationBadge" class="topbar-notification-badge" style="display:none">0</b></button><div class="theme-toggle" aria-label="Aparência"><button id="themeLight" type="button" aria-label="Tema claro" title="Tema claro"><svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.8v2M12 19.2v2M2.8 12h2M19.2 12h2M5.5 5.5l1.4 1.4M17.1 17.1l1.4 1.4M18.5 5.5l-1.4 1.4M6.9 17.1l-1.4 1.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><button id="themeDark" type="button" aria-label="Tema escuro" title="Tema escuro"><svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.2 15.1A7.7 7.7 0 0 1 8.9 4.8a7.9 7.9 0 1 0 10.3 10.3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="progress"><span id="progressText">Etapa 1 de 2</span><div><i id="progressBar"></i></div></div></div></div></header><div id="mobileStepbar" class="mobile-stepbar"></div>
       <section id="content" class="content"></section>
       <footer class="footer"><button id="backBtn" class="btn ghost">← Voltar</button><button id="nextBtn" class="btn primary">Continuar →</button></footer>
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.87</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.89</div>
   
   <script>
 const state={
@@ -3319,6 +3389,7 @@ gallerySavedIds:[],
 galleryViewMode:'grid',
 user:{id:null,email:null,plan:null,credits:null,isAdmin:false},
 activeGenerationOperation:null,
+backgroundGenerationJob:null,
 billing:{provider:null,currency:'BRL',plans:[],churches:[],members:[],subscriptions:[],coupons:[]},
 feed:{posts:[],view:'feed',loading:false},notifications:{items:[],unreadCount:0},
 authSession:null,
@@ -3570,8 +3641,52 @@ function formatSketchStyle(w,h){
   return `width:${Math.max(18,sw)}px;height:${Math.max(18,sh)}px`;
 }
 let activeProcessController=null;
-function beginProcess(){if(activeProcessController)activeProcessController.abort();activeProcessController=new AbortController();return activeProcessController.signal;}
-function cancelActiveProcess(){if(activeProcessController){activeProcessController.abort();activeProcessController=null;}}
+function generationJobBusy(){return !!state.backgroundGenerationJob?.active}
+function renderBackgroundGenerationIndicator(){
+  const job=state.backgroundGenerationJob,el=document.querySelector('#backgroundGenerationIndicator');
+  if(!el)return;
+  if(!job){el.hidden=true;el.classList.remove('done','failed');return}
+  el.hidden=false;
+  el.classList.toggle('done',job.status==='completed');
+  el.classList.toggle('failed',job.status==='failed'||job.status==='cancelled');
+  const title=document.querySelector('#backgroundGenerationTitle'),text=document.querySelector('#backgroundGenerationText'),pct=document.querySelector('#backgroundGenerationPct');
+  if(title)title.textContent=job.status==='completed'?'Arte pronta':job.status==='cancelled'?'Processamento cancelado':job.status==='failed'?'Geração interrompida':job.label||'Criando arte…';
+  if(text)text.textContent=job.message||job.projectName||'Processando em segundo plano…';
+  if(pct)pct.textContent=job.status==='completed'?'✓':job.status==='cancelled'?'—':`${Math.max(0,Math.min(100,Math.round(Number(job.progress)||0)))}%`;
+}
+function beginBackgroundGenerationJob(meta={}){
+  if(generationJobBusy())return false;
+  state.backgroundGenerationJob={
+    id:crypto.randomUUID(),active:true,status:'processing',progress:Number(meta.progress)||0,
+    label:meta.label||'Criando arte…',message:meta.message||'Preparando…',
+    projectName:meta.projectName||state.quick?.title||state.projectTitle||'',
+    churchId:state.activeChurchId||null,startedAt:Date.now(),kind:meta.kind||'generation'
+  };
+  renderBackgroundGenerationIndicator();
+  return true;
+}
+function updateBackgroundGenerationJob(progress,message=''){
+  const job=state.backgroundGenerationJob;if(!job?.active)return;
+  job.progress=Math.max(job.progress||0,Math.max(0,Math.min(100,Number(progress)||0)));
+  if(message)job.message=message;
+  renderBackgroundGenerationIndicator();
+}
+function finishBackgroundGenerationJob(status='completed',message=''){
+  const job=state.backgroundGenerationJob;if(!job)return;
+  job.active=false;job.status=status;job.progress=status==='completed'?100:(job.progress||0);job.message=message||job.message;job.finishedAt=Date.now();
+  renderBackgroundGenerationIndicator();
+  if(status==='completed')appToast('Sua arte ficou pronta. Ela já está disponível no Criador e na Galeria.',{type:'success',title:'Arte concluída',duration:7000});
+  if(status==='failed')appToast('A geração em segundo plano foi interrompida. Seus dados no Criador continuam preservados.',{type:'warning',title:'Geração interrompida',duration:7000});
+  setTimeout(()=>{if(state.backgroundGenerationJob?.id===job.id&&!state.backgroundGenerationJob.active){state.backgroundGenerationJob=null;renderBackgroundGenerationIndicator()}},9000);
+}
+function beginProcess(){
+  if(activeProcessController&&!activeProcessController.signal.aborted)return null;
+  activeProcessController=new AbortController();return activeProcessController.signal;
+}
+function cancelActiveProcess(){
+  if(activeProcessController){activeProcessController.abort();activeProcessController=null;}
+  if(state.backgroundGenerationJob?.active)finishBackgroundGenerationJob('cancelled','Cancelado por você.');
+}
 
 const content=document.querySelector('#content'),next=document.querySelector('#nextBtn'),back=document.querySelector('#backBtn');
 function esc(s=''){return String(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
@@ -4182,6 +4297,11 @@ async function loadActiveChurchAccess(){
 }
 async function switchActiveChurch(churchId){
   if(!churchId||churchId===state.activeChurchId)return;
+  if(generationJobBusy()){
+    appAlert('Há uma arte sendo processada para a igreja atual. Você pode navegar pelo ChurchDesign normalmente, mas aguarde a conclusão ou cancele o processamento antes de trocar de igreja.',{type:'warning',title:'Geração em andamento'});
+    renderChurchSwitcher();
+    return;
+  }
   const m=state.churches.find(c=>c.church_id===churchId);
   state.activeChurchId=churchId;
   state.activeChurchRole=m?.role||null;
@@ -4498,6 +4618,10 @@ async function loginWithGoogle(){
   }catch(e){authMessage(e.message)}
 }
 async function signOutChurchDesign(){
+  if(generationJobBusy()){
+    appAlert('Há uma arte sendo processada. Aguarde a conclusão ou use “Cancelar processamento” antes de sair da conta.',{type:'warning',title:'Geração em andamento'});
+    return;
+  }
   clearAuthRefreshTimer();
   try{
     if(state.authSession?.access_token){
@@ -7194,7 +7318,7 @@ function setupMobileQuickWizard(){
 }
 
 function screenQuickMode(){restoreCreationFooter();if(state.mode==='quick')updatePrimaryNavState('quick');
-  setNewflowStage(1);updateSidebarAccount();
+  setNewflowStage(1);updateSidebarAccount();renderBackgroundGenerationIndicator();
   quickDefaultLogo();quickDefaultPastor();
   const logos=state.library.assets.filter(a=>a.type==='logo'&&logoVariantRole(a)!=='contrast'),eventLogos=state.library.assets.filter(a=>((a.type==='graphic'&&a.meta?.category==='event_logo')||a.type==='event_logo')&&logoVariantRole(a)!=='contrast'),pastors=state.library.assets.filter(a=>a.type==='pastor'),churchImages=state.library.assets.filter(a=>a.type==='church'),refs=state.library.assets.filter(a=>a.type==='reference');
   document.querySelector('.footer').style.display='none';document.querySelector('#mobileStepbar').style.display='none';
@@ -7470,7 +7594,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.87</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.89</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
@@ -7706,7 +7830,7 @@ function bindQuickResultEvents(){
     const sourceIndex=Number(String(card?.id||'').replace('quickResultCard-',''));
     const note=Number.isFinite(sourceIndex)?String(document.querySelector(`[data-qcorrection="${sourceIndex}"]`)?.value||'').trim():'';
     scrollToGenerationPanel();
-    runQuickGeneration(`Variação ${b.dataset.qvariation}`,Number(b.dataset.qvariation),note);
+    runQuickGeneration(`Variação ${b.dataset.qvariation}`,Number(b.dataset.qvariation),note,null,sourceIndex);
   });
   document.querySelectorAll('[data-qreload]').forEach(b=>b.onclick=()=>{const i=+b.dataset.qreload,t=document.querySelector(`[data-qcorrection="${i}"]`);scrollToGenerationPanel();runQuickGeneration(state.quickResults[i].label,i,t?.value||'',i)});
   document.querySelectorAll('[data-qadapt]').forEach(b=>b.onclick=()=>{const [i,f]=b.dataset.qadapt.split('-');openQuickAdaptConfig(Number(i),f)});
@@ -7735,8 +7859,10 @@ function animateQuickProgress(){
   if(quickProgressVisual!==quickProgressTarget||quickProgressTarget<100)quickProgressRaf=requestAnimationFrame(animateQuickProgress);else quickProgressRaf=null;
 }
 function setQuickProgress(pct,text){
+  const p=Math.max(0,Math.min(100,Number(pct)||0));
+  updateBackgroundGenerationJob(p,text||'Processando sua arte...');
   const wrap=document.querySelector('#quickProgress'),label=document.querySelector('#quickProgressText');if(!wrap)return;
-  const p=Math.max(0,Math.min(100,Number(pct)||0));if(quickProgressHideTimer){clearTimeout(quickProgressHideTimer);quickProgressHideTimer=null}
+if(quickProgressHideTimer){clearTimeout(quickProgressHideTimer);quickProgressHideTimer=null}
   if(p===0){quickProgressVisual=0;quickProgressTarget=0;wrap.classList.remove('show');const bar=document.querySelector('#quickProgressBar'),num=document.querySelector('#quickProgressPct');if(bar)bar.style.width='0%';if(num)num.textContent='0%';if(label)label.textContent=text||'Processando sua arte...';return}
   wrap.classList.add('show');if(label)label.textContent=text||'Processando sua arte...';quickProgressTarget=quickProgressCeiling(p);
   if(p>=100){quickProgressTarget=100;quickProgressHideTimer=setTimeout(()=>wrap.classList.remove('show'),900)}
@@ -7935,7 +8061,11 @@ function applyLogoCorrectionIntent(payload,text=''){const intent=parseLogoCorrec
 
 
 
-async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null){
+async function runQuickGeneration(label,variationIndex,correction='',replaceIndex=null,variationSourceIndex=null){
+  if(generationJobBusy()){
+    appAlert('Já existe uma arte sendo processada. Você pode continuar navegando pelo ChurchDesign e será avisado quando ela terminar.',{type:'info',title:'Geração em andamento'});
+    return;
+  }
   scrollToGenerationPanel();let preflight;
   try{preflight=await preflightQuickGeneration({correction,replaceIndex});}
   catch(e){const status=document.querySelector('#quickStatus');if(status)status.innerHTML=`<strong style="color:#ff9eac">Preflight bloqueou a geração.</strong><br>${esc(e.message)}<br><span style="color:#ffd875">Nenhuma chamada paga foi iniciada.</span>`;return;}
@@ -7946,11 +8076,28 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
   }
 
   if(label==='Principal'&&replaceIndex===null)beginCostSession('Modo Rápido • primeira arte');
-  const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel'),signal=beginProcess();btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent='Processando sua arte...';
+  const status=document.querySelector('#quickStatus'),btn=document.querySelector('#quickGenerate'),cancel=document.querySelector('#quickCancel');
+  beginBackgroundGenerationJob({kind:replaceIndex!==null?'correction':variationIndex>0?'variation':'generation',label:replaceIndex!==null?'Corrigindo arte…':variationIndex>0?'Criando variação…':'Criando arte…',projectName:state.quick?.title||state.projectTitle||'',progress:8,message:'Preparando sua arte…'});
+  const signal=beginProcess();
+  if(!signal){finishBackgroundGenerationJob('failed','Já existe um processamento ativo.');return}
+  btn.disabled=true;if(cancel)cancel.style.display='block';setQuickProgress(8,'Preparando sua arte...');if(status)status.textContent='Processando sua arte...';
   try{
     const op=await startGenerationOperation({artType:generationArtTypeFromContext({replaceIndex,format:state.quick?.format}),format:state.quick?.format||'',projectName:state.quick?.title||state.projectTitle||'',replaceIndex,variationIndex});
     const payload=await quickPayload(label,correction,signal);
-    if(replaceIndex!==null){applyLogoCorrectionIntent(payload,correction);const parent=state.quickResults[replaceIndex],latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent,logoFreeSource=latest?.baseDataUrl||latest?.sourceUrl||latest?.dataUrl;if(logoFreeSource){const lockedBase=await prepareImageForAI(logoFreeSource,1600,.96);payload.reference=lockedBase;payload.references=[{image:lockedBase,note:'MOLDE VISUAL BLOQUEADO DA ÚLTIMA VERSÃO. Preserve exatamente tudo que não foi mencionado.'}];payload.revisionMode='delta-only';payload.lockedBase=true;payload.revisionInstruction=correction||'';payload.variantInstruction=`CORREÇÃO CIRÚRGICA: altere SOMENTE: ${correction||'o ajuste solicitado'}. Todo elemento não mencionado está BLOQUEADO e deve permanecer visualmente igual à versão-base.`;}}
+    if(replaceIndex===null&&variationIndex>0&&Number.isInteger(variationSourceIndex)){
+      const variationSource=state.quickResults?.[variationSourceIndex];
+      const variationLatest=variationSource?.corrections?.length?variationSource.corrections[variationSource.corrections.length-1]:variationSource;
+      const variationVisual=variationLatest?.baseDataUrl||variationLatest?.sourceUrl||variationLatest?.dataUrl;
+      if(variationVisual){
+        const workingBase=await prepareImageForAI(variationVisual,1600,.96);
+        payload.reference=workingBase;
+        payload.references=[{image:workingBase,note:'ARTE-BASE VISUAL DESTA VARIAÇÃO. Crie uma nova proposta a partir desta versão, preservando sua identidade, conteúdo e direção visual sem voltar à referência original.'}];
+        payload.referenceRole='working-base';
+        payload.variationSourceArtworkId=variationLatest?.galleryId||variationLatest?.id||null;
+        payload.variationSourceLabel=variationLatest?.label||variationSource?.label||'Arte-base';
+      }
+    }
+    if(replaceIndex!==null){applyLogoCorrectionIntent(payload,correction);const parent=state.quickResults[replaceIndex],latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent,logoFreeSource=latest?.baseDataUrl||latest?.sourceUrl||latest?.dataUrl;if(logoFreeSource){const lockedBase=await prepareImageForAI(logoFreeSource,1600,.96);payload.reference=lockedBase;payload.references=[{image:lockedBase,note:'MOLDE VISUAL BLOQUEADO DA VERSÃO EXATA QUE O USUÁRIO ESTÁ CORRIGINDO. NÃO volte para a arte principal, referência original ou qualquer versão anterior. Preserve exatamente tudo que não foi mencionado.'}];payload.referenceRole='working-base';payload.revisionMode='delta-only';payload.lockedBase=true;payload.revisionSourceArtworkId=latest?.galleryId||latest?.id||null;payload.revisionSourceLabel=latest?.label||parent?.label||'Versão atual';payload.revisionInstruction=correction||'';payload.variantInstruction=`CORREÇÃO CIRÚRGICA SOBRE ESTA VERSÃO EXATA: altere SOMENTE: ${correction||'o ajuste solicitado'}. NÃO retorne à arte inicial. Todo elemento não mencionado está BLOQUEADO e deve permanecer visualmente igual à versão-base.`;}}
     setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;if(!payload.variantInstruction)payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual. Se houver ANOTAÇÃO / INSTRUÇÃO EXPLÍCITA DO USUÁRIO no prompt, ela é obrigatória e deve aparecer de forma visualmente verificável nesta variação; não a trate como sugestão opcional.`;
     setQuickProgress(48,'Criando sua arte...');const autoCorrections=(replaceIndex===null&&variationIndex===0)?1:0;const image=await generateWithInvisibleReview(payload,autoCorrections,signal);
     setQuickProgress(88,'Finalizando...');const normalized=await normalizeArtworkToTarget(image,payload,payload.target,signal),finalImage=normalized.image,dataUrl=normalized.dataUrl;
@@ -7966,14 +8113,15 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
     state.gallerySeed=null;
     setQuickProgress(100,'Pronto');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte base pronta. Clique em Prosseguir para inserir as logos ou exportar sem logo.</strong>'+((savedGallery&&savedGallery.persisted===false)?`<span style="display:block;font-size:8px;color:#ffd19c;margin-top:3px">⚠ A arte ficou disponível na Galeria local, mas o banco não confirmou o salvamento: ${esc(savedGallery.error||'erro desconhecido')}.</span>`:'')+((state.user?.isAdmin&&image?.review)?`<span style="display:block;font-size:8px;color:var(--muted);margin-top:3px">${esc(inspectorDeliveryNote(image.review))}</span>`:'');const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();
     await finishGenerationOperation(true,null,{stage:'completed',galleryId:galleryCandidate.galleryId||null});
+    finishBackgroundGenerationJob('completed','Arte concluída e salva.');
     if(isMobileCreationFlow()&&replaceIndex===null&&variationIndex===0){const createdIndex=state.quickResults.indexOf(result);setTimeout(()=>openLogoAssistant(`main:${Math.max(0,createdIndex)}`),120);}
   }catch(e){
     const errorClass=generationFailureClass(e);
     if(!state.activeGenerationOperation)await logAppIssue(e,{stage:e.name==='AbortError'?'cancelled':'quick-generation',category:errorClass,artType:generationArtTypeFromContext({replaceIndex,format:state.quick?.format}),format:state.quick?.format||''});
     const refund=await finishGenerationOperation(false,e,{stage:e.name==='AbortError'?'cancelled':'quick-generation'}).catch(()=>null);
-    if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado. Seus créditos, quando debitados, foram devolvidos.';setQuickProgress(0,'Cancelado');}
-    else{if(status)status.innerHTML=(errorClass==='auth_session'||errorClass==='auth_preflight_network')?'<strong style="color:#ffd19c">A geração não foi iniciada.</strong><br>Seu login precisa ser confirmado. Nenhum crédito foi debitado.':'<strong style="color:#ffd19c">A geração foi interrompida temporariamente.</strong><br>Se houve débito, os créditos foram devolvidos automaticamente.';friendlyGenerationFailurePopup(refund,errorClass);}
-  }finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}
+    if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado. Seus créditos, quando debitados, foram devolvidos.';setQuickProgress(0,'Cancelado');if(state.backgroundGenerationJob?.active)finishBackgroundGenerationJob('cancelled','Cancelado por você.');}
+    else{if(status)status.innerHTML=(errorClass==='auth_session'||errorClass==='auth_preflight_network')?'<strong style="color:#ffd19c">A geração não foi iniciada.</strong><br>Seu login precisa ser confirmado. Nenhum crédito foi debitado.':'<strong style="color:#ffd19c">A geração foi interrompida temporariamente.</strong><br>Se houve débito, os créditos foram devolvidos automaticamente.';if(state.backgroundGenerationJob?.active)finishBackgroundGenerationJob('failed','A geração foi interrompida.');friendlyGenerationFailurePopup(refund,errorClass);}
+  }finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';renderBackgroundGenerationIndicator();}
 }
 function assertDerivativePipelineReady(){
   const required=['prepareImageForAI','isDataImage','hydrateGalleryAssets','generateWithInvisibleReview','normalizeArtworkToTarget','quickTargetSpec','resolveQuickReferenceCandidate','restoreRecipeToQuick','galleryItemToQuickResult','openQuickAdaptConfig'];
@@ -7981,12 +8129,19 @@ function assertDerivativePipelineReady(){
   if(missing.length)throw new Error(`Pipeline de artes derivadas incompleto: ${missing.join(', ')}.`);
 }
 async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,sourceKey=null,screenDiscreteTitle=false,childCorrection='',adaptOptions={}){
+  if(generationJobBusy()){
+    appAlert('Já existe uma arte sendo processada. Aguarde a conclusão ou cancele antes de iniciar outra geração.',{type:'info',title:'Geração em andamento'});
+    return;
+  }
   try{assertDerivativePipelineReady()}catch(e){const st=document.querySelector('#quickStatus');if(st)st.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;else appAlert(e.message);return}
   scrollToGenerationPanel();
   const parent=state.quickResults[sourceIndex];if(!parent)return;
   const source=resolveQuickReferenceCandidate(sourceKey||preferredQuickReferenceKey(sourceIndex),sourceIndex);if(!source)return;
   if(!(source.baseDataUrl||source.sourceUrl||source.dataUrl)){const msg='A arte-base selecionada não possui imagem disponível para gerar a derivada.';const st=document.querySelector('#quickStatus');if(st)st.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${msg}`;else appAlert(msg);return}
-  const signal=beginProcess(),target=quickTargetSpec(formatId),status=document.querySelector('#quickStatus'),cancel=document.querySelector('#quickCancel');
+  const target=quickTargetSpec(formatId),status=document.querySelector('#quickStatus'),cancel=document.querySelector('#quickCancel');
+  beginBackgroundGenerationJob({kind:'adaptation',label:`Adaptando para ${target.label}…`,projectName:state.quick?.title||state.projectTitle||'',progress:18,message:`Adaptando para ${target.label}…`});
+  const signal=beginProcess();
+  if(!signal){finishBackgroundGenerationJob('failed','Já existe um processamento ativo.');return}
   if(cancel)cancel.style.display='block';setQuickProgress(18,`Adaptando para ${target.label}...`);if(status)status.textContent='Processando sua arte...';
   try{
     const op=await startGenerationOperation({artType:generationArtTypeFromContext({format:formatId,backgroundMode:!!adaptOptions.backgroundMode,freeMode:!!adaptOptions.freeMode,screenThemeMode:!!adaptOptions.screenThemeMode}),format:formatId,projectName:state.quick?.title||state.projectTitle||'',sourceKey:sourceKey||null});
@@ -8111,6 +8266,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     const wrap=document.querySelector('#quickResultsWrap');if(wrap)wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();
     bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();
     await finishGenerationOperation(true,null,{stage:'completed-derivative',childId:child.id||null});
+    finishBackgroundGenerationJob('completed',`${target.label} concluído e salvo.`);
     requestAnimationFrame(()=>{
       const card=document.querySelector(`[data-qadapt-id="${child.id}"]`)?.closest('.quick-adapt-item');
       if(card){card.classList.add('newest-result-focus');card.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>card.classList.remove('newest-result-focus'),2200);}
@@ -8119,9 +8275,9 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     const errorClass=generationFailureClass(e);
     if(!state.activeGenerationOperation)await logAppIssue(e,{stage:e.name==='AbortError'?'cancelled':'quick-adaptation',category:errorClass,artType:generationArtTypeFromContext({format:formatId}),format:formatId});
     const refund=await finishGenerationOperation(false,e,{stage:e.name==='AbortError'?'cancelled':'quick-adaptation'}).catch(()=>null);
-    if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado. Seus créditos, quando debitados, foram devolvidos.';setQuickProgress(0,'Cancelado');}
-    else{if(status)status.innerHTML=(errorClass==='auth_session'||errorClass==='auth_preflight_network')?'<strong style="color:#ffd19c">A adaptação não foi iniciada.</strong><br>Seu login precisa ser confirmado. Nenhum crédito foi debitado.':'<strong style="color:#ffd19c">A adaptação foi interrompida temporariamente.</strong><br>Se houve débito, os créditos foram devolvidos automaticamente.';friendlyGenerationFailurePopup(refund,errorClass);}
-  }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
+    if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado. Seus créditos, quando debitados, foram devolvidos.';setQuickProgress(0,'Cancelado');if(state.backgroundGenerationJob?.active)finishBackgroundGenerationJob('cancelled','Cancelado por você.');}
+    else{if(status)status.innerHTML=(errorClass==='auth_session'||errorClass==='auth_preflight_network')?'<strong style="color:#ffd19c">A adaptação não foi iniciada.</strong><br>Seu login precisa ser confirmado. Nenhum crédito foi debitado.':'<strong style="color:#ffd19c">A adaptação foi interrompida temporariamente.</strong><br>Se houve débito, os créditos foram devolvidos automaticamente.';if(state.backgroundGenerationJob?.active)finishBackgroundGenerationJob('failed','A adaptação foi interrompida.');friendlyGenerationFailurePopup(refund,errorClass);}
+  }finally{activeProcessController=null;if(cancel)cancel.style.display='none';renderBackgroundGenerationIndicator();}
 }
 // NEWFLOW v0.40 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
@@ -8152,7 +8308,14 @@ initChurchDesignTheme();
 initializeAuth().then(ok=>{if(ok)startAuthenticatedApp()}).catch(e=>{showAuthGate();authMessage(e.message||'Falha ao iniciar autenticação.')});
 
 
-document.addEventListener('click',e=>{if(e.target.closest?.('#tutorialNavBtn')){const r=document.getElementById('cdRoot');if(r)r.setAttribute('data-theme',document.documentElement.dataset.theme==='light'?'light':'dark');window.openTutorial?.();}});
+document.addEventListener('click',e=>{
+  if(e.target.closest?.('#backgroundGenerationIndicator')){
+    try{closePlansPage?.()}catch{}
+    screenQuickMode();
+    renderBackgroundGenerationIndicator();
+    return;
+  }
+  if(e.target.closest?.('#tutorialNavBtn')){const r=document.getElementById('cdRoot');if(r)r.setAttribute('data-theme',document.documentElement.dataset.theme==='light'?'light':'dark');window.openTutorial?.();}});
 </script>
 
 <!-- ===================================================================
