@@ -1,4 +1,4 @@
-// CHURCHDESIGN — church-data v0.48.0
+// CHURCHDESIGN — church-data v0.49.0
 // ChurchDesign V0.48.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
@@ -279,6 +279,7 @@ module.exports=async function handler(req,res){
 
 
     if(action==="generation-operation-start"&&req.method==="POST"){
+      const churchId=requestedChurchId(req);
       const b=req.body||{},operationId=String(b.operationId||"").trim(),artType=String(b.artType||"Arte base").trim(),format=String(b.format||"").trim();
       if(!operationId)throw Object.assign(new Error("Operação de geração ausente."),{statusCode:400});
       await requireMembership(authUser,churchId);
@@ -294,6 +295,7 @@ module.exports=async function handler(req,res){
     }
 
     if(action==="generation-operation-complete"&&req.method==="POST"){
+      const churchId=requestedChurchId(req);
       const b=req.body||{},operationId=String(b.operationId||"").trim();if(!operationId)throw Object.assign(new Error("Operação ausente."),{statusCode:400});
       await requireMembership(authUser,churchId);
       await serviceRest(`generation_operations?operation_id=eq.${encodeURIComponent(operationId)}&church_id=eq.${encodeURIComponent(churchId)}`,{method:"PATCH",body:JSON.stringify({status:"completed",completed_at:new Date().toISOString(),metadata:b.metadata||{}})});
@@ -302,6 +304,7 @@ module.exports=async function handler(req,res){
     }
 
     if(action==="generation-operation-fail"&&req.method==="POST"){
+      const churchId=requestedChurchId(req);
       const b=req.body||{},operationId=String(b.operationId||"").trim();if(!operationId)throw Object.assign(new Error("Operação ausente."),{statusCode:400});
       await requireMembership(authUser,churchId);
       const op=(await serviceRest(`generation_operations?operation_id=eq.${encodeURIComponent(operationId)}&church_id=eq.${encodeURIComponent(churchId)}&select=*&limit=1`))?.[0];
@@ -313,6 +316,7 @@ module.exports=async function handler(req,res){
     }
 
     if(action==="log-app-error"&&req.method==="POST"){
+      const churchId=requestedChurchId(req);
       const b=req.body||{};await requireMembership(authUser,churchId);
       await persistAppError({churchId,userId:authUser.id,operationId:b.operationId||null,category:b.category||"processing",stage:b.stage||"app",severity:b.severity||"error",userMessage:b.userMessage||"",technicalMessage:b.technicalMessage||"",stack:b.stack||"",metadata:b.metadata||{}});
       return res.json({ok:true});
