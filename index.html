@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.84 -->
+<!-- CHURCHDESIGN — index v0.87 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3171,6 +3171,56 @@ html:not([data-theme="light"]) .creator-credit-counter{background:#11151c;border
   cursor:default;
 }
 
+
+/* CHURCHDESIGN v0.85 — theme icons + credit emphasis */
+.topbar-right-stack{
+  display:grid;
+  justify-items:end;
+  gap:8px;
+}
+.topbar-right-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.theme-toggle button{
+  width:38px;
+  min-width:38px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  font-size:17px;
+  line-height:1;
+}
+html[data-theme="light"] .theme-toggle button.active{
+  background:#e4e7eb!important;
+  color:#30343a!important;
+  border-color:#cfd4da!important;
+}
+.creator-credit-counter{
+  border-color:rgba(255,116,23,.58)!important;
+  background:rgba(255,116,23,.10)!important;
+  box-shadow:0 0 0 1px rgba(255,116,23,.08) inset;
+}
+.creator-credit-counter span{
+  color:#ff8a3d!important;
+}
+.creator-credit-counter strong{
+  color:#ff7417!important;
+}
+html[data-theme="light"] .creator-credit-counter{
+  background:#fff4ec!important;
+  border-color:#ffb37f!important;
+}
+html[data-theme="light"] .creator-credit-counter span,
+html[data-theme="light"] .creator-credit-counter strong{
+  color:#d85d08!important;
+}
+@media(max-width:760px){
+  .topbar-right-stack{gap:6px}
+  .topbar-right-row{gap:7px}
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -3234,13 +3284,13 @@ html:not([data-theme="light"]) .creator-credit-counter{background:#11151c;border
     </aside>
 
     <main class="main">
-      <header class="topbar"><div><p class="eyebrow" id="eyebrow">CONFIGURAÇÃO</p><h1 id="pageTitle">Identidade da igreja</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="creator-credit-counter" id="creatorCreditCounter" title="Créditos disponíveis"><span>CRÉDITOS</span><strong id="creatorCreditValue">—</strong></div><button class="topbar-notifications-btn" id="topbarNotificationsBtn" type="button" onclick="openNotifications()" title="Notificações" aria-label="Notificações">♡ <span>Notificações</span><b id="topbarNotificationBadge" class="topbar-notification-badge" style="display:none">0</b></button><div class="theme-toggle" aria-label="Aparência"><button id="themeLight" type="button">Claro</button><button id="themeDark" type="button">Escuro</button></div><div class="progress"><span id="progressText">Etapa 1 de 2</span><div><i id="progressBar"></i></div></div></div></header><div id="mobileStepbar" class="mobile-stepbar"></div>
+      <header class="topbar"><div><p class="eyebrow" id="eyebrow">CONFIGURAÇÃO</p><h1 id="pageTitle">Identidade da igreja</h1></div><div class="topbar-right-stack"><div class="creator-credit-counter" id="creatorCreditCounter" title="Créditos disponíveis"><span>CRÉDITOS</span><strong id="creatorCreditValue">—</strong></div><div class="topbar-right-row"><button class="topbar-notifications-btn" id="topbarNotificationsBtn" type="button" onclick="openNotifications()" title="Notificações" aria-label="Notificações">♡ <span>Notificações</span><b id="topbarNotificationBadge" class="topbar-notification-badge" style="display:none">0</b></button><div class="theme-toggle" aria-label="Aparência"><button id="themeLight" type="button" aria-label="Tema claro" title="Tema claro">☀</button><button id="themeDark" type="button" aria-label="Tema escuro" title="Tema escuro">☾</button></div><div class="progress"><span id="progressText">Etapa 1 de 2</span><div><i id="progressBar"></i></div></div></div></div></header><div id="mobileStepbar" class="mobile-stepbar"></div>
       <section id="content" class="content"></section>
       <footer class="footer"><button id="backBtn" class="btn ghost">← Voltar</button><button id="nextBtn" class="btn primary">Continuar →</button></footer>
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.84</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.87</div>
   
   <script>
 const state={
@@ -4274,23 +4324,57 @@ function initChurchDesignTheme(){
 }
 
 const AUTH_STORAGE_KEY='churchdesign.auth.v1';
-let authConfig=null,authMode='login';
+let authConfig=null,authMode='login',authRefreshTimer=null,authRefreshPromise=null;
 
+function normalizedAuthSession(session){
+  if(!session)return null;
+  const copy={...session};
+  const now=Math.floor(Date.now()/1000);
+  if(!Number(copy.expires_at)&&Number(copy.expires_in)>0)copy.expires_at=now+Number(copy.expires_in);
+  copy.saved_at=now;
+  return copy;
+}
 function authHeaders(extra={}){
   const token=state.authSession?.access_token;
   return token?{...extra,Authorization:`Bearer ${token}`}:{...extra};
 }
+function clearAuthRefreshTimer(){
+  if(authRefreshTimer){clearTimeout(authRefreshTimer);authRefreshTimer=null}
+}
+function authSecondsRemaining(session=state.authSession){
+  const exp=Number(session?.expires_at)||0;
+  return exp?exp-Math.floor(Date.now()/1000):null;
+}
+function scheduleAuthRefresh(session=state.authSession){
+  clearAuthRefreshTimer();
+  if(!session?.refresh_token)return;
+  const remaining=authSecondsRemaining(session);
+  const delaySeconds=remaining==null?45*60:Math.max(30,remaining-5*60);
+  authRefreshTimer=setTimeout(()=>{refreshAuthSession(state.authSession,{preserveOnTransient:true}).catch(()=>{})},delaySeconds*1000);
+}
 async function authFetch(url,options={}){
-  const headers=authHeaders(options.headers||{});if(String(url).startsWith('/api/')&&state.activeChurchId&&!headers['x-church-id'])headers['x-church-id']=state.activeChurchId;
-  return fetch(url,{...options,headers});
+  const makeRequest=async()=>{
+    const headers=authHeaders(options.headers||{});
+    if(String(url).startsWith('/api/')&&state.activeChurchId&&!headers['x-church-id'])headers['x-church-id']=state.activeChurchId;
+    return fetch(url,{...options,headers});
+  };
+  let r=await makeRequest();
+  if(r.status!==401||!state.authSession?.refresh_token)return r;
+  const renewed=await refreshAuthSession(state.authSession,{preserveOnTransient:true});
+  if(!renewed?.access_token)return r;
+  return makeRequest();
 }
 function saveAuthSession(session){
-  state.authSession=session||null;
-  if(session)localStorage.setItem(AUTH_STORAGE_KEY,JSON.stringify(session));
-  else localStorage.removeItem(AUTH_STORAGE_KEY);
+  const normalized=normalizedAuthSession(session);
+  state.authSession=normalized;
+  try{
+    if(normalized)localStorage.setItem(AUTH_STORAGE_KEY,JSON.stringify(normalized));
+    else localStorage.removeItem(AUTH_STORAGE_KEY);
+  }catch(e){console.warn('[Auth] session storage',e)}
+  if(normalized)scheduleAuthRefresh(normalized);else clearAuthRefreshTimer();
 }
 function loadAuthSession(){
-  try{return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'null')}catch{return null}
+  try{return normalizedAuthSession(JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'null'))}catch{return null}
 }
 async function loadAuthConfig(){
   const r=await fetch('/api/auth-config');
@@ -4306,16 +4390,41 @@ async function authRequest(path,body){
   const c=authConfig||await loadAuthConfig();
   const r=await fetch(`${c.supabaseUrl}/auth/v1/${path}`,{method:'POST',headers:{apikey:c.anonKey,'Content-Type':'application/json'},body:JSON.stringify(body)});
   const d=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error(d.msg||d.error_description||d.message||'Falha na autenticação.');
+  if(!r.ok){
+    const err=new Error(d.msg||d.error_description||d.message||'Falha na autenticação.');
+    err.statusCode=r.status;
+    throw err;
+  }
   return d;
 }
-async function refreshAuthSession(session){
+async function refreshAuthSession(session,{preserveOnTransient=false}={}){
   if(!session?.refresh_token)return null;
-  try{
-    const d=await authRequest('token?grant_type=refresh_token',{refresh_token:session.refresh_token});
-    if(d?.access_token){saveAuthSession(d);return d}
-  }catch(e){console.warn('[Auth] refresh failed',e)}
-  saveAuthSession(null);return null;
+  if(authRefreshPromise)return authRefreshPromise;
+  authRefreshPromise=(async()=>{
+    try{
+      const d=await authRequest('token?grant_type=refresh_token',{refresh_token:session.refresh_token});
+      if(d?.access_token){
+        const renewed={...session,...d,refresh_token:d.refresh_token||session.refresh_token};
+        saveAuthSession(renewed);
+        return state.authSession;
+      }
+      return null;
+    }catch(e){
+      console.warn('[Auth] refresh failed',e);
+      if(e?.statusCode===400||e?.statusCode===401){
+        saveAuthSession(null);
+        return null;
+      }
+      if(preserveOnTransient){
+        scheduleAuthRefresh(session);
+        return session;
+      }
+      return null;
+    }finally{
+      authRefreshPromise=null;
+    }
+  })();
+  return authRefreshPromise;
 }
 async function fetchAuthUser(session){
   if(!session?.access_token)return null;
@@ -4333,15 +4442,21 @@ function showAuthGate(){
   const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='hidden';
 }
 async function completeAuth(session){
-  let active=session,user=await fetchAuthUser(active);
-  if(!user){active=await refreshAuthSession(active);user=await fetchAuthUser(active)}
+  let active=normalizedAuthSession(session);
+  const remaining=authSecondsRemaining(active);
+  if(active?.refresh_token&&(remaining==null||remaining<5*60)){
+    active=await refreshAuthSession(active,{preserveOnTransient:true})||active;
+  }
+  let user=await fetchAuthUser(active);
+  if(!user){active=await refreshAuthSession(active,{preserveOnTransient:true});user=await fetchAuthUser(active)}
   if(!user)throw new Error('Sessão expirada. Entre novamente.');
   saveAuthSession(active);applyAuthenticatedUser(user,active);return user;
 }
 function oauthSessionFromHash(){
   const h=new URLSearchParams(location.hash.replace(/^#/,''));
   if(!h.get('access_token'))return null;
-  const session={access_token:h.get('access_token'),refresh_token:h.get('refresh_token'),expires_in:Number(h.get('expires_in')||3600),token_type:h.get('token_type')||'bearer'};
+  const expiresIn=Number(h.get('expires_in')||3600);
+  const session={access_token:h.get('access_token'),refresh_token:h.get('refresh_token'),expires_in:expiresIn,expires_at:Math.floor(Date.now()/1000)+expiresIn,token_type:h.get('token_type')||'bearer'};
   history.replaceState(null,'',location.pathname+location.search);return session;
 }
 async function initializeAuth(){
@@ -4383,6 +4498,7 @@ async function loginWithGoogle(){
   }catch(e){authMessage(e.message)}
 }
 async function signOutChurchDesign(){
+  clearAuthRefreshTimer();
   try{
     if(state.authSession?.access_token){
       const c=authConfig||await loadAuthConfig();
@@ -4392,6 +4508,18 @@ async function signOutChurchDesign(){
   saveAuthSession(null);state.authSession=null;state.user={id:null,email:null,plan:null,credits:null,isAdmin:false};
   state.library={assets:[],generations:[],drafts:[],ratings:[],dbReady:false};state.churches=[];state.activeChurchId=null;state.activeChurchRole=null;state.accessContext=null;state.features={};state.quickResults=[];showAuthGate();setAuthMode('login');
 }
+
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='visible'||!state.authSession?.refresh_token)return;
+  const remaining=authSecondsRemaining();
+  if(remaining==null||remaining<10*60)refreshAuthSession(state.authSession,{preserveOnTransient:true}).catch(()=>{});
+});
+window.addEventListener('focus',()=>{
+  if(!state.authSession?.refresh_token)return;
+  const remaining=authSecondsRemaining();
+  if(remaining==null||remaining<10*60)refreshAuthSession(state.authSession,{preserveOnTransient:true}).catch(()=>{});
+});
 
 function apiJSON(action,options={}){const method=options.method||'GET';const churchId=currentChurchId();const url=`/api/church-data?action=${encodeURIComponent(action)}`;return authFetch(url,{method,headers:{'Content-Type':'application/json','x-church-id':churchId},body:method==='GET'?undefined:JSON.stringify(options.body||{})}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d;});}
 
@@ -6473,7 +6601,67 @@ function generationArtTypeFromContext({replaceIndex=null,format=null,backgroundM
   if(format==='screen')return 'Telão';
   return 'Arte base';
 }
+async function ensureGenerationAuthPreflight(){
+  let session=state.authSession||loadAuthSession();
+  const authError=(message,code='AUTH_SESSION_REQUIRED')=>{
+    const err=new Error(message);
+    err.code=code;
+    err.isAuthPreflight=true;
+    return err;
+  };
+
+  if(!session?.access_token&&!session?.refresh_token){
+    setAuthMode?.('login');
+    authMessage?.('Sua sessão expirou. Entre novamente para continuar. Tudo que você preencheu permanece nesta tela.');
+    showAuthGate();
+    throw authError('Sessão expirada antes de iniciar a geração.');
+  }
+
+  try{
+    const remaining=authSecondsRemaining(session);
+    if(session?.refresh_token&&(remaining==null||remaining<10*60)){
+      const renewed=await refreshAuthSession(session,{preserveOnTransient:false});
+      if(renewed?.access_token)session=renewed;
+    }
+
+    let user=await fetchAuthUser(session);
+    if(!user&&session?.refresh_token){
+      const renewed=await refreshAuthSession(session,{preserveOnTransient:false});
+      if(renewed?.access_token){
+        session=renewed;
+        user=await fetchAuthUser(session);
+      }
+    }
+
+    if(!user){
+      saveAuthSession(null);
+      setAuthMode?.('login');
+      authMessage?.('Sua sessão precisa ser renovada. Entre novamente e depois clique em gerar. Seus dados continuam preenchidos.');
+      showAuthGate();
+      throw authError('Sessão expirada antes de iniciar a geração.');
+    }
+
+    saveAuthSession(session);
+    return true;
+  }catch(e){
+    if(e?.isAuthPreflight)throw e;
+
+    const msg=String(e?.message||e||'').toLowerCase();
+    if(/fetch|network|conex|socket|econn|timeout|timed out/i.test(msg)){
+      throw authError('Não foi possível confirmar seu login antes da geração. Nenhum crédito foi debitado. Verifique sua conexão e tente novamente.','AUTH_PREFLIGHT_NETWORK');
+    }
+
+    saveAuthSession(null);
+    setAuthMode?.('login');
+    authMessage?.('Sua sessão precisa ser renovada. Entre novamente e depois clique em gerar. Seus dados continuam preenchidos.');
+    showAuthGate();
+    throw authError('Sessão expirada antes de iniciar a geração.');
+  }
+}
+
 function generationFailureClass(e){
+  if(e?.code==='AUTH_SESSION_REQUIRED')return 'auth_session';
+  if(e?.code==='AUTH_PREFLIGHT_NETWORK')return 'auth_preflight_network';
   const msg=String(e?.message||e||'').toLowerCase();
   if(e?.name==='AbortError')return 'cancelled';
   if(/429|rate limit|timeout|timed out|500|502|503|504|openai|upstream|temporar|indispon/i.test(msg))return 'provider_instability';
@@ -6481,6 +6669,7 @@ function generationFailureClass(e){
   return 'processing';
 }
 async function startGenerationOperation(meta={}){
+  await ensureGenerationAuthPreflight();
   const operationId=crypto.randomUUID();
   const d=await apiJSON('generation-operation-start',{method:'POST',body:{operationId,artType:meta.artType||'Arte base',format:meta.format||state.quick?.format||'',projectName:meta.projectName||state.quick?.title||state.projectTitle||'',metadata:meta}});
   state.activeGenerationOperation={operationId,credits:Number(d.credits)||0,balance:d.balance??state.user.credits,artType:meta.artType||'Arte base',format:meta.format||'',startedAt:Date.now()};
@@ -6523,6 +6712,14 @@ async function logAppIssue(error,context={}){
 }
 function friendlyGenerationFailurePopup(refund,errorClass='processing'){
   const refunded=Number(refund?.creditsRefunded)||0,balance=refund?.balance;
+  if(errorClass==='auth_session'){
+    appAlert('A sessão foi verificada antes de iniciar e precisa ser renovada. Nenhum crédito foi debitado e tudo que você preencheu continua preservado. Entre novamente e clique em gerar.',{type:'warning',title:'Confirme seu login',duration:9500});
+    return;
+  }
+  if(errorClass==='auth_preflight_network'){
+    appAlert('Não foi possível confirmar sua sessão antes de iniciar. A geração não começou, nenhum crédito foi debitado e seus dados continuam preenchidos. Verifique sua conexão e tente novamente.',{type:'warning',title:'Não foi possível validar o login',duration:9500});
+    return;
+  }
   const provider=errorClass==='provider_instability';
   const title=refunded>0?'Seus créditos estão seguros':'Não conseguimos concluir agora';
   const body=provider
@@ -7273,7 +7470,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.84</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.87</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
@@ -7775,7 +7972,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
     if(!state.activeGenerationOperation)await logAppIssue(e,{stage:e.name==='AbortError'?'cancelled':'quick-generation',category:errorClass,artType:generationArtTypeFromContext({replaceIndex,format:state.quick?.format}),format:state.quick?.format||''});
     const refund=await finishGenerationOperation(false,e,{stage:e.name==='AbortError'?'cancelled':'quick-generation'}).catch(()=>null);
     if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado. Seus créditos, quando debitados, foram devolvidos.';setQuickProgress(0,'Cancelado');}
-    else{if(status)status.innerHTML='<strong style="color:#ffd19c">A geração foi interrompida temporariamente.</strong><br>Se houve débito, os créditos foram devolvidos automaticamente.';friendlyGenerationFailurePopup(refund,errorClass);}
+    else{if(status)status.innerHTML=(errorClass==='auth_session'||errorClass==='auth_preflight_network')?'<strong style="color:#ffd19c">A geração não foi iniciada.</strong><br>Seu login precisa ser confirmado. Nenhum crédito foi debitado.':'<strong style="color:#ffd19c">A geração foi interrompida temporariamente.</strong><br>Se houve débito, os créditos foram devolvidos automaticamente.';friendlyGenerationFailurePopup(refund,errorClass);}
   }finally{activeProcessController=null;btn.disabled=false;if(cancel)cancel.style.display='none';}
 }
 function assertDerivativePipelineReady(){
@@ -7923,7 +8120,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     if(!state.activeGenerationOperation)await logAppIssue(e,{stage:e.name==='AbortError'?'cancelled':'quick-adaptation',category:errorClass,artType:generationArtTypeFromContext({format:formatId}),format:formatId});
     const refund=await finishGenerationOperation(false,e,{stage:e.name==='AbortError'?'cancelled':'quick-adaptation'}).catch(()=>null);
     if(e.name==='AbortError'){if(status)status.textContent='Processamento cancelado. Seus créditos, quando debitados, foram devolvidos.';setQuickProgress(0,'Cancelado');}
-    else{if(status)status.innerHTML='<strong style="color:#ffd19c">A adaptação foi interrompida temporariamente.</strong><br>Se houve débito, os créditos foram devolvidos automaticamente.';friendlyGenerationFailurePopup(refund,errorClass);}
+    else{if(status)status.innerHTML=(errorClass==='auth_session'||errorClass==='auth_preflight_network')?'<strong style="color:#ffd19c">A adaptação não foi iniciada.</strong><br>Seu login precisa ser confirmado. Nenhum crédito foi debitado.':'<strong style="color:#ffd19c">A adaptação foi interrompida temporariamente.</strong><br>Se houve débito, os créditos foram devolvidos automaticamente.';friendlyGenerationFailurePopup(refund,errorClass);}
   }finally{activeProcessController=null;if(cancel)cancel.style.display='none';}
 }
 // NEWFLOW v0.40 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
