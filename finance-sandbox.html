@@ -1,0 +1,223 @@
+<!-- CHURCHDESIGN — finance-sandbox v0.1 -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="robots" content="noindex,nofollow,noarchive" />
+<title>ChurchDesign — Homologação Financeira</title>
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#f4f5f7;--panel:#fff;--soft:#f8f9fb;--text:#17191f;--muted:#676d78;--line:#dfe2e8;
+  --accent:#315dfb;--danger:#c92b2b;--warning:#9a6300;--ok:#16794b;--shadow:0 16px 45px rgba(18,24,40,.08);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f1115;--panel:#171a20;--soft:#11141a;--text:#f2f3f5;--muted:#a5abb6;--line:#2b3039;--accent:#7c99ff;--danger:#ff8585;--warning:#ffc766;--ok:#71d7a9;--shadow:0 16px 45px rgba(0,0,0,.28)}
+}
+*{box-sizing:border-box} body{margin:0;font:14px/1.45 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}.wrap{max-width:1180px;margin:auto;padding:28px}.head{display:flex;gap:18px;align-items:flex-start;justify-content:space-between;margin-bottom:22px}.brand h1{margin:0;font-size:25px;letter-spacing:-.04em}.brand p{margin:6px 0 0;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;font-size:12px;font-weight:800;background:var(--panel)}.dot{width:8px;height:8px;border-radius:50%;background:var(--warning)}
+.grid{display:grid;grid-template-columns:360px 1fr;gap:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px}.card h2{font-size:15px;margin:0 0 14px}.stack{display:grid;gap:12px}.field{display:grid;gap:6px}.field label{font-size:12px;font-weight:700;color:var(--muted)}input,select{width:100%;border:1px solid var(--line);background:var(--soft);color:var(--text);border-radius:10px;padding:10px 11px;outline:none}input:focus,select:focus{border-color:var(--accent)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;padding:9px 12px;font-weight:750;cursor:pointer}.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.danger{color:var(--danger)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.note{border:1px solid var(--line);background:var(--soft);border-radius:12px;padding:11px 12px;color:var(--muted);font-size:12px}.note strong{color:var(--text)}
+.state{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--soft)}.metric span{display:block;font-size:11px;color:var(--muted);margin-bottom:3px}.metric b{font-size:15px}.suite{display:grid;gap:10px}.test{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:13px}.test h3{font-size:14px;margin:0 0 3px}.test p{margin:0;color:var(--muted);font-size:12px}.tag{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;border:1px solid var(--line);font-size:10px;color:var(--muted);vertical-align:1px}.tag.mutate{color:var(--warning)}.tag.safe{color:var(--ok)}
+.log{margin-top:18px;background:#0b0d11;color:#d9e1ee;border-radius:14px;padding:14px;min-height:160px;max-height:380px;overflow:auto;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}.log .ok{color:#8fe0b5}.log .err{color:#ff9a9a}.log .muted{color:#8792a5}
+.coverage{margin-top:18px}.coverage table{width:100%;border-collapse:collapse;font-size:12px}.coverage th,.coverage td{text-align:left;padding:9px;border-bottom:1px solid var(--line);vertical-align:top}.coverage th{color:var(--muted)}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;place-items:center;padding:20px;z-index:50}.modal-backdrop.show{display:grid}.modal{width:min(520px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.modal h3{margin:0 0 8px}.modal p{margin:0 0 14px;color:var(--muted)}
+.warn{border-left:4px solid var(--warning);padding:10px 12px;background:var(--soft);border-radius:9px;font-size:12px}.hidden{display:none!important}
+@media(max-width:850px){.wrap{padding:16px}.grid{grid-template-columns:1fr}.head{display:grid}.state{grid-template-columns:1fr 1fr}.test{grid-template-columns:1fr}.test .btn{width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="brand">
+      <h1>Homologação financeira</h1>
+      <p>Painel temporário para testar regras de assinatura, webhook e créditos do ChurchDesign.</p>
+    </div>
+    <div class="badge"><span class="dot"></span>SOMENTE SANDBOX</div>
+  </div>
+
+  <div class="grid">
+    <aside class="card">
+      <h2>Conexão de teste</h2>
+      <div class="stack">
+        <div class="field"><label>ChurchDesign</label><input id="origin" value="https://churchart.vercel.app" readonly></div>
+        <div class="field"><label>Igreja</label><select id="church"><option value="">Carregando…</option></select></div>
+        <div class="field"><label>Webhook Token</label><input id="token" type="password" autocomplete="off" placeholder="Cole o ASAAS_WEBHOOK_TOKEN"></div>
+        <div class="field"><label>Subscription ID do Asaas</label><input id="subscriptionId" placeholder="Será preenchido automaticamente quando disponível"></div>
+        <div class="field"><label>Customer ID (opcional)</label><input id="customerId" placeholder="cus_..."></div>
+        <div class="actions">
+          <button class="btn primary" id="refresh">Atualizar estado</button>
+          <button class="btn" id="reveal">Mostrar token</button>
+        </div>
+        <div class="note"><strong>Segurança:</strong> o token fica apenas na memória desta página. Ele não é salvo em localStorage, cookie ou arquivo.</div>
+        <div class="note"><strong>Pré-requisito:</strong> abra esta página publicada no mesmo domínio do ChurchDesign e esteja logado no app neste navegador.</div>
+      </div>
+
+      <h2 style="margin-top:20px">Estado atual</h2>
+      <div class="state">
+        <div class="metric"><span>Plano</span><b id="plan">—</b></div>
+        <div class="metric"><span>Status</span><b id="status">—</b></div>
+        <div class="metric"><span>Créditos</span><b id="credits">—</b></div>
+      </div>
+      <div class="note" id="expected" style="margin-top:10px">Atualize o estado para carregar a assinatura.</div>
+    </aside>
+
+    <main class="card">
+      <h2>Cenários financeiros</h2>
+      <div class="suite" id="suite"></div>
+
+      <div class="coverage">
+        <h2>Cobertura de homologação</h2>
+        <table>
+          <thead><tr><th>Regra</th><th>Como validar</th><th>Resultado esperado</th></tr></thead>
+          <tbody>
+            <tr><td>Pagamento recusado</td><td>CAPTURE_REFUSED</td><td>Sem novos créditos; saldo anterior preservado.</td></tr>
+            <tr><td>Pagamento atrasado</td><td>OVERDUE</td><td>Status past_due; saldo anterior preservado.</td></tr>
+            <tr><td>Pagamento recuperado</td><td>RECEIVED com payment ID novo</td><td>Volta a active e redefine saldo para a franquia do plano.</td></tr>
+            <tr><td>Renovação aprovada</td><td>CONFIRMED com payment ID novo</td><td>Saldo final fica exatamente igual à franquia, sem acumular.</td></tr>
+            <tr><td>Saldo menor que franquia</td><td>Consuma créditos antes e rode CONFIRMED</td><td>Ex.: 37 → Pro → 160, não 197.</td></tr>
+            <tr><td>Saldo maior que franquia</td><td>Pré-condição: saldo acima da franquia; rode CONFIRMED</td><td>Ex.: 190 → Pro → 160.</td></tr>
+            <tr><td>Evento duplicado</td><td>Mesmo event ID duas vezes</td><td>Segundo evento retorna duplicate e não repete efeito.</td></tr>
+            <tr><td>Pagamento duplicado</td><td>CONFIRMED + RECEIVED, mesmo payment ID</td><td>Renovação financeira processada uma única vez.</td></tr>
+            <tr><td>Reembolso / chargeback</td><td>REFUNDED / CHARGEBACK</td><td>Créditos comprados não são apagados pelo webhook atual.</td></tr>
+            <tr><td>Token inválido</td><td>Teste protegido</td><td>HTTP 401, nenhuma alteração.</td></tr>
+            <tr><td>Contexto inexistente</td><td>Subscription fictícia</td><td>Falha controlada, nenhuma alteração financeira.</td></tr>
+            <tr><td>Troca Essencial/Pro/Studio</td><td>Checkout real no Sandbox</td><td>Requer link real porque a escolha do plano ocorre antes do webhook.</td></tr>
+            <tr><td>Criação real de assinatura/checkout</td><td>Fluxo normal do app + Asaas Sandbox</td><td>Não é simulável só pelo webhook; já validado para Pro.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="log" id="log"><span class="muted">Aguardando teste…</span></div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalBg" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">Confirmar teste</h3>
+    <p id="modalText"></p>
+    <div class="warn" id="modalWarn"></div>
+    <div class="actions" style="justify-content:flex-end;margin-top:16px">
+      <button class="btn" id="modalCancel">Cancelar</button>
+      <button class="btn primary" id="modalConfirm">Executar teste</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const EXPECTED_ORIGIN='https://churchart.vercel.app';
+const AUTH_STORAGE_KEY='churchdesign.auth.v1';
+const $=s=>document.querySelector(s);
+const state={authConfig:null,session:null,user:null,churchId:'',subscription:null,plan:null,balance:null,pending:null};
+const scenarios=[
+  {id:'declined',title:'Cartão recusado',event:'PAYMENT_CREDIT_CARD_CAPTURE_REFUSED',mutates:true,desc:'Simula falha na captura. Esperado: status paused e créditos inalterados.'},
+  {id:'overdue',title:'Pagamento atrasado',event:'PAYMENT_OVERDUE',mutates:true,desc:'Esperado: status past_due e créditos inalterados.'},
+  {id:'received',title:'Pagamento recuperado',event:'PAYMENT_RECEIVED',mutates:true,newPayment:true,desc:'Usa um payment ID novo. Esperado: active e saldo redefinido para a franquia.'},
+  {id:'confirmed',title:'Renovação confirmada',event:'PAYMENT_CONFIRMED',mutates:true,newPayment:true,desc:'Teste principal da renovação não cumulativa.'},
+  {id:'payment-idem',title:'Idempotência do pagamento',event:'PAYMENT_CONFIRMED',mutates:true,newPayment:true,sequence:'payment',desc:'Envia CONFIRMED e RECEIVED com o mesmo payment ID e event IDs diferentes.'},
+  {id:'refund',title:'Reembolso',event:'PAYMENT_REFUNDED',mutates:true,desc:'Esperado no backend atual: status paused, sem apagar créditos.'},
+  {id:'chargeback',title:'Chargeback solicitado',event:'PAYMENT_CHARGEBACK_REQUESTED',mutates:true,desc:'Esperado no backend atual: status paused, sem apagar créditos.'},
+  {id:'event-idem',title:'Evento duplicado',event:'CHURCHDESIGN_SANDBOX_NOOP',mutates:false,sequence:'event',desc:'Envia o mesmo evento inofensivo duas vezes. O segundo deve retornar duplicate.'},
+  {id:'bad-token',title:'Token inválido',event:'CHURCHDESIGN_SANDBOX_NOOP',mutates:false,badToken:true,desc:'Esperado: HTTP 401 e nenhuma alteração.'},
+  {id:'unmatched',title:'Contexto não conciliado',event:'PAYMENT_CONFIRMED',mutates:false,unmatched:true,newPayment:true,desc:'Usa subscription fictícia. Esperado: HTTP 500 e nenhuma alteração financeira.'}
+];
+function log(text,kind='muted'){
+  const el=$('#log'); if(el.textContent.includes('Aguardando teste'))el.innerHTML='';
+  const row=document.createElement('div');row.className=kind;row.textContent=`[${new Date().toLocaleTimeString('pt-BR')}] ${text}`;el.prepend(row);
+}
+function uid(prefix){return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,10)}`}
+function session(){try{return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'null')}catch{return null}}
+async function jsonFetch(url,opts={}){const r=await fetch(url,opts);const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data={raw:text}}return {r,data}}
+async function boot(){
+  if(location.origin!==EXPECTED_ORIGIN){
+    log(`Abra este arquivo em ${EXPECTED_ORIGIN}/finance-sandbox.html. Origem atual: ${location.origin}`,'err');
+    $('#refresh').disabled=true; return;
+  }
+  state.session=session();
+  if(!state.session?.access_token){log('Sessão não encontrada. Entre no ChurchDesign primeiro e recarregue esta página.','err');return}
+  const ac=await jsonFetch('/api/auth-config'); if(!ac.r.ok)throw new Error('Não foi possível carregar a configuração de autenticação.');state.authConfig=ac.data;
+  const au=await jsonFetch(`${state.authConfig.supabaseUrl}/auth/v1/user`,{headers:{apikey:state.authConfig.anonKey,Authorization:`Bearer ${state.session.access_token}`}});
+  if(!au.r.ok||!au.data?.id)throw new Error('Sua sessão expirou. Entre novamente no ChurchDesign.'); state.user=au.data;
+  const m=await jsonFetch(`${state.authConfig.supabaseUrl}/rest/v1/church_members?user_id=eq.${encodeURIComponent(state.user.id)}&status=eq.active&select=church_id,role`,{headers:{apikey:state.authConfig.anonKey,Authorization:`Bearer ${state.session.access_token}`}});
+  if(!m.r.ok||!Array.isArray(m.data))throw new Error('Não foi possível listar suas igrejas.');
+  const select=$('#church');select.innerHTML='';
+  for(const member of m.data){
+    let label=member.church_id;
+    const p=await jsonFetch(`${state.authConfig.supabaseUrl}/rest/v1/church_profile?id=eq.${encodeURIComponent(member.church_id)}&select=id,name,label&limit=1`,{headers:{apikey:state.authConfig.anonKey,Authorization:`Bearer ${state.session.access_token}`}});
+    const cp=p.data?.[0]; if(cp)label=cp.label||cp.name||cp.id;
+    const o=document.createElement('option');o.value=member.church_id;o.textContent=`${label} (${member.role})`;select.appendChild(o);
+  }
+  if(select.options.length){state.churchId=select.value;await refreshState()}
+  else log('Nenhuma igreja ativa encontrada para este usuário.','err');
+}
+async function refreshState(){
+  state.churchId=$('#church').value; if(!state.churchId)return;
+  const h={Authorization:`Bearer ${state.session.access_token}`};
+  const s=await jsonFetch(`/api/asaas?action=status&churchId=${encodeURIComponent(state.churchId)}`,{headers:h});
+  if(!s.r.ok)throw new Error(s.data?.error||'Não foi possível consultar a assinatura.');
+  state.subscription=s.data?.subscription||null;
+  if(state.subscription?.provider_subscription_id&&!$('#subscriptionId').value)$('#subscriptionId').value=state.subscription.provider_subscription_id;
+  if(state.subscription?.provider_customer_id&&!$('#customerId').value)$('#customerId').value=state.subscription.provider_customer_id;
+  state.plan=null;
+  if(state.subscription?.plan_id){
+    const p=await jsonFetch(`${state.authConfig.supabaseUrl}/rest/v1/plans?id=eq.${encodeURIComponent(state.subscription.plan_id)}&select=id,code,name,credits_monthly,price_monthly&limit=1`,{headers:{apikey:state.authConfig.anonKey,Authorization:`Bearer ${state.session.access_token}`}});
+    if(p.r.ok)state.plan=p.data?.[0]||null;
+  }
+  const b=await jsonFetch(`${state.authConfig.supabaseUrl}/rest/v1/rpc/generation_credit_balance`,{method:'POST',headers:{apikey:state.authConfig.anonKey,Authorization:`Bearer ${state.session.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({p_church_id:state.churchId})});
+  state.balance=b.r.ok?Number(b.data):null;
+  $('#plan').textContent=state.plan?.name||state.subscription?.plan_id||'Sem plano';
+  $('#status').textContent=state.subscription?.status||'—';
+  $('#credits').textContent=Number.isFinite(state.balance)?String(state.balance):'—';
+  const allowance=Number(state.plan?.credits_monthly);
+  $('#expected').textContent=Number.isFinite(allowance)?`Franquia do plano: ${allowance} créditos. Uma renovação paga deve terminar exatamente em ${allowance}.`:'Não foi possível identificar a franquia do plano.';
+  log(`Estado atualizado — plano ${$('#plan').textContent}, status ${$('#status').textContent}, créditos ${$('#credits').textContent}.`,'ok');
+}
+function payload(event,paymentId,eventId,subscriptionId){
+  const now=new Date(),due=new Date(now.getTime()+86400000*10).toISOString().slice(0,10);
+  return {id:eventId,event,payment:{id:paymentId,subscription:subscriptionId,customer:$('#customerId').value.trim()||undefined,dueDate:due,paymentDate:now.toISOString(),clientPaymentDate:now.toISOString(),value:Number(state.subscription?.price_monthly)||undefined,status:event.replace('PAYMENT_','')}};
+}
+async function send(event,{paymentId=uid('pay_sim'),eventId=uid('evt_sim'),subscriptionId=$('#subscriptionId').value.trim(),token=$('#token').value}={}){
+  const body=payload(event,paymentId,eventId,subscriptionId);
+  const {r,data}=await jsonFetch('/api/asaas-webhook',{method:'POST',headers:{'Content-Type':'application/json','asaas-access-token':token},body:JSON.stringify(body)});
+  log(`${event} → HTTP ${r.status} ${JSON.stringify(data)}`,r.ok?'ok':'err');
+  return {r,data,paymentId,eventId};
+}
+async function execute(sc){
+  if(!$('#token').value.trim()&&!sc.badToken)throw new Error('Cole primeiro o ASAAS_WEBHOOK_TOKEN.');
+  if(!$('#subscriptionId').value.trim()&&!sc.unmatched)throw new Error('Subscription ID não disponível. Atualize o estado ou informe-o manualmente.');
+  const before={status:state.subscription?.status||null,balance:state.balance};
+  if(sc.badToken){await send(sc.event,{token:'token_invalido_proposital_'+uid('x')});}
+  else if(sc.unmatched){await send(sc.event,{subscriptionId:'sub_inexistente_'+uid('x')});}
+  else if(sc.sequence==='event'){
+    const eventId=uid('evt_dup'),paymentId=uid('pay_noop');await send(sc.event,{eventId,paymentId});await send(sc.event,{eventId,paymentId});
+  }else if(sc.sequence==='payment'){
+    const paymentId=uid('pay_idem');await send('PAYMENT_CONFIRMED',{paymentId,eventId:uid('evt_confirmed')});await send('PAYMENT_RECEIVED',{paymentId,eventId:uid('evt_received')});
+  }else await send(sc.event,{paymentId:sc.newPayment?uid('pay_new'):uid('pay_problem')});
+  await refreshState();
+  log(`Antes: status=${before.status}, créditos=${before.balance}. Depois: status=${state.subscription?.status}, créditos=${state.balance}.`,'muted');
+}
+function ask(sc){
+  state.pending=sc;$('#modalTitle').textContent=sc.title;$('#modalText').textContent=sc.desc;
+  $('#modalWarn').textContent=sc.mutates?'Este cenário altera o estado financeiro da assinatura no Sandbox. Ele não cria cobrança real, mas o resultado fica gravado no banco de homologação.':'Este teste foi desenhado para não alterar saldo ou plano.';
+  $('#modalBg').classList.add('show');$('#modalBg').setAttribute('aria-hidden','false');
+}
+function renderSuite(){
+  const root=$('#suite');
+  scenarios.forEach(sc=>{const el=document.createElement('div');el.className='test';el.innerHTML=`<div><h3>${sc.title}<span class="tag ${sc.mutates?'mutate':'safe'}">${sc.mutates?'ALTERA SANDBOX':'CONTROLE'}</span></h3><p>${sc.desc}</p></div><button class="btn ${sc.mutates?'primary':''}" data-id="${sc.id}">Executar</button>`;root.appendChild(el)});
+  root.addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if(!b)return;const sc=scenarios.find(x=>x.id===b.dataset.id);if(sc)ask(sc)});
+}
+$('#modalCancel').addEventListener('click',()=>{$('#modalBg').classList.remove('show');state.pending=null});
+$('#modalConfirm').addEventListener('click',async()=>{const sc=state.pending;$('#modalBg').classList.remove('show');state.pending=null;if(!sc)return;try{$('#modalConfirm').disabled=true;await execute(sc)}catch(e){log(e.message||String(e),'err')}finally{$('#modalConfirm').disabled=false}});
+$('#refresh').addEventListener('click',()=>refreshState().catch(e=>log(e.message,'err')));
+$('#church').addEventListener('change',()=>{state.churchId=$('#church').value;$('#subscriptionId').value='';$('#customerId').value='';refreshState().catch(e=>log(e.message,'err'))});
+$('#reveal').addEventListener('click',()=>{const i=$('#token');i.type=i.type==='password'?'text':'password';$('#reveal').textContent=i.type==='password'?'Mostrar token':'Ocultar token'});
+renderSuite();boot().catch(e=>log(e.message||String(e),'err'));
+})();
+</script>
+</body>
+</html>
