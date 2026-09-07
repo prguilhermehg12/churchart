@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.95 -->
+<!-- CHURCHDESIGN — index v0.96 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3619,7 +3619,7 @@ html[data-theme="light"] .quick-graphic-card,html[data-theme="light"] .quick-gra
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.95</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.96</div>
   
   <script>
 const state={
@@ -6650,9 +6650,29 @@ document.addEventListener('click',e=>{
   const planBtn=e.target.closest?.('#cdpRoot [data-cd-plano]');
   if(!planBtn||planBtn.disabled)return;
   const planId=planBtn.getAttribute('data-cd-plano');
-  window.dispatchEvent(new CustomEvent('churchdesign:plan-change-requested',{detail:{planId,churchId:state.activeChurchId}}));
-  appAlert('A contratação e a atualização online do plano serão concluídas pelo fluxo de pagamento do ChurchDesign. Nenhuma alteração foi feita ainda.',{title:'Alterar plano',type:'info'});
+  startAsaasCheckout(planId,planBtn);
 });
+async function startAsaasCheckout(planId,button=null){
+  if(!state.activeChurchId)return appAlert('Selecione uma igreja antes de contratar um plano.',{type:'warning',title:'Assinatura'});
+  const original=button?.textContent||'Escolher plano';
+  try{
+    if(button){button.disabled=true;button.textContent='Abrindo pagamento…'}
+    const token=state.authSession?.access_token;
+    if(!token)throw new Error('Faça login novamente para continuar.');
+    const r=await fetch('/api/asaas?action=create-checkout',{
+      method:'POST',
+      headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},
+      body:JSON.stringify({churchId:state.activeChurchId,planId})
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.checkoutUrl)throw new Error(d.error||'Não foi possível abrir o pagamento.');
+    window.dispatchEvent(new CustomEvent('churchdesign:plan-change-requested',{detail:{planId,churchId:state.activeChurchId,provider:'asaas'}}));
+    window.location.href=d.checkoutUrl;
+  }catch(e){
+    if(button){button.disabled=false;button.textContent=original}
+    appAlert(e.message||'Não foi possível iniciar o pagamento.',{type:'error',title:'Pagamento'});
+  }
+}
 
 async function openSubscriptionAdmin(){if(!state.user?.isAdmin)return;try{await loadBillingAdmin();renderSubscriptionAdmin()}catch(e){appAlert(e.message,{type:'error',title:'Gerenciamento de assinaturas'})}}
 function renderSubscriptionAdmin(){
@@ -8052,7 +8072,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.95</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.96</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
@@ -8792,6 +8812,11 @@ document.querySelector('#authSwitchBtn')?.addEventListener('click',()=>setAuthMo
 initChurchDesignTheme();
 initializeAuth().then(ok=>{if(ok)startAuthenticatedApp()}).catch(e=>{showAuthGate();authMessage(e.message||'Falha ao iniciar autenticação.')});
 
+
+if(new URLSearchParams(location.search).get('billing')==='return'){
+  setTimeout(()=>appToast('Pagamento enviado. O plano e os créditos serão atualizados automaticamente quando o Asaas confirmar o recebimento.',{type:'info',title:'Pagamento em processamento',duration:8000}),700);
+  try{const u=new URL(location.href);u.searchParams.delete('billing');u.searchParams.delete('church');history.replaceState(null,'',u.pathname+u.search+u.hash)}catch{}
+}
 
 document.addEventListener('click',e=>{
   if(e.target.closest?.('#backgroundGenerationIndicator')){
