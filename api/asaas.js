@@ -1,4 +1,4 @@
-// CHURCHDESIGN — asaas v0.1.0
+// CHURCHDESIGN — asaas v0.2.0
 const crypto=require("crypto");
 
 module.exports.config={maxDuration:30};
@@ -94,6 +94,7 @@ async function createCheckout(req,res,user){
       value:Number(plan.price_monthly),
       billingType:"UNDEFINED",
       chargeType:"RECURRENT",
+      dueDateLimitDays:10,
       subscriptionCycle:"MONTHLY",
       externalReference,
       notificationEnabled:true,
