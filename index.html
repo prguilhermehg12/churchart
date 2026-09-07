@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.92 -->
+<!-- CHURCHDESIGN — index v0.95 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3316,6 +3316,240 @@ html[data-theme="light"] .gallery-popover.gallery-popover-portal{
   box-shadow:0 20px 46px rgba(27,34,44,.20)!important;
 }
 
+
+/* CHURCHDESIGN v0.93 — sidebar compacta, completa e sem rolagem no desktop */
+@media(min-width:901px){
+  .sidebar{
+    height:100dvh!important;
+    min-height:100dvh!important;
+    padding:10px 12px!important;
+    overflow:hidden!important;
+    gap:0!important;
+  }
+
+  .sidebar .brand{
+    flex:0 0 auto!important;
+    padding:0 5px 7px!important;
+    margin:0!important;
+  }
+  .sidebar .brand-logo{
+    width:100%!important;
+    max-width:190px!important;
+    height:42px!important;
+  }
+
+  .sidebar-current-project-block{
+    flex:0 0 auto!important;
+    gap:3px!important;
+    margin:0 0 6px!important;
+  }
+  .sidebar-current-project-block .project-current-kicker{
+    font-size:7.5px!important;
+    padding-left:2px!important;
+  }
+  .sidebar-current-project-block .sidebar-project-btn{
+    height:33px!important;
+    min-height:33px!important;
+    max-height:33px!important;
+    padding:0 9px!important;
+    border-radius:8px!important;
+  }
+  .sidebar-current-project-block .sidebar-project-btn #projectName{
+    font-size:9px!important;
+  }
+
+  .sidebar-library-actions,
+  .sidebar-primary-actions{
+    flex:0 0 auto!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:5px!important;
+    margin:0 0 6px!important;
+  }
+
+  .sidebar-unified-btn,
+  .sidebar-library-actions .sidebar-unified-btn{
+    height:33px!important;
+    min-height:33px!important;
+    max-height:33px!important;
+    padding:0 8px!important;
+    grid-template-columns:22px minmax(0,1fr) auto!important;
+    column-gap:7px!important;
+    border-radius:8px!important;
+  }
+  .sidebar-library-actions .sidebar-unified-btn,
+  .sidebar-primary-actions .sidebar-unified-btn{
+    grid-template-columns:22px minmax(0,1fr)!important;
+  }
+
+  .sidebar-nav-icon{
+    width:22px!important;
+    min-width:22px!important;
+    height:22px!important;
+    font-size:18px!important;
+    line-height:1!important;
+  }
+  .sidebar-nav-label{
+    font-size:9.3px!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+
+  .sidebar-flow{
+    flex:0 0 auto!important;
+    gap:4px!important;
+    margin:0 0 6px!important;
+  }
+  .sidebar-flow .nav-step{
+    height:30px!important;
+    min-height:30px!important;
+    max-height:30px!important;
+    padding:0 8px!important;
+    grid-template-columns:22px minmax(0,1fr)!important;
+    column-gap:8px!important;
+    border-radius:8px!important;
+  }
+  .sidebar-flow .nav-step b{
+    width:22px!important;
+    min-width:22px!important;
+    height:22px!important;
+    border-radius:7px!important;
+    font-size:9px!important;
+  }
+  .sidebar-flow .nav-step span{
+    font-size:8.8px!important;
+  }
+
+  .church-switcher-premium{
+    flex:0 0 auto!important;
+    margin:0 0 6px!important;
+    padding:5px 0 0!important;
+  }
+  .church-section-title{
+    min-height:24px!important;
+    margin:0 0 3px!important;
+  }
+  .church-section-title>span{
+    font-size:7.5px!important;
+  }
+  .church-add-btn{
+    width:25px!important;
+    min-width:25px!important;
+    height:25px!important;
+    min-height:25px!important;
+    font-size:19px!important;
+    line-height:1!important;
+  }
+  .church-rail{
+    gap:4px!important;
+    margin:3px 0!important;
+  }
+  .church-rail-card{
+    min-height:38px!important;
+    border-radius:8px!important;
+  }
+  .church-rail-main{
+    min-height:36px!important;
+    padding:3px 5px!important;
+    grid-template-columns:30px minmax(0,1fr)!important;
+    gap:7px!important;
+  }
+  .church-rail-logo{
+    width:30px!important;
+    min-width:30px!important;
+    height:30px!important;
+    border-radius:7px!important;
+  }
+  .church-rail-copy strong{font-size:8.8px!important}
+  .church-rail-copy small{font-size:7px!important;margin-top:1px!important}
+  .church-row-more{
+    width:27px!important;
+    min-width:27px!important;
+    height:27px!important;
+    min-height:27px!important;
+    font-size:20px!important;
+    line-height:1!important;
+  }
+  .church-role-caption{
+    margin-top:2px!important;
+    font-size:6.8px!important;
+  }
+
+  #tutorialNavBtn{
+    flex:0 0 auto!important;
+    margin:0 0 6px!important;
+  }
+  #tutorialNavBtn .tutorial-question-icon{
+    width:22px!important;
+    min-width:22px!important;
+    height:22px!important;
+    border:1.6px solid currentColor!important;
+    border-radius:50%!important;
+    font-size:13px!important;
+    font-weight:800!important;
+  }
+
+  .account-card{
+    flex:0 0 auto!important;
+    margin-top:auto!important;
+    padding:8px 9px!important;
+    border-radius:10px!important;
+  }
+  .account-card h4{
+    margin:0 0 4px!important;
+    font-size:8.5px!important;
+  }
+  .account-email{
+    font-size:7.5px!important;
+    line-height:1.15!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .account-row{
+    margin-top:4px!important;
+    font-size:7.5px!important;
+  }
+  .account-row strong{font-size:7.5px!important}
+  .account-plan{
+    padding:2px 5px!important;
+    font-size:7px!important;
+  }
+  #managePlanBtn,#subscriptionAdminBtn,.account-signout{
+    min-height:29px!important;
+    height:29px!important;
+    margin-top:5px!important;
+    padding:0 8px!important;
+    border-radius:8px!important;
+    font-size:8.5px!important;
+  }
+}
+
+#tutorialNavBtn .tutorial-question-icon{
+  border:1.5px solid currentColor;
+  border-radius:50%;
+}
+
+
+/* CHURCHDESIGN v0.95 — Elementos PNG protegidos no fluxo rápido */
+.quick-graphic-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.quick-graphic-card,.quick-graphic-upload{border:1px solid var(--line);border-radius:11px;background:#0d0f13;padding:7px;min-width:0}
+.quick-graphic-card{cursor:pointer;display:grid;grid-template-columns:54px minmax(0,1fr);gap:8px;align-items:center}
+.quick-graphic-card.selected{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2) inset}
+.quick-graphic-thumb{width:54px;height:54px;border-radius:8px;background:repeating-conic-gradient(#1b1e24 0 25%,#11141a 0 50%) 50%/12px 12px;display:grid;place-items:center;overflow:hidden}
+.quick-graphic-thumb img{max-width:100%;max-height:100%;object-fit:contain}
+.quick-graphic-copy{min-width:0}.quick-graphic-copy strong,.quick-graphic-copy small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quick-graphic-copy strong{font-size:9px}.quick-graphic-copy small{font-size:7.5px;color:var(--muted);margin-top:3px}
+.quick-graphic-controls{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:7px;border-top:1px solid var(--line)}
+.quick-graphic-controls label{font-size:7.5px;color:var(--muted)}
+.quick-graphic-controls select{width:100%;margin-top:4px;height:31px;padding:0 7px;border-radius:7px;background:var(--field-bg);color:var(--text);border:1px solid var(--field-border);font-size:8px}
+.quick-graphic-upload{min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer}
+.quick-graphic-upload strong{font-size:10px}.quick-graphic-upload span{font-size:7.5px;color:var(--muted);margin-top:3px}
+html[data-theme="light"] .quick-graphic-card,html[data-theme="light"] .quick-graphic-upload{background:#fff!important;border-color:#dfe3e8!important}
+@media(max-width:560px){.quick-graphic-grid{grid-template-columns:1fr}}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 </head>
@@ -3366,7 +3600,7 @@ html[data-theme="light"] .gallery-popover.gallery-popover-portal{
         <small id="churchSwitcherRole" class="church-role-caption"></small>
       </div>
       <button class="sidebar-unified-btn" id="tutorialNavBtn" type="button">
-  <span class="sidebar-nav-icon" aria-hidden="true">?</span>
+  <span class="sidebar-nav-icon tutorial-question-icon" aria-hidden="true">?</span>
   <span class="sidebar-nav-label">Tutorial</span>
 </button>
 <div class="account-card" id="sidebarAccount">
@@ -3385,7 +3619,7 @@ html[data-theme="light"] .gallery-popover.gallery-popover-portal{
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.92</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.95</div>
   
   <script>
 const state={
@@ -3403,7 +3637,7 @@ lastMarked:null,
 currentDraftId:null,
 artDirection:null,
 mode:'quick',
-quick:{title:'',subtitle:'',secondaryInfo:'',date:'',time:'',address:'',churchNameMode:'logo-only',effect:'none',dominantColor:'#ff5a1f',dominantColorMode:'reference',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoPosition:'',logoAssetId:null,omitChurchLogo:false,omitChurchName:true,eventLogoAssetId:null,eventLogoPosition:'',eventLogoSize:'small',pastorAssetIds:[],pastorNames:{},pastorPhotoTreatment:'',churchImageAssetId:null,correction:''},
+quick:{title:'',subtitle:'',secondaryInfo:'',date:'',time:'',address:'',churchNameMode:'logo-only',effect:'none',dominantColor:'#ff5a1f',dominantColorMode:'reference',illustrateTitle:true,reference:null,referenceMode:'upload',inspirationStyle:'editorial-collage',format:'feed',audience:'',designStyle:'',logoPosition:'',logoAssetId:null,omitChurchLogo:false,omitChurchName:true,eventLogoAssetId:null,eventLogoPosition:'',eventLogoSize:'small',pastorAssetIds:[],pastorNames:{},pastorPhotoTreatment:'',churchImageAssetId:null,graphicAssetIds:[],graphicPlacements:{},correction:''},
 quickResults:[],
 mobileQuickStep:0,
 costSupervisor:{sessionId:null,startedAt:null,events:[],label:'',currency:'USD',actualStart:null,actualEnd:null,actualCost:null,requests:[],untrackedEstimate:0},
@@ -5831,6 +6065,10 @@ function restoreRecipeToQuick(recipe={},options={}){
   if(source.pastorNames&&typeof source.pastorNames==='object')q.pastorNames={...source.pastorNames};
   if(source.churchImageAssetId!==undefined)q.churchImageAssetId=source.churchImageAssetId||null;
   else if(source.churchImage?.id)q.churchImageAssetId=source.churchImage.id;
+  if(Array.isArray(source.graphicAssetIds))q.graphicAssetIds=source.graphicAssetIds.slice(0,3);
+  else if(Array.isArray(recipe.assets?.graphics))q.graphicAssetIds=recipe.assets.graphics.map(x=>x?.id).filter(Boolean).slice(0,3);
+  if(source.graphicPlacements&&typeof source.graphicPlacements==='object')q.graphicPlacements={...source.graphicPlacements};
+  else if(Array.isArray(recipe.assets?.graphics)){q.graphicPlacements={};recipe.assets.graphics.forEach(g=>{if(g?.id)q.graphicPlacements[g.id]={position:g.position||'bottom-right',size:g.size||'medium'}});}
   if(options.asReference){
     q.reference=recipe.finalUrl||recipe.url||recipe.baseUrl||q.reference||null;
     q.referenceMode='upload';
@@ -6655,8 +6893,9 @@ window.openNotifications=async function(){
 function renderNotifications(){const root=document.querySelector('#notificationsList');if(!root)return;const items=state.notifications.items||[];root.innerHTML=items.length?`<div class="notification-list">${items.map(n=>`<button class="notification-item ${n.read_at?'':'unread'}" data-notification-id="${esc(n.id)}" data-notification-post="${esc(n.feed_post_id||'')}"><div class="feed-avatar">${n.actor_church_logo?`<img src="${esc(n.actor_church_logo)}">`:`<span>${esc(feedInitials(n.actor_church_label))}</span>`}</div><div><strong>${esc(n.actor_name)}</strong><p>da ${esc(n.actor_church_label)} curtiu sua arte <b>${esc(n.post_label||'')}</b>.</p><small>${formatDateTime(n.created_at)}</small></div>${n.post_image_url?`<img class="notification-art" src="${esc(n.post_image_url)}">`:''}</button>`).join('')}</div>`:'<div class="empty-state">Nenhuma notificação por enquanto.</div>';root.querySelectorAll('[data-notification-id]').forEach(b=>b.onclick=async()=>{if(!b.classList.contains('unread')){if(b.dataset.notificationPost)openFeedDetail(b.dataset.notificationPost);return}await apiJSON('notifications-read',{method:'POST',body:{id:b.dataset.notificationId}});const n=state.notifications.items.find(x=>x.id===b.dataset.notificationId);if(n)n.read_at=new Date().toISOString();b.classList.remove('unread');loadNotificationCount();if(b.dataset.notificationPost)openFeedDetail(b.dataset.notificationPost)})}
 
 window.openMyChurch=function(tab='pastor'){
+  if(tab==='font')tab='pastor';
   const root=document.querySelector('#modalRoot');
-  const labels={pastor:'Pregadores',church:'Fotos da igreja',logo:'Logos',event_logo:'Logo de evento',reference:'Referências',graphic:'Elementos PNG',font:'Fontes',screen:'Telão'};if(state.activeChurchRole==='owner'){labels.team='Equipe';labels.feed_settings='Feed';}
+  const labels={pastor:'Pregadores',church:'Fotos da igreja',logo:'Logos',event_logo:'Logo de evento',reference:'Referências',graphic:'Elementos PNG',screen:'Telão'};if(state.activeChurchRole==='owner'){labels.team='Equipe';labels.feed_settings='Feed';}
   const tabs=`<div class="library-tabs">${Object.entries(labels).map(([k,v])=>`<button class="library-tab ${tab===k?'active':''}" onclick="openMyChurch('${k}')">${v}</button>`).join('')}</div>`;
   const shell=(body)=>`<div class="modal-backdrop"><div class="modal-panel my-church-panel"><div class="modal-head"><div><h2>Minha Igreja</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Banco conectado':'Configure o banco para persistir'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body">${tabs}${body}</div></div></div>`;
 
@@ -6830,7 +7069,9 @@ async function selectedAssetPayload(){
   for(const [rank,id] of pastorIds.entries()){const a=state.library.assets.find(x=>x.id===id);if(a)pastors.push({id:a.id,name:(Object.prototype.hasOwnProperty.call(state.quick?.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||'')),role:rank===0?'PRINCIPAL':`AUXILIAR ${rank}`,rank,photoTreatment:state.quick?.pastorPhotoTreatment||'',image:await prepareImageForAI(a.url,1400,.92)});}
   const churchAsset=state.quick?.churchImageAssetId?state.library.assets.find(a=>a.id===state.quick.churchImageAssetId):null;
   const eventLogo=state.quick?.eventLogoAssetId?state.library.assets.find(a=>a.id===state.quick.eventLogoAssetId):null;
-  return {logo:(logo&&!state.quick.omitChurchLogo)?{id:logo.id,name:logo.name,sourceUrl:logo.url,url:logo.url,meta:{...(logo.meta||{})}}:null,eventLogo:eventLogo?{id:eventLogo.id,name:eventLogo.name,sourceUrl:eventLogo.url,url:eventLogo.url,meta:{...(eventLogo.meta||{})},position:state.quick.eventLogoPosition||'',size:state.quick.eventLogoSize||'small'}:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.92)}:null};
+  const graphicIds=(state.quick?.graphicAssetIds||[]).slice(0,3);
+  const graphics=graphicIds.map(id=>{const a=state.library.assets.find(x=>x.id===id);if(!a)return null;const cfg=state.quick?.graphicPlacements?.[id]||{};return{id:a.id,name:a.name,sourceUrl:a.url,url:a.url,position:cfg.position||'bottom-right',size:cfg.size||'medium'};}).filter(Boolean);
+  return {logo:(logo&&!state.quick.omitChurchLogo)?{id:logo.id,name:logo.name,sourceUrl:logo.url,url:logo.url,meta:{...(logo.meta||{})}}:null,eventLogo:eventLogo?{id:eventLogo.id,name:eventLogo.name,sourceUrl:eventLogo.url,url:eventLogo.url,meta:{...(eventLogo.meta||{})},position:state.quick.eventLogoPosition||'',size:state.quick.eventLogoSize||'small'}:null,pastor:pastors[0]||null,pastors,churchImage:churchAsset?{id:churchAsset.id,name:churchAsset.name,image:await prepareImageForAI(churchAsset.url,1600,.92)}:null,graphics};
 }
 function exactContentFromLayers(){
   const out={title:'',subtitle:'',date:'',time:'',address:'',churchName:state.church.name||''};
@@ -7503,7 +7744,7 @@ function setupMobileQuickWizard(){
 function screenQuickMode(){restoreCreationFooter();if(state.mode==='quick')updatePrimaryNavState('quick');
   setNewflowStage(1);updateSidebarAccount();renderBackgroundGenerationIndicator();
   quickDefaultLogo();quickDefaultPastor();
-  const logos=state.library.assets.filter(a=>a.type==='logo'&&logoVariantRole(a)!=='contrast'),eventLogos=state.library.assets.filter(a=>((a.type==='graphic'&&a.meta?.category==='event_logo')||a.type==='event_logo')&&logoVariantRole(a)!=='contrast'),pastors=state.library.assets.filter(a=>a.type==='pastor'),churchImages=state.library.assets.filter(a=>a.type==='church'),refs=state.library.assets.filter(a=>a.type==='reference');
+  const logos=state.library.assets.filter(a=>a.type==='logo'&&logoVariantRole(a)!=='contrast'),eventLogos=state.library.assets.filter(a=>((a.type==='graphic'&&a.meta?.category==='event_logo')||a.type==='event_logo')&&logoVariantRole(a)!=='contrast'),pastors=state.library.assets.filter(a=>a.type==='pastor'),churchImages=state.library.assets.filter(a=>a.type==='church'),refs=state.library.assets.filter(a=>a.type==='reference'),graphics=state.library.assets.filter(a=>a.type==='graphic'&&a.meta?.category!=='event_logo');
   document.querySelector('.footer').style.display='none';document.querySelector('#mobileStepbar').style.display='none';
   document.querySelector('#eyebrow').textContent='CRIAÇÃO';document.querySelector('#pageTitle').textContent='Crie em poucos campos';
   const selectedFormat=quickTargetSpec(state.quick.format);
@@ -7512,7 +7753,11 @@ function screenQuickMode(){restoreCreationFooter();if(state.mode==='quick')updat
   <h3 style="margin-top:18px">Tamanho da arte</h3><div class="quick-format-grid">${quickFormats.map(f=>{const t=f.id==='screen'?targetSpec('screen'):f;return `<div class="quick-format-card ${state.quick.format===f.id?'selected':''}" data-qformat="${f.id}"><div class="quick-format-sketch"><i style="${formatSketchStyle(t.width,t.height)}"></i></div><strong>${f.label}</strong><small>${f.id==='screen'?`${t.width}×${t.height}<br><span class="screen-format-config-note">Configure em "Minha Igreja"</span>`:`${f.width}×${f.height}`}</small></div>`}).join('')}</div></div>
   <div class="card"><h3>Direção visual</h3><div class="quick-mode-toggle"><button class="mini-btn ${state.quick.referenceMode==='upload'?'selected-result':''}" id="qUseReference" type="button">Usar referência</button><button class="mini-btn ${state.quick.referenceMode==='inspiration'?'selected-result':''}" id="qUseInspiration" type="button">Criar do zero</button></div>
   ${state.quick.referenceMode==='upload'?`<p style="margin-bottom:10px">Escolha uma referência salva ou envie uma nova.</p><div class="quick-ref-grid"><label class="quick-upload-box"><strong>+ Subir referências</strong><span style="display:block;font-size:9px;color:var(--muted);margin-top:3px">JPG, PNG ou WEBP • pode selecionar várias</span><input id="qRefUpload" type="file" accept="image/*" multiple hidden></label>${state.quick.feedReference?.url?`<div class="quick-asset feed-reference-card ${state.quick.reference===state.quick.feedReference.url?'selected':''}" data-feed-current-reference><span class="feed-reference-badge">Feed</span><img src="${esc(state.quick.feedReference.url)}"><strong>${esc(state.quick.feedReference.label||'Arte do Feed')}</strong><small>${esc(state.quick.feedReference.churchLabel||'')}</small></div>`:''}${refs.map(a=>`<div class="quick-asset ${state.quick.reference===a.url?'selected':''}" data-qref="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}</div><div id="qRefUploadLive" class="upload-live"></div>`:`<p>Banco de Inspiração interno. A IA usa a linguagem escolhida sem copiar uma peça específica.</p><div class="inspiration-grid">${inspirationCatalog.map(x=>`<div class="inspiration-card ${state.quick.inspirationStyle===x.id?'selected':''}" data-inspiration="${x.id}"><strong>${x.name}</strong><small>${x.prompt}</small></div>`).join('')}</div>`}
-  <h3 style="margin-top:18px">Pregadores (opcional)</h3><p style="margin-bottom:4px">Selecione até 3 pessoas. A ordem de seleção define a hierarquia da composição.</p><div class="pastor-order-summary">${(state.quick.pastorAssetIds||[]).slice(0,3).map((id,i)=>{const a=pastors.find(x=>x.id===id);return `<span class="pastor-order-pill"><b>${i===0?'PRINCIPAL':`AUXILIAR ${i}`}</b>${a?` • ${esc(a.meta?.displayName||a.name)}`:''}</span>`}).join('')}</div><p style="margin-bottom:4px;font-size:9px;color:var(--muted)">O PRINCIPAL terá prioridade de tamanho e posição mais central. Os auxiliares ficam visualmente secundários.</p><p style="margin-bottom:8px;font-size:9px;color:var(--muted)">O nome salvo em Minha Igreja é preenchido automaticamente. Se quiser gerar uma arte sem o nome do pregador aparecendo, apague o campo aqui em baixo; em uma nova sessão o nome salvo volta.</p><div class="quick-pastor-grid">${pastors.map(a=>{const rank=(state.quick.pastorAssetIds||[]).indexOf(a.id);return `<div class="quick-asset ${rank>=0?'multi-selected':''}" data-qpastor="${a.id}" data-pastor-rank="${rank}">${rank>=0?`<span class="pastor-rank-badge">${rank===0?'PRINCIPAL':`AUXILIAR ${rank}`}</span>`:''}<img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong>${rank>=0?`<input class="pastor-name-input" data-pastor-name="${a.id}" value="${esc(Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||''))}" placeholder="Nome na arte">`:''}</div>`}).join('')}</div><div class="field pastor-treatment-field ${(state.quick.pastorAssetIds||[]).length?'active':'inactive'}" style="margin:12px 0"><label>Tratamento das fotos dos pregadores</label><select id="qPastorPhotoTreatment" ${(state.quick.pastorAssetIds||[]).length?'':'disabled'}><option value="" ${!state.quick.pastorPhotoTreatment?'selected':''}>${(state.quick.pastorAssetIds||[]).length?'Escolha o tratamento':'Selecione ao menos uma foto'}</option><option value="original" ${state.quick.pastorPhotoTreatment==='original'?'selected':''}>Manter filtro original da foto</option><option value="bw" ${state.quick.pastorPhotoTreatment==='bw'?'selected':''}>Foto preto e branco</option><option value="ai" ${state.quick.pastorPhotoTreatment==='ai'?'selected':''}>Deixar a I.A escolher</option></select><small>${(state.quick.pastorAssetIds||[]).length?'Opcional. Se não escolher, nenhuma orientação extra de tratamento será enviada.':'Esta opção será habilitada depois que você selecionar uma foto.'}</small></div><h3 style="margin-top:18px">Imagem da igreja / imagem de fundo (opcional)</h3><p style="margin-bottom:8px">Se escolher uma foto, a IA deverá usá-la na composição do fundo/ambiente.</p><div class="church-image-grid">${churchImages.map(a=>`<div class="quick-asset ${state.quick.churchImageAssetId===a.id?'selected':''}" data-qchurch="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}<label class="library-upload"><strong>+ Imagem da igreja / fundo</strong><span>Salvar em Minha Igreja</span><input id="qChurchUpload" type="file" accept="image/*" hidden multiple></label></div></div></div>
+  <h3 style="margin-top:18px">Pregadores (opcional)</h3><p style="margin-bottom:4px">Selecione até 3 pessoas. A ordem de seleção define a hierarquia da composição.</p><div class="pastor-order-summary">${(state.quick.pastorAssetIds||[]).slice(0,3).map((id,i)=>{const a=pastors.find(x=>x.id===id);return `<span class="pastor-order-pill"><b>${i===0?'PRINCIPAL':`AUXILIAR ${i}`}</b>${a?` • ${esc(a.meta?.displayName||a.name)}`:''}</span>`}).join('')}</div><p style="margin-bottom:4px;font-size:9px;color:var(--muted)">O PRINCIPAL terá prioridade de tamanho e posição mais central. Os auxiliares ficam visualmente secundários.</p><p style="margin-bottom:8px;font-size:9px;color:var(--muted)">O nome salvo em Minha Igreja é preenchido automaticamente. Se quiser gerar uma arte sem o nome do pregador aparecendo, apague o campo aqui em baixo; em uma nova sessão o nome salvo volta.</p><div class="quick-pastor-grid">${pastors.map(a=>{const rank=(state.quick.pastorAssetIds||[]).indexOf(a.id);return `<div class="quick-asset ${rank>=0?'multi-selected':''}" data-qpastor="${a.id}" data-pastor-rank="${rank}">${rank>=0?`<span class="pastor-rank-badge">${rank===0?'PRINCIPAL':`AUXILIAR ${rank}`}</span>`:''}<img src="${a.url}"><strong>${esc(a.meta?.displayName||a.name)}</strong>${rank>=0?`<input class="pastor-name-input" data-pastor-name="${a.id}" value="${esc(Object.prototype.hasOwnProperty.call(state.quick.pastorNames||{},a.id)?state.quick.pastorNames[a.id]:(a.meta?.displayName||''))}" placeholder="Nome na arte">`:''}</div>`}).join('')}</div><div class="field pastor-treatment-field ${(state.quick.pastorAssetIds||[]).length?'active':'inactive'}" style="margin:12px 0"><label>Tratamento das fotos dos pregadores</label><select id="qPastorPhotoTreatment" ${(state.quick.pastorAssetIds||[]).length?'':'disabled'}><option value="" ${!state.quick.pastorPhotoTreatment?'selected':''}>${(state.quick.pastorAssetIds||[]).length?'Escolha o tratamento':'Selecione ao menos uma foto'}</option><option value="original" ${state.quick.pastorPhotoTreatment==='original'?'selected':''}>Manter filtro original da foto</option><option value="bw" ${state.quick.pastorPhotoTreatment==='bw'?'selected':''}>Foto preto e branco</option><option value="ai" ${state.quick.pastorPhotoTreatment==='ai'?'selected':''}>Deixar a I.A escolher</option></select><small>${(state.quick.pastorAssetIds||[]).length?'Opcional. Se não escolher, nenhuma orientação extra de tratamento será enviada.':'Esta opção será habilitada depois que você selecionar uma foto.'}</small></div><h3 style="margin-top:18px">Imagem da igreja / imagem de fundo (opcional)</h3><p style="margin-bottom:8px">Se escolher uma foto, a IA deverá usá-la na composição do fundo/ambiente.</p><div class="church-image-grid">${churchImages.map(a=>`<div class="quick-asset ${state.quick.churchImageAssetId===a.id?'selected':''}" data-qchurch="${a.id}"><img src="${a.url}"><strong>${esc(a.name)}</strong></div>`).join('')}<label class="library-upload"><strong>+ Imagem da igreja / fundo</strong><span>Salvar em Minha Igreja</span><input id="qChurchUpload" type="file" accept="image/*" hidden multiple></label></div>
+  <h3 style="margin-top:18px">Elementos PNG (opcional)</h3>
+  <p style="margin-bottom:8px">Escolha até 3 elementos transparentes. Eles serão aplicados como arquivo original depois da geração da I.A., sem serem redesenhados.</p>
+  <div class="quick-graphic-grid">${graphics.map(a=>{const selected=(state.quick.graphicAssetIds||[]).includes(a.id),cfg=state.quick.graphicPlacements?.[a.id]||{};return `<div class="quick-graphic-card ${selected?'selected':''}" data-qgraphic="${a.id}"><div class="quick-graphic-thumb"><img src="${a.url}" alt=""></div><div class="quick-graphic-copy"><strong>${esc(a.name)}</strong><small>${selected?'PNG protegido selecionado':'Clique para usar'}</small></div>${selected?`<div class="quick-graphic-controls" data-qgraphic-controls="${a.id}"><label>Posição<select data-qgraphic-position="${a.id}">${[['top-left','Superior esquerdo'],['top-center','Superior centro'],['top-right','Superior direito'],['center-left','Centro esquerdo'],['center','Centro'],['center-right','Centro direito'],['bottom-left','Inferior esquerdo'],['bottom-center','Inferior centro'],['bottom-right','Inferior direito']].map(o=>`<option value="${o[0]}" ${(cfg.position||'bottom-right')===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></label><label>Tamanho<select data-qgraphic-size="${a.id}">${[['small','Pequeno'],['medium','Médio'],['large','Grande']].map(o=>`<option value="${o[0]}" ${(cfg.size||'medium')===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></label></div>`:''}</div>`}).join('')}<label class="quick-graphic-upload"><strong>+ PNG</strong><span>Adicionar a Elementos PNG</span><input id="qGraphicUpload" type="file" accept="image/png" hidden multiple></label></div>
+  </div></div>
   <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE BASE • ${selectedFormat.label}</button><div id="quickProgress" class="quick-progress"><div class="quick-progress-track"><i id="quickProgressBar"></i></div><div class="quick-progress-row"><span id="quickProgressText">Processando sua arte...</span><span id="quickProgressPct">0%</span></div></div><button id="quickCancel" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div>${costSupervisorHTML()}</div><div id="quickResultsWrap" style="margin-top:18px">${renderQuickResultsHTML()}${allArtworksHTML()}</div></div>`;
   applyLogoPreviewBackgrounds(content);
   const bind=(id,key)=>document.querySelector('#'+id).oninput=e=>state.quick[key]=e.target.value;bind('qTitle','title');bind('qSubtitle','subtitle');bind('qSecondaryInfo','secondaryInfo');bind('qDate','date');bind('qTime','time');bind('qAddress','address');bind('qColor','dominantColor');
@@ -7550,8 +7795,38 @@ function screenQuickMode(){restoreCreationFooter();if(state.mode==='quick')updat
     state.quick.pastorAssetIds=arr;
     refreshQuickPastorUI();
   });document.querySelectorAll('[data-pastor-name]').forEach(inp=>inp.oninput=e=>{e.stopPropagation();state.quick.pastorNames[inp.dataset.pastorName]=e.target.value;});document.querySelectorAll('[data-qchurch]').forEach(el=>el.onclick=()=>{const id=el.dataset.qchurch;state.quick.churchImageAssetId=state.quick.churchImageAssetId===id?null:id;document.querySelectorAll('[data-qchurch]').forEach(x=>x.classList.toggle('selected',state.quick.churchImageAssetId===x.dataset.qchurch));});
+  document.querySelectorAll('[data-qgraphic]').forEach(el=>el.onclick=e=>{
+    if(e.target.closest('select'))return;
+    const id=el.dataset.qgraphic,ids=Array.isArray(state.quick.graphicAssetIds)?state.quick.graphicAssetIds:[];
+    if(ids.includes(id))state.quick.graphicAssetIds=ids.filter(x=>x!==id);
+    else{
+      if(ids.length>=3){appAlert('Você pode usar até 3 Elementos PNG por arte.',{type:'warning',title:'Elementos PNG'});return}
+      state.quick.graphicAssetIds=[...ids,id];
+      state.quick.graphicPlacements=state.quick.graphicPlacements||{};
+      state.quick.graphicPlacements[id]=state.quick.graphicPlacements[id]||{position:'bottom-right',size:'medium'};
+    }
+    refreshQuickModePreservingView();
+  });
+  document.querySelectorAll('[data-qgraphic-position]').forEach(sel=>sel.onchange=e=>{
+    e.stopPropagation();const id=sel.dataset.qgraphicPosition;state.quick.graphicPlacements=state.quick.graphicPlacements||{};state.quick.graphicPlacements[id]={...(state.quick.graphicPlacements[id]||{}),position:e.target.value};
+  });
+  document.querySelectorAll('[data-qgraphic-size]').forEach(sel=>sel.onchange=e=>{
+    e.stopPropagation();const id=sel.dataset.qgraphicSize;state.quick.graphicPlacements=state.quick.graphicPlacements||{};state.quick.graphicPlacements[id]={...(state.quick.graphicPlacements[id]||{}),size:e.target.value};
+  });
   const up=document.querySelector('#qRefUpload');if(up)up.onchange=async e=>{const files=[...(e.target.files||[])],live=document.querySelector('#qRefUploadLive');const saved=await uploadLibraryAssets(files,'reference',{container:live,max:referenceLibraryLimit()-state.library.assets.filter(a=>a.type==='reference').length,onAsset:async a=>{state.quick.reference=a.url;state.quick.referenceMode='upload';state.quick.feedReference=null;}});if(saved.length)setTimeout(()=>refreshQuickModePreservingView(),350);};
   const cup=document.querySelector('#qChurchUpload');if(cup)cup.onchange=async e=>{let live=document.querySelector('#qChurchUploadLive');if(!live){live=document.createElement('div');live.id='qChurchUploadLive';live.className='upload-live';cup.closest('label')?.insertAdjacentElement('afterend',live);}const saved=await uploadLibraryAssets(e.target.files,'church',{container:live,onAsset:async a=>{if(!state.quick.churchImageAssetId)state.quick.churchImageAssetId=a.id;}});if(saved.length)setTimeout(()=>refreshQuickModePreservingView(),350);};
+  const gup=document.querySelector('#qGraphicUpload');if(gup)gup.onchange=async e=>{
+    const files=[...(e.target.files||[])].filter(f=>f.type==='image/png');
+    if(!files.length){appAlert('Selecione arquivos PNG.',{type:'warning',title:'Elementos PNG'});return}
+    const saved=await uploadLibraryAssets(files,'graphic',{onAsset:async a=>{
+      if((state.quick.graphicAssetIds||[]).length<3&&!state.quick.graphicAssetIds.includes(a.id)){
+        state.quick.graphicAssetIds=[...(state.quick.graphicAssetIds||[]),a.id];
+        state.quick.graphicPlacements=state.quick.graphicPlacements||{};
+        state.quick.graphicPlacements[a.id]={position:'bottom-right',size:'medium'};
+      }
+    }});
+    if(saved.length)setTimeout(()=>refreshQuickModePreservingView(),350);
+  };
   const eul=document.querySelector('#qEventLogoUpload');if(eul)eul.onchange=async e=>{let live=document.querySelector('#qEventLogoUploadLive');if(!live){live=document.createElement('div');live.id='qEventLogoUploadLive';live.className='upload-live';eul.closest('label')?.insertAdjacentElement('afterend',live);}const saved=await uploadLibraryAssets(e.target.files,'event_logo',{container:live,onAsset:async a=>{if(!state.quick.eventLogoAssetId)state.quick.eventLogoAssetId=a.id;}});if(saved.length)setTimeout(()=>screenQuickMode(),350);};
   document.querySelector('#quickGenerate').onclick=()=>requestQuickGenerationWithMissingCheck();document.querySelector('#quickCancel').onclick=()=>{cancelActiveProcess();document.querySelector('#quickStatus').textContent='Processamento cancelado.';setQuickProgress(0,'Cancelado');};bindQuickResultEvents();bindAllArtworksEvents();setupMobileQuickWizard();
 }
@@ -7617,8 +7892,8 @@ function bindAllArtworksEvents(){
 function quickReferenceCandidates(){
   const items=[];
   (state.quickResults||[]).forEach((r,i)=>{
-    items.push({key:`main:${i}`,id:r.id,galleryId:r.galleryId||null,parentIndex:i,kind:'principal',label:r.label||`Arte ${i+1}`,dataUrl:r.dataUrl,baseDataUrl:r.baseDataUrl,sourceUrl:r.sourceUrl||r.baseDataUrl||r.dataUrl,target:r.target,artDirection:r.artDirection,requiredContent:r.requiredContent,assets:r.assets,instruction:r.instruction,logoPosition:r.logoPosition,eventLogoPosition:r.eventLogoPosition,eventLogoSize:r.eventLogoSize,occupancy:r.occupancy||null,logoPlan:r.logoPlan||null,logoReceipt:r.logoReceipt||null});
-    (r.corrections||[]).forEach((c,j)=>items.push({key:`correction:${i}:${j}`,id:c.id,galleryId:c.galleryId||null,parentIndex:i,correctionIndex:j,kind:'correção',label:`${r.label||`Arte ${i+1}`} • Correção ${j+1}`,dataUrl:c.dataUrl,baseDataUrl:c.baseDataUrl,sourceUrl:c.sourceUrl||c.baseDataUrl||c.dataUrl,target:c.target||r.target,artDirection:c.artDirection||r.artDirection,requiredContent:c.requiredContent||r.requiredContent,assets:c.assets||r.assets,instruction:c.instruction||r.instruction,logoPosition:c.logoPosition??r.logoPosition,eventLogoPosition:c.eventLogoPosition??r.eventLogoPosition,eventLogoSize:c.eventLogoSize??r.eventLogoSize,occupancy:c.occupancy||r.occupancy||null,logoPlan:c.logoPlan||r.logoPlan||null,logoReceipt:c.logoReceipt||r.logoReceipt||null}));
+    items.push({key:`main:${i}`,id:r.id,galleryId:r.galleryId||null,parentIndex:i,kind:'principal',label:r.label||`Arte ${i+1}`,dataUrl:r.dataUrl,baseDataUrl:r.baseDataUrl,aiBaseDataUrl:r.aiBaseDataUrl||null,sourceUrl:r.aiBaseDataUrl||r.sourceUrl||r.baseDataUrl||r.dataUrl,target:r.target,artDirection:r.artDirection,requiredContent:r.requiredContent,assets:r.assets,instruction:r.instruction,logoPosition:r.logoPosition,eventLogoPosition:r.eventLogoPosition,eventLogoSize:r.eventLogoSize,occupancy:r.occupancy||null,logoPlan:r.logoPlan||null,logoReceipt:r.logoReceipt||null});
+    (r.corrections||[]).forEach((c,j)=>items.push({key:`correction:${i}:${j}`,id:c.id,galleryId:c.galleryId||null,parentIndex:i,correctionIndex:j,kind:'correção',label:`${r.label||`Arte ${i+1}`} • Correção ${j+1}`,dataUrl:c.dataUrl,baseDataUrl:c.baseDataUrl,aiBaseDataUrl:c.aiBaseDataUrl||null,sourceUrl:c.aiBaseDataUrl||c.sourceUrl||c.baseDataUrl||c.dataUrl,target:c.target||r.target,artDirection:c.artDirection||r.artDirection,requiredContent:c.requiredContent||r.requiredContent,assets:c.assets||r.assets,instruction:c.instruction||r.instruction,logoPosition:c.logoPosition??r.logoPosition,eventLogoPosition:c.eventLogoPosition??r.eventLogoPosition,eventLogoSize:c.eventLogoSize??r.eventLogoSize,occupancy:c.occupancy||r.occupancy||null,logoPlan:c.logoPlan||r.logoPlan||null,logoReceipt:c.logoReceipt||r.logoReceipt||null}));
   });
   return items;
 }
@@ -7777,7 +8052,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.92</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.95</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
@@ -8193,18 +8468,45 @@ async function applyScreenInfoByPercent(dataUrl,content={},target={},pct=20){
   lines.forEach((line,i)=>{let fs=heights[i];ctx.font=`${line.weight} ${fs}px Arial, Helvetica, sans-serif`;while(fs>10&&ctx.measureText(line.text).width>zoneW){fs--;ctx.font=`${line.weight} ${fs}px Arial, Helvetica, sans-serif`}ctx.fillStyle=i===0?fg:(i===2?accent:fg);ctx.fillText(line.text,cx,yy,zoneW);yy+=fs+lineGap});
   ctx.shadowBlur=0;return cv.toDataURL('image/png',1);
 }
+async function applyProtectedGraphicElements(baseDataUrl,payload,target){
+  const graphics=(payload?.assets?.graphics||[]).slice(0,3).filter(x=>x?.sourceUrl||x?.url);
+  if(!graphics.length)return baseDataUrl;
+  const base=await loadImageSafe(baseDataUrl),cv=document.createElement('canvas'),ctx=cv.getContext('2d');
+  cv.width=base.naturalWidth||base.width||Number(target?.width)||1080;
+  cv.height=base.naturalHeight||base.height||Number(target?.height)||1350;
+  ctx.drawImage(base,0,0,cv.width,cv.height);
+
+  const sizeMap={small:.14,medium:.22,large:.32};
+  const marginX=cv.width*.05,marginY=cv.height*.05;
+  for(const g of graphics){
+    try{
+      const im=await loadImageSafe(g.sourceUrl||g.url),iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height;
+      if(!iw||!ih)continue;
+      const w=cv.width*(sizeMap[g.size]||sizeMap.medium),h=w*(ih/iw);
+      const pos=g.position||'bottom-right';
+      const xs={left:marginX,center:(cv.width-w)/2,right:cv.width-marginX-w};
+      const ys={top:marginY,center:(cv.height-h)/2,bottom:cv.height-marginY-h};
+      const [vy,hx]=pos.includes('-')?pos.split('-'):[pos==='center'?'center':'bottom',pos==='center'?'center':'right'];
+      const x=Math.max(0,Math.min(cv.width-w,xs[hx]??xs.right));
+      const y=Math.max(0,Math.min(cv.height-h,ys[vy]??ys.bottom));
+      ctx.save();ctx.globalAlpha=1;ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(im,x,y,w,h);ctx.restore();
+    }catch(e){console.warn('Elemento PNG não aplicado',g?.name||g?.id,e)}
+  }
+  return cv.toDataURL('image/png',1);
+}
+
 async function normalizeArtworkToTarget(image,payload,target,signal=null){
-  const raw=await remoteToDataUrl(image.url),normalized=await resizeToTarget(raw,target),baseDataUrl=normalized.dataUrl;
+  const raw=await remoteToDataUrl(image.url),normalized=await resizeToTarget(raw,target),aiBaseDataUrl=normalized.dataUrl,baseDataUrl=await applyProtectedGraphicElements(aiBaseDataUrl,payload,target);
   // NEWFLOW: Modo Rápido entrega primeiro a ARTE BASE logo-free. O compositor
   // automático antigo permanece disponível no código, mas fica desativado aqui.
   if(payload?.manualLogoFlow){
     const finalDataUrl=baseDataUrl;
-    return{image,dataUrl:finalDataUrl,baseDataUrl:finalDataUrl,logosComposed:false,logoPlacements:[],logoReceipt:[],logoAudit:{ok:true,expected:0,applied:0,manualFlow:true},occupancy:null,logoPlan:null,logoDegradations:[],manualLogoFlow:true,recomposed:false,aspectRatioFallback:normalized.aspectRatioFallback||false};
+    return{image,dataUrl:finalDataUrl,baseDataUrl:finalDataUrl,aiBaseDataUrl,logosComposed:false,logoPlacements:[],logoReceipt:[],logoAudit:{ok:true,expected:0,applied:0,manualFlow:true},occupancy:null,logoPlan:null,logoDegradations:[],manualLogoFlow:true,recomposed:false,aspectRatioFallback:normalized.aspectRatioFallback||false};
   }
   const logoComposition=await composeOfficialLogos(baseDataUrl,payload,target,{signal});
   const finalDataUrl=payload.screenDiscreteTitle?await applyDiscreteScreenTitle(logoComposition.dataUrl,payload.discreteTitleText||'',target):logoComposition.dataUrl;
   return{
-    image,dataUrl:finalDataUrl,baseDataUrl,
+    image,dataUrl:finalDataUrl,baseDataUrl,aiBaseDataUrl,
     logosComposed:!!logoComposition.audit?.ok,
     logoPlacements:logoComposition.placements||[],
     logoReceipt:logoComposition.receipt||[],
@@ -8270,7 +8572,7 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
     if(replaceIndex===null&&variationIndex>0&&Number.isInteger(variationSourceIndex)){
       const variationSource=state.quickResults?.[variationSourceIndex];
       const variationLatest=variationSource?.corrections?.length?variationSource.corrections[variationSource.corrections.length-1]:variationSource;
-      const variationVisual=variationLatest?.baseDataUrl||variationLatest?.sourceUrl||variationLatest?.dataUrl;
+      const variationVisual=variationLatest?.aiBaseDataUrl||variationLatest?.baseDataUrl||variationLatest?.sourceUrl||variationLatest?.dataUrl;
       if(variationVisual){
         const workingBase=await prepareImageForAI(variationVisual,1600,.96);
         payload.reference=workingBase;
@@ -8280,11 +8582,11 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
         payload.variationSourceLabel=variationLatest?.label||variationSource?.label||'Arte-base';
       }
     }
-    if(replaceIndex!==null){applyLogoCorrectionIntent(payload,correction);const parent=state.quickResults[replaceIndex],latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent,logoFreeSource=latest?.baseDataUrl||latest?.sourceUrl||latest?.dataUrl;if(logoFreeSource){const lockedBase=await prepareImageForAI(logoFreeSource,1600,.96);payload.reference=lockedBase;payload.references=[{image:lockedBase,note:'MOLDE VISUAL BLOQUEADO DA VERSÃO EXATA QUE O USUÁRIO ESTÁ CORRIGINDO. NÃO volte para a arte principal, referência original ou qualquer versão anterior. Preserve exatamente tudo que não foi mencionado.'}];payload.referenceRole='working-base';payload.revisionMode='delta-only';payload.lockedBase=true;payload.revisionSourceArtworkId=latest?.galleryId||latest?.id||null;payload.revisionSourceLabel=latest?.label||parent?.label||'Versão atual';payload.revisionInstruction=correction||'';payload.variantInstruction=`CORREÇÃO CIRÚRGICA SOBRE ESTA VERSÃO EXATA: altere SOMENTE: ${correction||'o ajuste solicitado'}. NÃO retorne à arte inicial. Todo elemento não mencionado está BLOQUEADO e deve permanecer visualmente igual à versão-base.`;}}
+    if(replaceIndex!==null){applyLogoCorrectionIntent(payload,correction);const parent=state.quickResults[replaceIndex],latest=parent?.corrections?.length?parent.corrections[parent.corrections.length-1]:parent,logoFreeSource=latest?.aiBaseDataUrl||latest?.baseDataUrl||latest?.sourceUrl||latest?.dataUrl;if(logoFreeSource){const lockedBase=await prepareImageForAI(logoFreeSource,1600,.96);payload.reference=lockedBase;payload.references=[{image:lockedBase,note:'MOLDE VISUAL BLOQUEADO DA VERSÃO EXATA QUE O USUÁRIO ESTÁ CORRIGINDO. NÃO volte para a arte principal, referência original ou qualquer versão anterior. Preserve exatamente tudo que não foi mencionado.'}];payload.referenceRole='working-base';payload.revisionMode='delta-only';payload.lockedBase=true;payload.revisionSourceArtworkId=latest?.galleryId||latest?.id||null;payload.revisionSourceLabel=latest?.label||parent?.label||'Versão atual';payload.revisionInstruction=correction||'';payload.variantInstruction=`CORREÇÃO CIRÚRGICA SOBRE ESTA VERSÃO EXATA: altere SOMENTE: ${correction||'o ajuste solicitado'}. NÃO retorne à arte inicial. Todo elemento não mencionado está BLOQUEADO e deve permanecer visualmente igual à versão-base.`;}}
     setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;if(!payload.variantInstruction)payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual. Se houver ANOTAÇÃO / INSTRUÇÃO EXPLÍCITA DO USUÁRIO no prompt, ela é obrigatória e deve aparecer de forma visualmente verificável nesta variação; não a trate como sugestão opcional.`;
     setQuickProgress(48,'Criando sua arte...');const autoCorrections=(replaceIndex===null&&variationIndex===0)?1:0;const image=await generateWithInvisibleReview(payload,autoCorrections,signal);
     setQuickProgress(88,'Finalizando...');const normalized=await normalizeArtworkToTarget(image,payload,payload.target,signal),finalImage=normalized.image,dataUrl=normalized.dataUrl;
-    const result={id:crypto.randomUUID(),label,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:(finalImage||image).url,target:payload.target,artDirection:payload.artDirection,requiredContent:payload.requiredContent,assets:payload.assets,instruction:payload.instruction,creationReport:buildCreationReportSnapshot(payload,{label,kind:variationIndex>0?'variação':'principal',correction}),logoPosition:null,eventLogoPosition:null,eventLogoSize:null,occupancy:null,logoPlan:null,logoReceipt:[],logoDegradations:[],adaptations:[],correction:'',manualLogoFlow:true,finalized:false,manualLogoPlacements:[]};
+    const result={id:crypto.randomUUID(),label,dataUrl,baseDataUrl:normalized.baseDataUrl,aiBaseDataUrl:normalized.aiBaseDataUrl||normalized.baseDataUrl,sourceUrl:(finalImage||image).url,target:payload.target,artDirection:payload.artDirection,requiredContent:payload.requiredContent,assets:payload.assets,instruction:payload.instruction,creationReport:buildCreationReportSnapshot(payload,{label,kind:variationIndex>0?'variação':'principal',correction}),logoPosition:null,eventLogoPosition:null,eventLogoSize:null,occupancy:null,logoPlan:null,logoReceipt:[],logoDegradations:[],adaptations:[],correction:'',manualLogoFlow:true,finalized:false,manualLogoPlacements:[]};
     let galleryCandidate=result,galleryKind=variationIndex>0?'variação':'principal',galleryParent=null,gallerySource=state.gallerySeed?.sourceArtworkId||null;
     if(replaceIndex===null)state.quickResults.push(result);else{const original=state.quickResults[replaceIndex];original.corrections=original.corrections||[];galleryCandidate={...result,id:crypto.randomUUID(),label:`${original.label} • corrigida`};original.corrections.push(galleryCandidate);galleryKind='correção';galleryParent=original.galleryId||original.id||null;gallerySource=original.galleryId||original.id||gallerySource}
     let savedGallery=null;
