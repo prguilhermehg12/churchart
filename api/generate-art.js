@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.20.0
+// CHURCHDESIGN — generate-art v0.21.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -123,6 +123,24 @@ async function saveBase64ToStorage(base64,churchId,label="art"){
 function allowedTexts(data={}){const c=data.requiredContent||{};return[c.title,c.subtitle,c.secondaryInfo,c.date,c.time,c.address,c.churchName,...(c.pastorNames||[])].map(x=>String(x||"").trim()).filter(Boolean);}
 function pipelineGuard(input={}){const data={...input,assets:{...(input.assets||{})}};delete data.assets.logo;delete data.assets.eventLogo;delete data.assets.event_logo;const pastors=(data.assets.pastors||[data.assets.pastor].filter(Boolean)).slice(0,3);data.assets.pastors=pastors;data.assets.pastor=pastors[0]||null;data.allowedTexts=allowedTexts(data);data.referenceSemanticPolicy="style-only";return data;}
 
+function transparentBackgroundIntent(data={}){
+  const parts=[
+    data.instruction,data.finalInstruction,data.revisionInstruction,data.variantInstruction,
+    data.qualityCorrection,data.freeInstruction,data.requiredContent?.title,data.requiredContent?.subtitle
+  ].map(x=>String(x||"").toLowerCase()).filter(Boolean);
+  const text=parts.join(" ");
+  return (
+    /\bpng\s+(?:com\s+)?(?:fundo\s+)?transparente\b/i.test(text) ||
+    /\bfundo\s+transparente\b/i.test(text) ||
+    /\bbackground\s+transparente\b/i.test(text) ||
+    /\btransparent\s+background\b/i.test(text) ||
+    /\bsem\s+fundo\b/i.test(text) ||
+    /\brecorte\s+(?:em\s+)?png\b/i.test(text) ||
+    /\bcanal\s+alpha\b/i.test(text)
+  );
+}
+
+
 function modelSize(target={}){
   // GPT Image 2 aceita WIDTHxHEIGHT arbitrário, desde que:
   // - ambos sejam múltiplos de 16
@@ -197,6 +215,18 @@ function prompt(data){
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
 
+${transparentBackgroundIntent(data)?`MODO PNG TRANSPARENTE — HARD CONSTRAINT TÉCNICO / ALPHA REAL:
+- A saída deve ser um PNG RGBA com CANAL ALPHA REAL.
+- Todo pixel fora do objeto/elemento solicitado deve ter alpha = 0 (totalmente transparente).
+- NÃO desenhe fundo branco, preto, cinza, colorido, degradê, textura, cenário, papel, parede ou superfície atrás do objeto.
+- NÃO desenhe padrão quadriculado/checkerboard. O quadriculado é apenas uma convenção visual de softwares para representar transparência; ele NUNCA deve fazer parte dos pixels da imagem.
+- NÃO simule transparência com quadrados cinza/branco, grid, mosaico, máscara visível ou textura.
+- As bordas do objeto devem terminar naturalmente em transparência, com antialiasing correto e sem halo branco/preto.
+- Preserve sombras somente quando fizerem parte do próprio objeto e permita que desapareçam progressivamente no alpha; não crie uma placa de fundo para sustentar a sombra.
+- Se houver vazio entre partes do objeto, esse vazio também deve ser alpha = 0.
+- Esta regra tem prioridade sobre qualquer direção estética de fundo, salvo ordem explícita do usuário dizendo que NÃO quer transparência.
+- TESTE MENTAL OBRIGATÓRIO: se o PNG for colocado sobre fundo vermelho, azul ou preto, nenhuma área retangular, quadrícula ou cor de fundo deve aparecer; deve aparecer somente o objeto recortado.
+`:''}
 ${data.backgroundMode?`MODO FUNDO ABSOLUTO — ESTA REGRA SOBRESCREVE QUALQUER OUTRA INSTRUÇÃO DE TEXTO OU CONTEÚDO:
 - Gere somente um FUNDO LIMPO da mesma identidade visual.
 - ZERO TEXTO LEGÍVEL. Não renderize nem preserve título, subtítulo, palavras, letras, números, datas, horários, endereço, nomes, slogans, chamadas, assinatura, selo ou placeholder.
@@ -594,13 +624,15 @@ async function generate(data){
     form.append("quality","medium");
     form.append("size",size);
     form.append("output_format","png");
+    if(transparentBackgroundIntent(data))form.append("background","transparent");
     for(const im of images)form.append("image[]",dataUrlPart(im.data,im.name),im.name);
     const imageFields=[...form.keys()].filter(k=>k==="image[]"||k==="image");
     if(imageFields.length!==images.length||imageFields.some(k=>k!=="image[]"))throw new Error("Preflight multipart: use image[] para múltiplas imagens.");
     r=await fetch(IMAGES_EDIT_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`},body:form});
   }else{
     r=await fetch(IMAGES_GENERATE_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
-      model:"gpt-image-2",prompt:text,quality:"medium",size,output_format:"png"
+      model:"gpt-image-2",prompt:text,quality:"medium",size,output_format:"png",
+      ...(transparentBackgroundIntent(data)?{background:"transparent"}:{})
     })});
   }
   const requestId=r.headers.get("x-request-id")||null;
