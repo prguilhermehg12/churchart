@@ -1,4 +1,4 @@
-// CHURCHDESIGN — asaas v0.3.0
+// CHURCHDESIGN — asaas v0.4.0
 const crypto=require("crypto");
 
 module.exports.config={maxDuration:30};
@@ -6,17 +6,54 @@ module.exports.config={maxDuration:30};
 function envCfg(){
   const supabaseUrl=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const supabaseKey=process.env.SUPABASE_SECRET_KEY;
-  const asaasKey=String(process.env.ASAAS_API_KEY||"").trim();
+
+  const rawAsaasKey=String(process.env.ASAAS_API_KEY||"");
+  const asaasKey=rawAsaasKey.trim();
+
   const appUrl=String(process.env.APP_PUBLIC_URL||"").replace(/\/+$/,"");
-  const env=String(process.env.ASAAS_ENV||"sandbox").trim().toLowerCase()==="production"?"production":"sandbox";
+
+  const rawEnv=String(process.env.ASAAS_ENV||"sandbox");
+  const normalizedEnv=rawEnv.trim().toLowerCase();
+  const env=normalizedEnv==="production"?"production":"sandbox";
+
   if(!supabaseUrl||!supabaseKey)throw new Error("Configuração de banco indisponível.");
   if(!asaasKey)throw new Error("Integração de pagamento ainda não configurada.");
   if(!appUrl)throw new Error("URL pública do ChurchDesign não configurada.");
-  return {
-    supabaseUrl,supabaseKey,asaasKey,appUrl,env,
-    asaasBase:env==="production"?"https://api.asaas.com/v3":"https://api-sandbox.asaas.com/v3"
-  };
+
+  const asaasBase=env==="production"
+    ?"https://api.asaas.com/v3"
+    :"https://api-sandbox.asaas.com/v3";
+
+  return {supabaseUrl,supabaseKey,asaasKey,appUrl,env,asaasBase};
 }
+
+function safeAsaasDiagnostic(){
+  const rawKey=String(process.env.ASAAS_API_KEY||"");
+  const key=rawKey.trim();
+  const rawEnv=String(process.env.ASAAS_ENV||"");
+  const normalizedEnv=rawEnv.trim().toLowerCase();
+  const resolvedEnv=normalizedEnv==="production"?"production":"sandbox";
+
+  const startsQuote=/^["']/.test(rawKey);
+  const endsQuote=/["']$/.test(rawKey);
+  const hasOuterWhitespace=rawKey!==key;
+
+  console.info("[ChurchDesign][Asaas Diagnostic]",JSON.stringify({
+    resolvedEnvironment:resolvedEnv,
+    environmentValueNormalized:normalizedEnv,
+    baseUrl:resolvedEnv==="production"
+      ?"https://api.asaas.com/v3"
+      :"https://api-sandbox.asaas.com/v3",
+    keyLengthRaw:rawKey.length,
+    keyLengthTrimmed:key.length,
+    keyStartsProductionPrefix:key.startsWith("$aact_prod_"),
+    keyStartsSandboxPrefix:key.startsWith("$aact_hmlg_"),
+    keyHasOuterWhitespace:hasOuterWhitespace,
+    keyStartsWithQuote:startsQuote,
+    keyEndsWithQuote:endsQuote
+  }));
+}
+
 async function rest(path,{method="GET",body,headers={}}={}){
   const c=envCfg();
   const r=await fetch(`${c.supabaseUrl}/rest/v1/${path}`,{
@@ -28,6 +65,7 @@ async function rest(path,{method="GET",body,headers={}}={}){
   if(!r.ok)throw new Error("Não foi possível concluir esta operação.");
   return data;
 }
+
 async function authUser(req){
   const c=envCfg(),token=String(req.headers.authorization||"").replace(/^Bearer\s+/i,"").trim();
   if(!token)throw Object.assign(new Error("Faça login novamente para continuar."),{statusCode:401});
@@ -36,6 +74,7 @@ async function authUser(req){
   if(!r.ok||!d?.id)throw Object.assign(new Error("Sua sessão expirou. Entre novamente."),{statusCode:401});
   return d;
 }
+
 async function ownerMembership(userId,churchId){
   const rows=await rest(`church_members?church_id=eq.${encodeURIComponent(churchId)}&user_id=eq.${encodeURIComponent(userId)}&status=eq.active&select=role,status`);
   const m=rows?.[0];
@@ -43,8 +82,14 @@ async function ownerMembership(userId,churchId){
   if(m.role!=="owner")throw Object.assign(new Error("Somente o responsável da igreja pode contratar ou alterar o plano."),{statusCode:403});
   return m;
 }
+
 async function asaas(path,{method="GET",body}={}){
   const c=envCfg();
+
+  // Diagnóstico temporário e seguro:
+  // não registra a chave completa nem qualquer trecho secreto dela.
+  safeAsaasDiagnostic();
+
   const r=await fetch(`${c.asaasBase}${path}`,{
     method,
     headers:{access_token:c.asaasKey,"Content-Type":"application/json","User-Agent":"ChurchDesign/1.0"},
@@ -57,11 +102,13 @@ async function asaas(path,{method="GET",body}={}){
   }
   return data;
 }
+
 function normalizePlanRequest(planId){
   const v=String(planId||"").trim().toLowerCase();
   const aliases={entrada:"entrada",essencial:"entrada",medio:"medio",pro:"medio",top:"top",studio:"top"};
   return aliases[v]||"";
 }
+
 async function planFor(planId){
   const code=normalizePlanRequest(planId);
   if(!code)throw Object.assign(new Error("Plano inválido."),{statusCode:400});
@@ -70,10 +117,12 @@ async function planFor(planId){
   if(!plan)throw Object.assign(new Error("Este plano ainda não está disponível para contratação."),{statusCode:409});
   return plan;
 }
+
 async function currentSub(churchId){
   const rows=await rest(`church_subscriptions?church_id=eq.${encodeURIComponent(churchId)}&status=in.(pending,trialing,active,past_due,paused)&select=*&order=created_at.desc&limit=1`);
   return rows?.[0]||null;
 }
+
 async function createCheckout(req,res,user){
   const c=envCfg(),b=req.body||{},churchId=String(b.churchId||"").trim();
   if(!churchId)throw Object.assign(new Error("Igreja não informada."),{statusCode:400});
@@ -120,17 +169,41 @@ async function createCheckout(req,res,user){
   if(existing){
     await rest(`church_subscriptions?id=eq.${encodeURIComponent(existing.id)}`,{
       method:"PATCH",headers:{Prefer:"return=minimal"},
-      body:{status:existing.status==="active"?"active":"pending",provider:"asaas",updated_at:new Date().toISOString(),metadata:{...(existing.metadata||{}),pending_plan_id:plan.id,pending_plan_code:plan.code,last_checkout_session_id:sessionId}}
+      body:{
+        status:existing.status==="active"?"active":"pending",
+        provider:"asaas",
+        updated_at:new Date().toISOString(),
+        metadata:{
+          ...(existing.metadata||{}),
+          pending_plan_id:plan.id,
+          pending_plan_code:plan.code,
+          last_checkout_session_id:sessionId
+        }
+      }
     });
   }else{
     await rest("church_subscriptions",{
       method:"POST",headers:{Prefer:"return=minimal"},
-      body:[{church_id:churchId,plan_id:plan.id,status:"pending",price_monthly:Number(plan.price_monthly),provider:"asaas",metadata:{pending_plan_code:plan.code,last_checkout_session_id:sessionId}}]
+      body:[{
+        church_id:churchId,
+        plan_id:plan.id,
+        status:"pending",
+        price_monthly:Number(plan.price_monthly),
+        provider:"asaas",
+        metadata:{pending_plan_code:plan.code,last_checkout_session_id:sessionId}
+      }]
     });
   }
 
-  return res.json({ok:true,checkoutId:String(link.id),checkoutUrl:paymentUrl,environment:c.env,plan:{code:plan.code,name:plan.name,priceMonthly:Number(plan.price_monthly)}});
+  return res.json({
+    ok:true,
+    checkoutId:String(link.id),
+    checkoutUrl:paymentUrl,
+    environment:c.env,
+    plan:{code:plan.code,name:plan.name,priceMonthly:Number(plan.price_monthly)}
+  });
 }
+
 async function status(req,res,user){
   const churchId=String(req.query.churchId||"").trim();
   if(!churchId)throw Object.assign(new Error("Igreja não informada."),{statusCode:400});
@@ -149,6 +222,10 @@ module.exports=async function handler(req,res){
   }catch(e){
     const status=Math.max(400,Math.min(599,Number(e.statusCode)||500));
     if(status>=500)console.error("[ChurchDesign][Asaas API]",e);
-    return res.status(status).json({error:status>=500?"Não foi possível concluir o pagamento agora.":String(e.message||"Não foi possível concluir esta operação.")});
+    return res.status(status).json({
+      error:status>=500
+        ?"Não foi possível concluir o pagamento agora."
+        :String(e.message||"Não foi possível concluir esta operação.")
+    });
   }
 };
