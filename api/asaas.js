@@ -1,4 +1,4 @@
-// CHURCHDESIGN — asaas v0.4.0
+// CHURCHDESIGN — asaas v0.5.0
 const crypto=require("crypto");
 
 module.exports.config={maxDuration:30};
@@ -25,33 +25,6 @@ function envCfg(){
     :"https://api-sandbox.asaas.com/v3";
 
   return {supabaseUrl,supabaseKey,asaasKey,appUrl,env,asaasBase};
-}
-
-function safeAsaasDiagnostic(){
-  const rawKey=String(process.env.ASAAS_API_KEY||"");
-  const key=rawKey.trim();
-  const rawEnv=String(process.env.ASAAS_ENV||"");
-  const normalizedEnv=rawEnv.trim().toLowerCase();
-  const resolvedEnv=normalizedEnv==="production"?"production":"sandbox";
-
-  const startsQuote=/^["']/.test(rawKey);
-  const endsQuote=/["']$/.test(rawKey);
-  const hasOuterWhitespace=rawKey!==key;
-
-  console.info("[ChurchDesign][Asaas Diagnostic]",JSON.stringify({
-    resolvedEnvironment:resolvedEnv,
-    environmentValueNormalized:normalizedEnv,
-    baseUrl:resolvedEnv==="production"
-      ?"https://api.asaas.com/v3"
-      :"https://api-sandbox.asaas.com/v3",
-    keyLengthRaw:rawKey.length,
-    keyLengthTrimmed:key.length,
-    keyStartsProductionPrefix:key.startsWith("$aact_prod_"),
-    keyStartsSandboxPrefix:key.startsWith("$aact_hmlg_"),
-    keyHasOuterWhitespace:hasOuterWhitespace,
-    keyStartsWithQuote:startsQuote,
-    keyEndsWithQuote:endsQuote
-  }));
 }
 
 async function rest(path,{method="GET",body,headers={}}={}){
@@ -85,10 +58,6 @@ async function ownerMembership(userId,churchId){
 
 async function asaas(path,{method="GET",body}={}){
   const c=envCfg();
-
-  // Diagnóstico temporário e seguro:
-  // não registra a chave completa nem qualquer trecho secreto dela.
-  safeAsaasDiagnostic();
 
   const r=await fetch(`${c.asaasBase}${path}`,{
     method,
