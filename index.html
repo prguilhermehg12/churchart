@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.98 -->
+<!-- CHURCHDESIGN — index v0.99 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3879,8 +3879,9 @@ function costSupervisorHTML(){
 }
 function renderCostSupervisor(){
   document.querySelectorAll('[data-cost-panel]').forEach(old=>{
+    if(!state.user?.isAdmin){old.remove();return;}
     const wrap=document.createElement('div');wrap.innerHTML=costSupervisorHTML();
-    const fresh=wrap.firstElementChild;if(fresh)old.replaceWith(fresh);
+    const fresh=wrap.firstElementChild;if(fresh)old.replaceWith(fresh);else old.remove();
   });
 }
 
