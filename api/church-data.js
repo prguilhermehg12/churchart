@@ -1,4 +1,4 @@
-// CHURCHDESIGN — church-data v0.49.0
+// CHURCHDESIGN — church-data v0.51.0
 // ChurchDesign V0.48.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
@@ -283,8 +283,7 @@ module.exports=async function handler(req,res){
       const b=req.body||{},operationId=String(b.operationId||"").trim(),artType=String(b.artType||"Arte base").trim(),format=String(b.format||"").trim();
       if(!operationId)throw Object.assign(new Error("Operação de geração ausente."),{statusCode:400});
       await requireMembership(authUser,churchId);
-      const isAdmin=!!(await userRpc(req,"is_app_admin",{}).catch(()=>false));
-      const credits=isAdmin?0:await generationCreditPrice(artType,format);
+      const credits=await generationCreditPrice(artType,format);
       let debit={balance:null,debited:0};
       if(credits>0){
         debit=await userRpc(req,"reserve_generation_credits",{p_church_id:churchId,p_operation_id:operationId,p_credits:credits,p_metadata:{art_type:artType,format,project_name:String(b.projectName||""),client_metadata:b.metadata||{}}});
@@ -456,6 +455,28 @@ module.exports=async function handler(req,res){
       };
       const d=await serviceRest("plans?on_conflict=code",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify([row])});
       return res.json({ok:true,plan:d?.[0]});
+    }
+
+    if(action==="billing-admin-recharge-credits"&&req.method==="POST"){
+      await requireAppAdmin(req,authUser);
+      const churchId=requestedChurchId(req);
+      await requireMembership(authUser,churchId,{owner:true});
+      const sub=(await serviceRest(`church_subscriptions?church_id=eq.${encodeURIComponent(churchId)}&status=in.(trialing,active,past_due,paused)&select=*&order=created_at.desc&limit=1`))?.[0];
+      if(!sub?.plan_id)throw Object.assign(new Error("Esta igreja não possui um plano elegível para recarga administrativa."),{statusCode:409});
+      const plan=(await serviceRest(`plans?id=eq.${encodeURIComponent(sub.plan_id)}&active=eq.true&select=id,code,name,credits_monthly&limit=1`))?.[0];
+      const target=Math.max(0,Number(plan?.credits_monthly)||0);
+      if(!plan||target<=0)throw Object.assign(new Error("O plano atual não possui franquia de créditos configurada."),{statusCode:409});
+      const rawBalance=await userRpc(req,"generation_credit_balance",{p_church_id:churchId});
+      const current=Math.trunc(Number(typeof rawBalance==="number"?rawBalance:rawBalance?.balance)||0);
+      const adjustment=Math.max(0,target-current);
+      if(adjustment>0){
+        await serviceRest("church_credit_ledger",{method:"POST",body:JSON.stringify([{
+          church_id:churchId,user_id:authUser.id,amount:adjustment,event_type:"admin_adjustment",operation_id:null,
+          metadata:{source:"admin_self_recharge",admin_user_id:authUser.id,plan_id:plan.id,plan_code:plan.code||null,previous_balance:current,target_balance:target,adjustment}
+        }])});
+      }
+      const finalBalance=current+adjustment;
+      return res.json({ok:true,churchId,planId:plan.id,planCode:plan.code||null,planName:plan.name||null,previousBalance:current,adjustment,balance:finalBalance,targetBalance:target});
     }
 
     if(action==="billing-set-subscription"&&req.method==="POST"){
