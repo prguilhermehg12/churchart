@@ -1,4 +1,4 @@
-// CHURCHDESIGN — asaas v0.2.0
+// CHURCHDESIGN — asaas v0.3.0
 const crypto=require("crypto");
 
 module.exports.config={maxDuration:30};
@@ -6,9 +6,9 @@ module.exports.config={maxDuration:30};
 function envCfg(){
   const supabaseUrl=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const supabaseKey=process.env.SUPABASE_SECRET_KEY;
-  const asaasKey=process.env.ASAAS_API_KEY;
+  const asaasKey=String(process.env.ASAAS_API_KEY||"").trim();
   const appUrl=String(process.env.APP_PUBLIC_URL||"").replace(/\/+$/,"");
-  const env=String(process.env.ASAAS_ENV||"sandbox").toLowerCase()==="production"?"production":"sandbox";
+  const env=String(process.env.ASAAS_ENV||"sandbox").trim().toLowerCase()==="production"?"production":"sandbox";
   if(!supabaseUrl||!supabaseKey)throw new Error("Configuração de banco indisponível.");
   if(!asaasKey)throw new Error("Integração de pagamento ainda não configurada.");
   if(!appUrl)throw new Error("URL pública do ChurchDesign não configurada.");
