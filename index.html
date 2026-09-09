@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.04 -->
+<!-- CHURCHDESIGN — index v1.05 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3631,6 +3631,28 @@ html:not([data-theme="light"]) .sidebar-primary-actions .create-nav-btn{
   margin-top:0!important;
 }
 
+
+/* CHURCHDESIGN v1.05 — proteção de marca + viewport mobile sem rolagem lateral */
+.account-copyright{margin-top:7px;font-size:7.5px;line-height:1.4;color:var(--muted);opacity:.82}
+html,body{max-width:100%;overflow-x:hidden!important}
+body{width:100%;position:relative}
+.app-shell,.main,.content,.topbar,.footer{min-width:0;max-width:100%}
+img,video,canvas{max-width:100%;height:auto}
+@media(max-width:900px){
+  html,body{width:100%!important;max-width:100vw!important;overflow-x:hidden!important}
+  .app-shell,.main,.content,.topbar,.footer,.quick-shell,.quick-grid,.card,.gallery-modal-panel,.modal-panel{
+    min-width:0!important;max-width:100%!important
+  }
+  .content{width:100%!important;overflow-x:hidden!important}
+  .modal-backdrop{width:100vw!important;max-width:100vw!important;overflow-x:hidden!important}
+  .modal-panel{width:min(96vw,100%)!important}
+  input,textarea,select,button{max-width:100%}
+  .billing-table-wrap,.cost-history-scroll{max-width:100%;overflow-x:auto}
+  .gallery-grid,.quick-ref-grid,.quick-pastor-grid,.quick-graphic-grid,.church-image-grid{min-width:0!important}
+  .gallery-item,.quick-asset,.quick-graphic-card{min-width:0!important}
+  h1,h2,h3,p,span,strong,small,label{overflow-wrap:anywhere}
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 
@@ -3710,7 +3732,7 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
         <div class="account-row"><span>Referências salvas</span><strong id="accountRefUsage">0 / 30</strong></div>
         <button id="managePlanBtn" class="mini-btn" type="button" onclick="openPlansPage()">Gerenciar plano</button>
         <button id="subscriptionAdminBtn" class="mini-btn" type="button" onclick="openSubscriptionAdmin()" style="display:none">Gerenciar assinaturas</button><button class="mini-btn account-signout" type="button" onclick="signOutChurchDesign()">Sair</button>
-        <div class="account-legal-links"><a href="/termos-de-uso.html" target="_blank" rel="noopener">Termos de Uso</a><a href="/politica-de-privacidade.html" target="_blank" rel="noopener">Privacidade</a><a href="mailto:olivertech.ce@gmail.com">Suporte</a></div>
+        <div class="account-legal-links"><a href="/termos-de-uso.html" target="_blank" rel="noopener">Termos de Uso</a><a href="/politica-de-privacidade.html" target="_blank" rel="noopener">Privacidade</a><a href="mailto:olivertech.ce@gmail.com">Suporte</a></div><div class="account-copyright">© 2026 ChurchDesign™. Todos os direitos reservados.</div>
       </div>
     </aside>
     <div class="mobile-sidebar-backdrop" id="mobileSidebarBackdrop" aria-hidden="true" onclick="closeMobileSidebar()"></div>
@@ -8921,6 +8943,28 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
 // NEWFLOW v0.40 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
 let churchDesignAppStarted=false;
+
+const PENDING_SUBSCRIPTION_KEY='churchdesign.pendingSubscription.v1';
+function capturePendingSubscriptionIntent(){
+  try{
+    const u=new URL(location.href),plan=String(u.searchParams.get('subscribe')||'').toLowerCase();
+    if(['essencial','pro','studio'].includes(plan))sessionStorage.setItem(PENDING_SUBSCRIPTION_KEY,plan);
+  }catch{}
+}
+function consumePendingSubscriptionIntent(){
+  let plan='';
+  try{
+    const u=new URL(location.href);
+    plan=String(u.searchParams.get('subscribe')||sessionStorage.getItem(PENDING_SUBSCRIPTION_KEY)||'').toLowerCase();
+    if(!['essencial','pro','studio'].includes(plan))return;
+    sessionStorage.removeItem(PENDING_SUBSCRIPTION_KEY);
+    u.searchParams.delete('subscribe');
+    history.replaceState(null,'',u.pathname+u.search+u.hash);
+    setTimeout(()=>openCheckoutLegalConsent(plan,null),350);
+  }catch{}
+}
+capturePendingSubscriptionIntent();
+
 async function startAuthenticatedApp(){
   if(churchDesignAppStarted)return;churchDesignAppStarted=true;
   try{
@@ -8934,6 +8978,7 @@ async function startAuthenticatedApp(){
     const tutorialRoot=document.getElementById('cdRoot');
     if(tutorialRoot)tutorialRoot.setAttribute('data-theme',document.documentElement.dataset.theme==='light'?'light':'dark');
     window.bootTutorialAfterLogin?.({firstLogin:!!state.user.firstLogin,userId:state.user.id});
+    consumePendingSubscriptionIntent();
   }catch(e){
     churchDesignAppStarted=false;
     console.error('[ChurchDesign] start',e);
