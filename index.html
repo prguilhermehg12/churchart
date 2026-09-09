@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.01 -->
+<!-- CHURCHDESIGN — index v1.04 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3574,6 +3574,63 @@ html[data-theme="light"] .legal-consent-check{background:#fff!important;border-c
 html[data-theme="light"] .legal-consent-point{background:#f7f9fb!important;border-color:#d7dde5!important}
 @media(max-width:600px){.legal-consent-actions{display:grid;grid-template-columns:1fr 1fr}.legal-consent-actions .btn{width:100%}}
 
+
+/* CHURCHDESIGN v1.02 — hierarquia principal da navegação */
+.sidebar-primary-actions{margin:7px 0 7px!important}
+.sidebar-primary-actions .create-nav-btn{
+  height:52px!important;
+  min-height:52px!important;
+  max-height:52px!important;
+  border-color:color-mix(in srgb,var(--brand-orange) 58%,var(--field-border))!important;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--brand-orange) 24%,var(--field-bg)),color-mix(in srgb,var(--brand-orange) 10%,var(--field-bg)))!important;
+  box-shadow:0 9px 24px color-mix(in srgb,var(--brand-orange) 14%,transparent)!important;
+  grid-template-columns:22px minmax(0,1fr)!important;
+  column-gap:12px!important;
+}
+.sidebar-primary-actions .create-nav-btn .sidebar-nav-icon{
+  width:22px!important;
+  min-width:22px!important;
+  height:22px!important;
+  font-size:17px!important;
+  font-weight:700!important;
+  color:var(--brand-orange)!important;
+}
+.sidebar-primary-actions .create-nav-btn .sidebar-nav-label{
+  font-size:11.5px!important;
+  font-weight:900!important;
+  letter-spacing:.01em!important;
+}
+.sidebar-primary-actions .create-nav-btn:hover{
+  border-color:var(--brand-orange)!important;
+  transform:translateY(-1px);
+}
+.sidebar-primary-actions .feed-nav-btn{
+  height:42px!important;
+  min-height:42px!important;
+  max-height:42px!important;
+}
+.sidebar-library-actions{margin:0 0 11px!important}
+html[data-theme="light"] .sidebar-primary-actions .create-nav-btn{
+  background:linear-gradient(135deg,#fff1e8,#fff8f3)!important;
+  border-color:#e9a578!important;
+  box-shadow:0 8px 20px rgba(198,95,35,.10)!important;
+}
+html:not([data-theme="light"]) .sidebar-primary-actions .create-nav-btn{
+  background:linear-gradient(135deg,#2a1b15,#1a1614)!important;
+  border-color:#8b4e31!important;
+}
+
+
+/* CHURCHDESIGN v1.03 — Galeria: confirmação acima dos menus + cabeçalho sem fresta */
+.app-dialog-backdrop{z-index:400000!important}
+.gallery-modal-panel>.modal-body{
+  padding-top:0!important;
+}
+.gallery-modal-panel>.modal-body>.gallery-toolbar{
+  top:0!important;
+  margin-top:0!important;
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 
@@ -3622,13 +3679,13 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
         <span class="project-current-kicker">Projeto atual</span>
         <button class="sidebar-project-btn" id="currentProjectBtn" type="button"><strong id="projectName">nova arte</strong></button>
       </div>
+      <div class="sidebar-primary-actions">
+        <button class="sidebar-unified-btn create-nav-btn" id="createNavBtn" type="button" onclick="openCreateHome()"><span class="sidebar-nav-icon">＋</span><span class="sidebar-nav-label">Criar</span></button>
+        <button class="sidebar-unified-btn feed-nav-btn" id="feedNavBtn" type="button" onclick="openFeed()"><span class="sidebar-nav-icon">◫</span><span class="sidebar-nav-label">Feed</span></button>
+      </div>
       <div class="sidebar-library-actions">
         <button class="sidebar-unified-btn my-church-btn" type="button" onclick="openMyChurch()"><span class="sidebar-nav-icon">⌂</span><span class="sidebar-nav-label">Minha igreja</span></button>
         <button class="sidebar-unified-btn gallery-btn" type="button" onclick="openGallery()"><span class="sidebar-nav-icon">▦</span><span class="sidebar-nav-label">Galeria</span></button>
-      </div>
-      <div class="sidebar-primary-actions">
-        <button class="sidebar-unified-btn feed-nav-btn" id="feedNavBtn" type="button" onclick="openFeed()"><span class="sidebar-nav-icon">◫</span><span class="sidebar-nav-label">Feed</span></button>
-        <button class="sidebar-unified-btn create-nav-btn" id="createNavBtn" type="button" onclick="openCreateHome()"><span class="sidebar-nav-icon">＋</span><span class="sidebar-nav-label">Criar</span></button>
       </div>
       <nav id="stepNav" class="sidebar-flow">
         <div class="nav-step active" data-flow-step="1"><b>1</b><span>Criação da arte base</span></div>
@@ -3665,7 +3722,7 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v1.00</div>
+  
   
   <script>
 const state={
@@ -6441,6 +6498,7 @@ async function publishGalleryItemManually(galleryId,button=null){
 
 
 async function deleteGalleryProjectByArt(galleryId){
+  closeGalleryActionPopovers();
   const item=findGalleryItem(galleryId);if(!item)return;
   const family=galleryFamilyForItem(galleryId);
   const members=(family?.members||[item]).slice();
@@ -6602,6 +6660,7 @@ window.openGallery=function(query='',viewMode=null){
   root.querySelectorAll('[data-gallery-delete-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();deleteGalleryProjectByArt(b.dataset.galleryDeleteProject)});
   root.querySelectorAll('[data-gallery-delete]').forEach(b=>b.onclick=async e=>{
     e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDelete);if(!x)return;
+    closeGalleryActionPopovers();
     if(!(await appConfirm(`Excluir "${x.label||'esta arte'}" da Galeria?`,{title:'Excluir arte',confirmText:'Excluir',cancelText:'Cancelar',icon:'🗑'})))return;
     b.disabled=true;b.textContent='Excluindo...';
     try{
