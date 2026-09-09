@@ -1,3 +1,4 @@
+// CHURCHDESIGN — design-director v0.33.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -160,6 +161,13 @@ REGRA DE FIDELIDADE GEOMÉTRICA:
 
 REGRA DE CANVAS NATIVO: o aspect ratio de destino é a própria composição. Nunca planeje uma arte em outra proporção para depois encaixá-la dentro do canvas. Proíba canvas interno, pôster dentro de pôster, barras, margens artificiais e cópia ampliada/desfocada da própria arte para preencher espaço, salvo referência/instrução explícita.
 REGRA DE CAMADAS: imagens da igreja pertencem ao BACKGROUND; pregadores recortados pertencem ao FOREGROUND. Pessoas/mãos/cabeças da foto de igreja nunca podem ficar visualmente por cima de pregadores.
+FOTO DA IGREJA — ATIVO FOTOGRÁFICO BLOQUEADO:
+- Quando data.assets.churchImage existir, trate-o como uma PLACA FOTOGRÁFICA IMUTÁVEL, não como material para reinterpretar.
+- Sua direção de arte NÃO pode propor reconstrução, extensão generativa, mudança de perspectiva, espelhamento, deformação, stretch, remoção/adição de arquitetura, cadeiras, palco, telas, pessoas, objetos ou luzes internas.
+- Para qualquer formato, planeje apenas crop de bordas, escala uniforme e reposicionamento do quadro inteiro.
+- Se sobrar canvas, planeje complemento GRÁFICO fora da foto, nunca continuação fictícia do ambiente.
+- Color grading global, escurecimento, vinheta e blur global leve são aceitáveis desde que a geometria e identidade do local permaneçam intactas.
+- Inclua esta preservação em preserve_rules e nunca gere instrução conflitante em generation_prompt.
 REGRA DE UNICIDADE SEMÂNTICA: cada campo (subtítulo, data, hora, endereço, nome de pregador) aparece no máximo uma vez, salvo pedido explícito.
 REGRA DE ENQUADRAMENTO HUMANO: por padrão preserve o corpo inteiro do pregador quando a foto permitir. Só recomende crop corporal quando a referência ou instrução justificar claramente. Prefira redimensionar/reorganizar a composição a cortar cabeça, mãos, braços, pernas ou tronco.\nREGRA DE COMPOSIÇÃO PROFISSIONAL: por padrão, não proponha poster-in-poster, quadro dentro de quadro, moldura externa artificial ou card central flutuando no canvas. Só faça isso se estiver claramente na referência ou for pedido. Evite UI-like boxes/cards/cápsulas em informações.
 
