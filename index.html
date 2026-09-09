@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v0.99 -->
+<!-- CHURCHDESIGN — index v1.00 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3554,6 +3554,26 @@ html[data-theme="light"] .gallery-popover.gallery-popover-portal{
 html[data-theme="light"] .quick-graphic-card,html[data-theme="light"] .quick-graphic-upload{background:#fff!important;border-color:#dfe3e8!important}
 @media(max-width:560px){.quick-graphic-grid{grid-template-columns:1fr}}
 
+
+/* CHURCHDESIGN v1.00 — transparência legal e aceite pré-contratação */
+.account-legal-links{display:flex;flex-wrap:wrap;gap:5px 9px;margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
+.account-legal-links a{font-size:8px;color:var(--muted);text-decoration:none}
+.account-legal-links a:hover{text-decoration:underline;color:var(--text)}
+.legal-ai-note{margin-top:8px;font-size:8px;line-height:1.45;color:var(--muted);text-align:center}
+.legal-ai-note a{color:inherit}
+.legal-consent-panel{width:min(520px,94vw)!important}
+.legal-consent-copy{font-size:10px;line-height:1.55;color:var(--muted);margin:0 0 12px}
+.legal-consent-points{display:grid;gap:7px;margin:0 0 13px}
+.legal-consent-point{padding:9px 10px;border:1px solid var(--field-border);border-radius:10px;background:var(--field-bg);font-size:9px;line-height:1.45;color:var(--text)}
+.legal-consent-check{display:flex;align-items:flex-start;gap:9px;padding:11px;border:1px solid var(--field-border);border-radius:11px;background:var(--soft-surface);cursor:pointer}
+.legal-consent-check input{width:16px;height:16px;margin:1px 0 0;flex:none}
+.legal-consent-check span{font-size:9px;line-height:1.5;color:var(--text)}
+.legal-consent-check a{color:var(--brand-orange);font-weight:800}
+.legal-consent-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+html[data-theme="light"] .legal-consent-check{background:#fff!important;border-color:#cfd6df!important}
+html[data-theme="light"] .legal-consent-point{background:#f7f9fb!important;border-color:#d7dde5!important}
+@media(max-width:600px){.legal-consent-actions{display:grid;grid-template-columns:1fr 1fr}.legal-consent-actions .btn{width:100%}}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 
@@ -3633,6 +3653,7 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
         <div class="account-row"><span>Referências salvas</span><strong id="accountRefUsage">0 / 30</strong></div>
         <button id="managePlanBtn" class="mini-btn" type="button" onclick="openPlansPage()">Gerenciar plano</button>
         <button id="subscriptionAdminBtn" class="mini-btn" type="button" onclick="openSubscriptionAdmin()" style="display:none">Gerenciar assinaturas</button><button class="mini-btn account-signout" type="button" onclick="signOutChurchDesign()">Sair</button>
+        <div class="account-legal-links"><a href="/termos-de-uso.html" target="_blank" rel="noopener">Termos de Uso</a><a href="/politica-de-privacidade.html" target="_blank" rel="noopener">Privacidade</a><a href="mailto:olivertech.ce@gmail.com">Suporte</a></div>
       </div>
     </aside>
     <div class="mobile-sidebar-backdrop" id="mobileSidebarBackdrop" aria-hidden="true" onclick="closeMobileSidebar()"></div>
@@ -3644,7 +3665,7 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
     </main>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
-  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v0.98</div>
+  <div class="main-version-badge newflow-version">CHURCHDESIGN • NEWFLOW v1.00</div>
   
   <script>
 const state={
@@ -4373,7 +4394,7 @@ function screenAdjust(){
   if(!pastors.length)setTimeout(showNoPastorPopup,100);
 }
 function screenResults(){
-  content.innerHTML=`<div class="help"><strong>Geração sequencial resiliente.</strong> Cada proposta aparece assim que fica pronta. Se gostar de uma, clique em <strong>“Gostei dessa, pode parar”</strong> e as próximas não serão iniciadas.</div><div class="card" style="margin-bottom:18px"><h3>Pronto para gerar</h3><p style="margin-bottom:14px">Cada proposta é uma requisição independente. Uma falha posterior não apaga as imagens já concluídas.</p><div class="card final-instruction-card" style="margin:16px 0"><h3>Instruções finais antes de gerar</h3><textarea id="finalInstructionInput" style="width:100%;min-height:110px;background:#0d0f13;color:white;border:1px solid var(--line);border-radius:11px;padding:12px" placeholder="Digite aqui as instruções finais...">${esc(state.finalInstruction||'')}</textarea></div><button id="generateRealBtn" class="btn primary" style="width:100%;font-size:15px;padding:15px">✦ GERAR 3 ARTES COM IA</button><button id="stopGenerationBtn" class="btn stop-generation-btn" type="button" style="display:none">✓ Gostei dessa, pode parar</button><button id="cancelGenerationBtn" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="generationStatus" style="margin-top:15px;color:var(--muted);font-size:12px;line-height:1.6"></div>${costSupervisorHTML()}<div id="artDirectorPanel" class="art-director-panel"><div class="art-director-head"><div class="art-director-icon">AD</div><div><strong>Diretor de Arte</strong><small id="artDirectorStatus">Aguardando análise visual.</small></div></div><div id="artDirectorTags" class="art-director-tags"></div><div id="artDirectorSummary" class="art-director-summary"></div></div><div id="generationLoader" class="generation-loader"><div class="loader-top"><div class="loader-orb"></div><div><strong>Processando sua arte</strong><div style="font-size:10px;color:var(--muted);margin-top:3px">A próxima proposta só começa depois da atual.</div></div></div><div class="loader-bar"><i></i></div><div id="seqProgress" class="seq-progress"></div></div></div><div id="realResults" class="grid3"></div><div class="gallery-section"><div class="gallery-head"><div><h3 style="margin:0;font-size:16px">Últimas artes geradas</h3><p style="margin:4px 0 0;color:var(--muted);font-size:11px">Persistidas no banco.</p></div></div><div id="historyGallery"></div></div>`;
+  content.innerHTML=`<div class="help"><strong>Geração sequencial resiliente.</strong> Cada proposta aparece assim que fica pronta. Se gostar de uma, clique em <strong>“Gostei dessa, pode parar”</strong> e as próximas não serão iniciadas.</div><div class="card" style="margin-bottom:18px"><h3>Pronto para gerar</h3><p style="margin-bottom:14px">Cada proposta é uma requisição independente. Uma falha posterior não apaga as imagens já concluídas.</p><div class="card final-instruction-card" style="margin:16px 0"><h3>Instruções finais antes de gerar</h3><textarea id="finalInstructionInput" style="width:100%;min-height:110px;background:#0d0f13;color:white;border:1px solid var(--line);border-radius:11px;padding:12px" placeholder="Digite aqui as instruções finais...">${esc(state.finalInstruction||'')}</textarea></div><button id="generateRealBtn" class="btn primary" style="width:100%;font-size:15px;padding:15px">✦ GERAR 3 ARTES COM IA</button><div class="legal-ai-note">O ChurchDesign utiliza inteligência artificial. Os resultados podem variar. Revise nomes, datas, horários, endereços e demais informações antes de publicar.</div><button id="stopGenerationBtn" class="btn stop-generation-btn" type="button" style="display:none">✓ Gostei dessa, pode parar</button><button id="cancelGenerationBtn" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="generationStatus" style="margin-top:15px;color:var(--muted);font-size:12px;line-height:1.6"></div>${costSupervisorHTML()}<div id="artDirectorPanel" class="art-director-panel"><div class="art-director-head"><div class="art-director-icon">AD</div><div><strong>Diretor de Arte</strong><small id="artDirectorStatus">Aguardando análise visual.</small></div></div><div id="artDirectorTags" class="art-director-tags"></div><div id="artDirectorSummary" class="art-director-summary"></div></div><div id="generationLoader" class="generation-loader"><div class="loader-top"><div class="loader-orb"></div><div><strong>Processando sua arte</strong><div style="font-size:10px;color:var(--muted);margin-top:3px">A próxima proposta só começa depois da atual.</div></div></div><div class="loader-bar"><i></i></div><div id="seqProgress" class="seq-progress"></div></div></div><div id="realResults" class="grid3"></div><div class="gallery-section"><div class="gallery-head"><div><h3 style="margin:0;font-size:16px">Últimas artes geradas</h3><p style="margin:4px 0 0;color:var(--muted);font-size:11px">Persistidas no banco.</p></div></div><div id="historyGallery"></div></div>`;
   const finalInstructionInput=document.querySelector('#finalInstructionInput');if(finalInstructionInput)finalInstructionInput.oninput=e=>state.finalInstruction=e.target.value;
   const btn=document.querySelector('#generateRealBtn'),stopBtn=document.querySelector('#stopGenerationBtn'),cancelBtn=document.querySelector('#cancelGenerationBtn'),status=document.querySelector('#generationStatus'),loader=document.querySelector('#generationLoader'),seq=document.querySelector('#seqProgress'),results=document.querySelector('#realResults'),gallery=document.querySelector('#historyGallery'),artDirectorPanel=document.querySelector('#artDirectorPanel'),artDirectorStatus=document.querySelector('#artDirectorStatus'),artDirectorTags=document.querySelector('#artDirectorTags'),artDirectorSummary=document.querySelector('#artDirectorSummary');
   const variantSpecs=[{id:'faithful',label:'Fiel à referência'},{id:'balanced',label:'Equilibrada'},{id:'creative',label:'Mais criativa'}];let currentImages=[],stopRequested=false,currentController=null;
@@ -6676,8 +6697,34 @@ document.addEventListener('click',e=>{
   const planBtn=e.target.closest?.('#cdpRoot [data-cd-plano]');
   if(!planBtn||planBtn.disabled)return;
   const planId=planBtn.getAttribute('data-cd-plano');
-  startAsaasCheckout(planId,planBtn);
+  openCheckoutLegalConsent(planId,planBtn);
 });
+function openCheckoutLegalConsent(planId,button=null){
+  const root=document.querySelector('#modalRoot');
+  if(!root)return;
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel legal-consent-panel">
+    <div class="modal-head"><div><h2>Antes de continuar</h2><p class="legal-consent-copy">Confira as condições essenciais da assinatura.</p></div><button class="close-modal" type="button" data-legal-close>×</button></div>
+    <div class="modal-body">
+      <div class="legal-consent-points">
+        <div class="legal-consent-point"><strong>Assinatura mensal.</strong> A renovação é automática até o cancelamento.</div>
+        <div class="legal-consent-point"><strong>Créditos do plano.</strong> São renovados a cada ciclo mensal, não são cumulativos e cada operação possui seu próprio custo em créditos.</div>
+      </div>
+      <label class="legal-consent-check">
+        <input id="checkoutLegalConsent" type="checkbox">
+        <span>Li e concordo com os <a href="/termos-de-uso.html" target="_blank" rel="noopener">Termos de Uso</a> e a <a href="/politica-de-privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
+      </label>
+      <div class="legal-consent-actions"><button class="btn ghost" type="button" data-legal-close>Voltar</button><button class="btn primary" id="checkoutLegalContinue" type="button" disabled>Continuar para pagamento</button></div>
+    </div>
+  </div>`;
+  const check=root.querySelector('#checkoutLegalConsent'),go=root.querySelector('#checkoutLegalContinue');
+  check?.addEventListener('change',()=>{if(go)go.disabled=!check.checked});
+  root.querySelectorAll('[data-legal-close]').forEach(x=>x.addEventListener('click',()=>{root.innerHTML=''}));
+  go?.addEventListener('click',()=>{
+    if(!check?.checked)return;
+    root.innerHTML='';
+    startAsaasCheckout(planId,button);
+  });
+}
 async function startAsaasCheckout(planId,button=null){
   if(!state.activeChurchId)return appAlert('Selecione uma igreja antes de contratar um plano.',{type:'warning',title:'Assinatura'});
   const original=button?.textContent||'Escolher plano';
@@ -7806,7 +7853,7 @@ function screenQuickMode(){restoreCreationFooter();if(state.mode==='quick')updat
   <p style="margin-bottom:8px">Escolha até 3 elementos transparentes. Eles serão aplicados como arquivo original depois da geração da I.A., sem serem redesenhados.</p>
   <div class="quick-graphic-grid">${graphics.map(a=>{const selected=(state.quick.graphicAssetIds||[]).includes(a.id),cfg=state.quick.graphicPlacements?.[a.id]||{};return `<div class="quick-graphic-card ${selected?'selected':''}" data-qgraphic="${a.id}"><div class="quick-graphic-thumb"><img src="${a.url}" alt=""></div><div class="quick-graphic-copy"><strong>${esc(a.name)}</strong><small>${selected?'PNG protegido selecionado':'Clique para usar'}</small></div>${selected?`<div class="quick-graphic-controls" data-qgraphic-controls="${a.id}"><label>Posição<select data-qgraphic-position="${a.id}">${[['top-left','Superior esquerdo'],['top-center','Superior centro'],['top-right','Superior direito'],['center-left','Centro esquerdo'],['center','Centro'],['center-right','Centro direito'],['bottom-left','Inferior esquerdo'],['bottom-center','Inferior centro'],['bottom-right','Inferior direito']].map(o=>`<option value="${o[0]}" ${(cfg.position||'bottom-right')===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></label><label>Tamanho<select data-qgraphic-size="${a.id}">${[['small','Pequeno'],['medium','Médio'],['large','Grande']].map(o=>`<option value="${o[0]}" ${(cfg.size||'medium')===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></label></div>`:''}</div>`}).join('')}<label class="quick-graphic-upload"><strong>+ PNG</strong><span>Adicionar a Elementos PNG</span><input id="qGraphicUpload" type="file" accept="image/png" hidden multiple></label></div>
   </div></div>
-  <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE BASE • ${selectedFormat.label}</button><div id="quickProgress" class="quick-progress"><div class="quick-progress-track"><i id="quickProgressBar"></i></div><div class="quick-progress-row"><span id="quickProgressText">Processando sua arte...</span><span id="quickProgressPct">0%</span></div></div><button id="quickCancel" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div>${costSupervisorHTML()}</div><div id="quickResultsWrap" style="margin-top:18px">${renderQuickResultsHTML()}${allArtworksHTML()}</div></div>`;
+  <div class="card" style="margin-top:18px"><button id="quickGenerate" class="btn primary" style="width:100%">✦ GERAR ARTE BASE • ${selectedFormat.label}</button><div class="legal-ai-note">O ChurchDesign utiliza inteligência artificial. Os resultados podem variar. Revise nomes, datas, horários, endereços e demais informações antes de publicar.</div><div id="quickProgress" class="quick-progress"><div class="quick-progress-track"><i id="quickProgressBar"></i></div><div class="quick-progress-row"><span id="quickProgressText">Processando sua arte...</span><span id="quickProgressPct">0%</span></div></div><button id="quickCancel" class="btn quick-cancel" type="button" style="display:none">Cancelar processamento</button><div id="quickStatus" style="margin-top:10px;color:var(--muted);font-size:11px"></div>${costSupervisorHTML()}</div><div id="quickResultsWrap" style="margin-top:18px">${renderQuickResultsHTML()}${allArtworksHTML()}</div></div>`;
   applyLogoPreviewBackgrounds(content);
   const bind=(id,key)=>document.querySelector('#'+id).oninput=e=>state.quick[key]=e.target.value;bind('qTitle','title');bind('qSubtitle','subtitle');bind('qSecondaryInfo','secondaryInfo');bind('qDate','date');bind('qTime','time');bind('qAddress','address');bind('qColor','dominantColor');
   const qcm=document.querySelector('#qColorMode');if(qcm)qcm.onchange=e=>{state.quick.dominantColorMode=e.target.value;const w=document.querySelector('#qColorPickerWrap');if(w)w.classList.toggle('hidden',e.target.value==='reference');};
