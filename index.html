@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.05 -->
+<!-- CHURCHDESIGN — index v1.06 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3651,6 +3651,70 @@ img,video,canvas{max-width:100%;height:auto}
   .gallery-grid,.quick-ref-grid,.quick-pastor-grid,.quick-graphic-grid,.church-image-grid{min-width:0!important}
   .gallery-item,.quick-asset,.quick-graphic-card{min-width:0!important}
   h1,h2,h3,p,span,strong,small,label{overflow-wrap:anywhere}
+}
+
+
+/* CHURCHDESIGN v1.06 — Criar e Feed com mesma hierarquia visual */
+.sidebar-primary-actions{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:7px!important;
+}
+.sidebar-primary-actions .create-nav-btn,
+.sidebar-primary-actions .feed-nav-btn{
+  height:42px!important;
+  min-height:42px!important;
+  max-height:42px!important;
+  border-color:var(--field-border)!important;
+  background:var(--field-bg)!important;
+  box-shadow:none!important;
+  transform:none!important;
+}
+.sidebar-primary-actions .create-nav-btn .sidebar-nav-icon,
+.sidebar-primary-actions .feed-nav-btn .sidebar-nav-icon{
+  width:20px!important;
+  min-width:20px!important;
+  height:20px!important;
+  font-size:15px!important;
+  color:inherit!important;
+}
+.sidebar-primary-actions .create-nav-btn .sidebar-nav-label,
+.sidebar-primary-actions .feed-nav-btn .sidebar-nav-label{
+  font-size:10px!important;
+  font-weight:800!important;
+  letter-spacing:0!important;
+}
+.sidebar-primary-actions .create-nav-btn:hover,
+.sidebar-primary-actions .feed-nav-btn:hover{
+  border-color:var(--line)!important;
+  transform:none!important;
+}
+.sidebar-primary-actions .create-nav-btn.active,
+.sidebar-primary-actions .feed-nav-btn.active,
+.sidebar-primary-actions .create-nav-btn[aria-current="page"],
+.sidebar-primary-actions .feed-nav-btn[aria-current="page"]{
+  border-color:var(--brand-orange)!important;
+  box-shadow:0 0 0 1px var(--brand-orange) inset!important;
+}
+html[data-theme="light"] .sidebar-primary-actions .create-nav-btn,
+html[data-theme="light"] .sidebar-primary-actions .feed-nav-btn{
+  background:#fff!important;
+  border-color:#d7dde5!important;
+}
+html:not([data-theme="light"]) .sidebar-primary-actions .create-nav-btn,
+html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn{
+  background:var(--field-bg)!important;
+  border-color:var(--field-border)!important;
+}
+html[data-theme="light"] .sidebar-primary-actions .create-nav-btn.active,
+html[data-theme="light"] .sidebar-primary-actions .feed-nav-btn.active,
+html[data-theme="light"] .sidebar-primary-actions .create-nav-btn[aria-current="page"],
+html[data-theme="light"] .sidebar-primary-actions .feed-nav-btn[aria-current="page"],
+html:not([data-theme="light"]) .sidebar-primary-actions .create-nav-btn.active,
+html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn.active,
+html:not([data-theme="light"]) .sidebar-primary-actions .create-nav-btn[aria-current="page"],
+html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn[aria-current="page"]{
+  border-color:var(--brand-orange)!important;
 }
 
 </style>
