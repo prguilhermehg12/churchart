@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.10 -->
+<!-- CHURCHDESIGN — index v1.11 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -90,7 +90,7 @@
 
 
 /* V0.31.2 — visualização em tela cheia */
-.art-fullscreen-overlay{position:fixed;inset:0;z-index:120000;background:rgba(0,0,0,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px}
+.art-fullscreen-overlay{position:fixed;inset:0;z-index:320000;background:rgba(0,0,0,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px}
 .art-fullscreen-toolbar{width:min(96vw,1600px);display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;color:#fff}
 .art-fullscreen-toolbar strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .art-fullscreen-close{border:1px solid #4d5668;background:#161b24;color:#fff;border-radius:10px;padding:9px 13px;cursor:pointer}
@@ -3739,7 +3739,7 @@ html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn[aria-curre
 .derivative-panel-head{height:43px;flex:none;padding:10px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}.derivative-panel-head strong{font-size:10px}.derivative-panel-head small{font-size:7px;color:var(--muted)}
 .derivative-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:12px;background:#090b0f;position:relative}
 .derivative-stage img{display:block;max-width:100%;max-height:100%;object-fit:contain;border-radius:9px}
-.derivative-fullscreen{position:absolute;right:18px;bottom:18px;width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,.22);background:rgba(8,10,14,.78);color:#fff;cursor:pointer}
+.derivative-fullscreen{position:absolute;z-index:8;right:18px;bottom:18px;width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,.22);background:rgba(8,10,14,.78);color:#fff;cursor:pointer}
 .derivative-source-strip{flex:none;padding:9px;border-top:1px solid var(--line);display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
 .derivative-source-thumb{flex:0 0 66px;height:78px;padding:3px;border:1px solid var(--field-border);border-radius:9px;background:var(--field-bg);cursor:pointer}.derivative-source-thumb.active{border-color:var(--brand-orange);box-shadow:0 0 0 1px var(--brand-orange) inset}.derivative-source-thumb img{width:100%;height:100%;object-fit:cover;border-radius:6px}
 .derivative-config-scroll{flex:1;min-height:0;overflow-y:auto;padding:13px}.derivative-section{border-bottom:1px solid var(--line);padding:0 0 13px;margin:0 0 13px}.derivative-section:last-child{border-bottom:0;margin-bottom:0}.derivative-section-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.derivative-section-title strong{font-size:10px}.derivative-section-title small{font-size:7px;color:var(--muted)}
@@ -3770,6 +3770,41 @@ html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn[aria-curre
   .derivative-balance{padding:5px 7px}.derivative-balance span{display:none}
   .share-art-selection{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+
+/* CHURCHDESIGN v1.11 — miniaturas proporcionais e seleção persistente */
+.derivative-presets{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+.derivative-preset{padding:8px}
+.layout-sketch{width:100%;height:auto!important;aspect-ratio:var(--preset-ratio,16/9);min-height:0!important;position:relative;overflow:hidden;border:1px solid var(--field-border);border-radius:8px;background:linear-gradient(145deg,#0b0e13,#141923)}
+.layout-sketch[data-format="feed"]{--preset-ratio:4/5}
+.layout-sketch[data-format="story"]{--preset-ratio:9/16}
+.layout-sketch[data-format="youtube"],.layout-sketch[data-format="screen"]{--preset-ratio:16/9}
+.layout-sketch .mock-person{position:absolute;bottom:-2%;width:29%;height:71%;border-radius:44% 44% 9% 9%;background:linear-gradient(180deg,#758094,#343b47)}
+.layout-sketch .mock-title{position:absolute;font-size:clamp(6px,.58vw,9px);line-height:1.05;font-weight:900;color:#f8fafc;letter-spacing:-.02em;text-align:left}
+.layout-sketch .mock-info{position:absolute;font-size:clamp(4px,.38vw,6px);line-height:1;color:#aeb7c5}
+.layout-sketch .mock-logo{position:absolute;font-size:clamp(4px,.34vw,6px);font-weight:800;color:#d7dce4;border:1px solid #596271;border-radius:3px;padding:2px 3px}
+.layout-sketch .mock-safe{position:absolute;left:8%;right:8%;top:8%;bottom:8%;border:1px dashed rgba(255,255,255,.12);border-radius:4px}
+.layout-sketch .mock-block{position:absolute;border-radius:4px;background:#303846}
+.layout-sketch.person-right .mock-person{right:7%}.layout-sketch.person-right .mock-title{left:8%;top:25%;width:48%}.layout-sketch.person-right .mock-info{left:8%;top:53%}
+.layout-sketch.person-left .mock-person{left:7%}.layout-sketch.person-left .mock-title{right:8%;top:25%;width:48%;text-align:right}.layout-sketch.person-left .mock-info{right:8%;top:53%}
+.layout-sketch.person-center-bottom .mock-person{left:35.5%;height:65%}.layout-sketch.person-center-bottom .mock-title{left:12%;right:12%;bottom:8%;text-align:center}
+.layout-sketch.person-center-behind .mock-person{left:35.5%;z-index:2}.layout-sketch.person-center-behind .mock-title{left:6%;right:6%;top:40%;text-align:center;font-size:clamp(8px,.8vw,13px);z-index:1}
+.layout-sketch.type-dominant .mock-title{left:8%;right:8%;top:24%;font-size:clamp(8px,.82vw,13px);text-align:center}.layout-sketch.type-dominant .mock-info{left:26%;right:26%;bottom:13%;text-align:center}
+.layout-sketch.split-editorial .mock-block{left:5%;top:5%;bottom:5%;width:43%}.layout-sketch.split-editorial .mock-title{left:55%;right:6%;top:25%}.layout-sketch.split-editorial .mock-info{left:55%;bottom:16%}
+.layout-sketch.story-top-person-bottom .mock-person{left:34%;height:52%}.layout-sketch.story-top-person-bottom .mock-title{left:10%;right:10%;top:18%;text-align:center}.layout-sketch.story-top-person-bottom .mock-logo{left:10%;top:8%}
+.layout-sketch.story-side .mock-person{right:4%;width:43%;height:61%}.layout-sketch.story-side .mock-title{left:9%;top:24%;width:43%}.layout-sketch.story-side .mock-info{left:9%;top:48%}
+.layout-sketch.story-split .mock-block{left:0;top:0;bottom:0;width:48%}.layout-sketch.story-split .mock-title{right:7%;top:28%;width:39%}.layout-sketch.story-split .mock-info{right:7%;top:49%}
+.layout-sketch.story-title-center .mock-title{left:10%;right:10%;top:42%;text-align:center;font-size:clamp(8px,.82vw,13px)}.layout-sketch.story-title-center .mock-logo{left:10%;top:10%}.layout-sketch.story-title-center .mock-info{left:10%;right:10%;bottom:12%;text-align:center}
+.layout-sketch.story-fullbleed{background:linear-gradient(180deg,#3b4658,#171b22 58%,#0c0f13)}.layout-sketch.story-fullbleed .mock-title{left:9%;right:9%;bottom:23%;font-size:clamp(8px,.82vw,13px)}.layout-sketch.story-fullbleed .mock-logo{left:9%;top:9%}.layout-sketch.story-fullbleed .mock-info{left:9%;bottom:12%}
+.layout-sketch.screen-theme .mock-title{left:12%;right:12%;top:42%;text-align:center;font-size:clamp(8px,.82vw,14px)}.layout-sketch.screen-theme .mock-logo{right:5%;bottom:7%}
+.layout-sketch.screen-background{background:radial-gradient(circle at 70% 34%,#323c4d,#11151b 55%,#090b0f)}.layout-sketch.screen-background .mock-title,.layout-sketch.screen-background .mock-info,.layout-sketch.screen-background .mock-logo{display:none}
+.layout-sketch.screen-title-logo .mock-title{left:12%;right:12%;top:40%;text-align:center;font-size:clamp(8px,.82vw,14px)}.layout-sketch.screen-title-logo .mock-logo{right:5%;bottom:7%}
+.layout-sketch.screen-title-info .mock-title{left:12%;right:12%;top:35%;text-align:center;font-size:clamp(8px,.82vw,14px)}.layout-sketch.screen-title-info .mock-info{left:20%;right:20%;bottom:17%;text-align:center}
+.layout-sketch.screen-left-title .mock-title{left:8%;top:31%;width:37%;font-size:clamp(8px,.82vw,14px)}.layout-sketch.screen-left-title .mock-block{right:7%;top:12%;bottom:12%;width:45%;opacity:.6}
+.layout-sketch.screen-pastor .mock-person{right:8%;height:72%}.layout-sketch.screen-pastor .mock-title{left:8%;top:31%;width:48%;font-size:clamp(8px,.82vw,13px)}
+.derivative-preset.active{border-color:var(--brand-orange)!important;box-shadow:0 0 0 1px var(--brand-orange) inset!important;background:color-mix(in srgb,var(--brand-orange) 7%,var(--field-bg))!important}
+.derivative-format-card.active,.derivative-choice.active,.derivative-asset-card.active,.derivative-treatment button.active{border-color:var(--brand-orange)!important;box-shadow:0 0 0 1px var(--brand-orange) inset!important}
+@media(max-width:900px){.derivative-presets{grid-template-columns:repeat(2,minmax(0,1fr))}.layout-sketch .mock-title{font-size:7px}.layout-sketch .mock-info,.layout-sketch .mock-logo{font-size:4px}}
 
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
@@ -8508,22 +8543,34 @@ function derivativePastorOverrideValue(box){
 
 
 const DERIVATIVE_PRESETS=[
-  {id:'yt-right',format:'youtube',group:'youtube',name:'Pregador à direita',sketch:'right',prompt:'LAYOUT FIXO: pregador no lado direito ocupando aproximadamente 35–42% da largura; título principal grande no lado esquerdo; informações secundárias abaixo do título. Preserve essa estrutura.'},
-  {id:'yt-left',format:'youtube',group:'youtube',name:'Pregador à esquerda',sketch:'left',prompt:'LAYOUT FIXO: pregador no lado esquerdo ocupando aproximadamente 35–42% da largura; título principal grande no lado direito; informações secundárias abaixo do título. Preserve essa estrutura.'},
-  {id:'yt-center',format:'youtube',group:'youtube',name:'Pregador central + título embaixo',sketch:'center',prompt:'LAYOUT FIXO: pregador central como foco; título principal concentrado na faixa inferior sem cobrir o rosto; composição simétrica.'},
-  {id:'yt-behind',format:'youtube',group:'youtube',name:'Título atrás do pregador',sketch:'behind',prompt:'LAYOUT FIXO: pregador central em primeiro plano; título tipográfico muito grande atravessando o fundo atrás do corpo, sem cobrir o rosto.'},
-  {id:'feed-right',format:'feed',group:'feed',name:'Retrato lateral',sketch:'right',prompt:'LAYOUT FIXO FEED 4:5: pregador à direita; título forte à esquerda; hierarquia vertical limpa; dados secundários na base.'},
-  {id:'feed-left',format:'feed',group:'feed',name:'Retrato invertido',sketch:'left',prompt:'LAYOUT FIXO FEED 4:5: pregador à esquerda; título forte à direita; dados secundários na base.'},
-  {id:'feed-center',format:'feed',group:'feed',name:'Pregador central',sketch:'center',prompt:'LAYOUT FIXO FEED 4:5: pregador central; título principal abaixo ou ao redor do corpo sem encobrir rosto e mãos.'},
-  {id:'feed-type',format:'feed',group:'feed',name:'Tipografia dominante',sketch:'behind',prompt:'LAYOUT FIXO FEED 4:5: tipografia é o elemento dominante; pessoa, se houver, funciona como camada secundária integrada.'},
-  {id:'story-right',format:'story',group:'story',name:'Pessoa embaixo / texto acima',sketch:'center',prompt:'LAYOUT FIXO STORIES 9:16: título e chamada na metade superior; pessoa concentrada na metade inferior; safe area forte nas extremidades.'},
-  {id:'story-left',format:'story',group:'story',name:'Pessoa lateral',sketch:'right',prompt:'LAYOUT FIXO STORIES 9:16: pessoa à direita; coluna textual vertical à esquerda; informações secundárias empilhadas.'},
-  {id:'story-type',format:'story',group:'story',name:'Título central',sketch:'clean',prompt:'LAYOUT FIXO STORIES 9:16: título central dominante; composição limpa e vertical; pessoa opcional como apoio visual.'},
-  {id:'screen-background',format:'screen',group:'screen',name:'Modo Fundo',sketch:'clean',backgroundMode:true,prompt:'MODO FUNDO: preserve somente identidade, atmosfera, fundo e foto real da igreja quando houver; remova conteúdo informacional.'},
-  {id:'screen-theme',format:'screen',group:'screen',name:'Modo Tema',sketch:'clean',screenThemeMode:true,screenInfoPct:30,prompt:'MODO TEMA: título como único conteúdo principal, centralizado, ocupando cerca de 30% da área útil.'},
-  {id:'screen-right',format:'screen',group:'screen',name:'Pregador à direita',sketch:'right',screenOccupancyMode:true,screenInfoPct:30,prompt:'LAYOUT FIXO TELÃO: pregador à direita, bloco de informações à esquerda, área central respirando.'},
-  {id:'screen-left',format:'screen',group:'screen',name:'Pregador à esquerda',sketch:'left',screenOccupancyMode:true,screenInfoPct:30,prompt:'LAYOUT FIXO TELÃO: pregador à esquerda, bloco de informações à direita, área central respirando.'}
-];
+  // YOUTUBE 16:9
+  {id:'yt-right',format:'youtube',group:'youtube',name:'Pregador à direita',kind:'person-right',prompt:'LAYOUT FIXO YOUTUBE 16:9: pregador no lado direito ocupando aproximadamente 35–42% da largura; título principal grande no lado esquerdo; informações secundárias abaixo do título. Preserve essa estrutura.'},
+  {id:'yt-left',format:'youtube',group:'youtube',name:'Pregador à esquerda',kind:'person-left',prompt:'LAYOUT FIXO YOUTUBE 16:9: pregador no lado esquerdo ocupando aproximadamente 35–42% da largura; título principal grande no lado direito; informações secundárias abaixo do título. Preserve essa estrutura.'},
+  {id:'yt-center',format:'youtube',group:'youtube',name:'Pregador central',kind:'person-center-bottom',prompt:'LAYOUT FIXO YOUTUBE 16:9: pregador central como foco; título principal concentrado na faixa inferior sem cobrir o rosto; composição simétrica.'},
+  {id:'yt-behind',format:'youtube',group:'youtube',name:'Título atrás do pregador',kind:'person-center-behind',prompt:'LAYOUT FIXO YOUTUBE 16:9: pregador central em primeiro plano; título tipográfico muito grande atravessando o fundo atrás do corpo, sem cobrir o rosto.'},
+
+  // FEED 4:5
+  {id:'feed-right',format:'feed',group:'feed',name:'Retrato lateral',kind:'person-right',prompt:'LAYOUT FIXO FEED 4:5: pregador à direita; título forte à esquerda; hierarquia vertical limpa; dados secundários na base.'},
+  {id:'feed-left',format:'feed',group:'feed',name:'Retrato invertido',kind:'person-left',prompt:'LAYOUT FIXO FEED 4:5: pregador à esquerda; título forte à direita; dados secundários na base.'},
+  {id:'feed-center',format:'feed',group:'feed',name:'Pregador central',kind:'person-center-bottom',prompt:'LAYOUT FIXO FEED 4:5: pregador central; título principal abaixo ou ao redor do corpo sem encobrir rosto e mãos.'},
+  {id:'feed-type',format:'feed',group:'feed',name:'Tipografia dominante',kind:'type-dominant',prompt:'LAYOUT FIXO FEED 4:5: tipografia é o elemento dominante; pessoa, se houver, funciona como camada secundária integrada.'},
+  {id:'feed-editorial',format:'feed',group:'feed',name:'Editorial dividido',kind:'split-editorial',prompt:'LAYOUT FIXO FEED 4:5: composição editorial dividida em dois blocos principais, com imagem em uma área e título/informações em outra, mantendo forte alinhamento e respiro.'},
+
+  // STORIES 9:16
+  {id:'story-top',format:'story',group:'story',name:'Título acima / pessoa abaixo',kind:'story-top-person-bottom',prompt:'LAYOUT FIXO STORIES 9:16: título e chamada na metade superior; pessoa concentrada na metade inferior; respeite áreas seguras superior e inferior.'},
+  {id:'story-side',format:'story',group:'story',name:'Pessoa lateral',kind:'story-side',prompt:'LAYOUT FIXO STORIES 9:16: pessoa deslocada para uma lateral; coluna de título e informações na lateral oposta; leitura vertical clara; preserve safe zones.'},
+  {id:'story-split',format:'story',group:'story',name:'Divisão vertical',kind:'story-split',prompt:'LAYOUT FIXO STORIES 9:16: divisão vertical do canvas; uma área para imagem/pessoa e outra para título e informações; contraste alto e hierarquia simples.'},
+  {id:'story-center',format:'story',group:'story',name:'Título central',kind:'story-title-center',prompt:'LAYOUT FIXO STORIES 9:16: título central dominante, logo discreta no topo e informação curta na base, respeitando as áreas seguras.'},
+  {id:'story-full',format:'story',group:'story',name:'Imagem cheia + chamada',kind:'story-fullbleed',prompt:'LAYOUT FIXO STORIES 9:16: imagem em full bleed; título curto sobre faixa/gradiente de contraste; logo pequena no topo; chamada curta na região inferior segura.'},
+
+  // TELÃO 16:9 — maioria sem pregador
+  {id:'screen-theme',format:'screen',group:'screen',name:'Modo Tema',kind:'screen-theme',screenThemeMode:true,screenInfoPct:30,prompt:'MODO TEMA: preservar identidade visual da campanha e exibir somente o TÍTULO/TEMA principal no centro, com bastante respiro. Logo pequena opcional em uma extremidade.'},
+  {id:'screen-background',format:'screen',group:'screen',name:'Modo Fundo',kind:'screen-background',backgroundMode:true,prompt:'MODO FUNDO: gerar somente o fundo visual da campanha, sem título, subtítulo, datas, pessoas ou informações de primeiro plano. Se houver foto real da igreja, preservá-la como placa fotográfica.'},
+  {id:'screen-title-logo',format:'screen',group:'screen',name:'Título + logo',kind:'screen-title-logo',prompt:'LAYOUT FIXO TELÃO 16:9: título central grande; logo pequena em canto seguro; nenhum pregador; sem excesso de informações.'},
+  {id:'screen-title-info',format:'screen',group:'screen',name:'Título + informação',kind:'screen-title-info',prompt:'LAYOUT FIXO TELÃO 16:9: título principal central; uma única informação secundária pequena na base; sem pregador.'},
+  {id:'screen-left-title',format:'screen',group:'screen',name:'Título lateral',kind:'screen-left-title',prompt:'LAYOUT FIXO TELÃO 16:9: título em bloco lateral esquerdo, grande área visual livre no restante do telão; sem pregador.'},
+  {id:'screen-pastor',format:'screen',group:'screen',name:'Pregador + título',kind:'screen-pastor',screenOccupancyMode:true,screenInfoPct:30,prompt:'LAYOUT FIXO TELÃO 16:9: único modelo com pregador; pessoa à direita e título à esquerda; composição simples, legível à distância.'}
+]
 
 function derivativeFamilyCandidates(sourceNode){
   const out=[],seen=new Set();
@@ -8558,8 +8605,14 @@ function derivativeAssetCards(type,selectedIds=[]){
   const assets=(state.library.assets||[]).filter(a=>a.type===type||(type==='graphic'&&a.type==='graphic'&&a.meta?.category!=='event_logo'));
   return assets.length?assets.map(a=>`<button type="button" class="derivative-asset-card ${selectedIds.includes(String(a.id))?'active':''}" data-derivative-asset="${type}|${esc(a.id)}"><img src="${esc(a.url)}"><span>${esc(a.meta?.displayName||a.name||type)}</span></button>`).join(''):`<div class="derivative-result-empty">Nenhum arquivo salvo em Minha Igreja.</div>`;
 }
-function derivativePresetCards(group){
-  return DERIVATIVE_PRESETS.filter(x=>x.group===group).map(p=>`<button type="button" class="derivative-preset" data-derivative-preset="${p.id}"><div class="layout-sketch ${p.sketch}"><i class="person"></i><i class="copy"></i><i class="copy s"></i></div><strong>${esc(p.name)}</strong><small>${esc(quickTargetSpec(p.format).label)}</small></button>`).join('');
+function derivativePresetMockHTML(p){
+  const title=p.group==='screen'?'Título aqui':p.group==='story'?'Título aqui':'TÍTULO AQUI';
+  const info=p.group==='screen'?'Informação':'Data • Hora';
+  const hasPerson=/person|story-(top|side)|screen-pastor/.test(p.kind||'');
+  return `<div class="layout-sketch ${esc(p.kind||'')}" data-format="${esc(p.format)}"><i class="mock-safe"></i>${hasPerson?'<i class="mock-person"></i>':''}${p.kind!=='screen-background'?`<span class="mock-title">${esc(title)}</span>`:'<span class="mock-info" style="left:8%;bottom:8%">somente fundo</span>'}${['screen-theme','screen-title-logo','story-top-person-bottom','story-title-center','story-fullbleed'].includes(p.kind)?'<span class="mock-logo">logo aqui</span>':''}${['screen-title-info','person-right','person-left','type-dominant','split-editorial','story-side','story-split','story-title-center','story-fullbleed'].includes(p.kind)?`<span class="mock-info">${esc(info)}</span>`:''}${['split-editorial','story-split','screen-left-title'].includes(p.kind)?'<i class="mock-block"></i>':''}</div>`;
+}
+function derivativePresetCards(group,selectedId=''){
+  return DERIVATIVE_PRESETS.filter(x=>x.group===group).map(p=>`<button type="button" class="derivative-preset ${p.id===selectedId?'active':''}" data-derivative-preset="${p.id}">${derivativePresetMockHTML(p)}<strong>${esc(p.name)}</strong><small>${esc(quickTargetSpec(p.format).label)}</small></button>`).join('');
 }
 function derivativeManualSections(state0){
   return `
@@ -8573,7 +8626,7 @@ function derivativeManualSections(state0){
 function derivativePresetSections(state0){
   const group=state0.presetGroup||'feed';
   return `
-  <section class="derivative-section mobile-active" data-mobile-step="0"><div class="derivative-section-title"><strong>Tipo de arte</strong><small>Selecione uma família de layouts</small></div><div class="derivative-choice-row">${[['feed','Feed'],['story','Stories'],['youtube','YouTube'],['screen','Telão']].map(x=>`<button class="derivative-choice ${group===x[0]?'active':''}" data-preset-group="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-presets" data-preset-list>${derivativePresetCards(group)}</div></section>
+  <section class="derivative-section mobile-active" data-mobile-step="0"><div class="derivative-section-title"><strong>Tipo de arte</strong><small>Selecione uma família de layouts</small></div><div class="derivative-choice-row">${[['feed','Feed'],['story','Stories'],['youtube','YouTube'],['screen','Telão']].map(x=>`<button class="derivative-choice ${group===x[0]?'active':''}" data-preset-group="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-presets" data-preset-list>${derivativePresetCards(group,state0.presetId)}</div></section>
   <section class="derivative-section" data-mobile-step="1"><div class="derivative-section-title"><strong>Observações</strong><small>Opcional</small></div><textarea class="derivative-textarea" data-derivative-observation placeholder="Ex.: deixe o título menor e use mais espaço negativo...">${esc(state0.observation||'')}</textarea><div class="derivative-preset-note">A IA seguirá primeiro a estrutura do layout escolhido e tentará acomodar suas observações depois, sem descaracterizar o modelo.</div></section>
   <div class="derivative-generate-wrap"><button class="btn primary derivative-generate-btn" type="button" data-derivative-generate>✦ Gerar variação programada</button></div>`;
 }
@@ -8607,18 +8660,18 @@ function derivativeCollectUI(ov){
 }
 function bindDerivativeStudioBody(ov){
   const st=ov.__derivativeState;
-  ov.querySelector('[data-source-fullscreen]')?.addEventListener('click',()=>openArtworkFullscreen(st.source?.dataUrl||st.source?.baseDataUrl||st.source?.sourceUrl,st.source?.label||'Arte de origem'));
-  ov.querySelector('[data-result-fullscreen]')?.addEventListener('click',()=>{if(st.result)openArtworkFullscreen(st.result.dataUrl||st.result.baseDataUrl,st.result.label||'Nova arte')});
+  ov.querySelector('[data-source-fullscreen]')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openArtworkFullscreen(st.source?.dataUrl||st.source?.baseDataUrl||st.source?.sourceUrl,st.source?.label||'Arte de origem')});
+  ov.querySelector('[data-result-fullscreen]')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(st.result)openArtworkFullscreen(st.result.dataUrl||st.result.baseDataUrl||st.result.url,st.result.label||'Nova arte')});
   ov.querySelectorAll('[data-source-candidate]').forEach(b=>b.onclick=()=>{
     derivativeCollectUI(ov);const c=st.candidates[Number(b.dataset.sourceCandidate)];if(!c)return;
     st.sourceKey=String(c.key||c.galleryId||`candidate:${b.dataset.sourceCandidate}`);st.source=derivativeSourceFromCandidate(c);
     derivativeStudioRenderBody(ov);
   });
-  ov.querySelectorAll('[data-derivative-format]').forEach(b=>b.onclick=()=>{st.format=b.dataset.derivativeFormat;ov.querySelectorAll('[data-derivative-format]').forEach(x=>x.classList.toggle('active',x===b))});
-  ov.querySelectorAll('[data-pastor-mode]').forEach(b=>b.onclick=()=>{st.pastorMode=b.dataset.pastorMode;ov.querySelectorAll('[data-pastor-mode]').forEach(x=>x.classList.toggle('active',x===b))});
-  ov.querySelectorAll('[data-church-mode]').forEach(b=>b.onclick=()=>{st.churchMode=b.dataset.churchMode;ov.querySelectorAll('[data-church-mode]').forEach(x=>x.classList.toggle('active',x===b))});
-  ov.querySelectorAll('[data-graphic-mode]').forEach(b=>b.onclick=()=>{st.graphicMode=b.dataset.graphicMode;ov.querySelectorAll('[data-graphic-mode]').forEach(x=>x.classList.toggle('active',x===b))});
-  ov.querySelectorAll('[data-pastor-treatment]').forEach(b=>b.onclick=()=>{st.pastorTreatment=b.dataset.pastorTreatment;ov.querySelectorAll('[data-pastor-treatment]').forEach(x=>x.classList.toggle('active',x===b))});
+  ov.querySelectorAll('[data-derivative-format]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.format=b.dataset.derivativeFormat;derivativeStudioRenderBody(ov)});
+  ov.querySelectorAll('[data-pastor-mode]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.pastorMode=b.dataset.pastorMode;if(st.pastorMode==='remove')st.pastorIds=[];derivativeStudioRenderBody(ov)});
+  ov.querySelectorAll('[data-church-mode]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.churchMode=b.dataset.churchMode;if(st.churchMode==='remove')st.churchId='';derivativeStudioRenderBody(ov)});
+  ov.querySelectorAll('[data-graphic-mode]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.graphicMode=b.dataset.graphicMode;if(st.graphicMode==='remove')st.graphicIds=[];derivativeStudioRenderBody(ov)});
+  ov.querySelectorAll('[data-pastor-treatment]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.pastorTreatment=b.dataset.pastorTreatment;derivativeStudioRenderBody(ov)});
   ov.querySelectorAll('[data-derivative-asset]').forEach(b=>b.onclick=()=>{
     const [type,id]=b.dataset.derivativeAsset.split('|');
     if(type==='pastor'){
@@ -8633,8 +8686,8 @@ function bindDerivativeStudioBody(ov){
     }
     derivativeStudioRenderBody(ov);
   });
-  ov.querySelectorAll('[data-preset-group]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.presetGroup=b.dataset.presetGroup;st.presetId='';derivativeStudioRenderBody(ov)});
-  ov.querySelectorAll('[data-derivative-preset]').forEach(b=>b.onclick=()=>{st.presetId=b.dataset.derivativePreset;const p=DERIVATIVE_PRESETS.find(x=>x.id===st.presetId);if(p)st.format=p.format;ov.querySelectorAll('[data-derivative-preset]').forEach(x=>x.classList.toggle('active',x===b))});
+  ov.querySelectorAll('[data-preset-group]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.presetGroup=b.dataset.presetGroup;st.presetId='';st.format=st.presetGroup==='story'?'story':st.presetGroup==='youtube'?'youtube':st.presetGroup==='screen'?'screen':'feed';derivativeStudioRenderBody(ov)});
+  ov.querySelectorAll('[data-derivative-preset]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.presetId=b.dataset.derivativePreset;const p=DERIVATIVE_PRESETS.find(x=>x.id===st.presetId);if(p)st.format=p.format;ov.querySelectorAll('[data-derivative-preset]').forEach(x=>x.classList.toggle('active',x.dataset.derivativePreset===st.presetId))});
   ov.querySelector('[data-derivative-generate]')?.addEventListener('click',()=>runDerivativeStudioGeneration(ov));
   ov.querySelector('[data-result-use-source]')?.addEventListener('click',()=>{if(!st.result)return;st.source=st.result;st.sourceKey=`adaptation:${st.parentIndex}:${st.result.id}`;st.candidates.push(st.result);st.result=null;derivativeStudioRenderBody(ov)});
   ov.querySelector('[data-result-proceed]')?.addEventListener('click',()=>{if(st.result)openLogoAssistant(`adaptation:${st.parentIndex}:${st.result.id}`)});
