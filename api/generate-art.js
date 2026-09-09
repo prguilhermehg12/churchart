@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.21.0
+// CHURCHDESIGN — generate-art v0.22.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -233,7 +233,7 @@ ${data.backgroundMode?`MODO FUNDO ABSOLUTO — ESTA REGRA SOBRESCREVE QUALQUER O
 ${data.addPastorOverride?`- EXCEÇÃO HUMANA OBRIGATÓRIA: renderize EXATAMENTE o pregador fornecido como PESSOA 1. A pessoa deve ficar claramente visível, reconhecível e integrada ao fundo; não inclua nenhuma outra pessoa.`:`- ZERO PESSOAS. Não renderize pregadores, rostos, corpos, silhuetas ou figuras humanas.`}
 - ZERO LOGOS, marcas ou emblemas.
 - A referência é uma fonte de paleta, atmosfera, iluminação, textura, formas abstratas e cenário; todo conteúdo semântico visível nela deve ser removido e a área reconstruída naturalmente.
-- Se existir fotografia real da igreja fornecida como asset de fundo, preserve essa fotografia como ambiente, sem inventar outra igreja.
+- Se existir fotografia real da igreja fornecida como asset de fundo, ela é uma PLACA IMUTÁVEL: preserve o arquivo original sem redesenho, deformação, reconstrução, espelhamento, stretch ou alteração de perspectiva. Para encaixar no formato use somente crop de bordas + escala uniforme + reposicionamento; complete áreas restantes com design gráfico, nunca com arquitetura inventada.
 - Não transforme palavras da referência em textura tipográfica. Não deixe fragmentos de letras.
 - O resultado deve parecer um background pronto para receber novos elementos depois.
 `:''}
@@ -321,10 +321,16 @@ ${String(data.designStyle||'').toLowerCase()==='minimalista'?`ESTILO MINIMALISTA
 `:''}
 Se uma LOGO oficial foi fornecida, use a logo e NÃO repita o nome da igreja em texto separado.
 
-REGRA DE FOTO DA IGREJA:
-- Se data.assets.churchImage foi fornecida, o uso dessa foto é obrigatório no ambiente/fundo e deve ser visualmente reconhecível.
-- Se não foi fornecida e a referência já possui ambiente de igreja, congregação ou adoração ao fundo, preserve esse tipo de ambiente da referência.
-- Não crie silhuetas humanas apenas para preencher lugares vazios.
+FOTO DA IGREJA — PLACA FOTOGRÁFICA IMUTÁVEL / HARD CONSTRAINT UNIVERSAL:
+${data.assets?.churchImage?.image?`- Existe um asset churchImage. Ele é a FONTE DE VERDADE e deve permanecer como a MESMA FOTOGRAFIA, não como uma interpretação visual.
+- Preserve rigorosamente arquitetura, paredes, palco, teto, cadeiras, telas, pessoas, objetos, luminárias, luzes, linhas, perspectiva e proporções internas do arquivo original.
+- PROIBIDO redesenhar, reconstruir, completar, remover, adicionar, mover ou substituir qualquer elemento interno da foto.
+- PROIBIDO alterar a geometria por stretch, escala não uniforme, perspective warp, liquify, deformação, espelhamento ou mudança de perspectiva.
+- Para adaptar a outro aspect ratio, use SOMENTE crop nas BORDAS + escala UNIFORME + reposicionamento do quadro fotográfico inteiro.
+- Se a foto não preencher o canvas sem deformação, NÃO invente continuação arquitetônica. Complete o canvas com elementos gráficos, gradientes, sombras, texturas ou áreas abstratas coerentes com a arte.
+- Permitidos sobre a FOTO INTEIRA: color grading, exposição, contraste, saturação, temperatura, tonalidade, vinheta, escurecimento e blur global leve. Não faça edição generativa localizada que altere a estrutura.
+- A foto deve ser reconhecível por comparação direta como O MESMO ARQUIVO. Uma igreja apenas "parecida" é FALHA CRÍTICA.
+- Esta regra vale em ARTE BASE, VARIAÇÃO, CORREÇÃO/DELTA-ONLY, DERIVADA, MODO LIVRE, MODO FUNDO e MODO TEMA, salvo quando o usuário selecionar explicitamente "omitir foto da igreja".`:`- Nenhum asset churchImage foi fornecido. Se a referência já possui ambiente de igreja, congregação ou adoração ao fundo, preserve apenas o tipo de atmosfera; não invente silhuetas humanas para preencher lugares vazios.`}
 
 REGRA DE COMPOSIÇÃO ADAPTATIVA:
 - A referência é uma linguagem visual, NÃO um molde rígido.
