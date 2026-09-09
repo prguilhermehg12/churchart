@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.08 -->
+<!-- CHURCHDESIGN — index v1.10 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3717,6 +3717,60 @@ html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn[aria-curre
   border-color:var(--brand-orange)!important;
 }
 
+
+/* CHURCHDESIGN v1.09 — consumo desde última recarga */
+.billing-cycle-usage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}
+.billing-cycle-usage>div{padding:9px 10px;border:1px solid var(--field-border);border-radius:10px;background:var(--field-bg)}
+.billing-cycle-usage small{display:block!important;margin:0!important;font-size:7px!important;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.billing-cycle-usage strong{display:block;margin-top:3px;font-size:13px}
+.billing-cycle-usage-note{margin-top:7px!important;font-size:7.5px!important}
+@media(max-width:600px){.billing-cycle-usage{grid-template-columns:1fr 1fr}.billing-cycle-usage>div:last-child{grid-column:1/-1}}
+
+
+/* CHURCHDESIGN v1.10 — Estúdio de Criação por Derivação */
+.derivative-studio-overlay{position:fixed;inset:0;z-index:260000;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.derivative-studio-head{height:72px;flex:none;padding:13px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--panel)}
+.derivative-studio-head h2{margin:0;font-size:18px}.derivative-studio-head small{display:block;margin-top:3px;color:var(--muted);font-size:8px}
+.derivative-studio-head-actions{display:flex;align-items:center;gap:8px}.derivative-balance{padding:7px 10px;border:1px solid var(--field-border);border-radius:10px;background:var(--field-bg);font-size:8px}.derivative-balance b{font-size:12px;margin-left:4px}
+.derivative-tabs{height:44px;flex:none;display:flex;justify-content:center;gap:6px;padding:6px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.derivative-tab{border:1px solid var(--field-border);background:var(--field-bg);color:var(--muted);border-radius:9px;padding:0 15px;font-size:9px;font-weight:850;cursor:pointer}.derivative-tab.active{border-color:var(--brand-orange);color:var(--text);box-shadow:0 0 0 1px var(--brand-orange) inset}
+.derivative-studio-grid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(240px,.82fr) minmax(390px,1.36fr) minmax(240px,.82fr);gap:12px;padding:12px;background:var(--bg)}
+.derivative-panel{min-width:0;min-height:0;border:1px solid var(--line);border-radius:15px;background:var(--panel);overflow:hidden;display:flex;flex-direction:column}
+.derivative-panel-head{height:43px;flex:none;padding:10px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}.derivative-panel-head strong{font-size:10px}.derivative-panel-head small{font-size:7px;color:var(--muted)}
+.derivative-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:12px;background:#090b0f;position:relative}
+.derivative-stage img{display:block;max-width:100%;max-height:100%;object-fit:contain;border-radius:9px}
+.derivative-fullscreen{position:absolute;right:18px;bottom:18px;width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,.22);background:rgba(8,10,14,.78);color:#fff;cursor:pointer}
+.derivative-source-strip{flex:none;padding:9px;border-top:1px solid var(--line);display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.derivative-source-thumb{flex:0 0 66px;height:78px;padding:3px;border:1px solid var(--field-border);border-radius:9px;background:var(--field-bg);cursor:pointer}.derivative-source-thumb.active{border-color:var(--brand-orange);box-shadow:0 0 0 1px var(--brand-orange) inset}.derivative-source-thumb img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+.derivative-config-scroll{flex:1;min-height:0;overflow-y:auto;padding:13px}.derivative-section{border-bottom:1px solid var(--line);padding:0 0 13px;margin:0 0 13px}.derivative-section:last-child{border-bottom:0;margin-bottom:0}.derivative-section-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.derivative-section-title strong{font-size:10px}.derivative-section-title small{font-size:7px;color:var(--muted)}
+.derivative-format-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.derivative-format-card{border:1px solid var(--field-border);background:var(--field-bg);border-radius:10px;padding:8px 5px;text-align:center;cursor:pointer;color:var(--text)}.derivative-format-card.active{border-color:var(--brand-orange);box-shadow:0 0 0 1px var(--brand-orange) inset}.derivative-format-card i{display:block;margin:0 auto 5px;border:1px solid currentColor;border-radius:3px;opacity:.72}.derivative-format-card b{display:block;font-size:8px}.derivative-format-card small{display:block;font-size:6.5px;color:var(--muted);margin-top:2px}
+.derivative-choice-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:8px}.derivative-choice{border:1px solid var(--field-border);background:var(--field-bg);border-radius:8px;padding:7px 5px;font-size:7.5px;color:var(--muted);cursor:pointer}.derivative-choice.active{border-color:var(--brand-orange);color:var(--text)}
+.derivative-assets-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.derivative-asset-card{position:relative;min-width:0;border:1px solid var(--field-border);border-radius:9px;background:var(--field-bg);padding:4px;cursor:pointer}.derivative-asset-card.active{border-color:var(--brand-orange);box-shadow:0 0 0 1px var(--brand-orange) inset}.derivative-asset-card img{width:100%;height:70px;display:block;object-fit:cover;border-radius:6px}.derivative-asset-card span{display:block;font-size:6.8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
+.derivative-treatment{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:8px}.derivative-treatment button{border:1px solid var(--field-border);background:var(--field-bg);color:var(--muted);padding:7px;border-radius:8px;font-size:7px;cursor:pointer}.derivative-treatment button.active{border-color:var(--brand-orange);color:var(--text)}
+.derivative-textarea{width:100%;min-height:112px;resize:vertical;background:var(--field-bg);color:var(--text);border:1px solid var(--field-border);border-radius:10px;padding:10px;font:inherit;font-size:9px;line-height:1.5}
+.derivative-generate-wrap{position:sticky;bottom:-13px;margin:13px -13px -13px;padding:10px 13px;background:linear-gradient(180deg,transparent,var(--panel) 20%);z-index:4}.derivative-generate-btn{width:100%;min-height:42px}
+.derivative-result-empty{text-align:center;color:var(--muted);padding:28px;font-size:9px;line-height:1.5}.derivative-result-actions{flex:none;padding:9px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap}
+.derivative-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.derivative-preset{border:1px solid var(--field-border);border-radius:11px;background:var(--field-bg);padding:8px;cursor:pointer;color:var(--text);text-align:left}.derivative-preset.active{border-color:var(--brand-orange);box-shadow:0 0 0 1px var(--brand-orange) inset}.derivative-preset strong{display:block;font-size:8px;margin-top:5px}.derivative-preset small{display:block;color:var(--muted);font-size:6.5px;margin-top:2px;line-height:1.3}
+.layout-sketch{height:62px;border:1px solid var(--field-border);border-radius:7px;background:#0b0e13;position:relative;overflow:hidden}.layout-sketch .person{position:absolute;width:28%;height:78%;bottom:0;border-radius:45% 45% 8% 8%;background:#697384}.layout-sketch .copy{position:absolute;height:8px;border-radius:2px;background:#f1f3f6}.layout-sketch .copy.s{height:4px;opacity:.6}.layout-sketch.right .person{right:7%}.layout-sketch.right .copy{left:8%;top:23%;width:48%}.layout-sketch.right .copy.s{top:43%;width:38%}.layout-sketch.left .person{left:7%}.layout-sketch.left .copy{right:8%;top:23%;width:48%}.layout-sketch.left .copy.s{top:43%;width:38%}.layout-sketch.center .person{left:36%;width:28%}.layout-sketch.center .copy{left:20%;bottom:10%;width:60%}.layout-sketch.behind .person{left:36%;z-index:2}.layout-sketch.behind .copy{left:8%;top:36%;width:84%;height:13px;z-index:1}.layout-sketch.clean .copy{left:15%;top:42%;width:70%;height:12px}
+.derivative-preset-note{margin:8px 0 0;padding:8px 9px;border-radius:9px;background:var(--soft-surface);border:1px solid var(--field-border);font-size:7.5px;line-height:1.45;color:var(--muted)}
+.derivative-mobile-nav{display:none}
+.share-art-selection{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:12px 0}.share-art-option{border:1px solid var(--field-border);border-radius:10px;background:var(--field-bg);padding:5px;cursor:pointer;position:relative}.share-art-option.active{border-color:var(--brand-orange);box-shadow:0 0 0 1px var(--brand-orange) inset}.share-art-option img{display:block;width:100%;height:92px;object-fit:cover;border-radius:7px}.share-art-option span{display:block;font-size:7px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.share-art-option input{position:absolute;top:8px;right:8px}
+@media(max-width:900px){
+  .derivative-studio-head{height:58px;padding:8px 10px}.derivative-studio-head h2{font-size:14px}.derivative-studio-head small{display:none}.derivative-tabs{height:40px}
+  .derivative-studio-grid{display:flex;flex-direction:column;padding:0;gap:0;overflow:hidden}
+  .derivative-panel{border-radius:0;border-left:0;border-right:0}
+  .derivative-source-panel{height:24vh;min-height:145px;max-height:220px;flex:none;border-top:0}
+  .derivative-source-panel .derivative-panel-head{display:none}.derivative-source-panel .derivative-stage{padding:7px}.derivative-source-strip{padding:5px;height:55px}.derivative-source-thumb{flex-basis:42px;height:44px;padding:2px}
+  .derivative-config-panel{flex:1;min-height:0;border-top:0}.derivative-config-scroll{padding:10px 12px 70px}
+  .derivative-result-panel{height:24vh;min-height:150px;max-height:230px;flex:none;border-bottom:0}.derivative-result-panel .derivative-panel-head{height:31px;padding:6px 10px}.derivative-result-panel .derivative-stage{padding:6px}.derivative-result-actions{padding:5px}
+  .derivative-mobile-nav{display:flex;position:absolute;left:0;right:0;bottom:24vh;height:54px;padding:7px 12px;gap:8px;background:linear-gradient(180deg,transparent,var(--panel) 18%);z-index:30;pointer-events:none}.derivative-mobile-nav button{pointer-events:auto;flex:1}
+  .derivative-section[data-mobile-step]{display:none}.derivative-section[data-mobile-step].mobile-active{display:block}
+  .derivative-format-grid{grid-template-columns:repeat(4,1fr)}.derivative-assets-grid{grid-template-columns:repeat(3,1fr)}.derivative-presets{grid-template-columns:1fr 1fr}
+  .derivative-generate-wrap{display:none}.derivative-fullscreen{right:11px;bottom:11px}
+  .derivative-balance{padding:5px 7px}.derivative-balance span{display:none}
+  .share-art-selection{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
 
@@ -6273,8 +6327,15 @@ function useGalleryAsReference(id){
   state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:recipe?.artDirection||null,recipe};state.quick.reference=item.baseUrl||item.url;state.quick.referenceMode='gallery';state.quickResults=[];closeModal();screenQuickMode();
 }
 function reopenGalleryProject(id){
-  const item=findGalleryItem(id);if(!item)return appAlert('Arte não encontrada na Galeria.');if(!item.recipe)return useGalleryAsReference(id);restoreRecipeToQuick(item.recipe,{asReference:false});
-  state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:item.recipe.artDirection||null,recipe:item.recipe};state.quickResults=[galleryItemToQuickResult(item)];closeModal();screenQuickMode();
+  const item=findGalleryItem(id);if(!item)return appAlert('Arte não encontrada na Galeria.');
+  if(item.recipe){try{restoreRecipeToQuick(item.recipe,{asReference:false})}catch(e){console.warn('Receita não restaurada para derivação.',e)}}
+  state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:item.recipe?.artDirection||null,recipe:item.recipe||null};
+  const source=galleryItemToQuickResult(item);source.finalized=true;source.manualLogoFlow=true;source.galleryId=item.galleryId;state.quickResults=[source];
+  closeModal();screenQuickMode();
+  requestAnimationFrame(()=>{
+    document.querySelector('#quickResultsWrap')?.scrollIntoView({behavior:'auto',block:'start'});
+    openDerivativeStudio({parentIndex:0,sourceKey:'main:0',sourceItem:item});
+  });
 }
 
 function correctGalleryArtwork(id){
@@ -6303,10 +6364,18 @@ function startGalleryChild(id,format){
     state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:item.recipe?.artDirection||null,recipe:item.recipe||null};
     const source=galleryItemToQuickResult(item);source.finalized=true;source.manualLogoFlow=true;source.galleryId=item.galleryId;state.quickResults=[source];
     closeModal();screenQuickMode();
-    const host=document.querySelector('#quickAdaptConfig-0');if(!host)throw new Error('O painel de artes derivadas não foi montado.');
-    openQuickAdaptConfig(0,format,'main:0');
-    const status=document.querySelector('#quickStatus');if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte da Galeria carregada.</strong> Configure abaixo a arte derivada e clique em gerar.';
-    requestAnimationFrame(()=>host.scrollIntoView({behavior:'smooth',block:'center'}));
+    requestAnimationFrame(()=>{
+      const studio=openDerivativeStudio({parentIndex:0,sourceKey:'main:0',sourceItem:item});
+      const ov=document.querySelector('.derivative-studio-overlay');
+      if(ov&&format){
+        const st=ov.__derivativeState;
+        if(format==='background'){st.tab='preset';st.presetGroup='screen';st.presetId='screen-background';st.format='screen';}
+        else if(format==='free'){st.tab='manual';}
+        else{st.tab='manual';st.format=format;}
+        ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x.dataset.derivativeTab===st.tab));
+        derivativeStudioRenderBody(ov);
+      }
+    });
   }catch(err){console.error('NEWFLOW gallery derivative',err);appAlert(`Não foi possível abrir a arte derivada: ${err.message}`)}
 }
 function openGalleryLogoAssistant(id){
@@ -6423,8 +6492,10 @@ function openShareDownloadAssistant(galleryId){
     <div class="modal-body">
       <div class="share-package-preview">
         <div class="share-package-thumbs">${members.slice(0,4).map((x,i)=>`<img src="${esc(x.url||x.dataUrl)}" alt="" style="z-index:${10-i}">`).join('')}</div>
-        <div><strong>${esc(galleryThemeTitle(family?.main||item))}</strong><span>${members.length} arquivo${members.length===1?'':'s'} neste pacote</span></div>
+        <div><strong>${esc(galleryThemeTitle(family?.main||item))}</strong><span>Escolha abaixo quais artes entrarão no pacote</span></div>
       </div>
+      <div class="share-art-selection">${members.slice().sort((a,b)=>galleryItemTime(b)-galleryItemTime(a)).map(x=>`<label class="share-art-option ${String(x.galleryId)===String(galleryId)?'active':''}" data-share-art-option><input type="checkbox" value="${esc(x.galleryId)}" ${String(x.galleryId)===String(galleryId)?'checked':''}><img src="${esc(x.url||x.dataUrl)}"><span>${esc(x.label||x.recipe?.projectName||'Arte')}</span></label>`).join('')}</div>
+      <small style="display:block;color:var(--muted);font-size:8px;margin-top:-4px;margin-bottom:12px">Selecione exatamente quais artes deverão aparecer no link. Por padrão, somente a arte atual fica marcada.</small>
       <div class="share-expiry-field">
         <label for="shareExpirySelect">Validade do link</label>
         <select id="shareExpirySelect">
@@ -6443,12 +6514,15 @@ function openShareDownloadAssistant(galleryId){
     </div>
   </div></div>`;
   root.querySelector('.modal-backdrop')?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+  root.querySelectorAll('[data-share-art-option]').forEach(l=>{const cb=l.querySelector('input');cb.onchange=()=>l.classList.toggle('active',cb.checked)});
   const generate=root.querySelector('#generateShareLinkBtn');
   generate.onclick=async()=>{
     try{
       generate.disabled=true;generate.textContent='Gerando...';
       const expiresHours=Number(root.querySelector('#shareExpirySelect')?.value||168);
-      const d=await apiJSON('create-art-share',{method:'POST',body:{galleryId,expiresHours}});
+      const galleryIds=[...root.querySelectorAll('[data-share-art-option] input:checked')].map(x=>x.value);
+      if(!galleryIds.length)throw new Error('Selecione pelo menos uma arte para compartilhar.');
+      const d=await apiJSON('create-art-share',{method:'POST',body:{galleryId,galleryIds,expiresHours}});
       const url=new URL(d.sharePath||`/share.html?token=${encodeURIComponent(d.token)}`,location.origin).href;
       const box=root.querySelector('#shareGeneratedBox');
       box.innerHTML=`<div class="share-created-box">
@@ -6800,7 +6874,7 @@ function billingCouponActive(c){return c?.active!==false&&(!c?.valid_until||new 
 function billingCouponSignupLink(c){return `${location.origin}${location.pathname}?coupon=${encodeURIComponent(c.code)}`}
 function billingCouponUsageLabel(c){if(c.kind==='individual')return Number(c.usedCount||0)>0?'USADO / BLOQUEADO':'1 uso';if(c.unlimited)return'Ilimitado';return `${Number(c.usedCount)||0}/${Number(c.max_redemptions)||0} contas`}
 function copyTextSafe(txt){if(navigator.clipboard?.writeText)return navigator.clipboard.writeText(txt);const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();return Promise.resolve();}
-async function loadBillingAdmin(){if(!state.user?.isAdmin)return;const d=await billingAdminJSON('bootstrap');state.billing={...state.billing,...d};}
+async function loadBillingAdmin(){if(!state.user?.isAdmin)return;const [d,cycle]=await Promise.all([billingAdminJSON('bootstrap'),billingAdminJSON('credit-cycle-stats').catch(()=>null)]);state.billing={...state.billing,...d,creditCycleStats:cycle};}
 
 function syncPlansCurrentPlan(){
   try{
@@ -6898,12 +6972,13 @@ function renderSubscriptionAdmin(){
   const totalArts=members.reduce((a,u)=>a+(Number(u.monthlyArts)||0),0),totalCost=members.reduce((a,u)=>a+(Number(u.monthlyCostBRL)||0),0),totalRevenue=churches.reduce((a,c)=>a+(Number(currentChurchSubscription(c.id)?.price_monthly)||0),0);
   const memberRows=members.map(u=>{const ch=churches.find(c=>c.id===u.church_id),sub=currentChurchSubscription(u.church_id),plan=billingPlan(sub?.plan_id);return `<tr><td>${esc(u.name||'—')}</td><td>${esc(u.email||'—')}</td><td>${esc(ch?.name||'—')}</td><td>${esc(u.role==='owner'?'Responsável':'Colaborador')}</td><td>${esc(plan?.name||'Sem plano')}</td><td>${Number(u.monthlyArts)||0}</td><td>${billingBRL(u.monthlyCostBRL)}</td></tr>`}).join('');
   const activeAdminChurch=churches.find(c=>c.id===state.activeChurchId)||null,activeAdminSub=currentChurchSubscription(state.activeChurchId),activeAdminPlan=billingPlan(activeAdminSub?.plan_id),adminCreditTarget=Math.max(0,Number(activeAdminPlan?.credits_monthly)||0),adminCreditBalance=Math.max(0,Number(state.user?.credits)||0);
+  const cycleStats=state.billing?.creditCycleStats||null,cycleArts=Math.max(0,Number(cycleStats?.artCount)||0),cycleCredits=Math.max(0,Number(cycleStats?.creditsSpent)||0),cycleSince=cycleStats?.lastRecharge?.createdAt?formatDateTime(cycleStats.lastRecharge.createdAt):'Sem recarga registrada';
   const churchRows=churches.map(c=>{const sub=currentChurchSubscription(c.id),plan=billingPlan(sub?.plan_id);return `<div class="billing-plan-row"><strong>${esc(c.name||'Igreja sem nome')}</strong><small>${esc(plan?.name||'Sem assinatura ativa')} • ${billingBRL(sub?.price_monthly||0)}</small><div style="display:grid;grid-template-columns:1fr auto;gap:7px;margin-top:8px"><select data-sub-plan="${esc(c.id)}"><option value="">Selecionar plano…</option>${plans.map(p=>`<option value="${p.id}" ${p.id===sub?.plan_id?'selected':''}>${esc(p.name)} • ${billingBRL(p.price_monthly)}</option>`).join('')}</select><button class="mini-btn" data-save-sub="${esc(c.id)}">Aplicar</button></div></div>`}).join('');
   root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel billing-admin-panel"><div class="modal-head"><div><h2>Gerenciamento de assinaturas</h2><div class="billing-provider-pill">Supabase real • pagamento externo ainda desconectado</div></div><div class="billing-head-actions"><button class="mini-btn" id="openCostHistoryBtn" type="button">Histórico de custos</button><button class="close-modal" onclick="closeModal()">×</button></div></div><div class="modal-body">
   <div class="billing-kpis"><div class="billing-kpi"><small>IGREJAS</small><strong>${churches.length}</strong></div><div class="billing-kpi"><small>USUÁRIOS ATIVOS</small><strong>${members.length}</strong></div><div class="billing-kpi"><small>ARTES NO MÊS</small><strong>${totalArts}</strong></div><div class="billing-kpi"><small>RECEITA/MÊS</small><strong>${billingBRL(totalRevenue)}</strong></div><div class="billing-kpi"><small>CUSTO IA REGISTRADO</small><strong>${billingBRL(totalCost)}</strong></div></div>
   <div class="billing-admin-grid"><section class="billing-users-panel"><div class="billing-section-title"><div><h3>Usuários e consumo</h3><small>Dados reais do tenant e generation_usage</small></div></div><div class="billing-table-wrap"><table class="billing-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Igreja</th><th>Função</th><th>Plano</th><th>Artes</th><th>Custo registrado</th></tr></thead><tbody>${memberRows||'<tr><td colspan="7">Nenhum usuário.</td></tr>'}</tbody></table></div><div class="billing-section-title" style="margin-top:14px"><div><h3>Assinatura por igreja</h3><small>Plano pertence à igreja, não ao usuário</small></div></div><div class="billing-plan-list">${churchRows||'<div class="billing-status">Nenhuma igreja.</div>'}</div></section>
   <section class="billing-coupon-panel"><div class="billing-section-title"><div><h3>Planos</h3><small>Cadastre preços e limites quando decidir</small></div></div><div class="billing-form-grid"><div class="field"><label>Código</label><input id="planCode" placeholder="pro"></div><div class="field"><label>Nome</label><input id="planName" placeholder="Pro"></div><div class="field"><label>Preço mensal</label><input id="planPrice" type="number" min="0" step="0.01" value="0"></div><div class="field"><label>Créditos/mês</label><input id="planCredits" type="number" min="0" placeholder="deixar vazio"></div><div class="field"><label>Limite referências</label><input id="planRefs" type="number" min="0" placeholder="deixar vazio"></div><div class="field"><label>Usuários</label><input id="planUsers" type="number" min="1" max="3" value="3"></div></div><button class="btn primary" id="savePlanBtn" style="width:100%;margin-top:9px">Salvar plano</button><div class="billing-plan-list" style="margin-top:10px">${plans.map(p=>`<div class="billing-plan-row"><strong>${esc(p.name)} <span style="color:var(--muted)">(${esc(p.code)})</span></strong><small>${billingBRL(p.price_monthly)} • ${p.credits_monthly??'créditos indefinidos'} • ${p.reference_limit??'referências indefinidas'} • até ${p.user_limit} usuários</small></div>`).join('')||'<div class="billing-status">Nenhum plano cadastrado ainda.</div>'}</div><hr style="border:0;border-top:1px solid var(--line);margin:14px 0"><div class="billing-section-title"><div><h3>Gerador de cupons</h3><small>Persistência real no Supabase</small></div></div><div class="billing-form-grid"><div class="field wide"><label>Código</label><input id="couponCode" placeholder="DESCONTACO"></div><div class="field"><label>Desconto (%)</label><input id="couponPercent" type="number" min="1" max="100" value="20"></div><div class="field"><label>Vigência (meses)</label><input id="couponDuration" type="number" min="1" max="60" value="6"></div><div class="field"><label>Válido até</label><input id="couponValidUntil" type="date"></div><div class="field"><label>Plano</label><select id="couponPlan"><option value="">Todos</option>${plans.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div><div class="field wide"><label>Tipo</label><div class="billing-coupon-kind"><button type="button" class="active" data-coupon-kind="individual">Individual</button><button type="button" data-coupon-kind="collective">Coletivo</button></div></div><div class="field wide screen-theme-hidden" id="couponCollectiveOptions"><label>Limite de contas</label><div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center"><input id="couponMaxAccounts" type="number" min="1" value="10"><label style="display:flex;align-items:center;gap:6px;font-size:9px"><input id="couponUnlimited" type="checkbox"> Ilimitado</label></div></div></div><button class="btn primary" id="createCouponBtn" style="width:100%;margin-top:10px">Gerar cupom + link</button><div class="billing-coupon-list">${coupons.map(c=>`<div class="billing-coupon-row"><div><strong>${esc(c.code)}</strong><small style="display:block;color:var(--muted)">${Number(c.discount_value)||0}% • ${c.plan_id?esc(billingPlan(c.plan_id)?.name||'Plano'):'Todos os planos'} • ${billingCouponUsageLabel(c)} • ${billingCouponActive(c)?'ATIVO':'INDISPONÍVEL'}</small><div class="billing-link-box"><input readonly value="${esc(billingCouponSignupLink(c))}"><button class="mini-btn" data-copy-coupon="${esc(c.id)}">Copiar link</button></div></div><button class="mini-btn" data-delete-coupon="${esc(c.id)}">Desativar</button></div>`).join('')||'<div class="billing-status">Nenhum cupom ativo.</div>'}</div></section></div>
-  <section class="billing-payments-panel"><div class="billing-section-title"><div><h3>Pagamento</h3><small>Asaas conectado • assinatura e webhooks ativos</small></div></div><div class="billing-status">Cobranças de clientes seguem o fluxo normal do Asaas. A recarga abaixo é um benefício administrativo interno e não cria pagamento.</div><div class="billing-admin-credit-box"><strong>Créditos administrativos • igreja ativa</strong><small>${esc(activeAdminChurch?.name||'Igreja ativa')} • ${esc(activeAdminPlan?.name||'Sem plano elegível')}. A recarga leva o saldo até a franquia mensal do plano, sem passar pelo Asaas e sem alterar a assinatura.</small><div class="billing-admin-credit-row"><div><div class="billing-admin-credit-balance">${adminCreditBalance} créditos</div><small>Franquia atual: ${adminCreditTarget||'—'}</small></div><button class="btn primary" id="adminRechargeCreditsBtn" type="button" ${!activeAdminPlan||!adminCreditTarget?'disabled':''}>Recarregar para ${adminCreditTarget||'franquia'}</button></div></div></section></div></div></div>`;
+  <section class="billing-payments-panel"><div class="billing-section-title"><div><h3>Pagamento</h3><small>Asaas conectado • assinatura e webhooks ativos</small></div></div><div class="billing-status">Cobranças de clientes seguem o fluxo normal do Asaas. A recarga abaixo é um benefício administrativo interno e não cria pagamento.</div><div class="billing-admin-credit-box"><strong>Créditos administrativos • igreja ativa</strong><small>${esc(activeAdminChurch?.name||'Igreja ativa')} • ${esc(activeAdminPlan?.name||'Sem plano elegível')}. A recarga leva o saldo até a franquia mensal do plano, sem passar pelo Asaas e sem alterar a assinatura.</small><div class="billing-admin-credit-row"><div><div class="billing-admin-credit-balance">${adminCreditBalance} créditos</div><small>Franquia atual: ${adminCreditTarget||'—'}</small></div><button class="btn primary" id="adminRechargeCreditsBtn" type="button" ${!activeAdminPlan||!adminCreditTarget?'disabled':''}>Recarregar para ${adminCreditTarget||'franquia'}</button></div><div class="billing-cycle-usage"><div><small>Artes desde a recarga</small><strong>${cycleArts}</strong></div><div><small>Créditos consumidos</small><strong>${cycleCredits}</strong></div><div><small>Última recarga</small><strong style="font-size:9px">${esc(cycleSince)}</strong></div></div><small class="billing-cycle-usage-note">Conta operações concluídas desde a última recarga administrativa ou renovação mensal registrada no ledger.</small></div></section></div></div></div>`;
   root.querySelector('#openCostHistoryBtn')?.addEventListener('click',openCostHistory);
   let couponKind='individual';const kindBtns=[...root.querySelectorAll('[data-coupon-kind]')],collectiveBox=root.querySelector('#couponCollectiveOptions');kindBtns.forEach(btn=>btn.onclick=()=>{couponKind=btn.dataset.couponKind;kindBtns.forEach(x=>x.classList.toggle('active',x===btn));collectiveBox?.classList.toggle('screen-theme-hidden',couponKind!=='collective')});root.querySelector('#couponUnlimited')?.addEventListener('change',e=>{const inp=root.querySelector('#couponMaxAccounts');if(inp)inp.disabled=e.target.checked});
   root.querySelector('#savePlanBtn')?.addEventListener('click',async()=>{try{await billingAdminJSON('save-plan',{method:'POST',body:{code:root.querySelector('#planCode')?.value,name:root.querySelector('#planName')?.value,priceMonthly:root.querySelector('#planPrice')?.value,creditsMonthly:root.querySelector('#planCredits')?.value,referenceLimit:root.querySelector('#planRefs')?.value,userLimit:root.querySelector('#planUsers')?.value}});await loadBillingAdmin();renderSubscriptionAdmin()}catch(e){appAlert(e.message)}});
@@ -8385,9 +8460,9 @@ function renderQuickResults(){
   renderCostSupervisor();
 }
 function renderQuickResultsHTML(){if(!state.quickResults.length)return '';return `<div class="card"><h3>Artes desta criação</h3><p style="margin-bottom:10px">A geração entrega primeiro uma arte base sem logos. Finalize no Assistente de Logos para liberar download e artes derivadas.</p><div class="quick-results-row">${state.quickResults.map((r,i)=>quickResultCardHTML(r,i)).join('')}</div></div>`;}
-function versionAdaptButtons(sourceKey,parentIndex){const standard=['feed','story','youtube','screen','square','wide16','fourthree','threetwo'].map(f=>{const t=quickTargetSpec(f);return `<button class="quick-adapt-btn" data-qadapt-source="${parentIndex}|${sourceKey}|${f}" type="button">${t.label}</button>`}).join('');return standard+`<button class="quick-adapt-btn" data-qadapt-source="${parentIndex}|${sourceKey}|background" type="button">Fundo</button><span class="background-derivative-note">Fundo — mantém fundo, elementos visuais e foto da igreja (caso haja).</span><button class="quick-adapt-btn" data-qadapt-source="${parentIndex}|${sourceKey}|free" type="button">Modo Livre</button>`;}
-function correctionVersionHTML(c,parentIndex,j){const key=`correction:${parentIndex}:${j}`,done=c.finalized===true;return `<div class="quick-correction-version" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><img src="${c.dataUrl}" style="width:100%;border-radius:10px"><h4 style="margin-top:8px">${esc(c.label||`Correção ${j+1}`)}</h4><div class="quick-actions">${done?`<button class="mini-btn download-btn" data-qdownload-correction="${parentIndex}-${j}">↓ Baixar</button>`:`<button class="mini-btn proceed-btn" data-qproceed-correction="${parentIndex}-${j}">Prosseguir →</button>`}<button class="mini-btn" data-qfullscreen-correction="${parentIndex}-${j}">⛶ Tela cheia</button><button class="mini-btn art-report-btn" data-qreport-correction="${parentIndex}-${j}">📝 Relatório</button></div>${done?`<strong style="font-size:9px">Gerar arte derivada a partir DESTA versão</strong><div class="quick-adapt-grid">${versionAdaptButtons(key,parentIndex)}</div>`:`<small style="display:block;color:var(--muted);font-size:8px">Finalize as logos antes de baixar ou gerar derivadas.</small>`}<div id="quickAdaptConfig-${parentIndex}-correction-${j}"></div></div>`;}
-function quickResultCardHTML(r,i){const key=`main:${i}`,done=r.finalized===true;return `<div class="quick-result-card" id="quickResultCard-${i}"><img src="${r.dataUrl}"><div class="quick-result-body"><h4>${esc(r.label)} • ${esc(r.target.label)}${done?' • finalizada':' • arte base'}</h4><div class="quick-actions">${done?`<button class="mini-btn download-btn" data-qdownload="${i}">↓ Baixar</button>`:`<button class="mini-btn proceed-btn" data-qproceed="${i}">Prosseguir →</button>`}<button class="mini-btn" data-qfullscreen="${i}">⛶ Tela cheia</button><button class="mini-btn art-report-btn" data-qreport="${i}">📝 Relatório</button>${i===state.quickResults.length-1&&i<2?`<button class="mini-btn" data-qvariation="${i+1}">Gerar variação ${i+1}</button>`:''}<button class="mini-btn" data-qreload="${i}">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:8px"><label>Correção desta arte</label><textarea data-qcorrection="${i}">${esc(r.correction||'')}</textarea></div>${done?`<strong style="font-size:9px">Gerar artes derivadas a partir DESTA versão</strong><div class="quick-adapt-grid">${versionAdaptButtons(key,i)}</div>`:`<small style="display:block;color:var(--muted);font-size:8px">O download e as artes derivadas serão liberados depois do Assistente de Logos.</small>`}<div id="quickAdaptConfig-${i}"></div>${[...(r.corrections||[])].map((c,j)=>({c,j})).reverse().map(x=>correctionVersionHTML(x.c,i,x.j)).join('')}<div class="quick-adaptations" id="quickAdaptations-${i}">${[...(r.adaptations||[])].reverse().map(a=>quickAdaptationHTML(a,i)).join('')}</div></div></div>`;}
+function versionAdaptButtons(sourceKey,parentIndex){return `<button class="btn ghost derivative-open-btn" data-open-derivative="${parentIndex}|${sourceKey}" type="button" style="width:100%;margin-top:8px">＋ Criar nova derivada a partir desta arte</button>`;}
+function correctionVersionHTML(c,parentIndex,j){const key=`correction:${parentIndex}:${j}`,done=c.finalized===true;return `<div class="quick-correction-version" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><img src="${c.dataUrl}" style="width:100%;border-radius:10px"><h4 style="margin-top:8px">${esc(c.label||`Correção ${j+1}`)}</h4><div class="quick-actions">${done?`<button class="mini-btn download-btn" data-qdownload-correction="${parentIndex}-${j}">↓ Baixar</button>`:`<button class="mini-btn proceed-btn" data-qproceed-correction="${parentIndex}-${j}">Prosseguir →</button>`}<button class="mini-btn" data-qfullscreen-correction="${parentIndex}-${j}">⛶ Tela cheia</button><button class="mini-btn art-report-btn" data-qreport-correction="${parentIndex}-${j}">📝 Relatório</button></div>${done?`<div>${versionAdaptButtons(key,parentIndex)}</div>`:`<small style="display:block;color:var(--muted);font-size:8px">Finalize as logos antes de baixar ou gerar derivadas.</small>`}<div id="quickAdaptConfig-${parentIndex}-correction-${j}"></div></div>`;}
+function quickResultCardHTML(r,i){const key=`main:${i}`,done=r.finalized===true;return `<div class="quick-result-card" id="quickResultCard-${i}"><img src="${r.dataUrl}"><div class="quick-result-body"><h4>${esc(r.label)} • ${esc(r.target.label)}${done?' • finalizada':' • arte base'}</h4><div class="quick-actions">${done?`<button class="mini-btn download-btn" data-qdownload="${i}">↓ Baixar</button>`:`<button class="mini-btn proceed-btn" data-qproceed="${i}">Prosseguir →</button>`}<button class="mini-btn" data-qfullscreen="${i}">⛶ Tela cheia</button><button class="mini-btn art-report-btn" data-qreport="${i}">📝 Relatório</button>${i===state.quickResults.length-1&&i<2?`<button class="mini-btn" data-qvariation="${i+1}">Gerar variação ${i+1}</button>`:''}<button class="mini-btn" data-qreload="${i}">↻ Corrigir / redesenhar</button></div><div class="field" style="margin-top:8px"><label>Correção desta arte</label><textarea data-qcorrection="${i}">${esc(r.correction||'')}</textarea></div>${done?`<div>${versionAdaptButtons(key,i)}</div>`:`<small style="display:block;color:var(--muted);font-size:8px">O download e as artes derivadas serão liberados depois do Assistente de Logos.</small>`}<div id="quickAdaptConfig-${i}"></div>${[...(r.corrections||[])].map((c,j)=>({c,j})).reverse().map(x=>correctionVersionHTML(x.c,i,x.j)).join('')}<div class="quick-adaptations" id="quickAdaptations-${i}">${[...(r.adaptations||[])].reverse().map(a=>quickAdaptationHTML(a,i)).join('')}</div></div></div>`;}
 function currentCorrectionForSource(sourceKey,parentIndex){
   const m=String(sourceKey||'').match(/^main:(\d+)$/);
   if(m){const t=document.querySelector(`[data-qcorrection="${m[1]}"]`);return String(t?.value||'').trim()}
@@ -8429,6 +8504,180 @@ function derivativePastorOverrideValue(box){
     return {ok:false,enabled:false,id:''};
   }
   return {ok:true,enabled,id};
+}
+
+
+const DERIVATIVE_PRESETS=[
+  {id:'yt-right',format:'youtube',group:'youtube',name:'Pregador à direita',sketch:'right',prompt:'LAYOUT FIXO: pregador no lado direito ocupando aproximadamente 35–42% da largura; título principal grande no lado esquerdo; informações secundárias abaixo do título. Preserve essa estrutura.'},
+  {id:'yt-left',format:'youtube',group:'youtube',name:'Pregador à esquerda',sketch:'left',prompt:'LAYOUT FIXO: pregador no lado esquerdo ocupando aproximadamente 35–42% da largura; título principal grande no lado direito; informações secundárias abaixo do título. Preserve essa estrutura.'},
+  {id:'yt-center',format:'youtube',group:'youtube',name:'Pregador central + título embaixo',sketch:'center',prompt:'LAYOUT FIXO: pregador central como foco; título principal concentrado na faixa inferior sem cobrir o rosto; composição simétrica.'},
+  {id:'yt-behind',format:'youtube',group:'youtube',name:'Título atrás do pregador',sketch:'behind',prompt:'LAYOUT FIXO: pregador central em primeiro plano; título tipográfico muito grande atravessando o fundo atrás do corpo, sem cobrir o rosto.'},
+  {id:'feed-right',format:'feed',group:'feed',name:'Retrato lateral',sketch:'right',prompt:'LAYOUT FIXO FEED 4:5: pregador à direita; título forte à esquerda; hierarquia vertical limpa; dados secundários na base.'},
+  {id:'feed-left',format:'feed',group:'feed',name:'Retrato invertido',sketch:'left',prompt:'LAYOUT FIXO FEED 4:5: pregador à esquerda; título forte à direita; dados secundários na base.'},
+  {id:'feed-center',format:'feed',group:'feed',name:'Pregador central',sketch:'center',prompt:'LAYOUT FIXO FEED 4:5: pregador central; título principal abaixo ou ao redor do corpo sem encobrir rosto e mãos.'},
+  {id:'feed-type',format:'feed',group:'feed',name:'Tipografia dominante',sketch:'behind',prompt:'LAYOUT FIXO FEED 4:5: tipografia é o elemento dominante; pessoa, se houver, funciona como camada secundária integrada.'},
+  {id:'story-right',format:'story',group:'story',name:'Pessoa embaixo / texto acima',sketch:'center',prompt:'LAYOUT FIXO STORIES 9:16: título e chamada na metade superior; pessoa concentrada na metade inferior; safe area forte nas extremidades.'},
+  {id:'story-left',format:'story',group:'story',name:'Pessoa lateral',sketch:'right',prompt:'LAYOUT FIXO STORIES 9:16: pessoa à direita; coluna textual vertical à esquerda; informações secundárias empilhadas.'},
+  {id:'story-type',format:'story',group:'story',name:'Título central',sketch:'clean',prompt:'LAYOUT FIXO STORIES 9:16: título central dominante; composição limpa e vertical; pessoa opcional como apoio visual.'},
+  {id:'screen-background',format:'screen',group:'screen',name:'Modo Fundo',sketch:'clean',backgroundMode:true,prompt:'MODO FUNDO: preserve somente identidade, atmosfera, fundo e foto real da igreja quando houver; remova conteúdo informacional.'},
+  {id:'screen-theme',format:'screen',group:'screen',name:'Modo Tema',sketch:'clean',screenThemeMode:true,screenInfoPct:30,prompt:'MODO TEMA: título como único conteúdo principal, centralizado, ocupando cerca de 30% da área útil.'},
+  {id:'screen-right',format:'screen',group:'screen',name:'Pregador à direita',sketch:'right',screenOccupancyMode:true,screenInfoPct:30,prompt:'LAYOUT FIXO TELÃO: pregador à direita, bloco de informações à esquerda, área central respirando.'},
+  {id:'screen-left',format:'screen',group:'screen',name:'Pregador à esquerda',sketch:'left',screenOccupancyMode:true,screenInfoPct:30,prompt:'LAYOUT FIXO TELÃO: pregador à esquerda, bloco de informações à direita, área central respirando.'}
+];
+
+function derivativeFamilyCandidates(sourceNode){
+  const out=[],seen=new Set();
+  const push=(x)=>{
+    const id=String(x?.galleryId||x?.id||x?.key||x?.url||'');if(!id||seen.has(id))return;seen.add(id);
+    out.push(x);
+  };
+  if(sourceNode?.galleryId){
+    const fam=galleryFamilyForItem(sourceNode.galleryId);
+    (fam?.members||[]).slice().sort((a,b)=>galleryItemTime(a)-galleryItemTime(b)).forEach(item=>push({
+      key:`gallery:${item.galleryId}`,galleryId:item.galleryId,label:item.label||item.recipe?.projectName||'Arte',
+      dataUrl:item.url||item.dataUrl,baseDataUrl:item.baseUrl||item.url||item.dataUrl,sourceUrl:item.baseUrl||item.url||item.dataUrl,
+      target:item.target||item.recipe?.target||quickTargetSpec(item.format||item.recipe?.format||'feed'),
+      requiredContent:item.recipe?.requiredContent||{},assets:item.recipe?.assets||{},instruction:item.recipe?.instruction||'',artDirection:item.recipe?.artDirection||null,recipe:item.recipe||{}
+    }));
+  }
+  quickReferenceCandidates().forEach(push);
+  push(sourceNode);
+  return out.filter(x=>x?.dataUrl||x?.baseDataUrl||x?.sourceUrl);
+}
+function derivativeSourceFromCandidate(c){
+  if(String(c?.key||'').startsWith('gallery:')){
+    const item=findGalleryItem(c.galleryId);if(item)return galleryItemToQuickResult(item);
+  }
+  return c;
+}
+function derivativeFormatSketch(t){const w=Number(t.width)||1080,h=Number(t.height)||1350,r=w/h;if(r<.72)return'width:15px;height:26px';if(r<.95)return'width:20px;height:25px';if(r<1.1)return'width:24px;height:24px';return'width:31px;height:18px'}
+function derivativeFormatCards(selected='feed'){
+  return quickFormats.map(f=>{const t=quickTargetSpec(f.id);return `<button type="button" class="derivative-format-card ${f.id===selected?'active':''}" data-derivative-format="${f.id}"><i style="${derivativeFormatSketch(t)}"></i><b>${esc(t.label)}</b><small>${t.width}×${t.height}</small></button>`}).join('');
+}
+function derivativeAssetCards(type,selectedIds=[]){
+  const assets=(state.library.assets||[]).filter(a=>a.type===type||(type==='graphic'&&a.type==='graphic'&&a.meta?.category!=='event_logo'));
+  return assets.length?assets.map(a=>`<button type="button" class="derivative-asset-card ${selectedIds.includes(String(a.id))?'active':''}" data-derivative-asset="${type}|${esc(a.id)}"><img src="${esc(a.url)}"><span>${esc(a.meta?.displayName||a.name||type)}</span></button>`).join(''):`<div class="derivative-result-empty">Nenhum arquivo salvo em Minha Igreja.</div>`;
+}
+function derivativePresetCards(group){
+  return DERIVATIVE_PRESETS.filter(x=>x.group===group).map(p=>`<button type="button" class="derivative-preset" data-derivative-preset="${p.id}"><div class="layout-sketch ${p.sketch}"><i class="person"></i><i class="copy"></i><i class="copy s"></i></div><strong>${esc(p.name)}</strong><small>${esc(quickTargetSpec(p.format).label)}</small></button>`).join('');
+}
+function derivativeManualSections(state0){
+  return `
+  <section class="derivative-section mobile-active" data-mobile-step="0"><div class="derivative-section-title"><strong>Novo tamanho</strong><small>Escolha o formato da próxima arte</small></div><div class="derivative-format-grid">${derivativeFormatCards(state0.format)}</div></section>
+  <section class="derivative-section" data-mobile-step="1"><div class="derivative-section-title"><strong>Pregador</strong><small>Manter, trocar, adicionar ou remover</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['add','Adicionar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.pastorMode===x[0]?'active':''}" data-pastor-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid" data-pastor-assets>${derivativeAssetCards('pastor',state0.pastorIds)}</div><div class="derivative-treatment"><button type="button" data-pastor-treatment="original" class="${state0.pastorTreatment==='original'?'active':''}">Manter tratamento</button><button type="button" data-pastor-treatment="bw" class="${state0.pastorTreatment==='bw'?'active':''}">Preto e branco</button><button type="button" data-pastor-treatment="ai" class="${state0.pastorTreatment==='ai'?'active':''}">IA escolhe</button></div></section>
+  <section class="derivative-section" data-mobile-step="2"><div class="derivative-section-title"><strong>Foto da igreja / fundo</strong><small>Fotografia protegida contra deformação</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.churchMode===x[0]?'active':''}" data-church-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid">${derivativeAssetCards('church',state0.churchId?[state0.churchId]:[])}</div></section>
+  <section class="derivative-section" data-mobile-step="3"><div class="derivative-section-title"><strong>Elementos PNG</strong><small>Até 3 elementos</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['add','Adicionar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.graphicMode===x[0]?'active':''}" data-graphic-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid">${derivativeAssetCards('graphic',state0.graphicIds)}</div></section>
+  <section class="derivative-section" data-mobile-step="4"><div class="derivative-section-title"><strong>Novas instruções</strong><small>Estas ordens vencem qualquer instrução antiga</small></div><textarea class="derivative-textarea" data-derivative-instruction placeholder="Descreva apenas o que deseja mudar nesta nova arte...">${esc(state0.instruction||'')}</textarea></section>
+  <div class="derivative-generate-wrap"><button class="btn primary derivative-generate-btn" type="button" data-derivative-generate>✦ Gerar nova derivada</button></div>`;
+}
+function derivativePresetSections(state0){
+  const group=state0.presetGroup||'feed';
+  return `
+  <section class="derivative-section mobile-active" data-mobile-step="0"><div class="derivative-section-title"><strong>Tipo de arte</strong><small>Selecione uma família de layouts</small></div><div class="derivative-choice-row">${[['feed','Feed'],['story','Stories'],['youtube','YouTube'],['screen','Telão']].map(x=>`<button class="derivative-choice ${group===x[0]?'active':''}" data-preset-group="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-presets" data-preset-list>${derivativePresetCards(group)}</div></section>
+  <section class="derivative-section" data-mobile-step="1"><div class="derivative-section-title"><strong>Observações</strong><small>Opcional</small></div><textarea class="derivative-textarea" data-derivative-observation placeholder="Ex.: deixe o título menor e use mais espaço negativo...">${esc(state0.observation||'')}</textarea><div class="derivative-preset-note">A IA seguirá primeiro a estrutura do layout escolhido e tentará acomodar suas observações depois, sem descaracterizar o modelo.</div></section>
+  <div class="derivative-generate-wrap"><button class="btn primary derivative-generate-btn" type="button" data-derivative-generate>✦ Gerar variação programada</button></div>`;
+}
+function derivativeStudioSourceHTML(st){
+  const s=st.source,items=st.candidates||[];
+  return `<div class="derivative-panel derivative-source-panel"><div class="derivative-panel-head"><div><strong>Arte de origem</strong><small>Fonte principal de verdade visual</small></div></div><div class="derivative-stage"><img data-derivative-source-img src="${esc(s?.dataUrl||s?.baseDataUrl||s?.sourceUrl||'')}"><button class="derivative-fullscreen" type="button" data-source-fullscreen>⛶</button></div><div class="derivative-source-strip">${items.map((x,i)=>`<button class="derivative-source-thumb ${String(x.key||x.galleryId||'')===String(st.sourceKey||'')?'active':''}" type="button" data-source-candidate="${i}" title="${esc(x.label||'Arte')}"><img src="${esc(x.dataUrl||x.baseDataUrl||x.sourceUrl||'')}"></button>`).join('')}</div></div>`;
+}
+function derivativeStudioResultHTML(st){
+  const r=st.result;
+  return `<div class="derivative-panel derivative-result-panel"><div class="derivative-panel-head"><div><strong>Nova arte</strong><small>${r?'Resultado atual':'Aguardando geração'}</small></div></div><div class="derivative-stage">${r?`<img data-derivative-result-img src="${esc(r.dataUrl||r.baseDataUrl||'')}"><button class="derivative-fullscreen" type="button" data-result-fullscreen>⛶</button>`:`<div class="derivative-result-empty">A nova arte aparecerá aqui.<br>No celular, esta janela permanece fixa enquanto você configura as etapas acima.</div>`}</div>${r?`<div class="derivative-result-actions"><button class="mini-btn" type="button" data-result-use-source>Usar como nova origem</button><button class="mini-btn" type="button" data-result-proceed>Prosseguir →</button></div>`:''}</div>`;
+}
+function derivativeStudioRenderBody(ov){
+  const st=ov.__derivativeState;
+  const config=st.tab==='manual'?derivativeManualSections(st):derivativePresetSections(st);
+  const grid=ov.querySelector('[data-derivative-grid]');
+  grid.innerHTML=`${derivativeStudioSourceHTML(st)}<div class="derivative-panel derivative-config-panel"><div class="derivative-panel-head"><div><strong>${st.tab==='manual'?'Selecione o que deseja na nova arte':'Escolha um layout pronto'}</strong><small>${st.tab==='manual'?'Configure somente o que deseja mudar':'A estrutura escolhida tem prioridade'}</small></div></div><div class="derivative-config-scroll">${config}</div></div>${derivativeStudioResultHTML(st)}`;
+  bindDerivativeStudioBody(ov);
+}
+function derivativeStudioSetMobileStep(ov,n){
+  const st=ov.__derivativeState,sections=[...ov.querySelectorAll('[data-mobile-step]')];
+  const max=Math.max(0,sections.length-1);st.mobileStep=Math.max(0,Math.min(max,n));
+  sections.forEach(x=>x.classList.toggle('mobile-active',Number(x.dataset.mobileStep)===st.mobileStep));
+  const prev=ov.querySelector('[data-derivative-prev]'),next=ov.querySelector('[data-derivative-next]');
+  if(prev)prev.disabled=st.mobileStep<=0;
+  if(next){next.textContent=st.mobileStep>=max?'Gerar':'Próximo';next.dataset.final=st.mobileStep>=max?'1':''}
+}
+function derivativeCollectUI(ov){
+  const st=ov.__derivativeState;
+  st.instruction=String(ov.querySelector('[data-derivative-instruction]')?.value||st.instruction||'').trim();
+  st.observation=String(ov.querySelector('[data-derivative-observation]')?.value||st.observation||'').trim();
+}
+function bindDerivativeStudioBody(ov){
+  const st=ov.__derivativeState;
+  ov.querySelector('[data-source-fullscreen]')?.addEventListener('click',()=>openArtworkFullscreen(st.source?.dataUrl||st.source?.baseDataUrl||st.source?.sourceUrl,st.source?.label||'Arte de origem'));
+  ov.querySelector('[data-result-fullscreen]')?.addEventListener('click',()=>{if(st.result)openArtworkFullscreen(st.result.dataUrl||st.result.baseDataUrl,st.result.label||'Nova arte')});
+  ov.querySelectorAll('[data-source-candidate]').forEach(b=>b.onclick=()=>{
+    derivativeCollectUI(ov);const c=st.candidates[Number(b.dataset.sourceCandidate)];if(!c)return;
+    st.sourceKey=String(c.key||c.galleryId||`candidate:${b.dataset.sourceCandidate}`);st.source=derivativeSourceFromCandidate(c);
+    derivativeStudioRenderBody(ov);
+  });
+  ov.querySelectorAll('[data-derivative-format]').forEach(b=>b.onclick=()=>{st.format=b.dataset.derivativeFormat;ov.querySelectorAll('[data-derivative-format]').forEach(x=>x.classList.toggle('active',x===b))});
+  ov.querySelectorAll('[data-pastor-mode]').forEach(b=>b.onclick=()=>{st.pastorMode=b.dataset.pastorMode;ov.querySelectorAll('[data-pastor-mode]').forEach(x=>x.classList.toggle('active',x===b))});
+  ov.querySelectorAll('[data-church-mode]').forEach(b=>b.onclick=()=>{st.churchMode=b.dataset.churchMode;ov.querySelectorAll('[data-church-mode]').forEach(x=>x.classList.toggle('active',x===b))});
+  ov.querySelectorAll('[data-graphic-mode]').forEach(b=>b.onclick=()=>{st.graphicMode=b.dataset.graphicMode;ov.querySelectorAll('[data-graphic-mode]').forEach(x=>x.classList.toggle('active',x===b))});
+  ov.querySelectorAll('[data-pastor-treatment]').forEach(b=>b.onclick=()=>{st.pastorTreatment=b.dataset.pastorTreatment;ov.querySelectorAll('[data-pastor-treatment]').forEach(x=>x.classList.toggle('active',x===b))});
+  ov.querySelectorAll('[data-derivative-asset]').forEach(b=>b.onclick=()=>{
+    const [type,id]=b.dataset.derivativeAsset.split('|');
+    if(type==='pastor'){
+      if(st.pastorMode==='replace')st.pastorIds=[id];
+      else if(st.pastorMode==='add'){st.pastorIds=st.pastorIds.includes(id)?st.pastorIds.filter(x=>x!==id):[...st.pastorIds,id].slice(-3)}
+      else{st.pastorMode='replace';st.pastorIds=[id]}
+    }else if(type==='church'){st.churchMode='replace';st.churchId=id}
+    else if(type==='graphic'){
+      if(st.graphicMode==='replace')st.graphicIds=st.graphicIds.includes(id)?st.graphicIds.filter(x=>x!==id):[...st.graphicIds,id].slice(0,3);
+      else if(st.graphicMode==='add')st.graphicIds=st.graphicIds.includes(id)?st.graphicIds.filter(x=>x!==id):[...st.graphicIds,id].slice(0,3);
+      else{st.graphicMode='replace';st.graphicIds=[id]}
+    }
+    derivativeStudioRenderBody(ov);
+  });
+  ov.querySelectorAll('[data-preset-group]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.presetGroup=b.dataset.presetGroup;st.presetId='';derivativeStudioRenderBody(ov)});
+  ov.querySelectorAll('[data-derivative-preset]').forEach(b=>b.onclick=()=>{st.presetId=b.dataset.derivativePreset;const p=DERIVATIVE_PRESETS.find(x=>x.id===st.presetId);if(p)st.format=p.format;ov.querySelectorAll('[data-derivative-preset]').forEach(x=>x.classList.toggle('active',x===b))});
+  ov.querySelector('[data-derivative-generate]')?.addEventListener('click',()=>runDerivativeStudioGeneration(ov));
+  ov.querySelector('[data-result-use-source]')?.addEventListener('click',()=>{if(!st.result)return;st.source=st.result;st.sourceKey=`adaptation:${st.parentIndex}:${st.result.id}`;st.candidates.push(st.result);st.result=null;derivativeStudioRenderBody(ov)});
+  ov.querySelector('[data-result-proceed]')?.addEventListener('click',()=>{if(st.result)openLogoAssistant(`adaptation:${st.parentIndex}:${st.result.id}`)});
+  derivativeStudioSetMobileStep(ov,st.mobileStep||0);
+}
+async function runDerivativeStudioGeneration(ov){
+  const st=ov.__derivativeState;derivativeCollectUI(ov);
+  let preset=null,options={};
+  if(st.tab==='preset'){
+    preset=DERIVATIVE_PRESETS.find(x=>x.id===st.presetId);
+    if(!preset)return appAlert('Selecione um modelo de layout antes de gerar.',{type:'warning',title:'Variação pré-programada'});
+    options={layoutPresetId:preset.id,layoutPresetInstruction:preset.prompt,presetObservation:st.observation,backgroundMode:!!preset.backgroundMode,screenThemeMode:!!preset.screenThemeMode,screenOccupancyMode:!!preset.screenOccupancyMode,screenInfoPct:preset.screenInfoPct||null};
+  }else{
+    options={pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,churchImageMode:st.churchMode,churchImageAssetId:st.churchId,graphicMode:st.graphicMode,graphicAssetIds:st.graphicIds,manualDerivativeInstruction:st.instruction};
+  }
+  const btn=ov.querySelector('[data-derivative-generate]');if(btn){btn.disabled=true;btn.textContent='Gerando…'}
+  try{
+    const child=await runQuickAdaptation(st.parentIndex,st.format,[],false,st.sourceKey,false,st.tab==='manual'?st.instruction:'',options);
+    if(child){st.result=child;derivativeStudioRenderBody(ov)}
+  }finally{const b=ov.querySelector('[data-derivative-generate]');if(b){b.disabled=false;b.textContent=st.tab==='manual'?'✦ Gerar nova derivada':'✦ Gerar variação programada'}}
+}
+function openDerivativeStudio({parentIndex=0,sourceKey=null,sourceItem=null}={}){
+  document.querySelector('.derivative-studio-overlay')?.remove();
+  let source=sourceItem||resolveQuickReferenceCandidate(sourceKey||preferredQuickReferenceKey(parentIndex),parentIndex)||state.quickResults?.[parentIndex];
+  if(sourceItem?.galleryId&&!sourceItem.dataUrl)source=galleryItemToQuickResult(sourceItem);
+  if(!source)return appAlert('Não foi possível localizar a arte de origem.',{type:'error'});
+  const candidates=derivativeFamilyCandidates(source);
+  let matched=candidates.find(x=>String(x.galleryId||x.key||'')===String(source.galleryId||sourceKey||''))||source;
+  const sourceNode=derivativeSourceFromCandidate(matched)||source;
+  const ov=document.createElement('div');ov.className='derivative-studio-overlay';
+  const srcAssets=sourceNode.assets||sourceNode.recipe?.assets||{};
+  const defaultPastorIds=(srcAssets.pastors||[]).map(x=>String(x?.id||'')).filter(Boolean);
+  const defaultChurchId=String(srcAssets.churchImage?.id||'');
+  const defaultGraphicIds=(srcAssets.graphics||[]).map(x=>String(x?.id||'')).filter(Boolean).slice(0,3);
+  ov.__derivativeState={parentIndex,sourceKey:String(matched.key||sourceKey||`main:${parentIndex}`),source:sourceNode,candidates,tab:'manual',format:sourceNode.target?.id||sourceNode.format||state.quick?.format||'feed',pastorMode:'keep',pastorIds:defaultPastorIds,pastorTreatment:state.quick?.pastorPhotoTreatment||'original',churchMode:'keep',churchId:defaultChurchId,graphicMode:'keep',graphicIds:defaultGraphicIds,instruction:'',observation:'',presetGroup:'feed',presetId:'',result:null,mobileStep:0};
+  ov.innerHTML=`<div class="derivative-studio-head"><div><h2>Criação por derivação</h2><small>Imagem selecionada + instruções atuais têm prioridade. Histórico antigo serve apenas como consulta.</small></div><div class="derivative-studio-head-actions"><div class="derivative-balance"><span>Saldo</span><b>${Math.max(0,Number(state.user?.credits)||0)}</b> créditos</div><button class="mini-btn" type="button" data-derivative-cancel>Cancelar</button><button class="close-modal" type="button" data-derivative-close>×</button></div></div><div class="derivative-tabs"><button class="derivative-tab active" type="button" data-derivative-tab="manual">Variação manual</button><button class="derivative-tab" type="button" data-derivative-tab="preset">Variação pré-programada</button></div><div class="derivative-studio-grid" data-derivative-grid></div><div class="derivative-mobile-nav"><button class="btn ghost" type="button" data-derivative-prev>Voltar</button><button class="btn primary" type="button" data-derivative-next>Próximo</button></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('[data-derivative-close]').onclick=()=>{if(generationJobBusy())return appAlert('Cancele a geração antes de fechar esta tela.',{type:'info'});ov.remove()};
+  ov.querySelector('[data-derivative-cancel]').onclick=()=>{if(generationJobBusy()){cancelActiveProcess();appToast('Processamento cancelado.',{type:'info'});}else ov.remove()};
+  ov.querySelectorAll('[data-derivative-tab]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);ov.__derivativeState.tab=b.dataset.derivativeTab;ov.__derivativeState.mobileStep=0;ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x===b));derivativeStudioRenderBody(ov)});
+  ov.querySelector('[data-derivative-prev]').onclick=()=>derivativeStudioSetMobileStep(ov,(ov.__derivativeState.mobileStep||0)-1);
+  ov.querySelector('[data-derivative-next]').onclick=()=>{const st=ov.__derivativeState,sections=[...ov.querySelectorAll('[data-mobile-step]')],max=Math.max(0,sections.length-1);if(st.mobileStep>=max)runDerivativeStudioGeneration(ov);else derivativeStudioSetMobileStep(ov,st.mobileStep+1)};
+  derivativeStudioRenderBody(ov);
 }
 
 function openQuickAdaptConfig(i,f,explicitSourceKey=null){
@@ -8509,12 +8758,9 @@ function bindQuickResultEvents(){
   document.querySelectorAll('[data-qproceed]').forEach(b=>b.onclick=()=>openLogoAssistant(`main:${b.dataset.qproceed}`));
   document.querySelectorAll('[data-qproceed-correction]').forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.qproceedCorrection.split('-');openLogoAssistant(`correction:${i}:${j}`)});
   document.querySelectorAll('[data-qadapt-proceed]').forEach(b=>b.onclick=()=>openLogoAssistant(`adaptation:${b.dataset.qadaptParent}:${b.dataset.qadaptId}`));
-  document.querySelectorAll('[data-qadapt-source]').forEach(btn=>btn.onclick=()=>{
-    const [i,key,f]=btn.dataset.qadaptSource.split('|');
-    const scope=btn.closest('.quick-adapt-grid');
-    scope?.querySelectorAll('[data-qadapt-source]').forEach(x=>x.classList.remove('selected'));
-    btn.classList.add('selected');
-    openQuickAdaptConfig(+i,f,key);
+  document.querySelectorAll('[data-open-derivative]').forEach(btn=>btn.onclick=()=>{
+    const [i,key]=btn.dataset.openDerivative.split('|');
+    openDerivativeStudio({parentIndex:Number(i),sourceKey:key});
   });
   document.querySelectorAll('[data-qdownload-correction]').forEach(btn=>btn.onclick=async()=>{const [i,j]=btn.dataset.qdownloadCorrection.split('-').map(Number);const a=state.quickResults?.[i]?.corrections?.[j];if(a&&await downloadDataUrl(a.dataUrl,`${slug(a.label||'churchdesign-correction')}.png`)){markGalleryDownloaded(a)}});
   document.querySelectorAll('[data-qfullscreen-correction]').forEach(btn=>btn.onclick=()=>{const [i,j]=btn.dataset.qfullscreenCorrection.split('-').map(Number);const a=state.quickResults?.[i]?.corrections?.[j];if(a)openArtworkFullscreen(a.dataUrl,a.label||`Correção ${j+1}`);});
@@ -8880,6 +9126,16 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const freeMode=!!adaptOptions?.freeMode;
     const backgroundMode=!!adaptOptions?.backgroundMode;
     const freeInstruction=String(adaptOptions?.freeInstruction||'').trim();
+    const manualDerivativeInstruction=String(adaptOptions?.manualDerivativeInstruction||'').trim();
+    const layoutPresetInstruction=String(adaptOptions?.layoutPresetInstruction||'').trim();
+    const presetObservation=String(adaptOptions?.presetObservation||'').trim();
+    const pastorMode=String(adaptOptions?.pastorMode||'keep');
+    const pastorAssetIds=Array.isArray(adaptOptions?.pastorAssetIds)?adaptOptions.pastorAssetIds.map(String).filter(Boolean).slice(0,3):[];
+    const pastorPhotoTreatment=String(adaptOptions?.pastorPhotoTreatment||'original');
+    const churchImageMode=String(adaptOptions?.churchImageMode||'keep');
+    const churchImageAssetId=String(adaptOptions?.churchImageAssetId||'').trim();
+    const graphicMode=String(adaptOptions?.graphicMode||'keep');
+    const graphicAssetIds=Array.isArray(adaptOptions?.graphicAssetIds)?adaptOptions.graphicAssetIds.map(String).filter(Boolean).slice(0,3):[];
     const addPastorAssetId=String(adaptOptions?.addPastorAssetId||'').trim();
     const addPastorAsset=addPastorAssetId?(state.library.assets||[]).find(a=>a.type==='pastor'&&String(a.id)===addPastorAssetId):null;
     const addPastorOverride=!!addPastorAsset;
@@ -8902,8 +9158,28 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     assets.logo=null;
     assets.eventLogo=null; // NEWFLOW: derivadas também passam pelo Assistente de Logos.
     const originalPastors=[...(assets.pastors||[])];
-    const keptPastors=addPastorOverride?[]:(freeMode||backgroundMode||screenThemeMode)?[]:originalPastors.filter((p,n)=>!(omit.includes('pastors')||(n===0&&omit.includes('pastorMain'))||(n===1&&omit.includes('pastorAux1'))||(n===2&&omit.includes('pastorAux2'))));
+    let keptPastors=addPastorOverride?[]:(freeMode||backgroundMode||screenThemeMode)?[]:originalPastors.filter((p,n)=>!(omit.includes('pastors')||(n===0&&omit.includes('pastorMain'))||(n===1&&omit.includes('pastorAux1'))||(n===2&&omit.includes('pastorAux2'))));
+    if(pastorMode==='remove')keptPastors=[];
+    if((pastorMode==='replace'||pastorMode==='add')&&pastorAssetIds.length){
+      const selectedAssets=pastorAssetIds.map(id=>(state.library.assets||[]).find(a=>a.type==='pastor'&&String(a.id)===id)).filter(Boolean);
+      const hydrated=await hydrateGalleryAssets({pastors:selectedAssets});
+      const chosen=(hydrated.pastors||[]).map((p,i)=>({...p,photoTreatment:pastorPhotoTreatment,rank:i,role:i===0?'PRINCIPAL':`AUXILIAR ${i}`}));
+      if(pastorMode==='replace')keptPastors=chosen;
+      else keptPastors=[...keptPastors,...chosen].slice(0,3);
+    }
+    keptPastors=keptPastors.map((p,i)=>({...p,photoTreatment:pastorPhotoTreatment||p.photoTreatment||'',rank:i,role:i===0?'PRINCIPAL':`AUXILIAR ${i}`}));
     assets.pastors=keptPastors;assets.pastor=keptPastors[0]||null;
+    if(churchImageMode==='remove')assets.churchImage=null;
+    else if(churchImageMode==='replace'&&churchImageAssetId){
+      const ch=(state.library.assets||[]).find(a=>a.type==='church'&&String(a.id)===churchImageAssetId);
+      if(ch){const h=await hydrateGalleryAssets({churchImage:ch});assets.churchImage=h.churchImage||null}
+    }
+    if(graphicMode==='remove')assets.graphics=[];
+    else if((graphicMode==='replace'||graphicMode==='add')&&graphicAssetIds.length){
+      const ga=graphicAssetIds.map(id=>(state.library.assets||[]).find(a=>a.type==='graphic'&&String(a.id)===id)).filter(Boolean);
+      const hg=await hydrateGalleryAssets({graphics:ga});
+      assets.graphics=graphicMode==='replace'?(hg.graphics||[]):[...(assets.graphics||[]),...(hg.graphics||[])].slice(0,3);
+    }
     if(addPastorOverride){
       const hydratedOverride=await hydrateGalleryAssets({pastors:[addPastorAsset]});
       const selected=hydratedOverride.pastors?.[0]||hydratedOverride.pastor||null;
@@ -8938,7 +9214,19 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
 - Permitido: color grading global, exposição, contraste, saturação, temperatura, tonalidade, vinheta, escurecimento e blur global leve.
 - A fotografia deve continuar reconhecível por comparação direta como O MESMO ARQUIVO, não uma recriação parecida.
 `:'';
-    const finalInstruction=`Adapte o layout NATIVAMENTE para ${target.ratio||target.label}; não estique e não apenas recorte. A referência serve para identidade visual, NÃO para obrigar a preservação de elementos marcados para omissão.
+    const finalInstruction=`${layoutPresetInstruction?`HIERARQUIA DA VARIAÇÃO PRÉ-PROGRAMADA:
+1. A IMAGEM EXATAMENTE SELECIONADA é a fonte de identidade visual, pessoas e conteúdo existente.
+2. O LAYOUT PRÉ-PROGRAMADO é a prioridade estrutural absoluta: ${layoutPresetInstruction}
+3. As observações atuais são secundárias e devem ser acomodadas somente quando não descaracterizarem o layout: ${presetObservation||'nenhuma'}.
+4. Instruções antigas da raiz/linhagem servem apenas para consulta em caso de dúvida e nunca podem restaurar decisões visuais antigas.
+`:`HIERARQUIA DE VERDADE PARA ARTES DERIVADAS — PRIORIDADE ABSOLUTA:
+1. A IMAGEM EXATAMENTE SELECIONADA para gerar esta derivada é a fonte principal de verdade visual. Concentre-se nela, mesmo que seja a segunda, terceira, quarta ou qualquer geração da linhagem.
+2. As INSTRUÇÕES ATUAIS desta ação (${currentDerivativeInstruction?'presentes':'não informadas'}) são a única ordem textual ativa do usuário e vencem qualquer instrução antiga quando houver conflito.
+3. Instruções herdadas da arte raiz ou de gerações anteriores NÃO são ordens ativas. Use-as SOMENTE como consulta inspiracional ou para tirar dúvida quando a imagem selecionada e a instrução atual forem ambíguas. NUNCA use instrução herdada para restaurar conteúdo, posição, texto, pessoa ou composição que já mudou visualmente na imagem selecionada.
+${inheritedRootInstruction?`CONTEXTO ANTIGO — CONSULTA SOMENTE, BAIXA PRIORIDADE: ${inheritedRootInstruction}`:'Não há contexto textual antigo relevante.'}
+REGRA OPERACIONAL: se a imagem selecionada e uma instrução antiga divergirem, SEMPRE siga a imagem selecionada. Se a instrução atual divergir da imagem selecionada, siga a instrução atual.
+`}
+Adapte o layout NATIVAMENTE para ${target.ratio||target.label}; não estique e não apenas recorte. A referência selecionada serve como base visual atual.
 SAFE FRAME RÍGIDO: 12% de margem livre em cada lado para TODO conteúdo essencial.
 Omitir explicitamente: ${omit.join(', ')||'nada'}.
 ${pastorRemoval}
@@ -8972,7 +9260,7 @@ TEXTO SOLICITADO NO MODO LIVRE — HARD CONSTRAINT:
 - Antes de finalizar, confira visualmente se cada texto explícito das instruções aparece de forma reconhecível.
 
 INSTRUÇÕES LIVRES DO USUÁRIO (prioridade máxima): ${freeInstruction}`:''}
-${childCorrection?`CORREÇÃO SOLICITADA PARA ESTA ARTE DERIVADA — aplique esta alteração específica sem abandonar a identidade da arte-base: ${childCorrection}`:''}
+${childCorrection?`INSTRUÇÃO ATUAL DESTA DERIVADA — PRIORIDADE SOBRE TODO CONTEXTO ANTIGO: ${childCorrection}`:''}
 TEXTO DE FUNDO / TIPOGRAFIA DECORATIVA — REGRA DE SEGURANÇA: não invente palavras, letras, sílabas ou letreiros decorativos no fundo que possam se sobrepor e formar palavras aleatórias, duplicadas ou sem sentido. Se usar tipografia como textura de fundo, use apenas conteúdo real fornecido pelo usuário ou formas abstratas que NÃO pareçam texto legível. Nunca sobreponha fragmentos como "EN", "DE", letras repetidas ou partes do título de modo que criem novas palavras acidentais.
 COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referência ou ordem explícita. Evite caixas/cards/cápsulas desnecessários. Se a logo estiver mantida, use a original uma única vez, sem caixa/placa/selo e nunca repita ou extraia partes dela.`;
 
@@ -8990,13 +9278,17 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
       preserve_rules:[...(sourceDirection.preserve_rules||[]).filter(x=>!/t[ií]tulo|texto|tipograf|nome|data|hora|logo|pregador|pessoa/i.test(String(x)))],
       avoid_rules:[...(sourceDirection.avoid_rules||[]),'qualquer texto legível','qualquer pessoa','qualquer logo ou marca','título ou fragmento do título']
     }:pastorSafeDirection;
+    const inheritedRootInstruction=String(source.instruction||parent.instruction||'').trim();
+    const currentDerivativeInstruction=String(manualDerivativeInstruction||(freeMode?freeInstruction:(childCorrection||''))).trim();
     const adaptationInstruction=backgroundMode
-      ?'MODO FUNDO ABSOLUTO. Use a referência apenas para reconstruir o FUNDO visual da campanha. Ignore e remova todo conteúdo semântico da arte de origem.'
-      :`${source.instruction||parent.instruction||''}${childCorrection?`\nCORREÇÃO PARA A DERIVADA: ${childCorrection}`:''}`;
+      ?'MODO FUNDO ABSOLUTO. Use a imagem selecionada apenas como fonte visual do FUNDO da campanha. Ignore conteúdo semântico herdado.'
+      :layoutPresetInstruction
+        ?`LAYOUT PRÉ-PROGRAMADO — PRIORIDADE DE ESTRUTURA: ${layoutPresetInstruction}${presetObservation?`\nOBSERVAÇÕES SECUNDÁRIAS DO USUÁRIO: ${presetObservation}`:''}`
+        :currentDerivativeInstruction;
     const referenceNote=backgroundMode
       ?`REFERÊNCIA CONTAMINADA COM CONTEÚDO QUE DEVE SER APAGADO: preserve somente fundo, atmosfera, cores, texturas, formas abstratas e foto real da igreja quando houver. REMOVA COMPLETAMENTE título, subtítulo, letras, números, datas, horários, nomes, slogans, logos, selos e qualquer conteúdo legível. ${addPastorOverride?'EXCEÇÃO: adicione obrigatoriamente o pregador selecionado como única pessoa humana.':'Remova também todas as pessoas.'}`
-      :'Use esta versão LOGO-FREE como base visual. Preserve identidade. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.';
-    const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:referenceNote}],target,assets,requiredContent:required,instruction:adaptationInstruction,finalInstruction,semanticMap:[],effects:[],artDirection:backgroundDirection||pastorSafeDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:true,omitChurchName:backgroundMode,allowedTexts:backgroundMode?[]:undefined,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,darkScreen:!!darkScreen,addPastorOverride,addPastorAssetId:addPastorOverride?addPastorAssetId:null,addPastorName:addPastorOverride?addPastorName:''};
+      :'ESTA IMAGEM É A FONTE DE VERDADE VISUAL ATUAL DA DERIVADA. Preserve o que está visível nela, não reconstrua a partir da memória da arte raiz e não reverta alterações já presentes. Use esta versão LOGO-FREE como base visual. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.';
+    const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:referenceNote}],target,assets,requiredContent:required,instruction:adaptationInstruction,finalInstruction,semanticMap:[],effects:[],artDirection:backgroundDirection||pastorSafeDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:true,omitChurchName:backgroundMode,allowedTexts:backgroundMode?[]:undefined,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,manualDerivativeInstruction,layoutPresetInstruction,presetObservation,pastorMode,pastorAssetIds,pastorPhotoTreatment,churchImageMode,churchImageAssetId,graphicMode,graphicAssetIds,darkScreen:!!darkScreen,addPastorOverride,addPastorAssetId:addPastorOverride?addPastorAssetId:null,addPastorName:addPastorOverride?addPastorName:''};
 
     setQuickProgress(48,'Recompondo para o novo formato...');
     // V0.26: arte derivada = 1 geração + 1 fiscal; sem retry automático.
@@ -9005,7 +9297,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     const normalized=await normalizeArtworkToTarget(image,payload,target,signal);
     const dataUrl=normalized.dataUrl;
     parent.adaptations=parent.adaptations||[];
-    const child={id:crypto.randomUUID(),label:`${source.label} • ${target.label}`,format:formatId,target,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:image.url,omit,basedOnKey:source.key,basedOnLabel:source.label,artDirection:source.artDirection||parent.artDirection,requiredContent:required,assets,instruction:payload.instruction,logoPosition:null,eventLogoPosition:null,eventLogoSize:null,occupancy:null,logoPlan:null,logoReceipt:[],logoDegradations:[],screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,darkScreen:!!darkScreen,addPastorOverride,addPastorAssetId:addPastorOverride?addPastorAssetId:null,addPastorName:addPastorOverride?addPastorName:'',creationReport:buildCreationReportSnapshot(payload,{label:`${source.label} • ${target.label}`,kind:'derivada',correction:childCorrection,omit,darkScreen,screenOccupancyMode,screenInfoPct,screenThemeMode,freeMode,backgroundMode,freeInstruction,sourceLabel:source.label||parent.label||''}),manualLogoFlow:true,finalized:false,manualLogoPlacements:[],correction:childCorrection||''};
+    const child={id:crypto.randomUUID(),label:`${source.label} • ${target.label}`,format:formatId,target,dataUrl,baseDataUrl:normalized.baseDataUrl,sourceUrl:image.url,omit,basedOnKey:source.key,basedOnLabel:source.label,artDirection:source.artDirection||parent.artDirection,requiredContent:required,assets,instruction:currentDerivativeInstruction,logoPosition:null,eventLogoPosition:null,eventLogoSize:null,occupancy:null,logoPlan:null,logoReceipt:[],logoDegradations:[],screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,manualDerivativeInstruction,layoutPresetInstruction,presetObservation,pastorMode,pastorAssetIds,pastorPhotoTreatment,churchImageMode,churchImageAssetId,graphicMode,graphicAssetIds,darkScreen:!!darkScreen,addPastorOverride,addPastorAssetId:addPastorOverride?addPastorAssetId:null,addPastorName:addPastorOverride?addPastorName:'',creationReport:buildCreationReportSnapshot(payload,{label:`${source.label} • ${target.label}`,kind:'derivada',correction:childCorrection,omit,darkScreen,screenOccupancyMode,screenInfoPct,screenThemeMode,freeMode,backgroundMode,freeInstruction,sourceLabel:source.label||parent.label||''}),manualLogoFlow:true,finalized:false,manualLogoPlacements:[],correction:childCorrection||''};
     parent.adaptations.push(child);let savedChild=null;/* NEWFLOW: derivada base só é persistida após Finalizar arte no Assistente de Logos. */if(!payload.manualLogoFlow){savedChild=await persistGalleryArtwork(child,{kind:'arte derivada',parentArtworkId:parent.galleryId||parent.id||null,sourceArtworkId:source.galleryId||source.id||parent.galleryId||parent.id||null,format:formatId,basedOnKey:source.key,basedOnLabel:source.label});if(savedChild)child.galleryId=savedChild.galleryId;}
     setQuickProgress(100,'Pronto');
     if(status)status.innerHTML='<strong style="color:var(--good)">✓ Arte derivada base pronta. Clique em Prosseguir para finalizar as logos.</strong>';
@@ -9017,6 +9309,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
       const card=document.querySelector(`[data-qadapt-id="${child.id}"]`)?.closest('.quick-adapt-item');
       if(card){card.classList.add('newest-result-focus');card.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>card.classList.remove('newest-result-focus'),2200);}
     });
+    return child;
   }catch(e){
     const errorClass=generationFailureClass(e);
     if(!state.activeGenerationOperation)await logAppIssue(e,{stage:e.name==='AbortError'?'cancelled':'quick-adaptation',category:errorClass,artType:generationArtTypeFromContext({format:formatId}),format:formatId});
