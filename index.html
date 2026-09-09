@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.00 -->
+<!-- CHURCHDESIGN — index v1.01 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -6703,17 +6703,17 @@ function openCheckoutLegalConsent(planId,button=null){
   const root=document.querySelector('#modalRoot');
   if(!root)return;
   root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel legal-consent-panel">
-    <div class="modal-head"><div><h2>Antes de continuar</h2><p class="legal-consent-copy">Confira as condições essenciais da assinatura.</p></div><button class="close-modal" type="button" data-legal-close>×</button></div>
+    <div class="modal-head"><div><h2>Antes de continuar</h2><p class="legal-consent-copy">Confira as principais condições da sua assinatura.</p></div><button class="close-modal" type="button" data-legal-close>×</button></div>
     <div class="modal-body">
       <div class="legal-consent-points">
-        <div class="legal-consent-point"><strong>Assinatura mensal.</strong> A renovação é automática até o cancelamento.</div>
-        <div class="legal-consent-point"><strong>Créditos do plano.</strong> São renovados a cada ciclo mensal, não são cumulativos e cada operação possui seu próprio custo em créditos.</div>
+        <div class="legal-consent-point"><strong>Assinatura mensal.</strong> Sua assinatura será renovada automaticamente até que você a cancele.</div>
+        <div class="legal-consent-point"><strong>Créditos do plano.</strong> Eles são renovados a cada ciclo mensal, não acumulam para o mês seguinte e cada operação utiliza uma quantidade específica de créditos.</div>
       </div>
       <label class="legal-consent-check">
         <input id="checkoutLegalConsent" type="checkbox">
-        <span>Li e concordo com os <a href="/termos-de-uso.html" target="_blank" rel="noopener">Termos de Uso</a> e a <a href="/politica-de-privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
+        <span>Li e concordo com os <a href="/termos-de-uso.html" target="_blank" rel="noopener">Termos de Uso</a> e com a <a href="/politica-de-privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
       </label>
-      <div class="legal-consent-actions"><button class="btn ghost" type="button" data-legal-close>Voltar</button><button class="btn primary" id="checkoutLegalContinue" type="button" disabled>Continuar para pagamento</button></div>
+      <div class="legal-consent-actions"><button class="btn ghost" type="button" data-legal-close>Voltar</button><button class="btn primary" id="checkoutLegalContinue" type="button" disabled>Ir para pagamento</button></div>
     </div>
   </div>`;
   const check=root.querySelector('#checkoutLegalConsent'),go=root.querySelector('#checkoutLegalContinue');
