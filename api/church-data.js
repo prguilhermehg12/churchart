@@ -1,4 +1,4 @@
-// CHURCHDESIGN — church-data v0.51.0
+// CHURCHDESIGN — church-data v0.53.0
 // ChurchDesign V0.48.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
@@ -457,6 +457,24 @@ module.exports=async function handler(req,res){
       return res.json({ok:true,plan:d?.[0]});
     }
 
+    if(action==="billing-credit-cycle-stats"){
+      await requireAppAdmin(req,authUser);
+      const churchId=requestedChurchId(req);
+      await requireMembership(authUser,churchId,{owner:true});
+      const lastRecharge=(await serviceRest(`church_credit_ledger?church_id=eq.${encodeURIComponent(churchId)}&event_type=in.(admin_adjustment,subscription_renewal)&select=created_at,event_type,amount,metadata&order=created_at.desc&limit=1`))?.[0]||null;
+      if(!lastRecharge?.created_at)return res.json({churchId,lastRecharge:null,artCount:0,creditsSpent:0,operations:0});
+      const ops=await serviceRest(`generation_operations?church_id=eq.${encodeURIComponent(churchId)}&created_at=gte.${encodeURIComponent(lastRecharge.created_at)}&status=eq.completed&select=operation_id,art_type,format,credits_reserved,credits_refunded,created_at&order=created_at.asc&limit=5000`);
+      const rows=Array.isArray(ops)?ops:[];
+      const creditsSpent=rows.reduce((sum,x)=>sum+Math.max(0,(Number(x.credits_reserved)||0)-(Number(x.credits_refunded)||0)),0);
+      return res.json({
+        churchId,
+        lastRecharge:{createdAt:lastRecharge.created_at,eventType:lastRecharge.event_type,amount:Number(lastRecharge.amount)||0},
+        artCount:rows.length,
+        creditsSpent,
+        operations:rows.length
+      });
+    }
+
     if(action==="billing-admin-recharge-credits"&&req.method==="POST"){
       await requireAppAdmin(req,authUser);
       const churchId=requestedChurchId(req);
@@ -861,13 +879,17 @@ module.exports=async function handler(req,res){
 
       const byId=new Map([...gm.entries()].map(([id,x])=>[String(id),x]));
       const root=galleryItemMergeGroup(source,byId);
-      const packageItems=[...gm.values()]
+      const familyItems=[...gm.values()]
         .filter(x=>galleryItemMergeGroup(x,byId)===root && x?.recipe?.finalized!==false)
         .sort((a,b)=>{
           if(String(a.galleryId)===root)return -1;
           if(String(b.galleryId)===root)return 1;
           return new Date(a.generationCreatedAt||0)-new Date(b.generationCreatedAt||0);
         });
+      const requestedIds=[...new Set((Array.isArray(req.body?.galleryIds)?req.body.galleryIds:[]).map(x=>String(x||"").trim()).filter(Boolean))];
+      const allowedIds=new Set(familyItems.map(x=>String(x.galleryId)));
+      const selectedIds=requestedIds.filter(id=>allowedIds.has(id));
+      const packageItems=selectedIds.length?familyItems.filter(x=>selectedIds.includes(String(x.galleryId))):familyItems;
 
       const galleryIds=packageItems.map(x=>String(x.galleryId)).filter(Boolean);
       if(!galleryIds.length)throw Object.assign(new Error("Nenhuma arte finalizada disponível para compartilhar."),{statusCode:409});
