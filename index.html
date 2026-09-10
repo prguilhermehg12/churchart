@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.15 -->
+<!-- CHURCHDESIGN — index v1.17 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -523,7 +523,7 @@
 
 
 /* NEWFLOW v0.2 — Assistente manual de logos */
-.logo-assistant-overlay{position:fixed;inset:0;z-index:150000;background:rgba(4,6,10,.96);display:grid;grid-template-rows:auto 1fr;overflow:hidden}
+.logo-assistant-overlay{position:fixed;inset:0;z-index:360000;background:rgba(4,6,10,.96);display:grid;grid-template-rows:auto 1fr;overflow:hidden}
 .logo-assistant-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:#0d1015}.logo-assistant-head h2{font-size:16px;margin:0}.logo-assistant-head small{display:block;color:var(--muted);margin-top:3px}
 .logo-assistant-body{min-height:0;display:grid;grid-template-columns:minmax(250px,330px) 1fr;gap:14px;padding:14px}.logo-assistant-panel{position:relative;z-index:5;pointer-events:auto;min-height:0;overflow:auto;border:1px solid var(--line);border-radius:14px;background:#0f1217;padding:14px}.logo-assistant-stage-wrap{position:relative;z-index:4;pointer-events:auto;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#080a0d;padding:12px}
 .logo-assistant-stage{position:relative;line-height:0;box-shadow:0 20px 70px rgba(0,0,0,.45);overflow:hidden;background:#111;touch-action:none}.logo-assistant-stage>img{display:block;width:100%;height:auto;pointer-events:none;user-select:none}
@@ -5236,11 +5236,12 @@ function apiJSON(action,options={}){const method=options.method||'GET';const chu
 
 function clientPipelineGuard(payload={}){
   const p={...payload,assets:{...(payload.assets||{})}};
+  p.assets.graphics=(p.assets.graphics||[]).filter(a=>!isLogoLikeAsset(a));
   const target=p.target||{};
   const inferredType=p.backgroundMode?'Fundo':p.freeMode?'Modo Livre':p.screenThemeMode?'Telão Tema':p.revisionMode?'Correção':p.mode==='adaptation'?'Derivada':'Arte base';
   p.costSessionId=p.costSessionId||state.costSupervisor?.sessionId||null;
   p.operationId=p.operationId||state.activeGenerationOperation?.operationId||null;
-  p.costContext={...(p.costContext||{}),sessionId:p.costSessionId||null,operationId:p.operationId||null,projectName:p.costContext?.projectName||state.gallerySeed?.recipe?.projectName||state.quick?.title||p.requiredContent?.title||'',artType:p.costContext?.artType||state.activeGenerationOperation?.artType||inferredType,format:p.costContext?.format||state.activeGenerationOperation?.format||p.format||target.id||state.quick?.format||'',targetLabel:p.costContext?.targetLabel||target.label||''};if((p.assets.pastors||[]).length>3)throw new Error('Guardião: máximo de 3 pregadores.');p.allowedTexts=[p.requiredContent?.title,p.requiredContent?.subtitle,p.requiredContent?.secondaryInfo,p.requiredContent?.date,p.requiredContent?.time,p.requiredContent?.address,p.requiredContent?.churchName,...(p.requiredContent?.pastorNames||[])].map(x=>String(x||'').trim()).filter(Boolean);p.referenceSemanticPolicy='style-only';if(p.mode==='primary'&&!p.revisionMode&&!p.referenceRole)p.referenceRole='director-only';return p;}
+  p.costContext={...(p.costContext||{}),sessionId:p.costSessionId||null,operationId:p.operationId||null,projectName:p.costContext?.projectName||state.gallerySeed?.recipe?.projectName||state.quick?.title||p.requiredContent?.title||'',artType:p.costContext?.artType||state.activeGenerationOperation?.artType||inferredType,format:p.costContext?.format||state.activeGenerationOperation?.format||p.format||target.id||state.quick?.format||'',targetLabel:p.costContext?.targetLabel||target.label||''};if((p.assets.pastors||[]).length>3)throw new Error('Guardião: máximo de 3 pregadores.');p.allowedTexts=[p.requiredContent?.title,p.requiredContent?.subtitle,p.requiredContent?.secondaryInfo,p.requiredContent?.date,p.requiredContent?.time,p.requiredContent?.address,p.requiredContent?.churchName,...(p.requiredContent?.pastorNames||[])].map(x=>String(x||'').trim()).filter(Boolean);p.referenceSemanticPolicy=String(payload.referenceSemanticPolicy||p.referenceSemanticPolicy||'style-only');if(p.mode==='primary'&&!p.revisionMode&&!p.referenceRole)p.referenceRole='director-only';return p;}
 
 
 function logoVariantMeta(a){return a?.meta||a?.metadata||a?.data||{}}
@@ -8673,8 +8674,21 @@ function derivativeFormatSketch(t){const w=Number(t.width)||1080,h=Number(t.heig
 function derivativeFormatCards(selected='feed'){
   return quickFormats.map(f=>{const t=quickTargetSpec(f.id);return `<button type="button" class="derivative-format-card ${f.id===selected?'active':''}" data-derivative-format="${f.id}"><i style="${derivativeFormatSketch(t)}"></i><b>${esc(t.label)}</b><small>${t.width}×${t.height}</small></button>`}).join('');
 }
+function isLogoLikeAsset(a){
+  if(!a)return false;
+  const type=String(a.type||'').toLowerCase();
+  const m=a.meta||a.metadata||a.data||{};
+  const category=String(m.category||m.assetCategory||m.kind||'').toLowerCase();
+  if(type==='logo'||type==='event_logo')return true;
+  if(['logo','church_logo','event_logo','brand_logo'].includes(category))return true;
+  if(m.logoGroupId||m.variantGroupId||m.variantOf||m.logoVariantRole||m.variantRole)return true;
+  return false;
+}
 function derivativeAssetCards(type,selectedIds=[]){
-  const assets=(state.library.assets||[]).filter(a=>a.type===type||(type==='graphic'&&a.type==='graphic'&&a.meta?.category!=='event_logo'));
+  const assets=(state.library.assets||[]).filter(a=>{
+    if(type==='graphic')return a.type==='graphic'&&!isLogoLikeAsset(a);
+    return a.type===type;
+  });
   return assets.length?assets.map(a=>`<button type="button" class="derivative-asset-card ${selectedIds.includes(String(a.id))?'active':''}" data-derivative-asset="${type}|${esc(a.id)}"><img src="${esc(a.url)}"><span>${esc(a.meta?.displayName||a.name||type)}</span></button>`).join(''):`<div class="derivative-result-empty">Nenhum arquivo salvo em Minha Igreja.</div>`;
 }
 function derivativePresetMockHTML(p){
@@ -8776,19 +8790,28 @@ function bindDerivativeStudioBody(ov){
   ov.querySelectorAll('[data-derivative-preset]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.presetId=b.dataset.derivativePreset;const p=DERIVATIVE_PRESETS.find(x=>x.id===st.presetId);if(p)st.format=p.format;ov.querySelectorAll('[data-derivative-preset]').forEach(x=>x.classList.toggle('active',x.dataset.derivativePreset===st.presetId))});
   ov.querySelector('[data-derivative-generate]')?.addEventListener('click',()=>runDerivativeStudioGeneration(ov));
   ov.querySelector('[data-result-use-source]')?.addEventListener('click',()=>{if(!st.result)return;st.source=st.result;st.sourceKey=`main:${st.parentIndex}`;state.quickResults[st.parentIndex]=st.result;st.candidates.push(st.result);st.result=null;st.status='idle';derivativeStudioRenderBody(ov)});
-  ov.querySelector('[data-result-proceed]')?.addEventListener('click',()=>{if(st.result)openLogoAssistant(`adaptation:${st.parentIndex}:${st.result.id}`)});
+  ov.querySelector('[data-result-proceed]')?.addEventListener('click',()=>{
+    if(!st.result)return;
+    const parent=state.quickResults?.[st.parentIndex]||st.source;
+    if(parent){
+      parent.adaptations=parent.adaptations||[];
+      if(!parent.adaptations.some(x=>String(x.id)===String(st.result.id)))parent.adaptations.push(st.result);
+      state.quickResults[st.parentIndex]=parent;
+    }
+    openLogoAssistant(`adaptation:${st.parentIndex}:${st.result.id}`);
+  });
   ov.querySelector('[data-result-gallery]')?.addEventListener('click',()=>{ov.remove();openGallery()});
   derivativeStudioSetMobileStep(ov,st.mobileStep||0);
 }
 async function runDerivativeStudioGeneration(ov){
   const st=ov.__derivativeState;derivativeCollectUI(ov);
-  let preset=null,options={};
+  let preset=null,options={studioDerivativeMode:true};
   if(st.tab==='preset'){
     preset=DERIVATIVE_PRESETS.find(x=>x.id===st.presetId);
     if(!preset)return appAlert('Selecione um modelo de layout antes de gerar.',{type:'warning',title:'Variação pré-programada'});
-    options={layoutPresetId:preset.id,layoutPresetInstruction:preset.prompt,presetObservation:st.observation,backgroundMode:!!preset.backgroundMode,screenThemeMode:!!preset.screenThemeMode,screenOccupancyMode:!!preset.screenOccupancyMode,screenInfoPct:preset.screenInfoPct||null};
+    options={studioDerivativeMode:true,layoutPresetId:preset.id,layoutPresetInstruction:preset.prompt,presetObservation:st.observation,backgroundMode:!!preset.backgroundMode,screenThemeMode:!!preset.screenThemeMode,screenOccupancyMode:!!preset.screenOccupancyMode,screenInfoPct:preset.screenInfoPct||null};
   }else{
-    options={pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,churchImageMode:st.churchMode,churchImageAssetId:st.churchId,graphicMode:st.graphicMode,graphicAssetIds:st.graphicIds,manualDerivativeInstruction:st.instruction};
+    options={studioDerivativeMode:true,pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,churchImageMode:st.churchMode,churchImageAssetId:st.churchId,graphicMode:st.graphicMode,graphicAssetIds:st.graphicIds,manualDerivativeInstruction:st.instruction};
   }
   const btn=ov.querySelector('[data-derivative-generate]');if(btn){btn.disabled=true;btn.textContent='Gerando…'}
   try{
@@ -9265,6 +9288,19 @@ function assertDerivativePipelineReady(){
   const missing=required.filter(n=>{try{return typeof eval(n)!=='function'}catch{return true}});
   if(missing.length)throw new Error(`Pipeline de artes derivadas incompleto: ${missing.join(', ')}.`);
 }
+function derivativeExplicitTexts(...values){
+  const out=[],seen=new Set();
+  for(const raw of values){
+    const s=String(raw||'');
+    const rx=/["“”'‘’]([^"“”'‘’]{1,180})["“”'‘’]/g;
+    let m;while((m=rx.exec(s))){
+      const v=String(m[1]||'').trim();
+      if(v&&!seen.has(v)){seen.add(v);out.push(v)}
+    }
+  }
+  return out.slice(0,8);
+}
+
 async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,sourceKey=null,screenDiscreteTitle=false,childCorrection='',adaptOptions={}){
   if(generationJobBusy()){
     appAlert('Já existe uma arte sendo processada. Aguarde a conclusão ou cancele antes de iniciar outra geração.',{type:'info',title:'Geração em andamento'});
@@ -9283,7 +9319,8 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
   try{
     const op=await startGenerationOperation({artType:generationArtTypeFromContext({format:formatId,backgroundMode:!!adaptOptions.backgroundMode,freeMode:!!adaptOptions.freeMode,screenThemeMode:!!adaptOptions.screenThemeMode}),format:formatId,projectName:state.quick?.title||state.projectTitle||'',sourceKey:sourceKey||null});
     const sourceRef=await prepareImageForAI(source.baseDataUrl||source.sourceUrl||source.dataUrl,1400,.9);
-    const required={...(source.requiredContent||parent.requiredContent||{})};
+    const studioDerivativeMode=!!adaptOptions?.studioDerivativeMode;
+    const required=studioDerivativeMode?{}:{...(source.requiredContent||parent.requiredContent||{})};
     const screenInfoContent={...required,pastorNames:Array.isArray(required.pastorNames)?[...required.pastorNames]:required.pastorNames};
     const discreteTitleText='';
     const screenOccupancyMode=!!adaptOptions?.screenOccupancyMode;
@@ -9306,6 +9343,8 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const addPastorAsset=addPastorAssetId?(state.library.assets||[]).find(a=>a.type==='pastor'&&String(a.id)===addPastorAssetId):null;
     const addPastorOverride=!!addPastorAsset;
     const addPastorName=String(addPastorAsset?.meta?.displayName||addPastorAsset?.name||'Pregador').trim();
+    if(studioDerivativeMode&&pastorMode==='remove'&&!omit.includes('pastors'))omit=[...omit,'pastors'];
+    if(studioDerivativeMode&&churchImageMode==='remove'&&!omit.includes('churchImage'))omit=[...omit,'churchImage'];
     if(screenThemeMode){
       ['subtitle','secondaryInfo','date','time','address','churchName'].forEach(k=>required[k]='');
       required.pastorNames=[];
@@ -9340,9 +9379,10 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
       const ch=(state.library.assets||[]).find(a=>a.type==='church'&&String(a.id)===churchImageAssetId);
       if(ch){const h=await hydrateGalleryAssets({churchImage:ch});assets.churchImage=h.churchImage||null}
     }
+    assets.graphics=(assets.graphics||[]).filter(a=>!isLogoLikeAsset(a));
     if(graphicMode==='remove')assets.graphics=[];
     else if((graphicMode==='replace'||graphicMode==='add')&&graphicAssetIds.length){
-      const ga=graphicAssetIds.map(id=>(state.library.assets||[]).find(a=>a.type==='graphic'&&String(a.id)===id)).filter(Boolean);
+      const ga=graphicAssetIds.map(id=>(state.library.assets||[]).find(a=>a.type==='graphic'&&String(a.id)===id&&!isLogoLikeAsset(a))).filter(Boolean);
       const hg=await hydrateGalleryAssets({graphics:ga});
       assets.graphics=graphicMode==='replace'?(hg.graphics||[]):[...(assets.graphics||[]),...(hg.graphics||[])].slice(0,3);
     }
@@ -9359,6 +9399,13 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const pastorRemoval=omit.includes('pastors')?`REMOÇÃO TOTAL — remova todos os pregadores e tudo que pertença às suas camadas. Não invente substitutos.`:selective.length?`REMOÇÃO SELETIVA — remova SOMENTE ${selective.join(', ')} e os elementos pertencentes à(s) respectiva(s) camada(s). Preserve exatamente os demais pregadores, inclusive rosto, pose, mãos, roupa, objetos, escala e posição.`:'';
     const logoRemoval=omit.includes('logo')?`REMOÇÃO DA LOGO DA IGREJA — remova somente esta logo. Não substitua pela logo de evento.`:'';
     const eventLogoRemoval=omit.includes('eventLogo')?`REMOÇÃO DA LOGO DE EVENTO — remova somente esta logo. Não substitua pela logo da igreja.`:'';
+    const studioPastorRemoval=studioDerivativeMode&&pastorMode==='remove'?`ZERO PESSOAS — HARD CONSTRAINT DA AÇÃO ATUAL:
+- Não renderize pregador, rosto, corpo, silhueta ou qualquer pessoa adicionada à composição.
+- Se a arte selecionada não contém pregador, PRESERVE essa ausência. É PROIBIDO inventar um.
+- Esta regra vence qualquer receita, requiredContent, artDirection, contexto da raiz ou instrução antiga.`:'';
+    const studioGraphicRemoval=studioDerivativeMode&&graphicMode==='remove'?`REMOÇÃO DOS ELEMENTOS PNG — HARD CONSTRAINT DA AÇÃO ATUAL:
+- Não reutilize nem recrie os PNGs removidos.
+- Não invente substitutos para preencher o espaço deixado por eles.`:'';
     const churchRemoval=omit.includes('churchImage')?`REMOÇÃO DE FOTO DA IGREJA — HARD CONSTRAINT: não reutilize a fotografia/plateia/ambiente real da igreja visível na referência; reconstrua a área coerentemente com o design.`:'';
     const addPastorInstruction=addPastorOverride?`ADICIONAR PREGADOR — OVERRIDE ABSOLUTO / HARD CONSTRAINT:
 - A foto do pregador selecionado (${addPastorName}) foi fornecida como asset humano obrigatório.
@@ -9398,6 +9445,14 @@ Adapte o layout NATIVAMENTE para ${target.ratio||target.label}; não estique e n
 SAFE FRAME RÍGIDO: 12% de margem livre em cada lado para TODO conteúdo essencial.
 Omitir explicitamente: ${omit.join(', ')||'nada'}.
 ${pastorRemoval}
+${studioPastorRemoval}
+${studioGraphicRemoval}
+${studioDerivativeMode?`LOGO-FREE OBRIGATÓRIO — HARD CONSTRAINT:
+- A nova arte gerada deve sair SEM logo de igreja e SEM logo de evento.
+- Se a arte selecionada contém qualquer uma dessas logos, REMOVA-AS da composição gerada.
+- Não redesenhe, não imite e não preserve marcas/logotipos vindos da referência.
+- Não use logo de igreja ou logo de evento como elemento PNG.
+- As logos oficiais serão inseridas SOMENTE depois, no Assistente de Logos.`:''}
 ${logoRemoval}
 ${eventLogoRemoval}
 ${churchRemoval}
@@ -9432,7 +9487,7 @@ ${childCorrection?`INSTRUÇÃO ATUAL DESTA DERIVADA — PRIORIDADE SOBRE TODO CO
 TEXTO DE FUNDO / TIPOGRAFIA DECORATIVA — REGRA DE SEGURANÇA: não invente palavras, letras, sílabas ou letreiros decorativos no fundo que possam se sobrepor e formar palavras aleatórias, duplicadas ou sem sentido. Se usar tipografia como textura de fundo, use apenas conteúdo real fornecido pelo usuário ou formas abstratas que NÃO pareçam texto legível. Nunca sobreponha fragmentos como "EN", "DE", letras repetidas ou partes do título de modo que criem novas palavras acidentais.
 COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referência ou ordem explícita. Evite caixas/cards/cápsulas desnecessários. Se a logo estiver mantida, use a original uma única vez, sem caixa/placa/selo e nunca repita ou extraia partes dela.`;
 
-    const sourceDirection=source.artDirection||parent.artDirection||null;
+    const sourceDirection=studioDerivativeMode?null:(source.artDirection||parent.artDirection||null);
     const pastorSafeDirection=addPastorOverride&&sourceDirection?{
       ...sourceDirection,
       generation_prompt:`${sourceDirection.generation_prompt||''}\nOVERRIDE OBRIGATÓRIO: inserir o pregador selecionado como camada humana principal claramente visível, mesmo que a base não tenha pessoa.`,
@@ -9453,8 +9508,11 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
         :currentDerivativeInstruction;
     const referenceNote=backgroundMode
       ?`REFERÊNCIA CONTAMINADA COM CONTEÚDO QUE DEVE SER APAGADO: preserve somente fundo, atmosfera, cores, texturas, formas abstratas e foto real da igreja quando houver. REMOVA COMPLETAMENTE título, subtítulo, letras, números, datas, horários, nomes, slogans, logos, selos e qualquer conteúdo legível. ${addPastorOverride?'EXCEÇÃO: adicione obrigatoriamente o pregador selecionado como única pessoa humana.':'Remova também todas as pessoas.'}`
-      :'ESTA IMAGEM É A FONTE DE VERDADE VISUAL ATUAL DA DERIVADA. Preserve o que está visível nela, não reconstrua a partir da memória da arte raiz e não reverta alterações já presentes. Use esta versão LOGO-FREE como base visual. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.';
-    const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:referenceNote}],target,assets,requiredContent:required,instruction:adaptationInstruction,finalInstruction,semanticMap:[],effects:[],artDirection:backgroundDirection||pastorSafeDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:true,omitChurchName:backgroundMode,allowedTexts:backgroundMode?[]:undefined,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,manualDerivativeInstruction,layoutPresetInstruction,presetObservation,pastorMode,pastorAssetIds,pastorPhotoTreatment,churchImageMode,churchImageAssetId,graphicMode,graphicAssetIds,darkScreen:!!darkScreen,addPastorOverride,addPastorAssetId:addPastorOverride?addPastorAssetId:null,addPastorName:addPastorOverride?addPastorName:''};
+      :studioDerivativeMode
+        ?'ESTA IMAGEM SELECIONADA É A FONTE DE VERDADE VISUAL E SEMÂNTICA ATUAL. Preserve o que realmente está visível nela, exceto mudanças pedidas agora. NÃO recupere pregadores, textos, datas, horários, endereços ou elementos de versões anteriores. NÃO invente conteúdo ausente. REMOVA qualquer logo de igreja ou de evento visível na referência. A nova base deve sair LOGO-FREE; as logos oficiais serão inseridas somente depois pelo Assistente de Logos.'
+        :'ESTA IMAGEM É A FONTE DE VERDADE VISUAL ATUAL DA DERIVADA. Preserve o que está visível nela, não reconstrua a partir da memória da arte raiz e não reverta alterações já presentes. Use esta versão LOGO-FREE como base visual. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.';
+    const explicitDerivativeTexts=derivativeExplicitTexts(currentDerivativeInstruction,presetObservation);
+    const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:referenceNote}],target,assets,requiredContent:required,referenceSemanticPolicy:studioDerivativeMode?'current-art-truth':'style-only',explicitDerivativeTexts,instruction:adaptationInstruction,finalInstruction,semanticMap:[],effects:[],artDirection:backgroundDirection||pastorSafeDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:true,omitChurchName:backgroundMode,allowedTexts:backgroundMode?[]:undefined,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,manualDerivativeInstruction,layoutPresetInstruction,presetObservation,pastorMode,pastorAssetIds,pastorPhotoTreatment,churchImageMode,churchImageAssetId,graphicMode,graphicAssetIds,darkScreen:!!darkScreen,addPastorOverride,addPastorAssetId:addPastorOverride?addPastorAssetId:null,addPastorName:addPastorOverride?addPastorName:''};
 
     setQuickProgress(48,'Recompondo para o novo formato...');
     // V0.26: arte derivada = 1 geração + 1 fiscal; sem retry automático.
