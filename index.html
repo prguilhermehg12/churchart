@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.14 -->
+<!-- CHURCHDESIGN — index v1.15 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3838,6 +3838,16 @@ html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn[aria-curre
 .derivative-progress-row b{font-size:8px;color:var(--text)}
 .derivative-progress.error .derivative-progress-row span{color:#d89a75}
 .derivative-progress.done .derivative-progress-row span{color:var(--good)}
+
+
+/* CHURCHDESIGN v1.15 — abas principais do Estúdio */
+.derivative-tab.active{
+  border-color:var(--brand-orange)!important;
+  background:color-mix(in srgb,var(--brand-orange) 14%,var(--panel))!important;
+  color:var(--text)!important;
+  box-shadow:0 0 0 1px var(--brand-orange) inset,0 4px 14px rgba(0,0,0,.08)!important;
+}
+.derivative-tab:not(.active){opacity:.72}
 
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
@@ -8702,10 +8712,19 @@ function derivativeStudioResultHTML(st){
 }
 function derivativeStudioRenderBody(ov){
   const st=ov.__derivativeState;
+  const currentScroll=ov.querySelector('.derivative-config-scroll');
+  if(currentScroll)st.configScrollTop=currentScroll.scrollTop;
+  const sourceStrip=ov.querySelector('.derivative-source-strip');
+  if(sourceStrip)st.sourceStripScrollLeft=sourceStrip.scrollLeft;
   const config=st.tab==='manual'?derivativeManualSections(st):derivativePresetSections(st);
   const grid=ov.querySelector('[data-derivative-grid]');
   grid.innerHTML=`${derivativeStudioSourceHTML(st)}<div class="derivative-panel derivative-config-panel"><div class="derivative-panel-head"><div><strong>${st.tab==='manual'?'Selecione o que deseja na nova arte':'Escolha um layout pronto'}</strong><small>${st.tab==='manual'?'Configure somente o que deseja mudar':'A estrutura escolhida tem prioridade'}</small></div></div><div class="derivative-config-scroll">${config}</div></div>${derivativeStudioResultHTML(st)}`;
+  ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x.dataset.derivativeTab===st.tab));
   bindDerivativeStudioBody(ov);
+  requestAnimationFrame(()=>{
+    const sc=ov.querySelector('.derivative-config-scroll');if(sc)sc.scrollTop=Number(st.configScrollTop)||0;
+    const ss=ov.querySelector('.derivative-source-strip');if(ss)ss.scrollLeft=Number(st.sourceStripScrollLeft)||0;
+  });
 }
 function derivativeStudioSetMobileStep(ov,n){
   const st=ov.__derivativeState,sections=[...ov.querySelectorAll('[data-mobile-step]')];
@@ -8722,6 +8741,10 @@ function derivativeCollectUI(ov){
 }
 function bindDerivativeStudioBody(ov){
   const st=ov.__derivativeState;
+  const configScroll=ov.querySelector('.derivative-config-scroll');
+  if(configScroll)configScroll.addEventListener('scroll',()=>{st.configScrollTop=configScroll.scrollTop},{passive:true});
+  const sourceStripScroll=ov.querySelector('.derivative-source-strip');
+  if(sourceStripScroll)sourceStripScroll.addEventListener('scroll',()=>{st.sourceStripScrollLeft=sourceStripScroll.scrollLeft},{passive:true});
   ov.querySelector('[data-source-fullscreen]')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openArtworkFullscreen(st.source?.dataUrl||st.source?.baseDataUrl||st.source?.sourceUrl,st.source?.label||'Arte de origem')});
   ov.querySelector('[data-result-fullscreen]')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(st.result)openArtworkFullscreen(st.result.dataUrl||st.result.baseDataUrl||st.result.url,st.result.label||'Nova arte')});
   ov.querySelectorAll('[data-source-candidate]').forEach(b=>b.onclick=()=>{
@@ -8801,12 +8824,12 @@ function openDerivativeStudio({parentIndex=0,sourceKey=null,sourceItem=null}={})
   const defaultChurchId=String(srcAssets.churchImage?.id||'');
   const defaultGraphicIds=(srcAssets.graphics||[]).map(x=>String(x?.id||'')).filter(Boolean).slice(0,3);
   state.quickResults[parentIndex]=sourceNode;
-  ov.__derivativeState={parentIndex,sourceKey:`main:${parentIndex}`,source:sourceNode,candidates,tab:'manual',format:sourceNode.target?.id||sourceNode.format||state.quick?.format||'feed',pastorMode:'keep',pastorIds:defaultPastorIds,pastorTreatment:state.quick?.pastorPhotoTreatment||'original',churchMode:'keep',churchId:defaultChurchId,graphicMode:'keep',graphicIds:defaultGraphicIds,instruction:'',observation:'',presetGroup:'feed',presetId:'',result:null,mobileStep:0};
+  ov.__derivativeState={parentIndex,sourceKey:`main:${parentIndex}`,source:sourceNode,candidates,tab:'manual',format:sourceNode.target?.id||sourceNode.format||state.quick?.format||'feed',pastorMode:'keep',pastorIds:defaultPastorIds,pastorTreatment:state.quick?.pastorPhotoTreatment||'original',churchMode:'keep',churchId:defaultChurchId,graphicMode:'keep',graphicIds:defaultGraphicIds,instruction:'',observation:'',presetGroup:'feed',presetId:'',result:null,mobileStep:0,configScrollTop:0,sourceStripScrollLeft:0};
   ov.innerHTML=`<div class="derivative-studio-head"><div><h2>Criação por derivação</h2><small>Imagem selecionada + instruções atuais têm prioridade. Histórico antigo serve apenas como consulta.</small></div><div class="derivative-studio-head-actions"><div class="derivative-balance"><span>Saldo</span><b>${Math.max(0,Number(state.user?.credits)||0)}</b> créditos</div><button class="mini-btn" type="button" data-derivative-cancel>Cancelar</button><button class="close-modal" type="button" data-derivative-close>×</button></div></div><div class="derivative-tabs"><button class="derivative-tab active" type="button" data-derivative-tab="manual">Variação manual</button><button class="derivative-tab" type="button" data-derivative-tab="preset">Variação pré-programada</button></div><div class="derivative-studio-grid" data-derivative-grid></div><div class="derivative-mobile-nav"><button class="btn ghost" type="button" data-derivative-prev>Voltar</button><button class="btn primary" type="button" data-derivative-next>Próximo</button></div>`;
   document.body.appendChild(ov);
   ov.querySelector('[data-derivative-close]').onclick=()=>{if(generationJobBusy())return appAlert('Cancele a geração antes de fechar esta tela.',{type:'info'});ov.remove()};
   ov.querySelector('[data-derivative-cancel]').onclick=()=>{if(generationJobBusy()){ov.__derivativeState.status='cancelled';cancelActiveProcess();setDerivativeStudioProgress(-1,'Processamento cancelado. Créditos debitados serão devolvidos.');appToast('Processamento cancelado.',{type:'info'});}else ov.remove()};
-  ov.querySelectorAll('[data-derivative-tab]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);ov.__derivativeState.tab=b.dataset.derivativeTab;ov.__derivativeState.mobileStep=0;ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x===b));derivativeStudioRenderBody(ov)});
+  ov.querySelectorAll('[data-derivative-tab]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);ov.__derivativeState.tab=b.dataset.derivativeTab;ov.__derivativeState.mobileStep=0;ov.__derivativeState.configScrollTop=0;ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x.dataset.derivativeTab===ov.__derivativeState.tab));derivativeStudioRenderBody(ov)});
   ov.querySelector('[data-derivative-prev]').onclick=()=>derivativeStudioSetMobileStep(ov,(ov.__derivativeState.mobileStep||0)-1);
   ov.querySelector('[data-derivative-next]').onclick=()=>{const st=ov.__derivativeState,sections=[...ov.querySelectorAll('[data-mobile-step]')],max=Math.max(0,sections.length-1);if(st.mobileStep>=max)runDerivativeStudioGeneration(ov);else derivativeStudioSetMobileStep(ov,st.mobileStep+1)};
   derivativeStudioRenderBody(ov);
@@ -9357,6 +9380,8 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
 - Permitido: color grading global, exposição, contraste, saturação, temperatura, tonalidade, vinheta, escurecimento e blur global leve.
 - A fotografia deve continuar reconhecível por comparação direta como O MESMO ARQUIVO, não uma recriação parecida.
 `:'';
+    const inheritedRootInstruction=String(source.instruction||parent.instruction||'').trim();
+    const currentDerivativeInstruction=String(manualDerivativeInstruction||(freeMode?freeInstruction:(childCorrection||''))).trim();
     const finalInstruction=`${layoutPresetInstruction?`HIERARQUIA DA VARIAÇÃO PRÉ-PROGRAMADA:
 1. A IMAGEM EXATAMENTE SELECIONADA é a fonte de identidade visual, pessoas e conteúdo existente.
 2. O LAYOUT PRÉ-PROGRAMADO é a prioridade estrutural absoluta: ${layoutPresetInstruction}
@@ -9421,8 +9446,6 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
       preserve_rules:[...(sourceDirection.preserve_rules||[]).filter(x=>!/t[ií]tulo|texto|tipograf|nome|data|hora|logo|pregador|pessoa/i.test(String(x)))],
       avoid_rules:[...(sourceDirection.avoid_rules||[]),'qualquer texto legível','qualquer pessoa','qualquer logo ou marca','título ou fragmento do título']
     }:pastorSafeDirection;
-    const inheritedRootInstruction=String(source.instruction||parent.instruction||'').trim();
-    const currentDerivativeInstruction=String(manualDerivativeInstruction||(freeMode?freeInstruction:(childCorrection||''))).trim();
     const adaptationInstruction=backgroundMode
       ?'MODO FUNDO ABSOLUTO. Use a imagem selecionada apenas como fonte visual do FUNDO da campanha. Ignore conteúdo semântico herdado.'
       :layoutPresetInstruction
