@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.17 -->
+<!-- CHURCHDESIGN — index v1.18 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -5241,7 +5241,7 @@ function clientPipelineGuard(payload={}){
   const inferredType=p.backgroundMode?'Fundo':p.freeMode?'Modo Livre':p.screenThemeMode?'Telão Tema':p.revisionMode?'Correção':p.mode==='adaptation'?'Derivada':'Arte base';
   p.costSessionId=p.costSessionId||state.costSupervisor?.sessionId||null;
   p.operationId=p.operationId||state.activeGenerationOperation?.operationId||null;
-  p.costContext={...(p.costContext||{}),sessionId:p.costSessionId||null,operationId:p.operationId||null,projectName:p.costContext?.projectName||state.gallerySeed?.recipe?.projectName||state.quick?.title||p.requiredContent?.title||'',artType:p.costContext?.artType||state.activeGenerationOperation?.artType||inferredType,format:p.costContext?.format||state.activeGenerationOperation?.format||p.format||target.id||state.quick?.format||'',targetLabel:p.costContext?.targetLabel||target.label||''};if((p.assets.pastors||[]).length>3)throw new Error('Guardião: máximo de 3 pregadores.');p.allowedTexts=[p.requiredContent?.title,p.requiredContent?.subtitle,p.requiredContent?.secondaryInfo,p.requiredContent?.date,p.requiredContent?.time,p.requiredContent?.address,p.requiredContent?.churchName,...(p.requiredContent?.pastorNames||[])].map(x=>String(x||'').trim()).filter(Boolean);p.referenceSemanticPolicy=String(payload.referenceSemanticPolicy||p.referenceSemanticPolicy||'style-only');if(p.mode==='primary'&&!p.revisionMode&&!p.referenceRole)p.referenceRole='director-only';return p;}
+  p.costContext={...(p.costContext||{}),sessionId:p.costSessionId||null,operationId:p.operationId||null,projectName:p.costContext?.projectName||state.gallerySeed?.recipe?.projectName||state.quick?.title||p.requiredContent?.title||'',artType:p.costContext?.artType||state.activeGenerationOperation?.artType||inferredType,format:p.costContext?.format||state.activeGenerationOperation?.format||p.format||target.id||state.quick?.format||'',targetLabel:p.costContext?.targetLabel||target.label||''};if((p.assets.pastors||[]).length>3)throw new Error('Guardião: máximo de 3 pregadores.');p.allowedTexts=[p.requiredContent?.title,p.requiredContent?.subtitle,p.requiredContent?.secondaryInfo,p.requiredContent?.date,p.requiredContent?.time,p.requiredContent?.address,p.requiredContent?.churchName,...(p.requiredContent?.pastorNames||[]),...(p.explicitDerivativeTexts||[])].map(x=>String(x||'').trim()).filter(Boolean);p.referenceSemanticPolicy=String(payload.referenceSemanticPolicy||p.referenceSemanticPolicy||'style-only');if(p.mode==='primary'&&!p.revisionMode&&!p.referenceRole)p.referenceRole='director-only';return p;}
 
 
 function logoVariantMeta(a){return a?.meta||a?.metadata||a?.data||{}}
@@ -9290,16 +9290,33 @@ function assertDerivativePipelineReady(){
 }
 function derivativeExplicitTexts(...values){
   const out=[],seen=new Set();
+  const add=v=>{
+    v=String(v||'').trim().replace(/^[\-•]\s*/,'').replace(/^["“”'‘’]|["“”'‘’]$/g,'').trim();
+    if(v&&v.length<=220&&!seen.has(v)){seen.add(v);out.push(v)}
+  };
   for(const raw of values){
-    const s=String(raw||'');
-    const rx=/["“”'‘’]([^"“”'‘’]{1,180})["“”'‘’]/g;
-    let m;while((m=rx.exec(s))){
-      const v=String(m[1]||'').trim();
-      if(v&&!seen.has(v)){seen.add(v);out.push(v)}
+    const s=String(raw||'').replace(/\r/g,'');
+    // 1) Tudo que estiver explicitamente entre aspas.
+    const qrx=/["“”'‘’]([^"“”'‘’]{1,220})["“”'‘’]/g;
+    let qm;while((qm=qrx.exec(s)))add(qm[1]);
+
+    const lines=s.split('\n').map(x=>x.trim()).filter(Boolean);
+    let captureBlock=false;
+    for(const line of lines){
+      // 2) "em baixo:", "abaixo:", "texto:", "informações:" abre bloco literal.
+      if(/^(?:em\s*baixo|embaixo|abaixo|informações?|texto|dados)\s*:\s*$/i.test(line)){
+        captureBlock=true;continue;
+      }
+      if(captureBlock){add(line);continue}
+
+      // 3) Depois de comandos como "subtítulo:", "coloque:", "escreva:" o lado direito é texto literal.
+      const m=line.match(/^(?:adicione|adicionar|coloque|colocar|insira|inserir|escreva|escrever|inclua|incluir|subt[ií]tulo|t[ií]tulo|chamada|frase|texto)\b[^:]{0,90}:\s*(.+)$/i);
+      if(m&&m[1]){add(m[1]);continue}
     }
   }
-  return out.slice(0,8);
+  return out.slice(0,12);
 }
+
 
 async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,sourceKey=null,screenDiscreteTitle=false,childCorrection='',adaptOptions={}){
   if(generationJobBusy()){
@@ -9447,6 +9464,9 @@ Omitir explicitamente: ${omit.join(', ')||'nada'}.
 ${pastorRemoval}
 ${studioPastorRemoval}
 ${studioGraphicRemoval}
+${studioDerivativeMode&&explicitDerivativeTexts?.length?`TEXTOS NOVOS OBRIGATÓRIOS — HARD CONSTRAINT:
+${explicitDerivativeTexts.map((t,i)=>`${i+1}. "${t}"`).join('\n')}
+Todos os textos acima devem aparecer legíveis na nova arte. Não resuma, não omita, não substitua e não invente variações.`:''}
 ${studioDerivativeMode?`LOGO-FREE OBRIGATÓRIO — HARD CONSTRAINT:
 - A nova arte gerada deve sair SEM logo de igreja e SEM logo de evento.
 - Se a arte selecionada contém qualquer uma dessas logos, REMOVA-AS da composição gerada.
