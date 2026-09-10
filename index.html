@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.19 -->
+<!-- CHURCHDESIGN — index v1.21 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3862,6 +3862,26 @@ html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn[aria-curre
 }
 .derivative-asset-card.disabled img,
 .derivative-asset-card:disabled img{filter:grayscale(1) brightness(.82)!important}
+
+
+/* CHURCHDESIGN v1.20 — Assistente de centralização de logos */
+.logo-center-guide{position:absolute;z-index:24;pointer-events:none;opacity:0;transition:opacity .12s ease,box-shadow .12s ease}
+.logo-center-guide.vertical{top:0;bottom:0;left:50%;width:1px;background:#2d8cff}
+.logo-center-guide.horizontal{left:0;right:0;top:50%;height:1px;background:#ff4d55}
+.logo-center-guide.active{opacity:.86}
+.logo-center-guide.vertical.snapped{width:2px;box-shadow:0 0 8px rgba(45,140,255,.7)}
+.logo-center-guide.horizontal.snapped{height:2px;box-shadow:0 0 8px rgba(255,77,85,.7)}
+.logo-center-cross{position:absolute;z-index:25;pointer-events:none;left:50%;top:50%;width:10px;height:10px;border:1px solid rgba(255,255,255,.8);border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .12s ease,transform .12s ease}
+.logo-center-cross.active{opacity:.9}
+.logo-center-cross.snapped{opacity:1;transform:translate(-50%,-50%) scale(1.18);box-shadow:0 0 10px rgba(255,255,255,.65)}
+
+
+/* CHURCHDESIGN v1.21 — seleção visual das logos */
+.manual-logo-node{outline:none!important}
+.manual-logo-node:not(.selected){border-color:transparent!important;box-shadow:none!important}
+.manual-logo-node:not(.selected)::before,
+.manual-logo-node:not(.selected)::after{opacity:0!important}
+.manual-logo-node.selected{border-color:rgba(255,255,255,.88)!important;box-shadow:0 0 0 1px rgba(0,0,0,.45),0 0 0 2px rgba(255,255,255,.18)!important}
 
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
@@ -8361,6 +8381,8 @@ function setAssistantSelection(ov,key,slot){
   if(range){range.disabled=!p;if(p)range.value=Math.round(p.w*100)}if(remove)remove.disabled=!p;if(lbl)lbl.textContent=p?`${Math.round(p.w*100)}% da largura`:'Selecione uma logo na arte';
 }
 function bindLogoAssistantNodes(ov,key){
+  ov.querySelectorAll('.manual-logo-node').forEach(node=>node.classList.toggle('selected',String(node.dataset.manualSlot||'')===String(ov.dataset.selectedSlot||'')));
+
   const stage=ov.querySelector('[data-logo-stage]'),node=artworkFlowNode(key);if(!stage||!node)return;
   stage.querySelectorAll('.manual-logo-node').forEach(el=>{
     el.onpointerdown=e=>{
@@ -8468,7 +8490,7 @@ function openLogoAssistant(key,options={}){
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
-  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.96</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"></div></div></div>`;
+  ov.innerHTML=`<div class="logo-assistant-head"><div><h2>Assistente de Logos</h2><small>Posicione as marcas manualmente sobre a arte base.</small></div><div style="display:flex;gap:7px"><button class="mini-btn mobile-assistant-home" type="button" data-logo-home>⌂ Home</button><button class="mini-btn" type="button" data-logo-close>← Voltar</button></div></div><div class="logo-assistant-body"><div class="logo-assistant-panel"><span class="flow-badge">ARTE BASE LOGO-FREE</span><div class="logo-palette-title">Logo da igreja</div><div class="logo-palette">${cards(assets.church,'CHURCH')}</div><div class="logo-palette-title">Logo do evento</div><div class="logo-palette">${cards(assets.event,'EVENT')}</div><p class="logo-assistant-note">Clique numa logo para colocá-la na arte ou arraste-a. Depois arraste a própria logo sobre a arte para reposicionar. Os controles abaixo atuam sobre a logo selecionada.</p><div class="logo-assistant-controls"><label data-logo-size-label>Selecione uma logo na arte</label><input data-logo-size type="range" min="5" max="38" value="14" disabled><button type="button" class="mini-btn" data-logo-remove disabled style="margin-top:8px;width:100%">Remover logo selecionada</button></div><div class="logo-assistant-actions"><button type="button" class="btn primary" data-logo-finalize>FINALIZAR ARTE</button><button type="button" class="btn ghost" data-logo-without>EXPORTAR SEM LOGO</button></div><div class="logo-assistant-version">CHURCHDESIGN • NEWFLOW v0.96</div></div><div class="logo-assistant-stage-wrap"><div class="logo-assistant-stage" data-logo-stage style="aspect-ratio:${ratio}"><img src="${base}" alt="Arte base"><i class="logo-center-guide vertical" data-logo-guide-x></i><i class="logo-center-guide horizontal" data-logo-guide-y></i><i class="logo-center-cross" data-logo-guide-cross></i></div></div></div>`;
   document.body.appendChild(ov);
   // NEWFLOW v0.40: the coordinate system MUST be the real exported bitmap, not the requested target.
   // GPT Image can return a bitmap whose ratio differs slightly from target. If the stage uses target ratio,
@@ -8498,9 +8520,26 @@ function openLogoAssistant(key,options={}){
   const closeAssistant=()=>{if(closing)return;closing=true;cleanupDrag();ov.remove();setNewflowStage(1);document.removeEventListener('keydown',onKey);window.removeEventListener('resize',onAssistantResize);if(options.returnToGallery)setTimeout(()=>openGallery(),0)};
   const onKey=e=>{if(e.key==='Escape')closeAssistant()};document.addEventListener('keydown',onKey);
   const pointInStage=(x,y)=>{const st=stage(),r=st?.getBoundingClientRect();if(!r||!r.width||!r.height||x<r.left||x>r.right||y<r.top||y>r.bottom)return null;return{x:(x-r.left)/r.width,y:(y-r.top)/r.height}};
+  const guideX=()=>ov.querySelector('[data-logo-guide-x]'),guideY=()=>ov.querySelector('[data-logo-guide-y]'),guideCross=()=>ov.querySelector('[data-logo-guide-cross]');
+  const clearLogoGuides=()=>{guideX()?.classList.remove('active','snapped');guideY()?.classList.remove('active','snapped');guideCross()?.classList.remove('active','snapped')};
+  const snapLogoPlacement=(left,top,w,h)=>{
+    const guideBand=.035,snapBand=.012;
+    let x=left,y=top,snapX=false,snapY=false;
+    const cx=left+w/2,cy=top+h/2;
+    const touchesX=(left<=.5+guideBand)&&(left+w>=.5-guideBand);
+    const touchesY=(top<=.5+guideBand)&&(top+h>=.5-guideBand);
+    if(Math.abs(cx-.5)<=snapBand){x=.5-w/2;snapX=true}
+    if(Math.abs(cy-.5)<=snapBand){y=.5-h/2;snapY=true}
+    const gx=guideX(),gy=guideY(),gc=guideCross();
+    gx?.classList.toggle('active',touchesX||snapX);gy?.classList.toggle('active',touchesY||snapY);
+    gx?.classList.toggle('snapped',snapX);gy?.classList.toggle('snapped',snapY);
+    gc?.classList.toggle('active',(touchesX||snapX)&&(touchesY||snapY));
+    gc?.classList.toggle('snapped',snapX&&snapY);
+    return{x,y,snapX,snapY};
+  };
   const sync=slot=>{refreshLogoAssistantStage(ov,key);setAssistantSelection(ov,key,slot||'')};
   const addAt=(slot,assetId,x,y)=>{const pt=(x==null?null:pointInStage(x,y));addLogoToAssistant(key,slot,assetId,pt);sync(slot)};
-  const cleanupDrag=()=>{if(!drag)return;drag.ghost?.remove();document.removeEventListener('pointermove',drag.move,true);document.removeEventListener('pointerup',drag.up,true);document.removeEventListener('pointercancel',drag.up,true);drag=null};
+  const cleanupDrag=()=>{clearLogoGuides();if(!drag)return;drag.ghost?.remove();document.removeEventListener('pointermove',drag.move,true);document.removeEventListener('pointerup',drag.up,true);document.removeEventListener('pointercancel',drag.up,true);drag=null};
 
   // Um único controlador delegado: evita perder handlers quando o palco é redesenhado.
   ov.addEventListener('click',async e=>{
@@ -8508,6 +8547,13 @@ function openLogoAssistant(key,options={}){
     const close=e.target.closest('[data-logo-close]');if(close){e.preventDefault();return closeAssistant()}
     const palette=e.target.closest('[data-palette-asset]');if(palette){e.preventDefault();if(palette.dataset.dragged==='1'){palette.dataset.dragged='';return}return addAt(palette.dataset.paletteSlot,palette.dataset.paletteAsset)}
     const logo=e.target.closest('.manual-logo-node');if(logo){e.preventDefault();return setAssistantSelection(ov,key,logo.dataset.manualSlot)}
+    const logoStage=e.target.closest('[data-logo-stage]');
+    if(logoStage){
+      e.preventDefault();
+      ov.dataset.selectedSlot='';
+      setAssistantSelection(ov,key,'');
+      return;
+    }
     const remove=e.target.closest('[data-logo-remove]');if(remove){e.preventDefault();const slot=ov.dataset.selectedSlot,n=artworkFlowNode(key);if(!n||!slot)return;n.manualLogoPlacements=(n.manualLogoPlacements||[]).filter(x=>x.slot!==slot);return sync('')}
     const finalize=e.target.closest('[data-logo-finalize]');if(finalize){e.preventDefault();if(busy)return;captureLogoPlacementsFromAssistant(ov,key);busy=true;finalize.disabled=true;finalize.textContent='Finalizando...';try{await finalizeArtworkFlow(key,false);document.removeEventListener('keydown',onKey)}catch(err){busy=false;finalize.disabled=false;finalize.textContent='FINALIZAR ARTE';appAlert(`Não foi possível finalizar: ${err.message}`)}return}
     const without=e.target.closest('[data-logo-without]');if(without){e.preventDefault();if(busy)return;busy=true;without.disabled=true;without.textContent='Exportando...';try{await finalizeArtworkFlow(key,true);document.removeEventListener('keydown',onKey)}catch(err){busy=false;without.disabled=false;without.textContent='EXPORTAR SEM LOGO';appAlert(`Não foi possível exportar: ${err.message}`)}return}
@@ -8535,12 +8581,13 @@ function openLogoAssistant(key,options={}){
         const n=artworkFlowNode(key),asset=(state.library.assets||[]).find(a=>String(a.id)===String(palette.dataset.paletteAsset));
         const temp=logoAssistantPlacementDefault(palette.dataset.paletteSlot,asset,n);wNorm=temp.w;hNorm=temp.h;left=pt.x-wNorm/2;top=pt.y-hNorm/2;
       }
+      const snapped=snapLogoPlacement(left,top,wNorm,hNorm);left=snapped.x;top=snapped.y;
       ghost.style.display='block';ghost.style.position='absolute';ghost.style.zIndex='30';
       ghost.style.left=`${left*100}%`;ghost.style.top=`${top*100}%`;ghost.style.width=`${wNorm*100}%`;ghost.style.height='auto';ghost.style.transform='none';
       ghost.style.border='1px dashed rgba(255,255,255,.9)';ghost.style.background='rgba(15,18,23,.35)';ghost.style.padding='2px';
     };
     const move=ev=>{if(!moved&&Math.hypot(ev.clientX-startX,ev.clientY-startY)>4)moved=true;if(moved)previewAt(ev);ev.preventDefault()};
-    const up=ev=>{const pt=pointInStage(ev.clientX,ev.clientY);if(moved&&pt){if(palette){palette.dataset.dragged='1';addLogoToAssistant(key,palette.dataset.paletteSlot,palette.dataset.paletteAsset,pt);sync(palette.dataset.paletteSlot);setTimeout(()=>{palette.dataset.dragged=''},100)}else if(logo){const n=artworkFlowNode(key),slot=logo.dataset.manualSlot,p=(n?.manualLogoPlacements||[]).find(x=>x.slot===slot),asset=(state.library.assets||[]).find(a=>String(a.id)===String(p?.assetId));if(p&&asset){const st=stage(),sr=st.getBoundingClientRect(),lr=logo.getBoundingClientRect(),nw=lr.width/sr.width,nh=lr.height/sr.height;p.x=pt.x-(grabOffset?.x??.5)*nw;p.y=pt.y-(grabOffset?.y??.5)*nh;clampManualPlacement(p,n,asset);sync(slot)}}}cleanupDrag()};
+    const up=ev=>{const pt=pointInStage(ev.clientX,ev.clientY);if(moved&&pt){if(palette){const n=artworkFlowNode(key),asset=(state.library.assets||[]).find(a=>String(a.id)===String(palette.dataset.paletteAsset)),temp=logoAssistantPlacementDefault(palette.dataset.paletteSlot,asset,n),rawLeft=pt.x-temp.w/2,rawTop=pt.y-temp.h/2,s=snapLogoPlacement(rawLeft,rawTop,temp.w,temp.h);palette.dataset.dragged='1';addLogoToAssistant(key,palette.dataset.paletteSlot,palette.dataset.paletteAsset,{x:s.x+temp.w/2,y:s.y+temp.h/2});sync(palette.dataset.paletteSlot);setTimeout(()=>{palette.dataset.dragged=''},100)}else if(logo){const n=artworkFlowNode(key),slot=logo.dataset.manualSlot,p=(n?.manualLogoPlacements||[]).find(x=>x.slot===slot),asset=(state.library.assets||[]).find(a=>String(a.id)===String(p?.assetId));if(p&&asset){const st=stage(),sr=st.getBoundingClientRect(),lr=logo.getBoundingClientRect(),nw=lr.width/sr.width,nh=lr.height/sr.height;const rawLeft=pt.x-(grabOffset?.x??.5)*nw,rawTop=pt.y-(grabOffset?.y??.5)*nh,s=snapLogoPlacement(rawLeft,rawTop,nw,nh);p.x=s.x;p.y=s.y;clampManualPlacement(p,n,asset);sync(slot)}}}cleanupDrag()};
     drag={ghost,move,up};document.addEventListener('pointermove',move,true);document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',up,true);
   },true);
 
@@ -8717,7 +8764,7 @@ function derivativePresetCards(group,selectedId=''){
 function derivativeManualSections(state0){
   return `
   <section class="derivative-section mobile-active" data-mobile-step="0"><div class="derivative-section-title"><strong>Novo tamanho</strong><small>Escolha o formato da próxima arte</small></div><div class="derivative-format-grid">${derivativeFormatCards(state0.format)}</div></section>
-  <section class="derivative-section" data-mobile-step="1"><div class="derivative-section-title"><strong>Pregador</strong><small>Manter, trocar, adicionar ou remover</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['add','Adicionar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.pastorMode===x[0]?'active':''}" data-pastor-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid" data-pastor-assets>${derivativeAssetCards('pastor',['replace','add'].includes(state0.pastorMode)?state0.pastorIds:[],['replace','add'].includes(state0.pastorMode))}</div><div class="derivative-treatment"><button type="button" data-pastor-treatment="original" class="${state0.pastorTreatment==='original'?'active':''}">Manter tratamento</button><button type="button" data-pastor-treatment="bw" class="${state0.pastorTreatment==='bw'?'active':''}">Preto e branco</button><button type="button" data-pastor-treatment="ai" class="${state0.pastorTreatment==='ai'?'active':''}">IA escolhe</button></div></section>
+  <section class="derivative-section" data-mobile-step="1"><div class="derivative-section-title"><strong>Pregador</strong><small>Manter, trocar, adicionar ou remover</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['add','Adicionar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.pastorMode===x[0]?'active':''}" data-pastor-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid" data-pastor-assets>${derivativeAssetCards('pastor',['replace','add'].includes(state0.pastorMode)?state0.pastorIds:[],['replace','add'].includes(state0.pastorMode))}</div>${['replace','add'].includes(state0.pastorMode)?`<div class="derivative-treatment"><button type="button" data-pastor-treatment="original" class="${state0.pastorTreatment==='original'?'active':''}">Manter tratamento</button><button type="button" data-pastor-treatment="bw" class="${state0.pastorTreatment==='bw'?'active':''}">Preto e branco</button><button type="button" data-pastor-treatment="ai" class="${state0.pastorTreatment==='ai'?'active':''}">IA escolhe</button></div>`:''}</section>
   <section class="derivative-section" data-mobile-step="2"><div class="derivative-section-title"><strong>Foto da igreja / fundo</strong><small>Fotografia protegida contra deformação</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.churchMode===x[0]?'active':''}" data-church-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid">${derivativeAssetCards('church',state0.churchMode==='replace'&&state0.churchId?[state0.churchId]:[],state0.churchMode==='replace')}</div></section>
   <section class="derivative-section" data-mobile-step="3"><div class="derivative-section-title"><strong>Elementos PNG</strong><small>Até 3 elementos</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['add','Adicionar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.graphicMode===x[0]?'active':''}" data-graphic-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid">${derivativeAssetCards('graphic',['replace','add'].includes(state0.graphicMode)?state0.graphicIds:[],['replace','add'].includes(state0.graphicMode))}</div></section>
   <section class="derivative-section" data-mobile-step="4"><div class="derivative-section-title"><strong>Novas instruções</strong><small>Estas ordens vencem qualquer instrução antiga</small></div><textarea class="derivative-textarea" data-derivative-instruction placeholder="Descreva apenas o que deseja mudar nesta nova arte...">${esc(state0.instruction||'')}</textarea></section>
