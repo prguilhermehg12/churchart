@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.18 -->
+<!-- CHURCHDESIGN — index v1.19 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3848,6 +3848,20 @@ html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn[aria-curre
   box-shadow:0 0 0 1px var(--brand-orange) inset,0 4px 14px rgba(0,0,0,.08)!important;
 }
 .derivative-tab:not(.active){opacity:.72}
+
+
+/* CHURCHDESIGN v1.19 — ativos bloqueados em Manter/Remover */
+.derivative-asset-card.disabled,
+.derivative-asset-card:disabled{
+  opacity:.26!important;
+  filter:grayscale(1)!important;
+  cursor:not-allowed!important;
+  pointer-events:none!important;
+  box-shadow:none!important;
+  border-color:var(--field-border)!important;
+}
+.derivative-asset-card.disabled img,
+.derivative-asset-card:disabled img{filter:grayscale(1) brightness(.82)!important}
 
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
@@ -8684,12 +8698,12 @@ function isLogoLikeAsset(a){
   if(m.logoGroupId||m.variantGroupId||m.variantOf||m.logoVariantRole||m.variantRole)return true;
   return false;
 }
-function derivativeAssetCards(type,selectedIds=[]){
+function derivativeAssetCards(type,selectedIds=[],enabled=true){
   const assets=(state.library.assets||[]).filter(a=>{
     if(type==='graphic')return a.type==='graphic'&&!isLogoLikeAsset(a);
     return a.type===type;
   });
-  return assets.length?assets.map(a=>`<button type="button" class="derivative-asset-card ${selectedIds.includes(String(a.id))?'active':''}" data-derivative-asset="${type}|${esc(a.id)}"><img src="${esc(a.url)}"><span>${esc(a.meta?.displayName||a.name||type)}</span></button>`).join(''):`<div class="derivative-result-empty">Nenhum arquivo salvo em Minha Igreja.</div>`;
+  return assets.length?assets.map(a=>`<button type="button" class="derivative-asset-card ${selectedIds.includes(String(a.id))?'active':''} ${enabled?'':'disabled'}" data-derivative-asset="${type}|${esc(a.id)}" ${enabled?'':'disabled'} aria-disabled="${enabled?'false':'true'}"><img src="${esc(a.url)}"><span>${esc(a.meta?.displayName||a.name||type)}</span></button>`).join(''):`<div class="derivative-result-empty">Nenhum arquivo salvo em Minha Igreja.</div>`;
 }
 function derivativePresetMockHTML(p){
   const title=p.group==='screen'?'Título aqui':p.group==='story'?'Título aqui':'TÍTULO AQUI';
@@ -8703,9 +8717,9 @@ function derivativePresetCards(group,selectedId=''){
 function derivativeManualSections(state0){
   return `
   <section class="derivative-section mobile-active" data-mobile-step="0"><div class="derivative-section-title"><strong>Novo tamanho</strong><small>Escolha o formato da próxima arte</small></div><div class="derivative-format-grid">${derivativeFormatCards(state0.format)}</div></section>
-  <section class="derivative-section" data-mobile-step="1"><div class="derivative-section-title"><strong>Pregador</strong><small>Manter, trocar, adicionar ou remover</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['add','Adicionar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.pastorMode===x[0]?'active':''}" data-pastor-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid" data-pastor-assets>${derivativeAssetCards('pastor',state0.pastorIds)}</div><div class="derivative-treatment"><button type="button" data-pastor-treatment="original" class="${state0.pastorTreatment==='original'?'active':''}">Manter tratamento</button><button type="button" data-pastor-treatment="bw" class="${state0.pastorTreatment==='bw'?'active':''}">Preto e branco</button><button type="button" data-pastor-treatment="ai" class="${state0.pastorTreatment==='ai'?'active':''}">IA escolhe</button></div></section>
-  <section class="derivative-section" data-mobile-step="2"><div class="derivative-section-title"><strong>Foto da igreja / fundo</strong><small>Fotografia protegida contra deformação</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.churchMode===x[0]?'active':''}" data-church-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid">${derivativeAssetCards('church',state0.churchId?[state0.churchId]:[])}</div></section>
-  <section class="derivative-section" data-mobile-step="3"><div class="derivative-section-title"><strong>Elementos PNG</strong><small>Até 3 elementos</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['add','Adicionar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.graphicMode===x[0]?'active':''}" data-graphic-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid">${derivativeAssetCards('graphic',state0.graphicIds)}</div></section>
+  <section class="derivative-section" data-mobile-step="1"><div class="derivative-section-title"><strong>Pregador</strong><small>Manter, trocar, adicionar ou remover</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['add','Adicionar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.pastorMode===x[0]?'active':''}" data-pastor-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid" data-pastor-assets>${derivativeAssetCards('pastor',['replace','add'].includes(state0.pastorMode)?state0.pastorIds:[],['replace','add'].includes(state0.pastorMode))}</div><div class="derivative-treatment"><button type="button" data-pastor-treatment="original" class="${state0.pastorTreatment==='original'?'active':''}">Manter tratamento</button><button type="button" data-pastor-treatment="bw" class="${state0.pastorTreatment==='bw'?'active':''}">Preto e branco</button><button type="button" data-pastor-treatment="ai" class="${state0.pastorTreatment==='ai'?'active':''}">IA escolhe</button></div></section>
+  <section class="derivative-section" data-mobile-step="2"><div class="derivative-section-title"><strong>Foto da igreja / fundo</strong><small>Fotografia protegida contra deformação</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.churchMode===x[0]?'active':''}" data-church-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid">${derivativeAssetCards('church',state0.churchMode==='replace'&&state0.churchId?[state0.churchId]:[],state0.churchMode==='replace')}</div></section>
+  <section class="derivative-section" data-mobile-step="3"><div class="derivative-section-title"><strong>Elementos PNG</strong><small>Até 3 elementos</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['add','Adicionar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.graphicMode===x[0]?'active':''}" data-graphic-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid">${derivativeAssetCards('graphic',['replace','add'].includes(state0.graphicMode)?state0.graphicIds:[],['replace','add'].includes(state0.graphicMode))}</div></section>
   <section class="derivative-section" data-mobile-step="4"><div class="derivative-section-title"><strong>Novas instruções</strong><small>Estas ordens vencem qualquer instrução antiga</small></div><textarea class="derivative-textarea" data-derivative-instruction placeholder="Descreva apenas o que deseja mudar nesta nova arte...">${esc(state0.instruction||'')}</textarea></section>
   <div class="derivative-generate-wrap"><button class="btn primary derivative-generate-btn" type="button" data-derivative-generate>✦ Gerar nova derivada</button></div>`;
 }
@@ -8768,11 +8782,12 @@ function bindDerivativeStudioBody(ov){
     derivativeStudioRenderBody(ov);
   });
   ov.querySelectorAll('[data-derivative-format]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.format=b.dataset.derivativeFormat;derivativeStudioRenderBody(ov)});
-  ov.querySelectorAll('[data-pastor-mode]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.pastorMode=b.dataset.pastorMode;if(st.pastorMode==='remove')st.pastorIds=[];derivativeStudioRenderBody(ov)});
-  ov.querySelectorAll('[data-church-mode]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.churchMode=b.dataset.churchMode;if(st.churchMode==='remove')st.churchId='';derivativeStudioRenderBody(ov)});
-  ov.querySelectorAll('[data-graphic-mode]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.graphicMode=b.dataset.graphicMode;if(st.graphicMode==='remove')st.graphicIds=[];derivativeStudioRenderBody(ov)});
+  ov.querySelectorAll('[data-pastor-mode]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.pastorMode=b.dataset.pastorMode;if(['keep','remove'].includes(st.pastorMode))st.pastorIds=[];derivativeStudioRenderBody(ov)});
+  ov.querySelectorAll('[data-church-mode]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.churchMode=b.dataset.churchMode;if(['keep','remove'].includes(st.churchMode))st.churchId='';derivativeStudioRenderBody(ov)});
+  ov.querySelectorAll('[data-graphic-mode]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.graphicMode=b.dataset.graphicMode;if(['keep','remove'].includes(st.graphicMode))st.graphicIds=[];derivativeStudioRenderBody(ov)});
   ov.querySelectorAll('[data-pastor-treatment]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.pastorTreatment=b.dataset.pastorTreatment;derivativeStudioRenderBody(ov)});
   ov.querySelectorAll('[data-derivative-asset]').forEach(b=>b.onclick=()=>{
+    if(b.disabled||b.getAttribute('aria-disabled')==='true')return;
     const [type,id]=b.dataset.derivativeAsset.split('|');
     if(type==='pastor'){
       if(st.pastorMode==='replace')st.pastorIds=[id];
@@ -9382,6 +9397,7 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const originalPastors=[...(assets.pastors||[])];
     let keptPastors=addPastorOverride?[]:(freeMode||backgroundMode||screenThemeMode)?[]:originalPastors.filter((p,n)=>!(omit.includes('pastors')||(n===0&&omit.includes('pastorMain'))||(n===1&&omit.includes('pastorAux1'))||(n===2&&omit.includes('pastorAux2'))));
     if(pastorMode==='remove')keptPastors=[];
+    if(studioDerivativeMode&&pastorMode==='keep')keptPastors=[];
     if((pastorMode==='replace'||pastorMode==='add')&&pastorAssetIds.length){
       const selectedAssets=pastorAssetIds.map(id=>(state.library.assets||[]).find(a=>a.type==='pastor'&&String(a.id)===id)).filter(Boolean);
       const hydrated=await hydrateGalleryAssets({pastors:selectedAssets});
@@ -9392,11 +9408,13 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     keptPastors=keptPastors.map((p,i)=>({...p,photoTreatment:pastorPhotoTreatment||p.photoTreatment||'',rank:i,role:i===0?'PRINCIPAL':`AUXILIAR ${i}`}));
     assets.pastors=keptPastors;assets.pastor=keptPastors[0]||null;
     if(churchImageMode==='remove')assets.churchImage=null;
+    else if(studioDerivativeMode&&churchImageMode==='keep')assets.churchImage=null;
     else if(churchImageMode==='replace'&&churchImageAssetId){
       const ch=(state.library.assets||[]).find(a=>a.type==='church'&&String(a.id)===churchImageAssetId);
       if(ch){const h=await hydrateGalleryAssets({churchImage:ch});assets.churchImage=h.churchImage||null}
     }
     assets.graphics=(assets.graphics||[]).filter(a=>!isLogoLikeAsset(a));
+    if(studioDerivativeMode&&graphicMode==='keep')assets.graphics=[];
     if(graphicMode==='remove')assets.graphics=[];
     else if((graphicMode==='replace'||graphicMode==='add')&&graphicAssetIds.length){
       const ga=graphicAssetIds.map(id=>(state.library.assets||[]).find(a=>a.type==='graphic'&&String(a.id)===id&&!isLogoLikeAsset(a))).filter(Boolean);
@@ -9446,6 +9464,7 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
 `:'';
     const inheritedRootInstruction=String(source.instruction||parent.instruction||'').trim();
     const currentDerivativeInstruction=String(manualDerivativeInstruction||(freeMode?freeInstruction:(childCorrection||''))).trim();
+    const explicitDerivativeTexts=derivativeExplicitTexts(currentDerivativeInstruction,presetObservation);
     const finalInstruction=`${layoutPresetInstruction?`HIERARQUIA DA VARIAÇÃO PRÉ-PROGRAMADA:
 1. A IMAGEM EXATAMENTE SELECIONADA é a fonte de identidade visual, pessoas e conteúdo existente.
 2. O LAYOUT PRÉ-PROGRAMADO é a prioridade estrutural absoluta: ${layoutPresetInstruction}
@@ -9462,7 +9481,17 @@ Adapte o layout NATIVAMENTE para ${target.ratio||target.label}; não estique e n
 SAFE FRAME RÍGIDO: 12% de margem livre em cada lado para TODO conteúdo essencial.
 Omitir explicitamente: ${omit.join(', ')||'nada'}.
 ${pastorRemoval}
+${studioDerivativeMode&&pastorMode==='keep'?`PREGADOR — MANTER:
+- Não adicione nenhuma pessoa nova.
+- Preserve somente as pessoas já visíveis na arte selecionada.
+- Se a arte selecionada não tiver pregador, permaneça sem pregador.`:''}
 ${studioPastorRemoval}
+${studioDerivativeMode&&churchImageMode==='keep'?`FOTO DA IGREJA / FUNDO — MANTER:
+- Não introduza nenhuma nova fotografia de igreja.
+- Preserve somente o fundo/fotografia já visível na arte selecionada.`:''}
+${studioDerivativeMode&&graphicMode==='keep'?`ELEMENTOS PNG — MANTER:
+- Não introduza novos elementos PNG.
+- Preserve somente os elementos já visíveis na arte selecionada, exceto logos, que saem da geração.`:''}
 ${studioGraphicRemoval}
 ${studioDerivativeMode&&explicitDerivativeTexts?.length?`TEXTOS NOVOS OBRIGATÓRIOS — HARD CONSTRAINT:
 ${explicitDerivativeTexts.map((t,i)=>`${i+1}. "${t}"`).join('\n')}
@@ -9531,7 +9560,6 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
       :studioDerivativeMode
         ?'ESTA IMAGEM SELECIONADA É A FONTE DE VERDADE VISUAL E SEMÂNTICA ATUAL. Preserve o que realmente está visível nela, exceto mudanças pedidas agora. NÃO recupere pregadores, textos, datas, horários, endereços ou elementos de versões anteriores. NÃO invente conteúdo ausente. REMOVA qualquer logo de igreja ou de evento visível na referência. A nova base deve sair LOGO-FREE; as logos oficiais serão inseridas somente depois pelo Assistente de Logos.'
         :'ESTA IMAGEM É A FONTE DE VERDADE VISUAL ATUAL DA DERIVADA. Preserve o que está visível nela, não reconstrua a partir da memória da arte raiz e não reverta alterações já presentes. Use esta versão LOGO-FREE como base visual. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.';
-    const explicitDerivativeTexts=derivativeExplicitTexts(currentDerivativeInstruction,presetObservation);
     const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:referenceNote}],target,assets,requiredContent:required,referenceSemanticPolicy:studioDerivativeMode?'current-art-truth':'style-only',explicitDerivativeTexts,instruction:adaptationInstruction,finalInstruction,semanticMap:[],effects:[],artDirection:backgroundDirection||pastorSafeDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:true,omitChurchName:backgroundMode,allowedTexts:backgroundMode?[]:undefined,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,manualDerivativeInstruction,layoutPresetInstruction,presetObservation,pastorMode,pastorAssetIds,pastorPhotoTreatment,churchImageMode,churchImageAssetId,graphicMode,graphicAssetIds,darkScreen:!!darkScreen,addPastorOverride,addPastorAssetId:addPastorOverride?addPastorAssetId:null,addPastorName:addPastorOverride?addPastorName:''};
 
     setQuickProgress(48,'Recompondo para o novo formato...');
