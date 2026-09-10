@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.12 -->
+<!-- CHURCHDESIGN — index v1.14 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3827,6 +3827,17 @@ html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn[aria-curre
   .quick-inline-result{margin-top:16px}
   .quick-single-image-wrap{max-height:none}.quick-single-image-wrap img{max-height:none}
 }
+
+
+/* CHURCHDESIGN v1.14 — progresso da derivação dentro do Estúdio */
+.derivative-progress{display:none;flex:none;padding:9px 10px;border-top:1px solid var(--line);background:var(--panel)}
+.derivative-progress.show{display:block}
+.derivative-progress-track{height:6px;border-radius:99px;background:var(--soft-surface);overflow:hidden;border:1px solid var(--field-border)}
+.derivative-progress-track i{display:block;height:100%;width:0;border-radius:99px;background:var(--brand-orange);transition:width .28s ease}
+.derivative-progress-row{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:6px;font-size:7.5px;color:var(--muted)}
+.derivative-progress-row b{font-size:8px;color:var(--text)}
+.derivative-progress.error .derivative-progress-row span{color:#d89a75}
+.derivative-progress.done .derivative-progress-row span{color:var(--good)}
 
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
@@ -8397,6 +8408,14 @@ async function finalizeArtworkFlow(key,withoutLogo=false){
   const sourceArtworkId=galleryEditSource||node.sourceArtworkId||node.galleryId||null;
   try{const saved=await persistGalleryArtwork(node,{kind:isAdaptation?'arte derivada final':'arte final',parentArtworkId,sourceArtworkId,format:node.target?.id||node.format||state.quick.format,force:true});if(saved){node.galleryId=saved.galleryId;node.finalGalleryId=saved.galleryId}}catch(e){console.warn('NEWFLOW: arte final não pôde ser persistida agora',e)}
   document.querySelector('.logo-assistant-overlay')?.remove();
+  const derivativeStudio=document.querySelector('.derivative-studio-overlay');
+  if(derivativeStudio?.__derivativeState){
+    const ds=derivativeStudio.__derivativeState;
+    if(ds.result&&(String(ds.result.id||'')===String(node.id||'')||String(ds.result.galleryId||'')===String(node.galleryId||''))){
+      ds.result=node;
+      derivativeStudioRenderBody(derivativeStudio);
+    }
+  }
   const wrap=document.querySelector('#quickResultsWrap');if(wrap){wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}
   const status=document.querySelector('#quickStatus');if(status)status.innerHTML=`<strong style="color:var(--good)">✓ Arte finalizada${withoutLogo?' sem logo':''}.</strong> Agora você pode baixar ou gerar artes derivadas.`;
   if(isMobileCreationFlow()){state.mobileQuickStep=5;setTimeout(()=>screenQuickMode(),0);}
@@ -8679,7 +8698,7 @@ function derivativeStudioSourceHTML(st){
 }
 function derivativeStudioResultHTML(st){
   const r=st.result;
-  return `<div class="derivative-panel derivative-result-panel"><div class="derivative-panel-head"><div><strong>Nova arte</strong><small>${r?'Resultado atual':'Aguardando geração'}</small></div></div><div class="derivative-stage">${r?`<img data-derivative-result-img src="${esc(r.dataUrl||r.baseDataUrl||'')}"><button class="derivative-fullscreen" type="button" data-result-fullscreen>⛶</button>`:`<div class="derivative-result-empty">A nova arte aparecerá aqui.<br>No celular, esta janela permanece fixa enquanto você configura as etapas acima.</div>`}</div>${r?`<div class="derivative-result-actions"><button class="mini-btn" type="button" data-result-use-source>Usar como nova origem</button><button class="mini-btn" type="button" data-result-proceed>Prosseguir →</button></div>`:''}</div>`;
+  return `<div class="derivative-panel derivative-result-panel"><div class="derivative-panel-head"><div><strong>Nova arte</strong><small>${r?'Resultado atual':'Aguardando geração'}</small></div></div><div class="derivative-stage">${r?`<img data-derivative-result-img src="${esc(r.dataUrl||r.baseDataUrl||'')}"><button class="derivative-fullscreen" type="button" data-result-fullscreen>⛶</button>`:`<div class="derivative-result-empty">A nova arte aparecerá aqui.<br>No celular, esta janela permanece fixa enquanto você configura as etapas acima.</div>`}</div><div class="derivative-progress" data-derivative-progress><div class="derivative-progress-track"><i data-derivative-progress-fill></i></div><div class="derivative-progress-row"><span data-derivative-progress-text>${st.status==='error'?'A adaptação foi interrompida.':'Aguardando geração.'}</span><b data-derivative-progress-pct>0%</b></div></div>${r?`<div class="derivative-result-actions">${r.finalized?`<button class="btn primary" type="button" data-result-gallery>Ir para a Galeria</button><button class="mini-btn" type="button" data-result-use-source>Usar como nova origem</button>`:`<button class="mini-btn" type="button" data-result-use-source>Usar como nova origem</button><button class="btn primary" type="button" data-result-proceed>Prosseguir →</button>`}</div>`:''}</div>`;
 }
 function derivativeStudioRenderBody(ov){
   const st=ov.__derivativeState;
@@ -8708,6 +8727,7 @@ function bindDerivativeStudioBody(ov){
   ov.querySelectorAll('[data-source-candidate]').forEach(b=>b.onclick=()=>{
     derivativeCollectUI(ov);const c=st.candidates[Number(b.dataset.sourceCandidate)];if(!c)return;
     st.sourceKey=String(c.key||c.galleryId||`candidate:${b.dataset.sourceCandidate}`);st.source=derivativeSourceFromCandidate(c);
+    state.quickResults[st.parentIndex]=st.source;
     derivativeStudioRenderBody(ov);
   });
   ov.querySelectorAll('[data-derivative-format]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.format=b.dataset.derivativeFormat;derivativeStudioRenderBody(ov)});
@@ -8732,8 +8752,9 @@ function bindDerivativeStudioBody(ov){
   ov.querySelectorAll('[data-preset-group]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.presetGroup=b.dataset.presetGroup;st.presetId='';st.format=st.presetGroup==='story'?'story':st.presetGroup==='youtube'?'youtube':st.presetGroup==='screen'?'screen':'feed';derivativeStudioRenderBody(ov)});
   ov.querySelectorAll('[data-derivative-preset]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.presetId=b.dataset.derivativePreset;const p=DERIVATIVE_PRESETS.find(x=>x.id===st.presetId);if(p)st.format=p.format;ov.querySelectorAll('[data-derivative-preset]').forEach(x=>x.classList.toggle('active',x.dataset.derivativePreset===st.presetId))});
   ov.querySelector('[data-derivative-generate]')?.addEventListener('click',()=>runDerivativeStudioGeneration(ov));
-  ov.querySelector('[data-result-use-source]')?.addEventListener('click',()=>{if(!st.result)return;st.source=st.result;st.sourceKey=`adaptation:${st.parentIndex}:${st.result.id}`;st.candidates.push(st.result);st.result=null;derivativeStudioRenderBody(ov)});
+  ov.querySelector('[data-result-use-source]')?.addEventListener('click',()=>{if(!st.result)return;st.source=st.result;st.sourceKey=`main:${st.parentIndex}`;state.quickResults[st.parentIndex]=st.result;st.candidates.push(st.result);st.result=null;st.status='idle';derivativeStudioRenderBody(ov)});
   ov.querySelector('[data-result-proceed]')?.addEventListener('click',()=>{if(st.result)openLogoAssistant(`adaptation:${st.parentIndex}:${st.result.id}`)});
+  ov.querySelector('[data-result-gallery]')?.addEventListener('click',()=>{ov.remove();openGallery()});
   derivativeStudioSetMobileStep(ov,st.mobileStep||0);
 }
 async function runDerivativeStudioGeneration(ov){
@@ -8748,8 +8769,22 @@ async function runDerivativeStudioGeneration(ov){
   }
   const btn=ov.querySelector('[data-derivative-generate]');if(btn){btn.disabled=true;btn.textContent='Gerando…'}
   try{
-    const child=await runQuickAdaptation(st.parentIndex,st.format,[],false,st.sourceKey,false,st.tab==='manual'?st.instruction:'',options);
-    if(child){st.result=child;derivativeStudioRenderBody(ov)}
+    // O Estúdio é apenas uma nova interface para o motor de derivação já existente.
+    // A arte visualmente selecionada é montada como a origem normal main:<index>,
+    // sem criar uma segunda engenharia de geração.
+    state.quickResults[st.parentIndex]=st.source;
+    const engineSourceKey=`main:${st.parentIndex}`;
+    setDerivativeStudioProgress(18,'Preparando a derivação...');
+    const child=await runQuickAdaptation(st.parentIndex,st.format,[],false,engineSourceKey,false,st.tab==='manual'?st.instruction:'',options);
+    if(child){
+      st.result=child;
+      st.status='completed';
+      derivativeStudioRenderBody(ov);
+      setDerivativeStudioProgress(100,'Arte derivada pronta.');
+    }else if(st.status!=='cancelled'){
+      st.status='error';
+      setDerivativeStudioProgress(-1,'A adaptação foi interrompida. Os créditos debitados foram devolvidos automaticamente.');
+    }
   }finally{const b=ov.querySelector('[data-derivative-generate]');if(b){b.disabled=false;b.textContent=st.tab==='manual'?'✦ Gerar nova derivada':'✦ Gerar variação programada'}}
 }
 function openDerivativeStudio({parentIndex=0,sourceKey=null,sourceItem=null}={}){
@@ -8765,11 +8800,12 @@ function openDerivativeStudio({parentIndex=0,sourceKey=null,sourceItem=null}={})
   const defaultPastorIds=(srcAssets.pastors||[]).map(x=>String(x?.id||'')).filter(Boolean);
   const defaultChurchId=String(srcAssets.churchImage?.id||'');
   const defaultGraphicIds=(srcAssets.graphics||[]).map(x=>String(x?.id||'')).filter(Boolean).slice(0,3);
-  ov.__derivativeState={parentIndex,sourceKey:String(matched.key||sourceKey||`main:${parentIndex}`),source:sourceNode,candidates,tab:'manual',format:sourceNode.target?.id||sourceNode.format||state.quick?.format||'feed',pastorMode:'keep',pastorIds:defaultPastorIds,pastorTreatment:state.quick?.pastorPhotoTreatment||'original',churchMode:'keep',churchId:defaultChurchId,graphicMode:'keep',graphicIds:defaultGraphicIds,instruction:'',observation:'',presetGroup:'feed',presetId:'',result:null,mobileStep:0};
+  state.quickResults[parentIndex]=sourceNode;
+  ov.__derivativeState={parentIndex,sourceKey:`main:${parentIndex}`,source:sourceNode,candidates,tab:'manual',format:sourceNode.target?.id||sourceNode.format||state.quick?.format||'feed',pastorMode:'keep',pastorIds:defaultPastorIds,pastorTreatment:state.quick?.pastorPhotoTreatment||'original',churchMode:'keep',churchId:defaultChurchId,graphicMode:'keep',graphicIds:defaultGraphicIds,instruction:'',observation:'',presetGroup:'feed',presetId:'',result:null,mobileStep:0};
   ov.innerHTML=`<div class="derivative-studio-head"><div><h2>Criação por derivação</h2><small>Imagem selecionada + instruções atuais têm prioridade. Histórico antigo serve apenas como consulta.</small></div><div class="derivative-studio-head-actions"><div class="derivative-balance"><span>Saldo</span><b>${Math.max(0,Number(state.user?.credits)||0)}</b> créditos</div><button class="mini-btn" type="button" data-derivative-cancel>Cancelar</button><button class="close-modal" type="button" data-derivative-close>×</button></div></div><div class="derivative-tabs"><button class="derivative-tab active" type="button" data-derivative-tab="manual">Variação manual</button><button class="derivative-tab" type="button" data-derivative-tab="preset">Variação pré-programada</button></div><div class="derivative-studio-grid" data-derivative-grid></div><div class="derivative-mobile-nav"><button class="btn ghost" type="button" data-derivative-prev>Voltar</button><button class="btn primary" type="button" data-derivative-next>Próximo</button></div>`;
   document.body.appendChild(ov);
   ov.querySelector('[data-derivative-close]').onclick=()=>{if(generationJobBusy())return appAlert('Cancele a geração antes de fechar esta tela.',{type:'info'});ov.remove()};
-  ov.querySelector('[data-derivative-cancel]').onclick=()=>{if(generationJobBusy()){cancelActiveProcess();appToast('Processamento cancelado.',{type:'info'});}else ov.remove()};
+  ov.querySelector('[data-derivative-cancel]').onclick=()=>{if(generationJobBusy()){ov.__derivativeState.status='cancelled';cancelActiveProcess();setDerivativeStudioProgress(-1,'Processamento cancelado. Créditos debitados serão devolvidos.');appToast('Processamento cancelado.',{type:'info'});}else ov.remove()};
   ov.querySelectorAll('[data-derivative-tab]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);ov.__derivativeState.tab=b.dataset.derivativeTab;ov.__derivativeState.mobileStep=0;ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x===b));derivativeStudioRenderBody(ov)});
   ov.querySelector('[data-derivative-prev]').onclick=()=>derivativeStudioSetMobileStep(ov,(ov.__derivativeState.mobileStep||0)-1);
   ov.querySelector('[data-derivative-next]').onclick=()=>{const st=ov.__derivativeState,sections=[...ov.querySelectorAll('[data-mobile-step]')],max=Math.max(0,sections.length-1);if(st.mobileStep>=max)runDerivativeStudioGeneration(ov);else derivativeStudioSetMobileStep(ov,st.mobileStep+1)};
@@ -8898,10 +8934,21 @@ function animateQuickProgress(){
   const shown=Math.max(0,Math.min(100,quickProgressVisual));if(bar)bar.style.width=`${shown.toFixed(2)}%`;if(num)num.textContent=`${Math.floor(shown)}%`;
   if(quickProgressVisual!==quickProgressTarget||quickProgressTarget<100)quickProgressRaf=requestAnimationFrame(animateQuickProgress);else quickProgressRaf=null;
 }
+function setDerivativeStudioProgress(pct,text){
+  const ov=document.querySelector('.derivative-studio-overlay');if(!ov)return;
+  const wrap=ov.querySelector('[data-derivative-progress]'),fill=ov.querySelector('[data-derivative-progress-fill]'),label=ov.querySelector('[data-derivative-progress-text]'),num=ov.querySelector('[data-derivative-progress-pct]');
+  if(!wrap)return;
+  if(Number(pct)<0){wrap.classList.add('show','error');wrap.classList.remove('done');if(label)label.textContent=text||'A adaptação foi interrompida.';if(num)num.textContent='';return}
+  const p=Math.max(0,Math.min(100,Number(pct)||0));wrap.classList.add('show');wrap.classList.remove('error');wrap.classList.toggle('done',p>=100);
+  if(fill)fill.style.width=`${p}%`;if(label)label.textContent=text||'Processando sua arte...';if(num)num.textContent=`${Math.round(p)}%`;
+}
 function setQuickProgress(pct,text){
   const p=Math.max(0,Math.min(100,Number(pct)||0));
   updateBackgroundGenerationJob(p,text||'Processando sua arte...');
-  const wrap=document.querySelector('#quickProgress'),label=document.querySelector('#quickProgressText');if(!wrap)return;
+  setDerivativeStudioProgress(p,text||'Processando sua arte...');
+  const wrap=document.querySelector('#quickProgress'),label=document.querySelector('#quickProgressText');
+  if(document.querySelector('.derivative-studio-overlay')){if(wrap)wrap.classList.remove('show');return}
+  if(!wrap)return;
 if(quickProgressHideTimer){clearTimeout(quickProgressHideTimer);quickProgressHideTimer=null}
   if(p===0){quickProgressVisual=0;quickProgressTarget=0;wrap.classList.remove('show');const bar=document.querySelector('#quickProgressBar'),num=document.querySelector('#quickProgressPct');if(bar)bar.style.width='0%';if(num)num.textContent='0%';if(label)label.textContent=text||'Processando sua arte...';return}
   wrap.classList.add('show');if(label)label.textContent=text||'Processando sua arte...';quickProgressTarget=quickProgressCeiling(p);
