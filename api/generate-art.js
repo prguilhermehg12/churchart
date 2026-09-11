@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.22.0
+// CHURCHDESIGN — generate-art v0.26.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -121,7 +121,17 @@ async function saveBase64ToStorage(base64,churchId,label="art"){
 
 
 function allowedTexts(data={}){const c=data.requiredContent||{};return[c.title,c.subtitle,c.secondaryInfo,c.date,c.time,c.address,c.churchName,...(c.pastorNames||[])].map(x=>String(x||"").trim()).filter(Boolean);}
-function pipelineGuard(input={}){const data={...input,assets:{...(input.assets||{})}};delete data.assets.logo;delete data.assets.eventLogo;delete data.assets.event_logo;const pastors=(data.assets.pastors||[data.assets.pastor].filter(Boolean)).slice(0,3);data.assets.pastors=pastors;data.assets.pastor=pastors[0]||null;data.allowedTexts=allowedTexts(data);data.referenceSemanticPolicy="style-only";return data;}
+function isLogoLikeGraphic(a){
+  if(!a)return false;
+  const type=String(a.type||'').toLowerCase();
+  const m=a.meta||a.metadata||a.data||{};
+  const category=String(m.category||m.assetCategory||m.kind||'').toLowerCase();
+  if(type==='logo'||type==='event_logo')return true;
+  if(['logo','church_logo','event_logo','brand_logo'].includes(category))return true;
+  if(m.logoGroupId||m.variantGroupId||m.variantOf||m.logoVariantRole||m.variantRole)return true;
+  return false;
+}
+function pipelineGuard(input={}){const data={...input,assets:{...(input.assets||{})}};delete data.assets.logo;delete data.assets.eventLogo;delete data.assets.event_logo;data.assets.graphics=(data.assets.graphics||[]).filter(a=>!isLogoLikeGraphic(a));const pastors=(data.assets.pastors||[data.assets.pastor].filter(Boolean)).slice(0,3);data.assets.pastors=pastors;data.assets.pastor=pastors[0]||null;data.referenceSemanticPolicy=String(input.referenceSemanticPolicy||"style-only");data.explicitDerivativeTexts=(Array.isArray(input.explicitDerivativeTexts)?input.explicitDerivativeTexts:[]).map(x=>String(x||"").trim()).filter(Boolean).slice(0,12);data.allowedTexts=[...allowedTexts(data),...data.explicitDerivativeTexts].map(x=>String(x||"").trim()).filter(Boolean);return data;}
 
 function transparentBackgroundIntent(data={}){
   const parts=[
@@ -204,6 +214,7 @@ Evitar: ${(a.avoid_rules||[]).join(" | ")}
 Orientação especializada: ${a.generation_prompt||""}`;}
 function prompt(data){
   const c=data.requiredContent||{},target=data.target||{};
+  const explicitDerivativeTexts=(data.explicitDerivativeTexts||[]).map(t=>`TEXTO EXATO PEDIDO AGORA: ${t}`);
   const texts=[
     c.title?`TÍTULO EXATO: ${c.title}`:"",
     c.subtitle?`SUBTÍTULO EXATO: ${c.subtitle}`:"",
@@ -211,7 +222,8 @@ function prompt(data){
     c.date?`DATA EXATA: ${c.date}`:"",
     c.time?`HORÁRIO EXATO: ${c.time}`:"",
     c.address?`ENDEREÇO EXATO: ${c.address}`:"",
-    ...(Array.isArray(c.pastorNames)?c.pastorNames.filter(Boolean).map((n,i)=>`${i===0?'PREGADOR PRINCIPAL':`PREGADOR AUXILIAR ${i}`} — NOME EXATO: ${n}`):[])
+    ...(Array.isArray(c.pastorNames)?c.pastorNames.filter(Boolean).map((n,i)=>`${i===0?'PREGADOR PRINCIPAL':`PREGADOR AUXILIAR ${i}`} — NOME EXATO: ${n}`):[]),
+    ...explicitDerivativeTexts
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
 
@@ -295,12 +307,24 @@ ${c.secondaryInfo?`HIERARQUIA DA INFORMAÇÃO SECUNDÁRIA — HARD CONSTRAINT:
 - Não cubra rosto, pessoa, logo futura ou elemento focal.
 `:''}
 
-TEXT ALLOWLIST — HARD CONSTRAINT:
+${data.referenceSemanticPolicy==='current-art-truth'?`DERIVAÇÃO — ARTE ATUAL COMO VERDADE:
+- A referência selecionada é a ARTE ATUAL, não uma referência style-only.
+- Preserve textos realmente visíveis nela somente quando não houver ordem atual para removê-los/substituí-los.
+- Textos pedidos explicitamente nesta ação devem aparecer EXATAMENTE: ${JSON.stringify(data.explicitDerivativeTexts||[])}.
+- CADA item dessa lista é conteúdo obrigatório independente. Não omita linhas por falta de espaço: reduza/reorganize a composição para acomodar todas.
+- Não transforme essas linhas em texto genérico, placeholders ou pseudo-tipografia.
+- NÃO recupere textos de requiredContent antigo, artDirection antiga, arte raiz ou versões anteriores.
+- NÃO invente slogan, nome de culto, data, horário, endereço, local, nome de pregador, nome de igreja ou qualquer outra informação ausente da arte selecionada e das instruções atuais.
+- SAÍDA LOGO-FREE: remova qualquer logo de igreja ou logo de evento visível na referência. Não redesenhe, não imite e não preserve essas marcas na imagem gerada.
+- Logos de igreja/evento nunca são "elementos PNG" nesta etapa; elas serão aplicadas somente no Assistente de Logos após a geração.
+- É erro crítico criar pessoa, data, horário, endereço, título ou logo não autorizada pela ação atual.
+- Hierarquia: INSTRUÇÃO ATUAL > ARTE SELECIONADA > qualquer contexto antigo.
+`:`TEXT ALLOWLIST — HARD CONSTRAINT:
 Os ÚNICOS textos legíveis permitidos são: ${JSON.stringify(data.allowedTexts||[])}.
 Não invente slogans, chamadas, nomes de culto, nomes de igreja, palavras de fundo, datas, números ou frases.
 Não copie qualquer texto da referência original, porque ela é STYLE-ONLY.
 Se quiser reproduzir uma massa tipográfica da referência, use somente um texto autorizado ou geometria abstrata NÃO legível.
-Qualquer palavra legível fora da allowlist é erro crítico.
+Qualquer palavra legível fora da allowlist é erro crítico.`}
 
 IGREJA — CONTEXTO INTERNO, NÃO AUTORIZAÇÃO DE TEXTO: ${data.church?.name||""}
 REGRA ABSOLUTA DO NOME DA IGREJA:
@@ -344,13 +368,21 @@ REGRA DE COMPOSIÇÃO ADAPTATIVA:
 
 
 
-TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
+${data.layoutPresetInstruction?`LAYOUT PRÉ-PROGRAMADO — DIREÇÃO CRIATIVA FLEXÍVEL:
+- O DIRETOR DE DESIGN possui primazia criativa sobre coordenadas, margens e proporções numéricas do preset.
+- As medidas do preset são REFERÊNCIAS VISUAIS. Adapte, mova, amplie, reduza, corte e ultrapasse margens quando isso melhorar a composição no formato atual.
+- Não existe obrigação de manter safe frame rígido de 12% neste modo.
+- REGRA INVIOLÁVEL: título, subtítulo, data, hora, endereço e qualquer informação obrigatória devem permanecer claramente legíveis e não podem ficar escondidos por pregador, decoração ou outra tipografia.
+- Elementos decorativos pertencem ao FUNDO e devem permanecer atrás do pregador quando ambos existirem.
+- O alinhamento textual não é herdado do preset; escolha esquerda, centro ou direita conforme a melhor solução visual.
+- Preserve a intenção, hierarquia e ocupação geral do template, não suas coordenadas matemáticas exatas.
+`:`TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
 - Trate os 12% externos de CADA LADO como zona proibida para conteúdo essencial.
 - Todo texto, título, subtítulo, data, hora, endereço, logo, nome de pregador, rosto e cabeça deve ficar integralmente dentro do retângulo central de 76% da largura por 76% da altura.
 - Nada essencial pode tocar a borda. Nada essencial pode ser parcialmente cortado.
 - Faça o layout MENOR e mais central se houver qualquer dúvida. Espaço vazio nas bordas é aceitável; conteúdo cortado não é.
 - Elementos abstratos/texturas podem sangrar; informação e pessoas nunca.
-- Faça uma revisão final das quatro bordas antes de concluir.
+- Faça uma revisão final das quatro bordas antes de concluir.`}
 
 REGRA DE LOGOS PÓS-ARTE:
 - Nenhuma logo será desenhada nesta etapa.
@@ -359,12 +391,14 @@ REGRA DE LOGOS PÓS-ARTE:
 - Se a referência tiver logo, remova-a e reconstrua o fundo naturalmente, sem deixar vestígio nem espaço artificial.
 
 REGRA DE SAFE AREA / ÁREA SEGURA:
-- Nenhum texto, logo, rosto, data, horário, endereço ou informação essencial pode encostar, ultrapassar ou ficar parcialmente fora do canvas.
+${data.layoutPresetInstruction?`- No modo pré-programado, as margens são flexíveis e podem ser reduzidas ou violadas pelo Diretor de Design.
+- O que NÃO pode ser violado é a VISIBILIDADE da informação: nenhum texto, data, hora ou endereço obrigatório pode ficar cortado, escondido ou ilegível.
+- Pregador e elementos decorativos podem sangrar/cortar quando isso fizer parte da composição, desde que não ocultem informação obrigatória.`:`- Nenhum texto, logo, rosto, data, horário, endereço ou informação essencial pode encostar, ultrapassar ou ficar parcialmente fora do canvas.
 - Reserve no mínimo 8% de margem interna em TODOS os lados para conteúdo essencial.
 - Em formatos verticais, não coloque títulos ou endereços colados no topo ou na base.
 - Em formatos horizontais, proteja especialmente as laterais.
 - Elementos decorativos podem sangrar para fora; conteúdo essencial, jamais.
-- Antes de finalizar, revise mentalmente as quatro bordas e confirme que nada importante está cortado.
+- Antes de finalizar, revise mentalmente as quatro bordas e confirme que nada importante está cortado.`}
 
  
 TIPOGRAFIA FINAL:
