@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.26.0
+// CHURCHDESIGN — generate-art v0.28.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -196,6 +196,8 @@ function collectInputImages(data){
     for(const [i,r] of (data.references||[]).slice(0,1).entries())
       if(isDataImage(r?.image))imgs.push({data:r.image,name:`working-base-${i+1}.png`});
   }
+  if(data.layoutPresetInstruction&&isDataImage(data.layoutGuideImage))
+    imgs.push({data:data.layoutGuideImage,name:"layout-geometry-guide.png"});
   // Foto da igreja volta à mesma posição de entrada usada antes da tentativa v0.9.
   if(isDataImage(data.assets?.churchImage?.image))imgs.push({data:data.assets.churchImage.image,name:"church-background.png"});
   return imgs;
@@ -212,6 +214,27 @@ Observação de logos: posições e áreas de logos NÃO fazem parte do canvas g
 Preservar: ${(a.preserve_rules||[]).join(" | ")}
 Evitar: ${(a.avoid_rules||[]).join(" | ")}
 Orientação especializada: ${a.generation_prompt||""}`;}
+function layoutPresetStructuralBlock(data={}){
+  if(!data.layoutPresetInstruction)return "";
+  const els=Array.isArray(data.layoutPresetBlueprint?.elements)?data.layoutPresetBlueprint.elements:[];
+  const row=e=>{
+    const x=Number(e.x)||0,y=Number(e.y)||0,w=Number(e.w)||0,h=Number(e.h)||0;
+    const small=e.type==="title"&&(w<=25||h<=20);
+    return `• ${String(e.type||"element").toUpperCase()}: x ${x.toFixed(1)}%, y ${y.toFixed(1)}%, w ${w.toFixed(1)}%, h ${h.toFixed(1)}%${e.type==="title"?` — GEOMETRIA PRATICAMENTE EXATA: preservar esta região e esta proporção, com tolerância máxima de aproximadamente 2 pontos percentuais. NÃO ampliar a caixa; se não couber, reduzir fonte/quebrar linhas${small?"; título deliberadamente PEQUENO, PROIBIDO promover para headline grande":""}`:""}.`;
+  };
+  return `MAPA ESTRUTURAL DO PRESET — HARD CONSTRAINT / PRIORIDADE SOBRE COMPOSIÇÃO GENÉRICA:
+- A geometria do PRESET vence a geometria da arte de origem. A origem fornece identidade visual, não posição.
+- NÃO aplique revezamento automático esquerda/direita, NÃO centralize por hábito e NÃO substitua o preset por uma composição comum de YouTube/Telão.
+- Preserve lado, região, ocupação relativa e escala dos blocos. Pequenos ajustes são permitidos apenas para legibilidade.
+- TÍTULO PRINCIPAL: a posição (x/y) e o tamanho (w/h) indicados são a GEOMETRIA-ALVO. Preserve-os proporcionalmente ao canvas, com tolerância máxima de cerca de 2 pontos percentuais.
+- Se o texto não couber, reduza fonte, quebre linha ou compacte DENTRO DA MESMA CAIXA; jamais aumente a área nem mova o título para outra região.
+- Se o preset tiver título pequeno no rodapé/canto, ele DEVE continuar pequeno exatamente naquela região proporcional.
+- Elemento decorativo sempre atrás do pregador.
+- LOGOS REAIS continuam fora da geração e serão adicionadas depois pelo Assistente de Logos. NÃO confunda o TÍTULO da pregação com logo: o título é conteúdo obrigatório e deve seguir exatamente a caixa do preset.
+- Se a seleção de pregador do usuário conflitar com a presença/ausência de pessoa no preset, a seleção do usuário vence; ajuste a pessoa dentro da silhueta sem destruir os demais blocos.
+${els.map(row).join("\n")}
+${isDataImage(data.layoutGuideImage)?`- Uma das imagens de entrada é um WIREframe sintético escuro com blocos planos: BRANCO=título, CINZA=pregador, AZUL=informações e LARANJA=decoração. Essa imagem serve SOMENTE para GEOMETRIA. NÃO copie sua aparência, não copie cores, não gere retângulos do wireframe.`:""}`;
+}
 function prompt(data){
   const c=data.requiredContent||{},target=data.target||{};
   const explicitDerivativeTexts=(data.explicitDerivativeTexts||[]).map(t=>`TEXTO EXATO PEDIDO AGORA: ${t}`);
@@ -281,6 +304,8 @@ REGRA ABSOLUTA DE ENQUADRAMENTO DOS PREGADORES / NÃO COMPLETAR CORPO:
 - Não invente roupa abaixo do limite visível da fotografia para construir corpo adicional.
 - Esta regra vale para pregador principal, auxiliares, correções, variações e artes derivadas e vence qualquer instrução estética que sugira corpo inteiro.
 
+
+${layoutPresetStructuralBlock(data)}
 
 ${(data.references||[]).length?'Use as referências como referência real de DESIGN: composição, hierarquia, tratamento tipográfico, recortes, textura, paleta, profundidade e linguagem visual.':`CRIAÇÃO SEM REFERÊNCIA: desenvolva uma proposta original a partir desta direção: ${data.inspirationStyle?.name||''} — ${data.inspirationStyle?.prompt||''}. Não copie uma peça específica.`}
 NÃO crie uma base vazia para ser montada depois. Resolva a peça completa como um designer, EXCETO pelas logos oficiais, que serão coladas deterministicamente depois.
@@ -368,14 +393,13 @@ REGRA DE COMPOSIÇÃO ADAPTATIVA:
 
 
 
-${data.layoutPresetInstruction?`LAYOUT PRÉ-PROGRAMADO — DIREÇÃO CRIATIVA FLEXÍVEL:
-- O DIRETOR DE DESIGN possui primazia criativa sobre coordenadas, margens e proporções numéricas do preset.
-- As medidas do preset são REFERÊNCIAS VISUAIS. Adapte, mova, amplie, reduza, corte e ultrapasse margens quando isso melhorar a composição no formato atual.
-- Não existe obrigação de manter safe frame rígido de 12% neste modo.
-- REGRA INVIOLÁVEL: título, subtítulo, data, hora, endereço e qualquer informação obrigatória devem permanecer claramente legíveis e não podem ficar escondidos por pregador, decoração ou outra tipografia.
-- Elementos decorativos pertencem ao FUNDO e devem permanecer atrás do pregador quando ambos existirem.
-- O alinhamento textual não é herdado do preset; escolha esquerda, centro ou direita conforme a melhor solução visual.
-- Preserve a intenção, hierarquia e ocupação geral do template, não suas coordenadas matemáticas exatas.
+${data.layoutPresetInstruction?`LAYOUT PRÉ-PROGRAMADO — AUTORIDADE ESTRUTURAL:
+- O Diretor de Design pode refinar alinhamento, espaçamento fino, crop e acabamento.
+- Para o TÍTULO PRINCIPAL, a geometria proporcional do preset é vinculante: manter região e caixa praticamente exatas.
+- NÃO pode trocar o lado dos elementos, transformar bloco pequeno em grande, ampliar além dos limites do preset nem abandonar a silhueta escolhida.
+- A composição da arte de origem NÃO pode engolir o preset.
+- Nenhuma regra genérica de YouTube, Telão ou revezamento de pessoas pode sobrescrever o mapa estrutural acima.
+- Toda informação obrigatória deve continuar legível; resolva conflitos REDUZINDO ou REORGANIZANDO dentro da silhueta, não ampliando arbitrariamente.
 `:`TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
 - Trate os 12% externos de CADA LADO como zona proibida para conteúdo essencial.
 - Todo texto, título, subtítulo, data, hora, endereço, logo, nome de pregador, rosto e cabeça deve ficar integralmente dentro do retângulo central de 76% da largura por 76% da altura.
@@ -410,6 +434,7 @@ TIPOGRAFIA FINAL:
 
 PREGADOR:
 - O sistema aceita NO MÁXIMO 3 pregadores.
+${data.layoutPresetInstruction?'- QUANDO HOUVER PRESET: regras genéricas de centralização, dominância lateral, simetria e revezamento NÃO definem posição. O MAPA ESTRUTURAL DO PRESET define a região da pessoa.':''}
 ${data.addPastorOverride?'- OVERRIDE ATIVO: existe uma foto de pregador explicitamente selecionada para ADIÇÃO nesta derivada. A presença desse pregador é OBRIGATÓRIA, mesmo que a arte-base não tenha pessoa.':''}
 - A ordem dos assets é semântica e obrigatória: PESSOA 1 = PRINCIPAL; PESSOA 2 = AUXILIAR 1; PESSOA 3 = AUXILIAR 2.
 - TODA PESSOA HUMANA NA ARTE DE REFERÊNCIA É PLACEHOLDER DE COMPOSIÇÃO E DEVE SER REMOVIDA quando houver pregadores enviados, salvo comando explícito para preservar uma pessoa da referência.
@@ -482,7 +507,7 @@ ${data.backgroundMode?'- MODO FUNDO: título e qualquer texto são proibidos.':'
 - Nunca transforme a logo principal em logo de evento, nunca extraia seu símbolo para fazer uma segunda marca e nunca invente variações.
 - LOGO ORIGINAL: use uma única vez, limpa e intacta. Não coloque a logo dentro de caixa, card, placa, selo, cápsula ou fundo próprio, salvo referência/instrução explícita. Nunca extraia o símbolo da logo para repetir em outro ponto; nunca redesenhe, reescreva, reconstrua ou duplique partes da identidade visual.
 - LOGO DE EVENTO: quando fornecida, é um segundo asset protegido e diferente da logo principal. Use-a UMA única vez e intacta. Ela só pode ocupar uma das seis zonas laterais dentro dos 3/5 centrais do canvas: esquerda-superior, esquerda-meio, esquerda-inferior, direita-superior, direita-meio ou direita-inferior. Não use cantos extremos. Não sobreponha logo principal, rosto, título ou dados essenciais. A logo principal tem prioridade espacial. Se houver posição explícita, siga: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"IA escolhe a melhor das seis zonas permitidas"}. TAMANHO MÁXIMO: ${data.eventLogoSize||data.assets?.eventLogo?.size||"small"} — small ≈ 14% da largura do canvas; medium ≈ 20%; large ≈ 26%. Preserve a proporção original e não ultrapasse esse limite visual.
-- Em TELÃO, prefira título centralizado quando não houver outro elemento visual principal. Havendo pregador/figura/ilustração solicitada, prefira composição lateral equilibrada: título de um lado e imagem do outro.
+- Em TELÃO SEM PRESET, prefira título centralizado quando não houver outro elemento visual principal. Havendo PRESET, IGNORE esta preferência genérica e siga a região/tamanho do preset, inclusive quando o título for deliberadamente mínimo no rodapé ou canto.
 - Se solicitado MODO ESCURO DE TELÃO, use predominância escura sobretudo no fundo, contraste alto e foto da igreja mais discreta/escurecida.
 
 FORMATO FINAL: ${target.width||1080}x${target.height||1350}, proporção ${target.ratio||""}
