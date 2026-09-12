@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.27 -->
+<!-- CHURCHDESIGN — index v1.28 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3975,6 +3975,20 @@ html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn[aria-curre
   align-items:center;
   text-align:center;
 }
+
+
+/* CHURCHDESIGN v1.28 — ausência do preset é regra por padrão */
+.derivative-preset-absence-note{
+  margin:0 0 10px;
+  padding:8px 10px;
+  border:1px solid var(--field-border);
+  border-radius:10px;
+  background:var(--soft-surface);
+  color:var(--muted);
+  font-size:8px;
+  line-height:1.45;
+}
+.derivative-preset-absence-note strong{color:var(--text)}
 
 </style>
   <!-- ChurchDesign V0.32.0 — strict logo zones, persistent variants, screen title modes, smooth progress -->
@@ -8848,6 +8862,13 @@ function derivativePresetBlueprint(preset){
   }));
   return {id:preset?.id||'',name:preset?.name||'',format:preset?.format||'',elements};
 }
+function derivativePresetOmittedElements(preset){
+  const present=new Set((preset?.elements||[]).map(e=>String(e?.type||'')).filter(Boolean));
+  return ['title','subtitle','date','time','info','address','preacher'].filter(t=>!present.has(t));
+}
+function derivativePresetDefaultPastorMode(preset){
+  return (preset?.elements||[]).some(e=>e?.type==='preacher')?'keep':'remove';
+}
 function derivativePresetLogoSlot(preset){
   const e=(preset?.elements||[]).find(x=>x?.type==='logo');if(!e)return null;
   return {x:Number(e.x)||0,y:Number(e.y)||0,w:Number(e.w)||0,h:Number(e.h)||0};
@@ -8863,6 +8884,7 @@ function derivativePresetHardInstruction(preset){
     return `- ${e.type.toUpperCase()}: caixa-guia x=${e.x.toFixed(1)}%, y=${e.y.toFixed(1)}%, w=${e.w.toFixed(1)}%, h=${e.h.toFixed(1)}%; centro aproximado ${cx}%/${cy}%. ${maxNote}`;
   };
   const hasPreacher=bp.elements.some(e=>e.type==='preacher');
+  const omitted=derivativePresetOmittedElements(preset);
   return `LAYOUT PRÉ-PROGRAMADO "${preset?.name||''}" — SILHUETA ESTRUTURAL OBRIGATÓRIA:
 - Este preset define a SILHUETA da composição. Não troque esquerda por direita, não transforme composição central em lateral e não converta elemento pequeno em elemento dominante.
 - As coordenadas podem receber pequenos ajustes de acabamento, mas a região, o lado, a proporção relativa e o TAMANHO MÁXIMO dos elementos devem permanecer reconhecíveis em relação à miniatura escolhida.
@@ -8870,7 +8892,9 @@ function derivativePresetHardInstruction(preset){
 - A arte de origem fornece identidade visual, fundo, tratamento e conteúdo atual; ela NÃO tem prioridade sobre a geometria deste preset.
 - Decoração fica sempre atrás de pessoas e textos.
 - LOGOS NÃO pertencem à geração por IA. Qualquer slot de logo do preset será usado somente depois pelo Assistente de Logos; não desenhe nem reserve logo agora.
-- PREGADOR NO PRESET: ${hasPreacher?'existe uma região prevista para pessoa, mas a presença real é controlada pelo seletor Manter/Trocar/Adicionar/Remover.':'o modelo-base não exige pessoa; o seletor de pregador pode sobrescrever essa ausência.'}
+- PREGADOR NO PRESET: ${hasPreacher?'existe uma região prevista para pessoa, mas a presença real é controlada pelo seletor Manter/Trocar/Adicionar/Remover.':'o modelo-base NÃO contém pessoa; por padrão qualquer pregador da arte de origem deve ser REMOVIDO. O usuário pode sobrescrever isso escolhendo Manter/Trocar/Adicionar.'}
+- REGRA DE AUSÊNCIA: tudo o que pertence às categorias estruturais e NÃO aparece neste modelo deve ser removido da arte de origem por padrão. Ausentes neste preset: ${omitted.length?omitted.join(', '):'nenhum'}.
+- A caixa de observações pode solicitar conteúdo adicional e, nesse caso, a instrução explícita do usuário vence a ausência padrão.
 ${bp.elements.map(region).join('\n')}`;
 }
 async function derivativePresetGuideDataUrl(preset){
@@ -8956,7 +8980,7 @@ function derivativeManualSections(state0){
 function derivativePresetSections(state0){
   const group=state0.presetGroup||'feed';
   return `
-  <section class="derivative-section mobile-active" data-mobile-step="0"><div class="derivative-section-title"><strong>Tipo de arte</strong><small>Selecione uma família de layouts</small></div><div class="derivative-choice-row">${[['feed','Feed'],['story','Stories'],['square','Quadrado'],['youtube','YouTube'],['wide16','16:9'],['fourthree','4:3'],['threetwo','3:2'],['screen','Telão']].map(x=>`<button class="derivative-choice ${group===x[0]?'active':''}" data-preset-group="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-presets" data-preset-list>${derivativePresetCards(group,state0.presetId)}</div></section>
+  <section class="derivative-section mobile-active" data-mobile-step="0"><div class="derivative-section-title"><strong>Tipo de arte</strong><small>Selecione uma família de layouts</small></div><div class="derivative-preset-absence-note"><strong>O modelo manda no conteúdo visual.</strong> Por padrão, pessoas e informações que não aparecem na miniatura escolhida serão removidas da arte de origem. Você pode sobrescrever o pregador abaixo ou pedir conteúdo adicional nas instruções.</div><div class="derivative-choice-row">${[['feed','Feed'],['story','Stories'],['square','Quadrado'],['youtube','YouTube'],['wide16','16:9'],['fourthree','4:3'],['threetwo','3:2'],['screen','Telão']].map(x=>`<button class="derivative-choice ${group===x[0]?'active':''}" data-preset-group="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-presets" data-preset-list>${derivativePresetCards(group,state0.presetId)}</div></section>
 
   <section class="derivative-section" data-mobile-step="1"><div class="derivative-section-title"><strong>Pregador</strong><small>Manter, trocar, adicionar ou remover</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['add','Adicionar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.pastorMode===x[0]?'active':''}" data-pastor-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid" data-pastor-assets>${derivativeAssetCards('pastor',['replace','add'].includes(state0.pastorMode)?state0.pastorIds:[],['replace','add'].includes(state0.pastorMode))}</div>${['replace','add'].includes(state0.pastorMode)?`<div class="derivative-treatment"><button type="button" data-pastor-treatment="original" class="${state0.pastorTreatment==='original'?'active':''}">Manter tratamento</button><button type="button" data-pastor-treatment="bw" class="${state0.pastorTreatment==='bw'?'active':''}">Preto e branco</button><button type="button" data-pastor-treatment="ai" class="${state0.pastorTreatment==='ai'?'active':''}">IA escolhe</button></div>`:''}<small class="derivative-pastor-help">Em <strong>Trocar</strong>, qualquer pregador existente na arte de origem é removido e substituído pela foto escolhida. Se a arte não tiver pregador, a foto escolhida será inserida. Em <strong>Adicionar</strong>, a pessoa atual é preservada e a nova é acrescentada.</small></section>
 
@@ -9035,8 +9059,8 @@ function bindDerivativeStudioBody(ov){
     }
     derivativeStudioRenderBody(ov);
   });
-  ov.querySelectorAll('[data-preset-group]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.presetGroup=b.dataset.presetGroup;st.presetId='';st.format=st.presetGroup==='story'?'story':st.presetGroup==='youtube'?'youtube':st.presetGroup==='screen'?'screen':'feed';derivativeStudioRenderBody(ov)});
-  ov.querySelectorAll('[data-derivative-preset]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.presetId=b.dataset.derivativePreset;const p=DERIVATIVE_PRESETS.find(x=>x.id===st.presetId);if(p)st.format=p.format;ov.querySelectorAll('[data-derivative-preset]').forEach(x=>x.classList.toggle('active',x.dataset.derivativePreset===st.presetId))});
+  ov.querySelectorAll('[data-preset-group]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.presetGroup=b.dataset.presetGroup;const p=DERIVATIVE_PRESETS.find(x=>x.group===st.presetGroup);st.presetId=p?.id||'';st.format=p?.format||(st.presetGroup==='story'?'story':st.presetGroup==='youtube'?'youtube':st.presetGroup==='screen'?'screen':'feed');if(p){st.pastorMode=derivativePresetDefaultPastorMode(p);st.pastorIds=[];}derivativeStudioRenderBody(ov)});
+  ov.querySelectorAll('[data-derivative-preset]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);st.presetId=b.dataset.derivativePreset;const p=DERIVATIVE_PRESETS.find(x=>x.id===st.presetId);if(p){st.format=p.format;st.pastorMode=derivativePresetDefaultPastorMode(p);st.pastorIds=[];}derivativeStudioRenderBody(ov)});
   ov.querySelector('[data-derivative-generate]')?.addEventListener('click',()=>runDerivativeStudioGeneration(ov));
   ov.querySelector('[data-result-use-source]')?.addEventListener('click',()=>{if(!st.result)return;st.source=st.result;st.sourceKey=`main:${st.parentIndex}`;state.quickResults[st.parentIndex]=st.result;st.candidates.push(st.result);st.result=null;st.status='idle';derivativeStudioRenderBody(ov)});
   ov.querySelector('[data-result-proceed]')?.addEventListener('click',()=>{
@@ -9061,7 +9085,7 @@ async function runDerivativeStudioGeneration(ov){
     if(!preset)return appAlert('Selecione um modelo de layout antes de gerar.',{type:'warning',title:'Variação pré-programada'});
     const presetBlueprint=derivativePresetBlueprint(preset);
     const presetGuideImage=await derivativePresetGuideDataUrl(preset);
-    options={studioDerivativeMode:true,layoutPresetId:preset.id,layoutPresetName:preset.name,layoutPresetInstruction:derivativePresetHardInstruction(preset),layoutPresetBlueprint:presetBlueprint,layoutGuideImage:presetGuideImage,presetObservation:st.observation,pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,backgroundMode:!!preset.backgroundMode,screenThemeMode:!!preset.screenThemeMode,screenOccupancyMode:!!preset.screenOccupancyMode,screenInfoPct:preset.screenInfoPct||null};
+    options={studioDerivativeMode:true,layoutPresetId:preset.id,layoutPresetName:preset.name,layoutPresetInstruction:derivativePresetHardInstruction(preset),layoutPresetBlueprint:presetBlueprint,layoutPresetOmittedElements:derivativePresetOmittedElements(preset),layoutGuideImage:presetGuideImage,presetObservation:st.observation,pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,backgroundMode:!!preset.backgroundMode,screenThemeMode:!!preset.screenThemeMode,screenOccupancyMode:!!preset.screenOccupancyMode,screenInfoPct:preset.screenInfoPct||null};
   }else{
     options={studioDerivativeMode:true,pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,churchImageMode:st.churchMode,churchImageAssetId:st.churchId,graphicMode:st.graphicMode,graphicAssetIds:st.graphicIds,manualDerivativeInstruction:st.instruction};
   }
@@ -9104,7 +9128,7 @@ function openDerivativeStudio({parentIndex=0,sourceKey=null,sourceItem=null}={})
   document.body.appendChild(ov);
   ov.querySelector('[data-derivative-close]').onclick=()=>{if(generationJobBusy())return appAlert('Cancele a geração antes de fechar esta tela.',{type:'info'});ov.remove()};
   ov.querySelector('[data-derivative-cancel]').onclick=()=>{if(generationJobBusy()){ov.__derivativeState.status='cancelled';cancelActiveProcess();setDerivativeStudioProgress(-1,'Processamento cancelado. Créditos debitados serão devolvidos.');appToast('Processamento cancelado.',{type:'info'});}else ov.remove()};
-  ov.querySelectorAll('[data-derivative-tab]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);ov.__derivativeState.tab=b.dataset.derivativeTab;ov.__derivativeState.mobileStep=0;ov.__derivativeState.configScrollTop=0;ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x.dataset.derivativeTab===ov.__derivativeState.tab));derivativeStudioRenderBody(ov)});
+  ov.querySelectorAll('[data-derivative-tab]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);const ds=ov.__derivativeState;ds.tab=b.dataset.derivativeTab;ds.mobileStep=0;ds.configScrollTop=0;if(ds.tab==='preset'&&!ds.presetId){const p=DERIVATIVE_PRESETS.find(x=>x.group===ds.presetGroup);if(p){ds.presetId=p.id;ds.format=p.format;ds.pastorMode=derivativePresetDefaultPastorMode(p);ds.pastorIds=[];}}ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x.dataset.derivativeTab===ds.tab));derivativeStudioRenderBody(ov)});
   ov.querySelector('[data-derivative-prev]').onclick=()=>derivativeStudioSetMobileStep(ov,(ov.__derivativeState.mobileStep||0)-1);
   ov.querySelector('[data-derivative-next]').onclick=()=>{const st=ov.__derivativeState,sections=[...ov.querySelectorAll('[data-mobile-step]')],max=Math.max(0,sections.length-1);if(st.mobileStep>=max)runDerivativeStudioGeneration(ov);else derivativeStudioSetMobileStep(ov,st.mobileStep+1)};
   derivativeStudioRenderBody(ov);
@@ -9601,6 +9625,7 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const manualDerivativeInstruction=String(adaptOptions?.manualDerivativeInstruction||'').trim();
     const layoutPresetInstruction=String(adaptOptions?.layoutPresetInstruction||'').trim();
     const layoutPresetBlueprint=adaptOptions?.layoutPresetBlueprint&&typeof adaptOptions.layoutPresetBlueprint==='object'?JSON.parse(JSON.stringify(adaptOptions.layoutPresetBlueprint)):null;
+    const layoutPresetOmittedElements=Array.isArray(adaptOptions?.layoutPresetOmittedElements)?adaptOptions.layoutPresetOmittedElements.map(String):[];
     const layoutGuideImage=String(adaptOptions?.layoutGuideImage||'');
     const presetObservation=String(adaptOptions?.presetObservation||'').trim();
     const pastorMode=String(adaptOptions?.pastorMode||'keep');
@@ -9673,6 +9698,14 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const pastorRemoval=omit.includes('pastors')?`REMOÇÃO TOTAL — remova todos os pregadores e tudo que pertença às suas camadas. Não invente substitutos.`:selective.length?`REMOÇÃO SELETIVA — remova SOMENTE ${selective.join(', ')} e os elementos pertencentes à(s) respectiva(s) camada(s). Preserve exatamente os demais pregadores, inclusive rosto, pose, mãos, roupa, objetos, escala e posição.`:'';
     const logoRemoval=omit.includes('logo')?`REMOÇÃO DA LOGO DA IGREJA — remova somente esta logo. Não substitua pela logo de evento.`:'';
     const eventLogoRemoval=omit.includes('eventLogo')?`REMOÇÃO DA LOGO DE EVENTO — remova somente esta logo. Não substitua pela logo da igreja.`:'';
+    const presetAbsentEffective=layoutPresetInstruction?layoutPresetOmittedElements.filter(t=>!(t==='preacher'&&pastorMode!=='remove')):[];
+    const presetAbsenceConstraint=presetAbsentEffective.length?`AUSÊNCIAS OBRIGATÓRIAS DO PRESET — HARD CONSTRAINT:
+- O modelo selecionado NÃO contém estas categorias: ${presetAbsentEffective.join(', ')}.
+- REMOVA da arte de origem qualquer elemento dessas categorias. A arte de origem NÃO tem autorização para restaurá-los.
+- Não mantenha pessoa, data, hora, endereço, subtítulo, informação secundária ou título se a respectiva categoria estiver ausente no preset.
+- Exceção: se a instrução/observação ATUAL do usuário pedir explicitamente um desses conteúdos, siga a instrução atual.
+- Para PREGADOR, o seletor Manter/Trocar/Adicionar/Remover vence esta ausência padrão.`:'';
+
     const studioPastorRemoval=studioDerivativeMode&&pastorMode==='remove'?`ZERO PESSOAS — HARD CONSTRAINT DA AÇÃO ATUAL:
 - Não renderize pregador, rosto, corpo, silhueta ou qualquer pessoa adicionada à composição.
 - Se a arte selecionada não contém pregador, PRESERVE essa ausência. É PROIBIDO inventar um.
@@ -9741,6 +9774,7 @@ ${studioDerivativeMode&&pastorMode==='keep'?`PREGADOR — MANTER:
 - Não adicione nenhuma pessoa nova.
 - Preserve somente as pessoas já visíveis na arte selecionada.
 - Se a arte selecionada não tiver pregador, permaneça sem pregador.`:''}
+${presetAbsenceConstraint}
 ${studioPastorRemoval}
 ${studioPastorReplace}
 ${studioPastorAdd}
@@ -9818,7 +9852,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
       :studioDerivativeMode
         ?'ESTA IMAGEM SELECIONADA É A FONTE DE VERDADE VISUAL E SEMÂNTICA ATUAL. Preserve o que realmente está visível nela, exceto mudanças pedidas agora. NÃO recupere pregadores, textos, datas, horários, endereços ou elementos de versões anteriores. NÃO invente conteúdo ausente. REMOVA qualquer logo de igreja ou de evento visível na referência. A nova base deve sair LOGO-FREE; as logos oficiais serão inseridas somente depois pelo Assistente de Logos.'
         :'ESTA IMAGEM É A FONTE DE VERDADE VISUAL ATUAL DA DERIVADA. Preserve o que está visível nela, não reconstrua a partir da memória da arte raiz e não reverta alterações já presentes. Use esta versão LOGO-FREE como base visual. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.';
-    const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:referenceNote}],target,assets,requiredContent:required,referenceSemanticPolicy:studioDerivativeMode?'current-art-truth':'style-only',explicitDerivativeTexts,instruction:adaptationInstruction,finalInstruction,semanticMap:[],effects:[],artDirection:backgroundDirection||pastorSafeDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:true,omitChurchName:backgroundMode,allowedTexts:backgroundMode?[]:undefined,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,manualDerivativeInstruction,layoutPresetInstruction,layoutPresetBlueprint,layoutGuideImage,presetObservation,pastorMode,pastorAssetIds,pastorPhotoTreatment,churchImageMode,churchImageAssetId,graphicMode,graphicAssetIds,darkScreen:!!darkScreen,addPastorOverride,addPastorAssetId:addPastorOverride?addPastorAssetId:null,addPastorName:addPastorOverride?addPastorName:''};
+    const payload={mode:'adaptation',manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:referenceNote}],target,assets,requiredContent:required,referenceSemanticPolicy:studioDerivativeMode?'current-art-truth':'style-only',explicitDerivativeTexts,instruction:adaptationInstruction,finalInstruction,semanticMap:[],effects:[],artDirection:backgroundDirection||pastorSafeDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:true,omitChurchName:backgroundMode,allowedTexts:backgroundMode?[]:undefined,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,manualDerivativeInstruction,layoutPresetInstruction,layoutPresetBlueprint,layoutPresetOmittedElements,layoutGuideImage,presetObservation,pastorMode,pastorAssetIds,pastorPhotoTreatment,churchImageMode,churchImageAssetId,graphicMode,graphicAssetIds,darkScreen:!!darkScreen,addPastorOverride,addPastorAssetId:addPastorOverride?addPastorAssetId:null,addPastorName:addPastorOverride?addPastorName:''};
 
     setQuickProgress(48,'Recompondo para o novo formato...');
     // V0.26: arte derivada = 1 geração + 1 fiscal; sem retry automático.
