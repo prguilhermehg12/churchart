@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.28.0
+// CHURCHDESIGN — generate-art v0.29.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -217,6 +217,9 @@ Orientação especializada: ${a.generation_prompt||""}`;}
 function layoutPresetStructuralBlock(data={}){
   if(!data.layoutPresetInstruction)return "";
   const els=Array.isArray(data.layoutPresetBlueprint?.elements)?data.layoutPresetBlueprint.elements:[];
+  const omitted=Array.isArray(data.layoutPresetOmittedElements)?data.layoutPresetOmittedElements.map(String):[];
+  const pastorMode=String(data.pastorMode||'keep');
+  const effectiveOmitted=omitted.filter(t=>!(t==='preacher'&&pastorMode!=='remove'));
   const row=e=>{
     const x=Number(e.x)||0,y=Number(e.y)||0,w=Number(e.w)||0,h=Number(e.h)||0;
     const small=e.type==="title"&&(w<=25||h<=20);
@@ -232,6 +235,9 @@ function layoutPresetStructuralBlock(data={}){
 - Elemento decorativo sempre atrás do pregador.
 - LOGOS REAIS continuam fora da geração e serão adicionadas depois pelo Assistente de Logos. NÃO confunda o TÍTULO da pregação com logo: o título é conteúdo obrigatório e deve seguir exatamente a caixa do preset.
 - Se a seleção de pregador do usuário conflitar com a presença/ausência de pessoa no preset, a seleção do usuário vence; ajuste a pessoa dentro da silhueta sem destruir os demais blocos.
+- AUSÊNCIAS DO PRESET SÃO OBRIGATÓRIAS POR PADRÃO: ${effectiveOmitted.length?effectiveOmitted.join(', '):'nenhuma'}.
+- Para cada categoria ausente, REMOVA o elemento correspondente que exista na arte de origem. A arte de origem não autoriza manter conteúdo que o modelo não contém.
+- Uma observação atual do usuário pode pedir conteúdo adicional; nesse caso, a observação atual vence a ausência padrão.
 ${els.map(row).join("\n")}
 ${isDataImage(data.layoutGuideImage)?`- Uma das imagens de entrada é um WIREframe sintético escuro com blocos planos: BRANCO=título, CINZA=pregador, AZUL=informações e LARANJA=decoração. Essa imagem serve SOMENTE para GEOMETRIA. NÃO copie sua aparência, não copie cores, não gere retângulos do wireframe.`:""}`;
 }
@@ -398,6 +404,7 @@ ${data.layoutPresetInstruction?`LAYOUT PRÉ-PROGRAMADO — AUTORIDADE ESTRUTURAL
 - Para o TÍTULO PRINCIPAL, a geometria proporcional do preset é vinculante: manter região e caixa praticamente exatas.
 - NÃO pode trocar o lado dos elementos, transformar bloco pequeno em grande, ampliar além dos limites do preset nem abandonar a silhueta escolhida.
 - A composição da arte de origem NÃO pode engolir o preset.
+- O que NÃO existe no preset deve desaparecer da composição final por padrão. Não preserve automaticamente pessoas, datas, horários, endereços, subtítulos ou informações secundárias vindas da origem quando a categoria estiver ausente no mapa.
 - Nenhuma regra genérica de YouTube, Telão ou revezamento de pessoas pode sobrescrever o mapa estrutural acima.
 - Toda informação obrigatória deve continuar legível; resolva conflitos REDUZINDO ou REORGANIZANDO dentro da silhueta, não ampliando arbitrariamente.
 `:`TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
