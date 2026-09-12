@@ -1,4 +1,4 @@
-// CHURCHDESIGN — church-data v0.53.0
+// CHURCHDESIGN — church-data v0.54.0
 // ChurchDesign V0.48.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
@@ -95,8 +95,14 @@ async function generationCreditPrice(artType,format){
   const rows=await serviceRest(`generation_credit_prices?active=eq.true&select=art_type,format,credits,priority&order=priority.desc`);
   const exact=(rows||[]).find(x=>x.art_type===type&&String(x.format||"")===fmt);
   const byType=(rows||[]).find(x=>x.art_type===type&&!x.format);
-  const fallback=(rows||[]).find(x=>x.art_type==="*"&&!x.format);
-  return Math.max(0,Number((exact||byType||fallback)?.credits)||0);
+  const wildcard=(rows||[]).find(x=>x.art_type==="*"&&!x.format);
+  // Derivadas como YouTube/Stories/Telão não podem ficar gratuitas só porque
+  // ainda não existe uma linha específica. Reutiliza o preço configurado da Arte base.
+  const baseExact=(rows||[]).find(x=>x.art_type==="Arte base"&&String(x.format||"")===fmt);
+  const baseDefault=(rows||[]).find(x=>x.art_type==="Arte base"&&!x.format);
+  const chosen=exact||byType||wildcard||baseExact||baseDefault;
+  if(!chosen)throw Object.assign(new Error("Tabela de créditos sem preço aplicável para esta geração."),{statusCode:503});
+  return Math.max(0,Number(chosen.credits)||0);
 }
 async function persistAppError({churchId,userId,operationId=null,category="processing",stage="app",severity="error",userMessage="",technicalMessage="",stack="",metadata={}}){
   try{
