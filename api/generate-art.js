@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.29.0
+// CHURCHDESIGN — generate-art v0.30.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -241,7 +241,299 @@ function layoutPresetStructuralBlock(data={}){
 ${els.map(row).join("\n")}
 ${isDataImage(data.layoutGuideImage)?`- Uma das imagens de entrada é um WIREframe sintético escuro com blocos planos: BRANCO=título, CINZA=pregador, AZUL=informações e LARANJA=decoração. Essa imagem serve SOMENTE para GEOMETRIA. NÃO copie sua aparência, não copie cores, não gere retângulos do wireframe.`:""}`;
 }
-function prompt(data){
+function promptLegacyMain(data){
+  const c=data.requiredContent||{},target=data.target||{};
+  const explicitDerivativeTexts=(data.explicitDerivativeTexts||[]).map(t=>`TEXTO EXATO PEDIDO AGORA: ${t}`);
+  const texts=[
+    c.title?`TÍTULO EXATO: ${c.title}`:"",
+    c.subtitle?`SUBTÍTULO EXATO: ${c.subtitle}`:"",
+    c.secondaryInfo?`INFORMAÇÃO SECUNDÁRIA EXATA: ${c.secondaryInfo}`:"",
+    c.date?`DATA EXATA: ${c.date}`:"",
+    c.time?`HORÁRIO EXATO: ${c.time}`:"",
+    c.address?`ENDEREÇO EXATO: ${c.address}`:"",
+    ...(Array.isArray(c.pastorNames)?c.pastorNames.filter(Boolean).map((n,i)=>`${i===0?'PREGADOR PRINCIPAL':`PREGADOR AUXILIAR ${i}`} — NOME EXATO: ${n}`):[]),
+    ...explicitDerivativeTexts
+  ].filter(Boolean).join("\n");
+  return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
+
+${transparentBackgroundIntent(data)?`MODO PNG TRANSPARENTE — HARD CONSTRAINT TÉCNICO / ALPHA REAL:
+- A saída deve ser um PNG RGBA com CANAL ALPHA REAL.
+- Todo pixel fora do objeto/elemento solicitado deve ter alpha = 0 (totalmente transparente).
+- NÃO desenhe fundo branco, preto, cinza, colorido, degradê, textura, cenário, papel, parede ou superfície atrás do objeto.
+- NÃO desenhe padrão quadriculado/checkerboard. O quadriculado é apenas uma convenção visual de softwares para representar transparência; ele NUNCA deve fazer parte dos pixels da imagem.
+- NÃO simule transparência com quadrados cinza/branco, grid, mosaico, máscara visível ou textura.
+- As bordas do objeto devem terminar naturalmente em transparência, com antialiasing correto e sem halo branco/preto.
+- Preserve sombras somente quando fizerem parte do próprio objeto e permita que desapareçam progressivamente no alpha; não crie uma placa de fundo para sustentar a sombra.
+- Se houver vazio entre partes do objeto, esse vazio também deve ser alpha = 0.
+- Esta regra tem prioridade sobre qualquer direção estética de fundo, salvo ordem explícita do usuário dizendo que NÃO quer transparência.
+- TESTE MENTAL OBRIGATÓRIO: se o PNG for colocado sobre fundo vermelho, azul ou preto, nenhuma área retangular, quadrícula ou cor de fundo deve aparecer; deve aparecer somente o objeto recortado.
+`:''}
+${data.backgroundMode?`MODO FUNDO ABSOLUTO — ESTA REGRA SOBRESCREVE QUALQUER OUTRA INSTRUÇÃO DE TEXTO OU CONTEÚDO:
+- Gere somente um FUNDO LIMPO da mesma identidade visual.
+- ZERO TEXTO LEGÍVEL. Não renderize nem preserve título, subtítulo, palavras, letras, números, datas, horários, endereço, nomes, slogans, chamadas, assinatura, selo ou placeholder.
+${data.addPastorOverride?`- EXCEÇÃO HUMANA OBRIGATÓRIA: renderize EXATAMENTE o pregador fornecido como PESSOA 1. A pessoa deve ficar claramente visível, reconhecível e integrada ao fundo; não inclua nenhuma outra pessoa.`:`- ZERO PESSOAS. Não renderize pregadores, rostos, corpos, silhuetas ou figuras humanas.`}
+- ZERO LOGOS, marcas ou emblemas.
+- A referência é uma fonte de paleta, atmosfera, iluminação, textura, formas abstratas e cenário; todo conteúdo semântico visível nela deve ser removido e a área reconstruída naturalmente.
+- Se existir fotografia real da igreja fornecida como asset de fundo, ela é uma PLACA IMUTÁVEL: preserve o arquivo original sem redesenho, deformação, reconstrução, espelhamento, stretch ou alteração de perspectiva. Para encaixar no formato use somente crop de bordas + escala uniforme + reposicionamento; complete áreas restantes com design gráfico, nunca com arquitetura inventada.
+- Não transforme palavras da referência em textura tipográfica. Não deixe fragmentos de letras.
+- O resultado deve parecer um background pronto para receber novos elementos depois.
+`:''}
+${data.revisionMode==='delta-only'?`MODO CORREÇÃO CIRÚRGICA / DELTA ONLY:
+A primeira referência é a última versão e funciona como MOLDE BLOQUEADO.
+Altere SOMENTE: ${data.revisionInstruction||data.variantInstruction||'o ajuste explicitamente pedido'}.
+Todo elemento não mencionado deve permanecer visualmente igual: rostos, mãos, dedos, roupas, poses, textos, palavras de fundo, efeitos, cores, posições e composição. Logos permanecem ausentes do canvas generativo e serão recoladas deterministicamente depois.
+Não reinterprete áreas não solicitadas. Se precisar reconstruir uma pequena região, consulte os assets originais e preserve a identidade exata.
+`:''}
+${data.addPastorOverride?`ADICIONAR PREGADOR — OVERRIDE ABSOLUTO / HARD CONSTRAINT:
+- A imagem PESSOA 1 é um ASSET OBRIGATÓRIO desta derivada.
+- O resultado final DEVE CONTER PESSOA 1 claramente visível. Não é opcional.
+- Mesmo que a working-base/referência tenha ZERO pessoas, RECOMPONHA o layout e INSIRA PESSOA 1.
+- Não preserve “ausência de pessoa” da referência.
+- Não substitua por pessoa da referência, modelo genérico, silhueta, sombra ou rosto inventado.
+- Preserve fortemente a identidade facial, cabelo, roupa, pose, gesto, mãos, microfone/objeto e orientação natural da foto enviada.
+- Rosto e cabeça inteiros devem permanecer dentro da safe area e não podem ficar escondidos por texto.
+- Esta ordem vence qualquer regra herdada de artDirection, referência ou modo que diga sem pessoas/remover pregador.
+- Em Modo Fundo, continue removendo textos e logos, mas mantenha PESSOA 1.
+- Em Modo Tema, mantenha somente o título como texto, mas mantenha PESSOA 1.
+`:''}
+
+ATIVOS SAGRADOS:
+Fotos de pregadores, logo da igreja e logo de evento são ativos independentes e invioláveis. Nunca misture símbolos, textos, membros, objetos ou identidades entre eles.
+Campo de nome vazio = nenhum texto ou placeholder para aquela pessoa.
+Camadas humanas não podem se fundir. Objetos de um auxiliar não podem atravessar para frente do principal.
+
+REGRA ABSOLUTA DE ENQUADRAMENTO DOS PREGADORES / NÃO COMPLETAR CORPO:
+- NUNCA invente, complete ou gere pernas, quadris, cintura, pés ou qualquer parte inferior do corpo que não esteja claramente presente na fotografia original enviada.
+- NUNCA transforme uma foto de busto, meio-corpo ou recorte de torso em uma pessoa de corpo inteiro.
+- Preserve o recorte corporal original da foto. Se a imagem termina no peito, cintura ou torso, mantenha o personagem enquadrado/cortado nessa mesma região ou faça um crop ainda mais fechado.
+- É preferível cortar o pregador atrás de elementos gráficos, degradê, névoa, luz ou fora da borda da composição do que completar anatomia inexistente.
+- Não invente roupa abaixo do limite visível da fotografia para construir corpo adicional.
+- Esta regra vale para pregador principal, auxiliares, correções, variações e artes derivadas e vence qualquer instrução estética que sugira corpo inteiro.
+
+
+${(data.references||[]).length?'Use as referências como referência real de DESIGN: composição, hierarquia, tratamento tipográfico, recortes, textura, paleta, profundidade e linguagem visual.':`CRIAÇÃO SEM REFERÊNCIA: desenvolva uma proposta original a partir desta direção: ${data.inspirationStyle?.name||''} — ${data.inspirationStyle?.prompt||''}. Não copie uma peça específica.`}
+NÃO crie uma base vazia para ser montada depois. Resolva a peça completa como um designer, EXCETO pelas logos oficiais, que serão coladas deterministicamente depois.
+
+LOGO-FREE CANVAS — HARD CONSTRAINT:
+- Gere ZERO logos, ZERO marcas, ZERO emblemas institucionais e ZERO versões reconstruídas de logos.
+- Se a referência contém qualquer logo, símbolo de igreja, wordmark, selo, marca de evento ou assinatura institucional, REMOVA completamente esse elemento e reconstrua naturalmente o fundo atrás dele.
+- Não copie símbolo, não deixe fantasma, não deixe marca d'água e não converta logo em texto.
+- Quando houver logo oficial selecionada para composição posterior, não escreva o nome da igreja como substituto da logo.
+- Mesmo sem logo selecionada, o nome da igreja só pode aparecer quando requiredContent.churchName estiver explicitamente preenchido.
+- NÃO reserve área visual para logos. Não abra buraco na composição, não deixe caixa vazia, contorno, moldura, halo, placa, selo ou placeholder.
+- Faça a arte parecer completamente finalizada MESMO SEM LOGOS. O compositor pós-arte analisará o resultado pronto e escolherá depois a melhor posição para os PNGs originais.
+
+${blueprint(data)}
+
+CONTEÚDO QUE DEVE APARECER EXATAMENTE:
+${texts||"Sem textos obrigatórios."}
+
+${c.secondaryInfo?`HIERARQUIA DA INFORMAÇÃO SECUNDÁRIA — HARD CONSTRAINT:
+- "${c.secondaryInfo}" é INFORMAÇÃO SECUNDÁRIA, nunca título.
+- Deve ser visivelmente MENOR que o título principal em escala e peso.
+- Deve ficar DESLOCADA do título, em uma ÁREA ABERTA da composição.
+- Não empilhe como continuação do título, não centralize junto ao título por padrão e não a transforme em segundo headline.
+- Não cubra rosto, pessoa, logo futura ou elemento focal.
+`:''}
+
+${data.referenceSemanticPolicy==='current-art-truth'?`DERIVAÇÃO — ARTE ATUAL COMO VERDADE:
+- A referência selecionada é a ARTE ATUAL, não uma referência style-only.
+- Preserve textos realmente visíveis nela somente quando não houver ordem atual para removê-los/substituí-los.
+- Textos pedidos explicitamente nesta ação devem aparecer EXATAMENTE: ${JSON.stringify(data.explicitDerivativeTexts||[])}.
+- CADA item dessa lista é conteúdo obrigatório independente. Não omita linhas por falta de espaço: reduza/reorganize a composição para acomodar todas.
+- Não transforme essas linhas em texto genérico, placeholders ou pseudo-tipografia.
+- NÃO recupere textos de requiredContent antigo, artDirection antiga, arte raiz ou versões anteriores.
+- NÃO invente slogan, nome de culto, data, horário, endereço, local, nome de pregador, nome de igreja ou qualquer outra informação ausente da arte selecionada e das instruções atuais.
+- SAÍDA LOGO-FREE: remova qualquer logo de igreja ou logo de evento visível na referência. Não redesenhe, não imite e não preserve essas marcas na imagem gerada.
+- Logos de igreja/evento nunca são "elementos PNG" nesta etapa; elas serão aplicadas somente no Assistente de Logos após a geração.
+- É erro crítico criar pessoa, data, horário, endereço, título ou logo não autorizada pela ação atual.
+- Hierarquia: INSTRUÇÃO ATUAL > ARTE SELECIONADA > qualquer contexto antigo.
+`:`TEXT ALLOWLIST — HARD CONSTRAINT:
+Os ÚNICOS textos legíveis permitidos são: ${JSON.stringify(data.allowedTexts||[])}.
+Não invente slogans, chamadas, nomes de culto, nomes de igreja, palavras de fundo, datas, números ou frases.
+Não copie qualquer texto da referência original, porque ela é STYLE-ONLY.
+Se quiser reproduzir uma massa tipográfica da referência, use somente um texto autorizado ou geometria abstrata NÃO legível.
+Qualquer palavra legível fora da allowlist é erro crítico.`}
+
+IGREJA — CONTEXTO INTERNO, NÃO AUTORIZAÇÃO DE TEXTO: ${data.church?.name||""}
+REGRA ABSOLUTA DO NOME DA IGREJA:
+${c.churchName?`- O usuário AUTORIZOU o nome da igreja nesta arte. Escreva SOMENTE o texto exato presente em NOME DA IGREJA / requiredContent.churchName: "${c.churchName}".`:`- O usuário NÃO autorizou nome de igreja como texto. NÃO escreva o nome institucional, mesmo que ele apareça neste contexto interno, na referência, em metadados ou em qualquer instrução herdada.
+- Não use nome da igreja como assinatura, rodapé, selo, chamada, placeholder ou substituto da logo.
+- A identificação institucional será feita por uma LOGO ORIGINAL em etapa posterior.`}
+- Nunca invente outro nome de igreja.
+PÚBLICO-ALVO ESCOLHIDO: ${data.audience||"não especificado"}\nPOSIÇÃO PRIORITÁRIA DA LOGO: ${data.logoPosition||"seguir referência / automática"}
+ESTILO ESCOLHIDO: ${data.designStyle||"não especificado"}
+${String(data.designStyle||'').toLowerCase()==='minimalista'?`ESTILO MINIMALISTA — HARD DIRECTION:
+- poucos elementos visuais;
+- bastante espaço negativo intencional;
+- hierarquia tipográfica limpa;
+- formas simples e precisas;
+- paleta contida;
+- zero ornamento gratuito, excesso de efeitos, ruído ou poluição;
+- resultado sofisticado e profissional pela redução e pelo equilíbrio.
+`:''}
+Se uma LOGO oficial foi fornecida, use a logo e NÃO repita o nome da igreja em texto separado.
+
+FOTO DA IGREJA — PLACA FOTOGRÁFICA IMUTÁVEL / HARD CONSTRAINT UNIVERSAL:
+${data.assets?.churchImage?.image?`- Existe um asset churchImage. Ele é a FONTE DE VERDADE e deve permanecer como a MESMA FOTOGRAFIA, não como uma interpretação visual.
+- Preserve rigorosamente arquitetura, paredes, palco, teto, cadeiras, telas, pessoas, objetos, luminárias, luzes, linhas, perspectiva e proporções internas do arquivo original.
+- PROIBIDO redesenhar, reconstruir, completar, remover, adicionar, mover ou substituir qualquer elemento interno da foto.
+- PROIBIDO alterar a geometria por stretch, escala não uniforme, perspective warp, liquify, deformação, espelhamento ou mudança de perspectiva.
+- Para adaptar a outro aspect ratio, use SOMENTE crop nas BORDAS + escala UNIFORME + reposicionamento do quadro fotográfico inteiro.
+- Se a foto não preencher o canvas sem deformação, NÃO invente continuação arquitetônica. Complete o canvas com elementos gráficos, gradientes, sombras, texturas ou áreas abstratas coerentes com a arte.
+- Permitidos sobre a FOTO INTEIRA: color grading, exposição, contraste, saturação, temperatura, tonalidade, vinheta, escurecimento e blur global leve. Não faça edição generativa localizada que altere a estrutura.
+- A foto deve ser reconhecível por comparação direta como O MESMO ARQUIVO. Uma igreja apenas "parecida" é FALHA CRÍTICA.
+- Esta regra vale em ARTE BASE, VARIAÇÃO, CORREÇÃO/DELTA-ONLY, DERIVADA, MODO LIVRE, MODO FUNDO e MODO TEMA, salvo quando o usuário selecionar explicitamente "omitir foto da igreja".`:`- Nenhum asset churchImage foi fornecido. Se a referência já possui ambiente de igreja, congregação ou adoração ao fundo, preserve apenas o tipo de atmosfera; não invente silhuetas humanas para preencher lugares vazios.`}
+
+REGRA DE COMPOSIÇÃO ADAPTATIVA:
+- A referência é uma linguagem visual, NÃO um molde rígido.
+- Conte quantas pessoas existem nas fotos realmente fornecidas. Use SOMENTE essas pessoas.
+- Se a referência tiver mais pessoas do que foram fornecidas, NÃO crie silhuetas, sombras, manequins, espaços vazios ou pessoas inventadas para preencher posições.
+- Refaça a composição de forma coesa para a quantidade real de pessoas.
+- Uma pessoa deve receber uma composição intencional de protagonista; duas devem ser equilibradas; três podem usar composição de trio.
+- Preserve a sensação, hierarquia, energia, paleta, tipografia, recortes e texturas da referência, mas adapte geometria, escala e espaços.
+- Nunca interprete ausência de uma foto como pedido para reservar um espaço para ela.
+- Se houver apenas um pregador, faça a arte parecer desenhada originalmente para UM pregador.
+
+
+
+TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
+- Trate os 12% externos de CADA LADO como zona proibida para conteúdo essencial.
+- Todo texto, título, subtítulo, data, hora, endereço, logo, nome de pregador, rosto e cabeça deve ficar integralmente dentro do retângulo central de 76% da largura por 76% da altura.
+- Nada essencial pode tocar a borda. Nada essencial pode ser parcialmente cortado.
+- Faça o layout MENOR e mais central se houver qualquer dúvida. Espaço vazio nas bordas é aceitável; conteúdo cortado não é.
+- Elementos abstratos/texturas podem sangrar; informação e pessoas nunca.
+- Faça uma revisão final das quatro bordas antes de concluir.
+
+REGRA DE LOGOS PÓS-ARTE:
+- Nenhuma logo será desenhada nesta etapa.
+- Não reserve, marque ou sinalize posição de logo.
+- Ignore logoPosition, eventLogoPosition, eventLogoSize e artDirection.protected_assets ao compor a imagem visual.
+- Se a referência tiver logo, remova-a e reconstrua o fundo naturalmente, sem deixar vestígio nem espaço artificial.
+
+REGRA DE SAFE AREA / ÁREA SEGURA:
+- Nenhum texto, logo, rosto, data, horário, endereço ou informação essencial pode encostar, ultrapassar ou ficar parcialmente fora do canvas.
+- Reserve no mínimo 8% de margem interna em TODOS os lados para conteúdo essencial.
+- Em formatos verticais, não coloque títulos ou endereços colados no topo ou na base.
+- Em formatos horizontais, proteja especialmente as laterais.
+- Elementos decorativos podem sangrar para fora; conteúdo essencial, jamais.
+- Antes de finalizar, revise mentalmente as quatro bordas e confirme que nada importante está cortado.
+
+ 
+TIPOGRAFIA FINAL:
+- Toda a tipografia é desenhada pela IA visual dentro da arte.
+- Não existe camada de texto posterior.
+- Cada informação obrigatória deve aparecer uma única vez.
+- Preserve tipografia, tratamentos, escala e função visual da referência sempre que possível.
+
+
+PREGADOR:
+- O sistema aceita NO MÁXIMO 3 pregadores.
+${data.addPastorOverride?'- OVERRIDE ATIVO: existe uma foto de pregador explicitamente selecionada para ADIÇÃO nesta derivada. A presença desse pregador é OBRIGATÓRIA, mesmo que a arte-base não tenha pessoa.':''}
+- A ordem dos assets é semântica e obrigatória: PESSOA 1 = PRINCIPAL; PESSOA 2 = AUXILIAR 1; PESSOA 3 = AUXILIAR 2.
+- TODA PESSOA HUMANA NA ARTE DE REFERÊNCIA É PLACEHOLDER DE COMPOSIÇÃO E DEVE SER REMOVIDA quando houver pregadores enviados, salvo comando explícito para preservar uma pessoa da referência.
+- JAMAIS mantenha o pregador/modelo/pessoa original da referência no lugar do PRINCIPAL enviado pelo usuário.
+- Se a referência possui uma pessoa central, substitua semanticamente essa pessoa pelo PRINCIPAL enviado: preserve a FUNÇÃO/REGIÃO composicional, mas use a IDENTIDADE e, quando possível, a POSE do principal enviado.
+- Não misture rosto, cabelo, barba, roupa, corpo ou identidade entre referência e fotos enviadas.
+- O PRINCIPAL deve ter maior prioridade visual: posição mais central, escala igual ou maior e leitura imediata antes dos auxiliares.
+- Com 2 pessoas: mantenha o PRINCIPAL mais central/dominante e o AUXILIAR 1 em posição lateral secundária.
+- Com 3 pessoas: mantenha o PRINCIPAL no eixo ou região central dominante e distribua AUXILIAR 1 e AUXILIAR 2 nas laterais de forma equilibrada.
+- DIREÇÃO DOS AUXILIARES: a equipe deve visualmente ABRIR PARA FORA do centro. Auxiliar à esquerda olha/orienta-se preferencialmente para a esquerda externa; auxiliar à direita, para a direita externa.
+- Primeiro escolha o lado pela orientação natural da foto. Se dois auxiliares olharem para o mesmo lado, é permitido FLIP HORIZONTAL integral de um deles, sem redesenhar rosto, mãos, roupa, microfone ou instrumento. Nunca espelhe logos/textos.
+- Preserve pose, gesto, braço levantado/abaixado, mãos, microfone, inclinação da cabeça e direção do olhar de cada foto enviada. Não neutralize poses expressivas.
+- Preserve fortemente a fisionomia. Não embeleze, rejuvenesça, envelheça ou invente traços.
+- Nunca troque rostos, nomes, funções ou hierarquia entre as pessoas.
+- Auxiliares podem ficar parcialmente atrás do principal quando a composição pedir profundidade, mas nunca devem cobrir o rosto do principal.
+- Com referência, replique primeiro o ENQUADRAMENTO e a função espacial, não a identidade humana.
+- Se a referência mostrar busto, peito ou cintura, não transforme em corpo inteiro.
+- Sem referência/instrução, priorize peito para cima ou cintura para cima.
+- Corpo inteiro apenas se referência/instrução justificar.
+- Preserve direção e função espacial de sombras, glows e brilhos.
+
+LOGOS OFICIAIS — PROIBIÇÃO FINAL:
+- Logo da igreja e logo de evento NÃO pertencem a esta geração.
+- Toda logo da referência deve desaparecer.
+- NÃO preserve espaço negativo específico para logos e NÃO desenhe qualquer marcador de posição.
+- Não invente símbolo institucional ou marca substituta.
+
+REGRA DE CANVAS NATIVO — HARD CONSTRAINT:
+- O tamanho/proporção solicitados são o canvas real da arte.
+- Crie a composição diretamente nessa proporção e preencha 100% dela.
+- PROIBIDO gerar um pôster/cartaz menor dentro de outro canvas.
+- PROIBIDO usar a própria arte ampliada, borrada, desfocada ou duplicada como fundo para completar a proporção. Isso inclui qualquer efeito de 'contain' visual, vinheta externa, frame interno ou preenchimento por blur.
+- PROIBIDO adicionar barras, margens externas ou moldura de compensação, salvo quando referência/instrução explicitamente usar isso.
+- Se a composição original não couber, redistribua e redimensione os elementos.
+
+REGRA DE CAMADAS — HARD CONSTRAINT:
+- Foto da igreja = BACKGROUND.
+- Pregadores selecionados = FOREGROUND.
+- Nenhuma mão, cabeça, braço, pessoa ou objeto da foto da igreja pode sobrepor visualmente rosto ou corpo do pregador.
+- Quando houver múltiplos pregadores, componha-os deliberadamente; não duplique pessoas apenas para preencher espaço.
+
+REGRA DE TEXTO — HARD CONSTRAINT:
+- Cada dado semântico deve aparecer no máximo uma vez.
+- Se a instrução disser que determinado campo será renderizado posteriormente, NÃO o desenhe na imagem base; apenas reserve espaço coerente.
+
+REGRA DE ENQUADRAMENTO DO PREGADOR:
+- Preserve o corpo inteiro sempre que a fotografia original tiver corpo suficiente para isso.
+- Evite ao máximo cortar cabeça, mãos, braços, pernas, pés ou tronco.
+- Não faça crop agressivo por estética automática.
+- Corte corporal só é permitido quando a referência tiver claramente esse enquadramento ou quando o usuário instruir.
+- Se precisar acomodar título e pessoa, reduza escala ou reorganize a composição antes de cortar partes do corpo.
+
+REGRAS DE FIDELIDADE:
+- A foto do pregador fornecida é uma identidade protegida. Preserve a pessoa; não invente outro rosto.
+- FIDELIDADE FACIAL É PRIORIDADE ABSOLUTA: não redesenhe, embeleze, rejuvenesça, envelheça, afine, alargue ou reinterpretе o rosto. Não altere olhos, nariz, boca, mandíbula, barba, cabelo, pele, expressão ou proporções faciais.
+- A fotografia do pregador deve funcionar como identidade visual bloqueada: prefira recorte, escala, reposicionamento, máscara, iluminação e correção de cor ao redor da foto em vez de regenerar seus traços.
+- Se qualquer efeito/estilo puder modificar a fisionomia, reduza ou remova esse efeito sobre rosto e cabeça. A fidelidade da pessoa vale mais que a fidelidade ao estilo.
+- Se não conseguir uma transformação sofisticada sem alterar a identidade, use um recorte/tratamento mais simples e fiel.
+- Logo oficial: preservar exatamente. Não redesenhar.
+- Não invente datas, horários, endereço, nomes, slogans ou textos.
+- Não escreva rótulos internos como "logo", "reserva", "pregador" ou nomes de camada.
+- Complexidade visual somente quando for coerente e segura. Coerência sempre.
+${data.backgroundMode?'- MODO FUNDO: título e qualquer texto são proibidos.':'- Título deve fazer parte do design: escala, composição, contraste, possível inclinação, outline, sombra ou deformação quando coerente com a referência.'}
+- Integre pessoas, título e elementos em camadas, evitando aparência de formulário/cartões genéricos.
+- COMPOSIÇÃO LIMPA: salvo quando a referência ou o usuário pedir explicitamente, nunca crie um cartaz/quadro menor flutuando dentro de outro fundo, moldura ou canvas. A arte deve ocupar o canvas inteiro.
+- Evite caixas, cartões, cápsulas, placas e contornos em torno de data, hora, endereço e textos; só use quando a referência ou instrução justificar claramente.
+- LOGO PRINCIPAL DA IGREJA e LOGO DE EVENTO são IDENTIDADES DIFERENTES e NÃO INTERCAMBIÁVEIS.
+- A LOGO PRINCIPAL pode aparecer NO MÁXIMO UMA VEZ. É proibido repetir a logo principal para preencher o lugar da logo de evento.
+- Se LOGO DE EVENTO foi fornecida, ela é OBRIGATÓRIA e deve aparecer exatamente UMA VEZ, fiel ao arquivo enviado.
+- Nunca transforme a logo principal em logo de evento, nunca extraia seu símbolo para fazer uma segunda marca e nunca invente variações.
+- LOGO ORIGINAL: use uma única vez, limpa e intacta. Não coloque a logo dentro de caixa, card, placa, selo, cápsula ou fundo próprio, salvo referência/instrução explícita. Nunca extraia o símbolo da logo para repetir em outro ponto; nunca redesenhe, reescreva, reconstrua ou duplique partes da identidade visual.
+- LOGO DE EVENTO: quando fornecida, é um segundo asset protegido e diferente da logo principal. Use-a UMA única vez e intacta. Ela só pode ocupar uma das seis zonas laterais dentro dos 3/5 centrais do canvas: esquerda-superior, esquerda-meio, esquerda-inferior, direita-superior, direita-meio ou direita-inferior. Não use cantos extremos. Não sobreponha logo principal, rosto, título ou dados essenciais. A logo principal tem prioridade espacial. Se houver posição explícita, siga: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"IA escolhe a melhor das seis zonas permitidas"}. TAMANHO MÁXIMO: ${data.eventLogoSize||data.assets?.eventLogo?.size||"small"} — small ≈ 14% da largura do canvas; medium ≈ 20%; large ≈ 26%. Preserve a proporção original e não ultrapasse esse limite visual.
+- Em TELÃO, prefira título centralizado quando não houver outro elemento visual principal. Havendo pregador/figura/ilustração solicitada, prefira composição lateral equilibrada: título de um lado e imagem do outro.
+- Se solicitado MODO ESCURO DE TELÃO, use predominância escura sobretudo no fundo, contraste alto e foto da igreja mais discreta/escurecida.
+
+FORMATO FINAL: ${target.width||1080}x${target.height||1350}, proporção ${target.ratio||""}
+VARIAÇÃO: ${data.variantLabel||"principal"} — ${data.variantInstruction||""}
+INSTRUÇÃO DO USUÁRIO: ${data.instruction||""}\nSe público-alvo ou estilo tiverem sido especificados, siga a interpretação que o DIRETOR DE ARTE já incorporou ao blueprint.
+Use também os campos explícitos acima como trava de consistência.
+Se estiverem como 'não especificado', não force nenhum estilo ou público artificialmente.
+INSTRUÇÃO FINAL: ${data.finalInstruction||""}
+CORREÇÃO DO FISCAL, se houver: ${data.qualityCorrection||"nenhuma"}
+
+${data.safeMode?`MODO SEGURO OBRIGATÓRIO:
+- reduza a complexidade;
+- não deforme o rosto;
+- não estilize a pessoa de forma que altere sua identidade;
+- trate a foto do pregador como fotografia real recortada/encaixada;
+- não gere nenhuma logo ou marca;
+- use tipografia forte porém simples;
+- não use distorções em textos obrigatórios;
+- todos os dados precisam estar legíveis e corretos;
+- prefira fundo gráfico simples e profissional a uma composição arriscada.`:""}
+
+REGRA DE CANVAS NATIVO — CRÍTICA:
+- O tamanho de saída informado pela API é o CANVAS FINAL desta arte.
+- Componha diretamente nesse aspect ratio. A referência NÃO define o tamanho do canvas.
+- Se a referência tiver outra proporção, REORGANIZE a composição; não reproduza a referência como um quadro dentro de outro quadro.
+- Não crie padding, bordas, molduras, barras, fundo borrado ou extensão artificial para compensar proporção.
+- Todo conteúdo essencial deve permanecer dentro da safe area já definida.
+
+Entregue a arte final, não um mockup.`;
+}
+
+function promptPresetOnly(data){
   const c=data.requiredContent||{},target=data.target||{};
   const explicitDerivativeTexts=(data.explicitDerivativeTexts||[]).map(t=>`TEXTO EXATO PEDIDO AGORA: ${t}`);
   const texts=[
@@ -545,6 +837,17 @@ REGRA DE CANVAS NATIVO — CRÍTICA:
 
 Entregue a arte final, não um mockup.`;
 }
+
+
+function prompt(data){
+  // Isolamento intencional:
+  // sem preset, o gerador usa EXATAMENTE o prompt legado v0.25.0;
+  // as restrições novas existem SOMENTE no fluxo pré-programado.
+  return data?.layoutPresetInstruction
+    ? promptPresetOnly(data)
+    : promptLegacyMain(data);
+}
+
 
 const IMAGE_PROMPT_SAFE_LIMIT=31800;
 function compactPromptText(v,max){
