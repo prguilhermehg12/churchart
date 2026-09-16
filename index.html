@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.28 -->
+<!-- CHURCHDESIGN — index v1.29 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -4012,6 +4012,21 @@ html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn[aria-curre
 html[data-theme="light"] .mobile-menu-btn,html[data-theme="light"] .mobile-sidebar-close{background:#eef1f4!important;color:#20252b!important;border-color:#b8c0c9!important}
 html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
 </style>
+<style>
+/* CHURCHDESIGN v1.29 — créditos, conta financeira e foco pós-derivação */
+.derivative-cancel-generation{border-color:color-mix(in srgb,#ff8a65 52%,var(--field-border))!important;color:#ffb29c!important;background:color-mix(in srgb,#ff6b45 9%,var(--field-bg))!important}
+.derivative-cancel-generation[hidden]{display:none!important}
+.gallery-new-art-focus{outline:2px solid var(--brand-orange)!important;outline-offset:3px;box-shadow:0 0 0 5px color-mix(in srgb,var(--brand-orange) 13%,transparent)!important;transition:box-shadow .25s ease,outline-color .25s ease}
+.my-account-panel{width:min(1280px,96vw)!important}
+.my-account-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.my-account-summary>div{border:1px solid var(--line);background:var(--soft-surface);border-radius:12px;padding:12px}
+.my-account-summary small{display:block;color:var(--muted);font-size:8px;letter-spacing:.08em;margin-bottom:5px}.my-account-summary strong{font-size:15px}
+.finance-reconcile-note{border:1px solid var(--line);background:var(--soft-surface);border-radius:12px;padding:11px 12px;color:var(--muted);font-size:9px;line-height:1.5;margin-bottom:12px}
+.finance-reconcile-note strong{color:var(--text)}
+.credit-limit-dialog .app-dialog{width:min(520px,92vw);border-color:color-mix(in srgb,var(--brand-orange) 55%,var(--line));box-shadow:0 24px 80px rgba(0,0,0,.42)}
+.credit-limit-dialog .app-dialog-head i{background:color-mix(in srgb,var(--brand-orange) 16%,transparent);color:var(--brand-orange)}
+@media(max-width:760px){.my-account-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.my-account-panel{width:96vw!important}.cost-history-scroll{max-height:48vh}}
+</style>
 </head>
 <body>
 
@@ -4067,6 +4082,7 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
         <h4>Minha conta</h4>
         <span class="account-email" id="accountEmail">—</span>
         <div class="account-row"><span>Referências salvas</span><strong id="accountRefUsage">0 / 30</strong></div>
+        <button id="myAccountBtn" class="mini-btn" type="button" onclick="openMyAccount()">Abrir minha conta</button>
         <button id="managePlanBtn" class="mini-btn" type="button" onclick="openPlansPage()">Gerenciar plano</button>
         <button id="subscriptionAdminBtn" class="mini-btn" type="button" onclick="openSubscriptionAdmin()" style="display:none">Gerenciar assinaturas</button><button class="mini-btn account-signout" type="button" onclick="signOutChurchDesign()">Sair</button>
         <div class="account-legal-links"><a href="/termos-de-uso.html" target="_blank" rel="noopener">Termos de Uso</a><a href="/politica-de-privacidade.html" target="_blank" rel="noopener">Privacidade</a><a href="mailto:olivertech.ce@gmail.com">Suporte</a></div><div class="account-copyright">© 2026 ChurchDesign™. Todos os direitos reservados.</div>
@@ -4174,11 +4190,21 @@ function planDisplayName(){
   const id=currentCommercialPlanId();
   return ({entrada:'Essencial',medio:'Pro',top:'Studio'})[id]||state.accessContext?.subscription?.plan?.name||'';
 }
+function refreshCreditDisplays(){
+  const value=state.user?.credits==null?'—':String(Math.max(0,Number(state.user.credits)||0));
+  const creditValue=document.querySelector('#creatorCreditValue');if(creditValue)creditValue.textContent=value;
+  document.querySelectorAll('.derivative-balance b,[data-live-credit-balance]').forEach(el=>el.textContent=value);
+}
+async function refreshCreditsFromServer(){
+  if(!state.activeChurchId||!state.authSession)return state.user?.credits;
+  const d=await apiJSON('access-context');
+  if(d?.context){state.accessContext=d.context;state.features=d.context?.features||state.features||{};state.user.plan=d.context?.subscription?.plan?.code||state.user.plan;state.user.credits=d.context?.credits_balance??state.user.credits;}
+  refreshCreditDisplays();return state.user?.credits;
+}
 function updateSidebarAccount(){
   const email=document.querySelector('#accountEmail');if(email)email.textContent=state.user?.email||'Conta autenticada';
   const usage=document.querySelector('#accountRefUsage');if(usage)usage.textContent=`${(state.library.assets||[]).filter(a=>a.type==='reference').length} / ${referenceLibraryLimit()}`;
-  const creditValue=document.querySelector('#creatorCreditValue');
-  if(creditValue)creditValue.textContent=state.user?.credits==null?'—':String(Math.max(0,Number(state.user.credits)||0));
+  refreshCreditDisplays();
   let badge=document.querySelector('#ownerPremiumBadge');
   const planName=planDisplayName();
   if(planName){if(!badge){badge=document.createElement('span');badge.id='ownerPremiumBadge';badge.className='account-plan';email?.insertAdjacentElement('afterend',badge);}badge.textContent=String(planName).toUpperCase();}else badge?.remove();
@@ -4310,7 +4336,7 @@ function costSupervisorHTML(){
   if(!state.user?.isAdmin)return '';
   const ev=state.costSupervisor?.events||[],total=costTotal();
   return `<div class="cost-supervisor ${state.costSupervisor?.sessionId?'show':''}" data-cost-panel>
-    <div class="cost-head"><div><strong>◉ Supervisor de custos</strong><div class="cost-sub">Estimativa da sessão atual • preços verificados em 18/08/2026</div>${Number.isFinite(Number(state.costSupervisor?.actualCost))?`<div class="cost-sub" style="color:#b9d7a8">Custo real conciliado OpenAI: <b>${moneyUSD(state.costSupervisor.actualCost)}</b>${state.costSupervisor.actualCost>total+.002?` • diferença: <b>${moneyUSD(state.costSupervisor.actualCost-total)}</b>`:''}</div>`:''}${Number.isFinite(Number(state.costSupervisor?.actualCost))?`<div class="cost-sub" style="color:#b9d7a8">Custo real conciliado OpenAI: <b>${moneyUSD(state.costSupervisor.actualCost)}</b></div>`:''}</div><div class="cost-total">${moneyUSD(total)}</div></div>
+    <div class="cost-head"><div><strong>◉ Supervisor de custos</strong><div class="cost-sub">Estimativa da sessão atual • preços verificados em 18/08/2026</div>${Number.isFinite(Number(state.costSupervisor?.actualCost))?`<div class="cost-sub" style="color:#b9d7a8">Custo real conciliado OpenAI: <b>${moneyUSD(state.costSupervisor.actualCost)}</b>${state.costSupervisor.actualCost>total+.002?` • diferença: <b>${moneyUSD(state.costSupervisor.actualCost-total)}</b>`:''}</div>`:''}</div><div class="cost-total">${moneyUSD(total)}</div></div>
     <div class="cost-sub" style="margin-top:5px">Chamadas rastreadas: ${(state.costSupervisor?.requests||[]).length}</div><div class="cost-events">${ev.length?ev.map(e=>`<div class="cost-row"><div><strong>${esc(e.stage)} <span class="cost-badge">${esc(e.model)}</span></strong><small>${e.input?`${e.input.toLocaleString()} in • `:''}${e.output?`${e.output.toLocaleString()} out • `:''}${e.estimated?'estimado':'usage da API'}</small></div><b>${moneyUSD(e.usd)}</b></div>`).join(''):'<div class="cost-sub">Os custos aparecerão aqui conforme cada etapa terminar.</div>'}</div>
   </div>`;
 }
@@ -6719,9 +6745,9 @@ function openShareDownloadAssistant(galleryId){
       <div class="share-expiry-field">
         <label for="shareExpirySelect">Validade do link</label>
         <select id="shareExpirySelect">
-          <option value="24">24 horas</option>
+          <option value="24" selected>24 horas</option>
           <option value="72">3 dias</option>
-          <option value="168" selected>7 dias</option>
+          <option value="168">7 dias</option>
           <option value="720">30 dias</option>
         </select>
         <small>Quando expirar, somente o link deixa de funcionar. As artes continuam normalmente na sua Galeria.</small>
@@ -6739,7 +6765,7 @@ function openShareDownloadAssistant(galleryId){
   generate.onclick=async()=>{
     try{
       generate.disabled=true;generate.textContent='Gerando...';
-      const expiresHours=Number(root.querySelector('#shareExpirySelect')?.value||168);
+      const expiresHours=Number(root.querySelector('#shareExpirySelect')?.value||24);
       const galleryIds=[...root.querySelectorAll('[data-share-art-option] input:checked')].map(x=>x.value);
       if(!galleryIds.length)throw new Error('Selecione pelo menos uma arte para compartilhar.');
       const d=await apiJSON('create-art-share',{method:'POST',body:{galleryId,galleryIds,expiresHours}});
@@ -6952,7 +6978,7 @@ function bindGalleryInnerScrollHandoff(root=document){
     scroller.addEventListener('scroll',refreshOverflow,{passive:true});
   });
 }
-window.openGallery=function(query='',viewMode=null){
+window.openGallery=function(query='',viewMode=null,focusGalleryId=null){
   const root=document.querySelector('#modalRoot'),items=allPersistentGalleryItems(),q=String(query||'').trim().toLowerCase();
   if(viewMode)state.galleryViewMode=viewMode;
   const view=state.galleryViewMode||'grid',allFamilies=galleryFamilies(items),families=q?allFamilies.filter(f=>galleryFamilySearchText(f).includes(q)):allFamilies;
@@ -7035,6 +7061,7 @@ window.openGallery=function(query='',viewMode=null){
     e.stopPropagation();closeGalleryActionPopovers();openShareDownloadAssistant(b.dataset.galleryShare);
   });
   root.querySelectorAll('[data-gallery-fullscreen]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryFullscreen);if(x)openArtworkFullscreen(x.url,x.label||'Arte')});
+  if(focusGalleryId){requestAnimationFrame(()=>{const selector=`[data-gallery-fullscreen="${CSS.escape(String(focusGalleryId))}"]`,target=root.querySelector(selector);if(!target)return;const card=target.closest('.gallery-derivative-card,.gallery-family-card,.gallery-list-child,.gallery-project-wrap,.gallery-list-row')||target;card.classList.add('gallery-new-art-focus');target.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});setTimeout(()=>card.classList.remove('gallery-new-art-focus'),3200);});}
   root.querySelectorAll('[data-gallery-diagnostic]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDiagnostic);if(!x)return;const a=galleryItemToQuickResult(x);openLogoDiagnostic(a)});
   root.querySelectorAll('[data-gallery-logo-assistant]').forEach(b=>b.onclick=e=>{e.stopPropagation();openGalleryLogoAssistant(b.dataset.galleryLogoAssistant)});
   root.querySelectorAll('[data-gallery-delete-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();deleteGalleryProjectByArt(b.dataset.galleryDeleteProject)});
@@ -7225,18 +7252,18 @@ function tableRowsToExcel(rows,headers,title='ChurchDesign'){
 }
 const COST_EXPORT_HEADERS=[
   {label:'Data',value:r=>formatDateTime(r.createdAt)},{label:'Projeto',value:'projectName'},{label:'Tipo',value:'type'},{label:'Formato',value:'format'},
-  {label:'Igreja',value:'churchName'},{label:'Usuário',value:r=>r.userName||r.userEmail||''},{label:'E-mail',value:'userEmail'},
-  {label:'Fonte',value:r=>costHistorySourceLabel(r.source)},{label:'Custo USD',value:r=>Number(r.costUSD||0).toFixed(6)},
-  {label:'Custo BRL',value:r=>Number(r.costBRL||0).toFixed(4)},{label:'Custo direto USD',value:r=>Number(r.directImageUSD||0).toFixed(6)},
-  {label:'Rateio auxiliar USD',value:r=>Number(r.allocatedSupportUSD||0).toFixed(6)}
+  {label:'Igreja',value:'churchName'},{label:'Usuário',value:r=>r.userName||r.userEmail||''},{label:'E-mail',value:'userEmail'},{label:'Créditos',value:r=>Number(r.credits)||0},
+  {label:'Fonte',value:r=>costHistorySourceLabel(r.source)},{label:'USD rastreado',value:r=>Number(r.costUSD||0).toFixed(6)},{label:'USD conciliado',value:r=>Number(r.reconciledUSD||r.costUSD||0).toFixed(6)},
+  {label:'BRL conciliado',value:r=>Number(r.reconciledBRL||r.costBRL||0).toFixed(4)},{label:'PTAX USD/BRL',value:r=>Number(r.fxRate||0).toFixed(4)},{label:'Fonte câmbio',value:'fxSource'},
+  {label:'Custo direto USD',value:r=>Number(r.directImageUSD||0).toFixed(6)},{label:'Rateio auxiliar USD',value:r=>Number(r.allocatedSupportUSD||0).toFixed(6)}
 ];
 function filteredCostRows(){
   const d=costHistoryCache||{},root=document.querySelector('#modalRoot'),user=root?.querySelector('#costFilterUser')?.value||'',type=root?.querySelector('#costFilterType')?.value||'',source=root?.querySelector('#costFilterSource')?.value||'',sort=root?.querySelector('#costSort')?.value||'date-desc';
   let rows=[...(d.arts||[])].filter(x=>(!user||x.userId===user)&&(!type||x.type===type)&&(!source||x.source===source));
   const name=x=>String(x.userName||x.userEmail||'').localeCompare('',undefined,{sensitivity:'base'});
   rows.sort((a,b)=>{
-    if(sort==='cost-desc')return Number(b.costUSD||0)-Number(a.costUSD||0);
-    if(sort==='cost-asc')return Number(a.costUSD||0)-Number(b.costUSD||0);
+    if(sort==='cost-desc')return Number(b.reconciledUSD||b.costUSD||0)-Number(a.reconciledUSD||a.costUSD||0);
+    if(sort==='cost-asc')return Number(a.reconciledUSD||a.costUSD||0)-Number(b.reconciledUSD||b.costUSD||0);
     if(sort==='user-az')return String(a.userName||a.userEmail||'').localeCompare(String(b.userName||b.userEmail||''),'pt-BR',{sensitivity:'base'});
     if(sort==='user-za')return String(b.userName||b.userEmail||'').localeCompare(String(a.userName||a.userEmail||''),'pt-BR',{sensitivity:'base'});
     return new Date(b.createdAt)-new Date(a.createdAt);
@@ -7244,9 +7271,31 @@ function filteredCostRows(){
 }
 function renderCostHistoryRows(){
   const root=document.querySelector('#modalRoot'),body=root?.querySelector('#costHistoryRows');if(!body)return;
-  const rows=filteredCostRows();body.innerHTML=rows.map(x=>`<tr><td>${esc(formatDateTime(x.createdAt))}</td><td>${esc(x.projectName||'—')}</td><td>${esc(x.type||'—')}</td><td>${esc(x.format||'—')}</td><td>${esc(x.churchName||'—')}</td><td>${esc(x.userName||x.userEmail||'—')}</td><td><span class="cost-history-source ${x.source==='tracked'?'tracked':'legacy'}">${esc(costHistorySourceLabel(x.source))}</span></td><td><strong>${costHistoryMoney(x.costUSD)}</strong>${Number(x.costBRL)>0?`<small style="display:block;color:var(--muted)">${new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(x.costBRL)}</small>`:''}</td></tr>`).join('')||'<tr><td colspan="8">Sem dados com estes filtros.</td></tr>';
+  const rows=filteredCostRows();body.innerHTML=rows.map(x=>`<tr><td>${esc(formatDateTime(x.createdAt))}</td><td>${esc(x.projectName||'—')}</td><td>${esc(x.type||'—')}</td><td>${esc(x.format||'—')}</td><td>${esc(x.churchName||'—')}</td><td>${esc(x.userName||x.userEmail||'—')}</td><td><strong>${Number(x.credits)||0}</strong></td><td>${costHistoryMoney(x.costUSD)}</td><td><strong>${costHistoryMoney(x.reconciledUSD||x.costUSD)}</strong></td><td><strong>${new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(x.reconciledBRL||x.costBRL)||0)}</strong></td><td>${Number(x.fxRate)>0?Number(x.fxRate).toFixed(4):'—'}<small style="display:block;color:var(--muted)">${esc(x.fxSource||'')}</small></td><td><span class="cost-history-source ${x.source==='tracked'?'tracked':'legacy'}">${esc(costHistorySourceLabel(x.source))}</span></td></tr>`).join('')||'<tr><td colspan="12">Sem dados com estes filtros.</td></tr>';
   const c=root.querySelector('#costFilteredCount');if(c)c.textContent=`${rows.length} registros`;
 }
+async function openMyAccount(){
+  const root=document.querySelector('#modalRoot'),plan=planDisplayName()||'Sem plano',credits=state.user?.credits==null?'—':Math.max(0,Number(state.user.credits)||0),refs=(state.library.assets||[]).filter(a=>a.type==='reference').length;
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel my-account-panel"><div class="modal-head"><div><h2>Minha conta</h2><p class="cost-history-subtitle">${esc(state.user?.email||'Conta autenticada')}</p></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body"><div class="my-account-summary"><div><small>PLANO</small><strong>${esc(plan)}</strong></div><div><small>CRÉDITOS</small><strong data-live-credit-balance>${credits}</strong></div><div><small>REFERÊNCIAS</small><strong>${refs} / ${referenceLibraryLimit()}</strong></div><div><small>IGREJA ATIVA</small><strong>${esc(state.church?.name||'—')}</strong></div></div>${state.user?.isAdmin?'<div class="empty-state">Carregando rastreador financeiro...</div>':'<div class="finance-reconcile-note"><strong>Sua conta está ativa.</strong><br>Use “Gerenciar plano” para consultar assinatura e recursos disponíveis.</div>'}</div></div></div>`;
+  if(!state.user?.isAdmin)return;
+  try{
+    const d=await billingAdminJSON('cost-history');costHistoryCache=d;
+    const summary=d.summary||{},types=d.byType||[],users=d.byUser||[],arts=d.arts||[],actual=summary.actualAvailable&&Number.isFinite(Number(summary.actualOpenAIUSD));
+    root.querySelector('.modal-body').innerHTML=`
+      <div class="my-account-summary"><div><small>PLANO</small><strong>${esc(plan)}</strong></div><div><small>CRÉDITOS DISPONÍVEIS</small><strong data-live-credit-balance>${credits}</strong></div><div><small>REFERÊNCIAS</small><strong>${refs} / ${referenceLibraryLimit()}</strong></div><div><small>IGREJA ATIVA</small><strong>${esc(state.church?.name||'—')}</strong></div></div>
+      <div class="billing-section-title"><div><h3>Rastreador financeiro</h3><small>Consumo real e rastreado das gerações</small></div></div>
+      <div class="cost-history-kpis"><div><small>ARTES</small><strong>${Number(summary.artCount)||0}</strong></div><div><small>USD FINANCEIRO</small><strong>${actual?costHistoryMoney(summary.actualOpenAIUSD):'—'}</strong></div><div><small>USD RASTREADO</small><strong>${costHistoryMoney(summary.trackedUSD)}</strong></div><div><small>TOTAL EM REAL</small><strong>${new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(summary.totalBRL)||0)}</strong></div><div><small>CRÉDITOS CONSUMIDOS</small><strong>${Number(summary.creditsConsumed)||0}</strong></div><div><small>MÉDIA / ARTE</small><strong>${costHistoryMoney(summary.avgUSD)}</strong></div></div>
+      <div class="finance-reconcile-note"><strong>Como o rastreamento funciona:</strong> o custo de cada arte é calculado pelo uso registrado do Gerador, Diretor de Arte e Fiscal. O total financeiro em dólar é conciliado com o endpoint oficial de custos da OpenAI quando a chave administrativa está disponível. Como a OpenAI informa o custo financeiro de forma agregada por período/projeto, o valor conciliado de cada arte é um rateio proporcional — não uma fatura individual por requisição. A conversão para real usa a PTAX de venda do Banco Central na data da geração, com fallback para a última cotação disponível.${actual?'':`<br><br><strong>Conciliação financeira indisponível agora:</strong> ${esc(summary.actualError||'chave administrativa ou consulta de custos indisponível')}. A tabela continua exibindo o custo rastreado pelo uso.`}</div>
+      <div class="cost-history-toolbar"><select id="costFilterUser"><option value="">Todos os usuários</option>${users.map(u=>`<option value="${esc(u.userId)}">${esc(u.userName||u.userEmail||'Usuário')}</option>`).join('')}</select><select id="costFilterType"><option value="">Todos os tipos</option>${types.map(x=>`<option value="${esc(x.type)}">${esc(x.type)}</option>`).join('')}</select><select id="costFilterSource"><option value="">Todas as fontes</option><option value="tracked">Rastreado</option><option value="legacy">Legado estimado</option></select><select id="costSort"><option value="date-desc">Mais recentes</option><option value="cost-desc">Mais caro → barato</option><option value="cost-asc">Mais barato → caro</option><option value="user-az">Usuário A → Z</option></select><button class="mini-btn" id="refreshFinanceTracker">Atualizar</button><button class="mini-btn" id="exportCostCsv">CSV</button><button class="mini-btn" id="exportCostExcel">Excel</button><small id="costFilteredCount">${arts.length} registros</small></div>
+      <section class="cost-history-section"><div class="billing-section-title"><div><h3>Histórico por arte</h3><small>USD, BRL, créditos, usuário e origem do custo</small></div></div><div class="billing-table-wrap cost-history-scroll"><table class="billing-table cost-history-table"><thead><tr><th>Data</th><th>Projeto</th><th>Tipo</th><th>Formato</th><th>Igreja</th><th>Usuário</th><th>Créditos</th><th>USD rastreado</th><th>USD conciliado</th><th>BRL</th><th>PTAX</th><th>Fonte</th></tr></thead><tbody id="costHistoryRows"></tbody></table></div></section>`;
+    ['costFilterUser','costFilterType','costFilterSource','costSort'].forEach(id=>root.querySelector('#'+id)?.addEventListener('change',renderCostHistoryRows));
+    root.querySelector('#refreshFinanceTracker').onclick=openMyAccount;
+    root.querySelector('#exportCostCsv').onclick=()=>downloadTextFile(`churchdesign-financeiro-${new Date().toISOString().slice(0,10)}.csv`,tableRowsToCSV(filteredCostRows(),COST_EXPORT_HEADERS));
+    root.querySelector('#exportCostExcel').onclick=()=>downloadTextFile(`churchdesign-financeiro-${new Date().toISOString().slice(0,10)}.xls`,tableRowsToExcel(filteredCostRows(),COST_EXPORT_HEADERS,'ChurchDesign — Rastreador financeiro'),'application/vnd.ms-excel;charset=utf-8');
+    renderCostHistoryRows();refreshCreditDisplays();
+  }catch(e){const body=root.querySelector('.modal-body');if(body)body.innerHTML+=`<div class="empty-state">Não foi possível carregar o rastreador financeiro agora.</div>`}
+}
+
 async function openCostHistory(){
   if(!state.user?.isAdmin)return;
   const root=document.querySelector('#modalRoot');
@@ -7256,7 +7305,7 @@ async function openCostHistory(){
     const summary=d.summary||{},types=d.byType||[],users=d.byUser||[],arts=d.arts||[],legacy=Number(summary.legacyArts)||0;
     root.querySelector('.modal-body').innerHTML=`
       <div class="cost-history-note"><strong>Como ler:</strong> registros novos são rastreados por sessão/operação; registros antigos aparecem como <b>Legado estimado</b>.</div>
-      <div class="cost-history-kpis"><div><small>ARTES</small><strong>${Number(summary.artCount)||0}</strong></div><div><small>CUSTO TOTAL EST.</small><strong>${costHistoryMoney(summary.totalUSD)}</strong></div><div><small>MÉDIA / ARTE</small><strong>${costHistoryMoney(summary.avgUSD)}</strong></div><div><small>LEGADO</small><strong>${legacy}</strong></div></div>
+      <div class="cost-history-kpis"><div><small>ARTES</small><strong>${Number(summary.artCount)||0}</strong></div><div><small>USD FINANCEIRO</small><strong>${summary.actualAvailable?costHistoryMoney(summary.actualOpenAIUSD):'—'}</strong></div><div><small>USD RASTREADO</small><strong>${costHistoryMoney(summary.trackedUSD)}</strong></div><div><small>BRL</small><strong>${new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(summary.totalBRL)||0)}</strong></div><div><small>CRÉDITOS</small><strong>${Number(summary.creditsConsumed)||0}</strong></div><div><small>LEGADO</small><strong>${legacy}</strong></div></div>
       <div class="cost-history-toolbar">
         <select id="costFilterUser"><option value="">Todos os usuários</option>${users.map(u=>`<option value="${esc(u.userId)}">${esc(u.userName||u.userEmail||'Usuário')} — ${costHistoryMoney(u.totalUSD)}</option>`).join('')}</select>
         <select id="costFilterType"><option value="">Todos os tipos</option>${types.map(x=>`<option value="${esc(x.type)}">${esc(x.type)}</option>`).join('')}</select>
@@ -7267,7 +7316,7 @@ async function openCostHistory(){
       </div>
       <section class="cost-history-section"><div class="billing-section-title"><div><h3>Usuários por custo</h3><small>Classificação do mais caro para o mais barato</small></div></div><div class="cost-user-ranking">${users.map((u,i)=>`<div><b>${i+1}</b><span>${esc(u.userName||u.userEmail||'Usuário')}</span><small>${u.count} artes</small><strong>${costHistoryMoney(u.totalUSD)}</strong></div>`).join('')||'<div class="billing-status">Sem dados.</div>'}</div></section>
       <section class="cost-history-section"><div class="billing-section-title"><div><h3>Custo médio por tipo</h3><small>Base para créditos e margem</small></div></div><div class="billing-table-wrap"><table class="billing-table cost-history-table"><thead><tr><th>Tipo</th><th>Artes</th><th>Total</th><th>Média</th><th>Mínimo</th><th>Máximo</th></tr></thead><tbody>${types.map(x=>`<tr><td><strong>${esc(x.type)}</strong></td><td>${x.count}</td><td>${costHistoryMoney(x.totalUSD)}</td><td>${costHistoryMoney(x.avgUSD)}</td><td>${costHistoryMoney(x.minUSD)}</td><td>${costHistoryMoney(x.maxUSD)}</td></tr>`).join('')||'<tr><td colspan="6">Sem dados.</td></tr>'}</tbody></table></div></section>
-      <section class="cost-history-section"><div class="billing-section-title"><div><h3>Histórico por arte</h3><small>Filtros e exportação respeitam os registros exibidos</small></div></div><div class="billing-table-wrap cost-history-scroll"><table class="billing-table cost-history-table"><thead><tr><th>Data</th><th>Projeto</th><th>Tipo</th><th>Formato</th><th>Igreja</th><th>Usuário</th><th>Fonte</th><th>Custo</th></tr></thead><tbody id="costHistoryRows"></tbody></table></div></section>`;
+      <section class="cost-history-section"><div class="billing-section-title"><div><h3>Histórico por arte</h3><small>Filtros e exportação respeitam os registros exibidos</small></div></div><div class="billing-table-wrap cost-history-scroll"><table class="billing-table cost-history-table"><thead><tr><th>Data</th><th>Projeto</th><th>Tipo</th><th>Formato</th><th>Igreja</th><th>Usuário</th><th>Créditos</th><th>USD rastreado</th><th>USD conciliado</th><th>BRL</th><th>PTAX</th><th>Fonte</th></tr></thead><tbody id="costHistoryRows"></tbody></table></div></section>`;
     ['costFilterUser','costFilterType','costFilterSource','costSort'].forEach(id=>root.querySelector('#'+id)?.addEventListener('change',renderCostHistoryRows));
     root.querySelector('#exportCostCsv').onclick=()=>downloadTextFile(`churchdesign-custos-${new Date().toISOString().slice(0,10)}.csv`,tableRowsToCSV(filteredCostRows(),COST_EXPORT_HEADERS));
     root.querySelector('#exportCostExcel').onclick=()=>downloadTextFile(`churchdesign-custos-${new Date().toISOString().slice(0,10)}.xls`,tableRowsToExcel(filteredCostRows(),COST_EXPORT_HEADERS,'ChurchDesign — Histórico de custos'),'application/vnd.ms-excel;charset=utf-8');
@@ -7747,24 +7796,33 @@ function generationFailureClass(e){
   if(e?.code==='AUTH_PREFLIGHT_NETWORK')return 'auth_preflight_network';
   const msg=String(e?.message||e||'').toLowerCase();
   if(e?.name==='AbortError')return 'cancelled';
+  if(/saldo atual|cr[eé]ditos? insuf|saldo insuf|necess[aá]rio.*cr[eé]dit/i.test(msg))return 'credits_insufficient';
   if(/429|rate limit|timeout|timed out|500|502|503|504|openai|upstream|temporar|indispon/i.test(msg))return 'provider_instability';
   if(/network|fetch|conex|econn|socket/i.test(msg))return 'network';
   return 'processing';
 }
 async function startGenerationOperation(meta={}){
   await ensureGenerationAuthPreflight();
-  const operationId=crypto.randomUUID();
-  const d=await apiJSON('generation-operation-start',{method:'POST',body:{operationId,artType:meta.artType||'Arte base',format:meta.format||state.quick?.format||'',projectName:meta.projectName||state.quick?.title||state.projectTitle||'',metadata:meta}});
-  state.activeGenerationOperation={operationId,credits:Number(d.credits)||0,balance:d.balance??state.user.credits,artType:meta.artType||'Arte base',format:meta.format||'',startedAt:Date.now()};
-  if(d.balance!==undefined&&d.balance!==null){state.user.credits=Number(d.balance);updateSidebarAccount();}
-  return state.activeGenerationOperation;
+  beginCostSession(`${meta.artType||'Geração'} • ${meta.format||state.quick?.format||''}`);
+  const operationId=crypto.randomUUID(),operationMeta={...meta,costSessionId:state.costSupervisor?.sessionId||null};
+  try{
+    const d=await apiJSON('generation-operation-start',{method:'POST',body:{operationId,artType:meta.artType||'Arte base',format:meta.format||state.quick?.format||'',projectName:meta.projectName||state.quick?.title||state.projectTitle||'',metadata:operationMeta}});
+    state.activeGenerationOperation={operationId,credits:Number(d.credits)||0,balance:d.balance??state.user.credits,artType:meta.artType||'Arte base',format:meta.format||'',startedAt:Date.now(),costSessionId:operationMeta.costSessionId};
+    if(d.balance!==undefined&&d.balance!==null){state.user.credits=Number(d.balance);updateSidebarAccount();}
+    refreshCreditsFromServer().catch(()=>{});
+    return state.activeGenerationOperation;
+  }catch(e){
+    if(generationFailureClass(e)==='credits_insufficient'){await refreshCreditsFromServer().catch(()=>{});showCreditLimitPopup(e);e.creditLimitHandled=true;}
+    throw e;
+  }
 }
 async function finishGenerationOperation(success=true,error=null,extra={}){
   const op=state.activeGenerationOperation;if(!op)return null;
   try{
     if(success){
-      const d=await apiJSON('generation-operation-complete',{method:'POST',body:{operationId:op.operationId,metadata:extra}});
+      const d=await apiJSON('generation-operation-complete',{method:'POST',body:{operationId:op.operationId,metadata:{...extra,costSessionId:op.costSessionId||state.costSupervisor?.sessionId||null}}});
       if(d.balance!==undefined&&d.balance!==null){state.user.credits=Number(d.balance);updateSidebarAccount();}
+      refreshCreditsFromServer().catch(()=>{});
       return d;
     }
     const failureClass=generationFailureClass(error);
@@ -7773,9 +7831,10 @@ async function finishGenerationOperation(success=true,error=null,extra={}){
       failureClass,
       stage:extra.stage||'generation',
       message:String(error?.message||error||'Falha sem mensagem'),
-      metadata:{...extra,name:error?.name||null,stack:String(error?.stack||'').slice(0,4000)}
+      metadata:{...extra,costSessionId:op.costSessionId||state.costSupervisor?.sessionId||null,name:error?.name||null,stack:String(error?.stack||'').slice(0,4000)}
     }});
     if(d.balance!==undefined&&d.balance!==null){state.user.credits=Number(d.balance);updateSidebarAccount();}
+    refreshCreditsFromServer().catch(()=>{});
     return d;
   }finally{state.activeGenerationOperation=null}
 }
@@ -7793,8 +7852,16 @@ async function logAppIssue(error,context={}){
     }});
   }catch(logErr){console.warn('[ChurchDesign] error log failed',logErr)}
 }
+function showCreditLimitPopup(error=null){
+  const root=document.querySelector('#appDialogRoot');if(!root)return;
+  const raw=String(error?.message||''),m=raw.match(/Saldo atual:\s*(\d+).*?necess[aá]rio:\s*(\d+)/i),balance=m?Number(m[1]):Math.max(0,Number(state.user?.credits)||0),required=m?Number(m[2]):null;
+  root.innerHTML=`<div class="app-dialog-backdrop credit-limit-dialog"><div class="app-dialog" role="dialog" aria-modal="true"><div class="app-dialog-head"><i>!</i><div><strong>${balance<=0?'Seus créditos acabaram':'Créditos insuficientes'}</strong></div></div><div class="app-dialog-body">${balance<=0?'Seu saldo chegou a zero.':'Seu saldo não é suficiente para esta operação.'}<br><br><strong>Saldo atual: ${balance} créditos.</strong>${required!=null?`<br>Esta operação precisa de ${required} créditos.`:''}<br><br>Você pode consultar seu plano para continuar criando.</div><div class="app-dialog-actions"><button class="mini-btn" data-credit-close>Agora não</button><button class="btn primary" data-credit-plans>Ver planos</button></div></div></div>`;
+  root.querySelector('[data-credit-close]').onclick=()=>{root.innerHTML=''};
+  root.querySelector('[data-credit-plans]').onclick=()=>{root.innerHTML='';openPlansPage()};
+}
 function friendlyGenerationFailurePopup(refund,errorClass='processing'){
   const refunded=Number(refund?.creditsRefunded)||0,balance=refund?.balance;
+  if(errorClass==='credits_insufficient')return;
   if(errorClass==='auth_session'){
     appAlert('A sessão foi verificada antes de iniciar e precisa ser renovada. Nenhum crédito foi debitado e tudo que você preencheu continua preservado. Entre novamente e clique em gerar.',{type:'warning',title:'Confirme seu login',duration:9500});
     return;
@@ -8563,6 +8630,13 @@ async function finalizeArtworkFlow(key,withoutLogo=false){
   try{const saved=await persistGalleryArtwork(node,{kind:isAdaptation?'arte derivada final':'arte final',parentArtworkId,sourceArtworkId,format:node.target?.id||node.format||state.quick.format,force:true});if(saved){node.galleryId=saved.galleryId;node.finalGalleryId=saved.galleryId}}catch(e){console.warn('NEWFLOW: arte final não pôde ser persistida agora',e)}
   document.querySelector('.logo-assistant-overlay')?.remove();
   const derivativeStudio=document.querySelector('.derivative-studio-overlay');
+  if(isAdaptation&&node.galleryId){
+    derivativeStudio?.remove();
+    const wrap=document.querySelector('#quickResultsWrap');if(wrap){wrap.innerHTML=renderQuickResultsHTML()+allArtworksHTML();bindQuickResultEvents();bindAllArtworksEvents();renderCostSupervisor();}
+    openGallery('',state.galleryViewMode||'grid',node.galleryId);
+    appToast('Arte derivada finalizada e aberta na Galeria.',{type:'success',title:'Arte finalizada'});
+    return node;
+  }
   if(derivativeStudio?.__derivativeState){
     const ds=derivativeStudio.__derivativeState;
     if(ds.result&&(String(ds.result.id||'')===String(node.id||'')||String(ds.result.galleryId||'')===String(node.galleryId||''))){
@@ -9089,7 +9163,7 @@ async function runDerivativeStudioGeneration(ov){
   }else{
     options={studioDerivativeMode:true,pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,churchImageMode:st.churchMode,churchImageAssetId:st.churchId,graphicMode:st.graphicMode,graphicAssetIds:st.graphicIds,manualDerivativeInstruction:st.instruction};
   }
-  const btn=ov.querySelector('[data-derivative-generate]');if(btn){btn.disabled=true;btn.textContent='Gerando…'}
+  const btn=ov.querySelector('[data-derivative-generate]'),cancelGeneration=ov.querySelector('[data-derivative-cancel]');if(btn){btn.disabled=true;btn.textContent='Gerando…'}if(cancelGeneration)cancelGeneration.hidden=false;
   try{
     // O Estúdio é apenas uma nova interface para o motor de derivação já existente.
     // A arte visualmente selecionada é montada como a origem normal main:<index>,
@@ -9107,7 +9181,7 @@ async function runDerivativeStudioGeneration(ov){
       st.status='error';
       setDerivativeStudioProgress(-1,'A adaptação foi interrompida. Os créditos debitados foram devolvidos automaticamente.');
     }
-  }finally{const b=ov.querySelector('[data-derivative-generate]');if(b){b.disabled=false;b.textContent=st.tab==='manual'?'✦ Gerar nova derivada':'✦ Gerar variação programada'}}
+  }finally{const b=ov.querySelector('[data-derivative-generate]'),c=ov.querySelector('[data-derivative-cancel]');if(b){b.disabled=false;b.textContent=st.tab==='manual'?'✦ Gerar nova derivada':'✦ Gerar variação programada'}if(c)c.hidden=true;}
 }
 function openDerivativeStudio({parentIndex=0,sourceKey=null,sourceItem=null}={}){
   document.querySelector('.derivative-studio-overlay')?.remove();
@@ -9124,10 +9198,10 @@ function openDerivativeStudio({parentIndex=0,sourceKey=null,sourceItem=null}={})
   const defaultGraphicIds=(srcAssets.graphics||[]).map(x=>String(x?.id||'')).filter(Boolean).slice(0,3);
   state.quickResults[parentIndex]=sourceNode;
   ov.__derivativeState={parentIndex,sourceKey:`main:${parentIndex}`,source:sourceNode,candidates,tab:'manual',format:sourceNode.target?.id||sourceNode.format||state.quick?.format||'feed',pastorMode:'keep',pastorIds:defaultPastorIds,pastorTreatment:state.quick?.pastorPhotoTreatment||'original',churchMode:'keep',churchId:defaultChurchId,graphicMode:'keep',graphicIds:defaultGraphicIds,instruction:'',observation:'',presetGroup:'feed',presetId:'',result:null,mobileStep:0,configScrollTop:0,sourceStripScrollLeft:0};
-  ov.innerHTML=`<div class="derivative-studio-head"><div><h2>Criação por derivação</h2><small>Imagem selecionada + instruções atuais têm prioridade. Histórico antigo serve apenas como consulta.</small></div><div class="derivative-studio-head-actions"><div class="derivative-balance"><span>Saldo</span><b>${Math.max(0,Number(state.user?.credits)||0)}</b> créditos</div><button class="mini-btn" type="button" data-derivative-cancel>Cancelar</button><button class="close-modal" type="button" data-derivative-close>×</button></div></div><div class="derivative-tabs"><button class="derivative-tab active" type="button" data-derivative-tab="manual">Variação manual</button><button class="derivative-tab" type="button" data-derivative-tab="preset">Variação pré-programada</button></div><div class="derivative-studio-grid" data-derivative-grid></div><div class="derivative-mobile-nav"><button class="btn ghost" type="button" data-derivative-prev>Voltar</button><button class="btn primary" type="button" data-derivative-next>Próximo</button></div>`;
+  ov.innerHTML=`<div class="derivative-studio-head"><div><h2>Criação por derivação</h2><small>Imagem selecionada + instruções atuais têm prioridade. Histórico antigo serve apenas como consulta.</small></div><div class="derivative-studio-head-actions"><div class="derivative-balance"><span>Saldo</span><b>${Math.max(0,Number(state.user?.credits)||0)}</b> créditos</div><button class="mini-btn derivative-cancel-generation" type="button" data-derivative-cancel hidden>Cancelar geração</button><button class="close-modal" type="button" data-derivative-close>×</button></div></div><div class="derivative-tabs"><button class="derivative-tab active" type="button" data-derivative-tab="manual">Variação manual</button><button class="derivative-tab" type="button" data-derivative-tab="preset">Variação pré-programada</button></div><div class="derivative-studio-grid" data-derivative-grid></div><div class="derivative-mobile-nav"><button class="btn ghost" type="button" data-derivative-prev>Voltar</button><button class="btn primary" type="button" data-derivative-next>Próximo</button></div>`;
   document.body.appendChild(ov);
   ov.querySelector('[data-derivative-close]').onclick=()=>{if(generationJobBusy())return appAlert('Cancele a geração antes de fechar esta tela.',{type:'info'});ov.remove()};
-  ov.querySelector('[data-derivative-cancel]').onclick=()=>{if(generationJobBusy()){ov.__derivativeState.status='cancelled';cancelActiveProcess();setDerivativeStudioProgress(-1,'Processamento cancelado. Créditos debitados serão devolvidos.');appToast('Processamento cancelado.',{type:'info'});}else ov.remove()};
+  ov.querySelector('[data-derivative-cancel]').onclick=()=>{ov.__derivativeState.status='cancelled';cancelActiveProcess();setDerivativeStudioProgress(-1,'Processamento cancelado. Créditos debitados serão devolvidos.');appToast('Processamento cancelado. Se houve débito, os créditos serão devolvidos.',{type:'info',title:'Geração cancelada'});};
   ov.querySelectorAll('[data-derivative-tab]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);const ds=ov.__derivativeState;ds.tab=b.dataset.derivativeTab;ds.mobileStep=0;ds.configScrollTop=0;if(ds.tab==='preset'&&!ds.presetId){const p=DERIVATIVE_PRESETS.find(x=>x.group===ds.presetGroup);if(p){ds.presetId=p.id;ds.format=p.format;ds.pastorMode=derivativePresetDefaultPastorMode(p);ds.pastorIds=[];}}ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x.dataset.derivativeTab===ds.tab));derivativeStudioRenderBody(ov)});
   ov.querySelector('[data-derivative-prev]').onclick=()=>derivativeStudioSetMobileStep(ov,(ov.__derivativeState.mobileStep||0)-1);
   ov.querySelector('[data-derivative-next]').onclick=()=>{const st=ov.__derivativeState,sections=[...ov.querySelectorAll('[data-mobile-step]')],max=Math.max(0,sections.length-1);if(st.mobileStep>=max)runDerivativeStudioGeneration(ov);else derivativeStudioSetMobileStep(ov,st.mobileStep+1)};
