@@ -123,10 +123,14 @@
 
 /* faixa de artes */
 .cdp-strip{margin-top:32px;position:relative;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
-.cdp-strip-track{display:flex;gap:16px;width:max-content;animation:cdp-slide 46s linear infinite}
+.cdp-strip-track{
+  display:flex;gap:16px;width:max-content;
+  will-change:transform;transform:translateZ(0);backface-visibility:hidden;
+  animation:cdp-slide 46s linear infinite;
+}
 .cdp-strip img{
-  display:block;width:150px;aspect-ratio:4/5;object-fit:cover;border-radius:12px;
-  border:1px solid var(--cd-line-2);
+  display:block;flex:0 0 auto;width:150px;aspect-ratio:4/5;object-fit:cover;
+  border-radius:12px;border:1px solid var(--cd-line-2);
 }
 .cdp-ast{color:var(--cd-flame);font-weight:700}
 .cdp-root .cdp-strip-tit{
@@ -652,6 +656,15 @@
 .cdp-formato:nth-child(3) .cdp-fmt-txt b{font-size:17px}
 .cdp-formato:nth-child(4) .cdp-fmt-txt b{font-size:16px}
 
+/* =========================================================================
+   O carrossel de artes e a principal prova visual da pagina, entao ele
+   continua andando mesmo quando o aparelho pede movimento reduzido —
+   em ritmo mais lento. Todo o resto da pagina respeita a preferencia.
+   ========================================================================= */
+@media (prefers-reduced-motion:reduce){
+  .cdp-strip-track{animation:cdp-slide 70s linear infinite!important}
+}
+
 .cdp-vo{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style>
 
@@ -1062,6 +1075,16 @@
    Checkout: ouca o clique em [data-cd-plano] (valores: essencial | pro | studio).
    ========================================================================= */
 
+/* -------------------------------------------------------------------------
+   WHATSAPP — destino dos botoes de plano.
+   Para trocar o numero, edite apenas a linha abaixo (formato 55 + DDD + numero).
+   ------------------------------------------------------------------------- */
+var WHATSAPP='5585981707030';
+function zap(plano){
+  return 'https://wa.me/'+WHATSAPP+'?text='+
+    encodeURIComponent('Olá, tenho interesse no ChurchDesign. Me fale mais sobre o plano '+plano);
+}
+
 var PLANOS=[
   {
     id:'essencial', nome:'Essencial',
@@ -1239,7 +1262,7 @@ function fill(id,html){var el=document.getElementById(id); if(el)el.innerHTML=ht
 
 /* faixa de artes do topo */
 (function(){
-  var b=ARTES.map(function(s){return '<img src="'+s+'" alt="" loading="lazy" decoding="async">';}).join('');
+  var b=ARTES.map(function(s){return '<img src="'+s+'" alt="" decoding="async">';}).join('');
   fill('cdpStrip',b+b);
 })();
 
@@ -1320,8 +1343,8 @@ fill('cdpPlanos',PLANOS.map(function(p){
       '<span>aproximadamente '+p.operacoes+' operações padrão</span></div>'+
     '<ul class="cdp-lista">'+p.beneficios.map(function(b){
         return '<li>'+SVG.check+'<span>'+b+'</span></li>';}).join('')+'</ul>'+
-    '<button type="button" class="cdp-btn '+(p.destaque?'cdp-solid':'cdp-outline')+'" data-cd-plano="'+p.id+'">'+
-      p.cta+SVG.seta+'</button>'+
+    '<a class="cdp-btn '+(p.destaque?'cdp-solid':'cdp-outline')+'" data-cd-plano="'+p.id+'"'+
+      ' href="'+zap(p.nome)+'" target="_blank" rel="noopener">'+p.cta+SVG.seta+'</a>'+
     '<p class="cdp-sub">'+p.sub+'</p></article>';
 }).join(''));
 
