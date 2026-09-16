@@ -1,4 +1,4 @@
-// CHURCHDESIGN — church-data v0.54.0
+// CHURCHDESIGN — church-data v0.55.0
 // ChurchDesign V0.48.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
@@ -260,6 +260,33 @@ async function enrichFeedPosts(posts,viewerId){
   });
 }
 
+
+async function publicFeedPosts(){
+  const posts=await serviceRest("feed_posts?active=eq.true&select=id,church_id,author_user_id,image_url,label,format,target,published_at&order=published_at.desc&limit=80");
+  const churchIds=[...new Set((posts||[]).map(p=>p.church_id).filter(Boolean))];
+  const authorIds=[...new Set((posts||[]).map(p=>p.author_user_id).filter(Boolean))];
+  const [churches,profiles]=await Promise.all([
+    churchIds.length?serviceRest(`church_profile?id=in.(${inList(churchIds)})&select=id,name,label,profile_logo_url`):[],
+    authorIds.length?serviceRest(`user_profiles?user_id=in.(${inList(authorIds)})&select=user_id,name`):[]
+  ]);
+  const churchById=new Map((churches||[]).map(x=>[x.id,x]));
+  const profileById=new Map((profiles||[]).map(x=>[x.user_id,x]));
+  return (posts||[]).map(p=>{
+    const ch=churchById.get(p.church_id)||{},up=profileById.get(p.author_user_id)||{};
+    return {
+      id:p.id,
+      image_url:p.image_url||null,
+      label:p.label||"Arte",
+      format:p.format||"",
+      target:p.target||{},
+      published_at:p.published_at||null,
+      church_label:ch.label||ch.name||"Igreja",
+      profile_logo_url:ch.profile_logo_url||null,
+      author_name:up.name||""
+    };
+  }).filter(p=>p.image_url);
+}
+
 function safeName(name="file"){return String(name).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9._-]+/g,"-").replace(/^-+|-+$/g,"").slice(0,100)||"file"}
 function encodeObjectPath(path){return String(path).split("/").filter(Boolean).map(encodeURIComponent).join("/")}
 function storageObjectUrl(path){const c=envCfg();return `${c.url}/storage/v1/object/${encodeURIComponent(BUCKET)}/${encodeObjectPath(path)}`}
@@ -276,8 +303,15 @@ async function uploadDataUrl(dataUrl,path,mime){
 module.exports=async function handler(req,res){
   try{
     const action=String(req.query.action||"");
-    const authUser=await requireChurchDesignUser(req);
     envCfg();
+
+    // Public read-only storefront feed. No login, no likes, no private account data.
+    if(action==="public-feed"&&req.method==="GET"){
+      res.setHeader("Cache-Control","public, s-maxage=30, stale-while-revalidate=60");
+      return res.json({posts:await publicFeedPosts()});
+    }
+
+    const authUser=await requireChurchDesignUser(req);
 
     // Account-level actions: no active church required yet.
 
