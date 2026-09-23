@@ -1,4 +1,4 @@
-// CHURCHDESIGN — asaas-webhook v0.1.0
+// CHURCHDESIGN — asaas-webhook v0.2.0
 module.exports.config={maxDuration:30};
 
 function cfg(){
@@ -65,7 +65,7 @@ async function syncPaid(payload,eventId,eventType){
   if(!pid)throw new Error("Pagamento sem identificador.");
   const ctx=await locateContext(payload);
   const s=ctx.session,sub=ctx.subscription;
-  if(!s&&!sub)throw new Error("Pagamento não conciliado com uma igreja.");
+  if(!s&&!sub)return {unmatched:true,paymentId:pid};
 
   const churchId=String(s?.church_id||sub?.church_id||"");
   const planId=String(s?.plan_id||sub?.plan_id||"");
@@ -131,6 +131,13 @@ module.exports=async function handler(req,res){
 
     if(["PAYMENT_CONFIRMED","PAYMENT_RECEIVED"].includes(eventType)){
       const out=await syncPaid(payload,eventId,eventType);
+      if(out?.unmatched){
+        await updateEvent(eventId,"unmatched","Pagamento recebido pelo Asaas, mas sem vínculo com uma igreja/checkout do ChurchDesign.");
+        console.warn("[ChurchDesign][Asaas webhook] Pagamento não conciliado; evento reconhecido sem efeitos financeiros.",{
+          eventId,eventType,paymentId:out.paymentId
+        });
+        return res.status(200).json({ok:true,unmatched:true});
+      }
       await updateEvent(eventId,"processed");
       return res.status(200).json({ok:true,churchId:out.churchId});
     }
