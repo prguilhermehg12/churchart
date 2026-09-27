@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.30.1
+// CHURCHDESIGN — generate-art v0.30.2
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -251,7 +251,7 @@ function promptLegacyMain(data){
     c.date?`DATA EXATA: ${c.date}`:"",
     c.time?`HORÁRIO EXATO: ${c.time}`:"",
     c.address?`ENDEREÇO EXATO: ${c.address}`:"",
-    ...(Array.isArray(c.pastorNames)?c.pastorNames.filter(Boolean).map((n,i)=>`${i===0?'PREGADOR PRINCIPAL':`PREGADOR AUXILIAR ${i}`} — NOME EXATO: ${n}`):[]),
+    ...(Array.isArray(c.pastorNames)?c.pastorNames.filter(Boolean).map((n,i)=>`NOME EXATO DA PESSOA ${i+1} (renderizar SOMENTE o valor após os dois-pontos; nunca renderizar "PESSOA ${i+1}" nem função interna): ${n}`):[]),
     ...explicitDerivativeTexts
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
@@ -489,7 +489,10 @@ REGRAS DE FIDELIDADE:
 - Se não conseguir uma transformação sofisticada sem alterar a identidade, use um recorte/tratamento mais simples e fiel.
 - Logo oficial: preservar exatamente. Não redesenhar.
 - Não invente datas, horários, endereço, nomes, slogans ou textos.
-- Não escreva rótulos internos como "logo", "reserva", "pregador" ou nomes de camada.
+- RÓTULOS INTERNOS DE PESSOAS SÃO PROIBIDOS COMO TEXTO VISÍVEL: nunca renderize “PREGADOR PRINCIPAL”, “PREGADOR AUXILIAR”, “PRINCIPAL”, “AUXILIAR”, “PESSOA 1”, “PESSOA 2”, “PESSOA 3” ou equivalentes. Esses termos são somente metadados internos.
+- Quando houver nome de pregador, renderize somente o nome fornecido pelo usuário, sem prefixar função, papel ou identificador interno.
+- Esta proibição NÃO se aplica a rótulos editoriais legítimos da referência como “DATA”, “HORÁRIO”, “LOCAL” ou “ENDEREÇO”, quando seu uso estiver autorizado pelo conteúdo e pela referência.
+- Não escreva outros rótulos internos como "logo", "reserva", "pregador" ou nomes de camada.
 - Complexidade visual somente quando for coerente e segura. Coerência sempre.
 ${data.backgroundMode?'- MODO FUNDO: título e qualquer texto são proibidos.':'- Título deve fazer parte do design: escala, composição, contraste, possível inclinação, outline, sombra ou deformação quando coerente com a referência.'}
 - Integre pessoas, título e elementos em camadas, evitando aparência de formulário/cartões genéricos.
@@ -543,7 +546,7 @@ function promptPresetOnly(data){
     c.date?`DATA EXATA: ${c.date}`:"",
     c.time?`HORÁRIO EXATO: ${c.time}`:"",
     c.address?`ENDEREÇO EXATO: ${c.address}`:"",
-    ...(Array.isArray(c.pastorNames)?c.pastorNames.filter(Boolean).map((n,i)=>`${i===0?'PREGADOR PRINCIPAL':`PREGADOR AUXILIAR ${i}`} — NOME EXATO: ${n}`):[]),
+    ...(Array.isArray(c.pastorNames)?c.pastorNames.filter(Boolean).map((n,i)=>`NOME EXATO DA PESSOA ${i+1} (renderizar SOMENTE o valor após os dois-pontos; nunca renderizar "PESSOA ${i+1}" nem função interna): ${n}`):[]),
     ...explicitDerivativeTexts
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
@@ -794,7 +797,10 @@ REGRAS DE FIDELIDADE:
 - Se não conseguir uma transformação sofisticada sem alterar a identidade, use um recorte/tratamento mais simples e fiel.
 - Logo oficial: preservar exatamente. Não redesenhar.
 - Não invente datas, horários, endereço, nomes, slogans ou textos.
-- Não escreva rótulos internos como "logo", "reserva", "pregador" ou nomes de camada.
+- RÓTULOS INTERNOS DE PESSOAS SÃO PROIBIDOS COMO TEXTO VISÍVEL: nunca renderize “PREGADOR PRINCIPAL”, “PREGADOR AUXILIAR”, “PRINCIPAL”, “AUXILIAR”, “PESSOA 1”, “PESSOA 2”, “PESSOA 3” ou equivalentes. Esses termos são somente metadados internos.
+- Quando houver nome de pregador, renderize somente o nome fornecido pelo usuário, sem prefixar função, papel ou identificador interno.
+- Esta proibição NÃO se aplica a rótulos editoriais legítimos da referência como “DATA”, “HORÁRIO”, “LOCAL” ou “ENDEREÇO”, quando seu uso estiver autorizado pelo conteúdo e pela referência.
+- Não escreva outros rótulos internos como "logo", "reserva", "pregador" ou nomes de camada.
 - Complexidade visual somente quando for coerente e segura. Coerência sempre.
 ${data.backgroundMode?'- MODO FUNDO: título e qualquer texto são proibidos.':'- Título deve fazer parte do design: escala, composição, contraste, possível inclinação, outline, sombra ou deformação quando coerente com a referência.'}
 - Integre pessoas, título e elementos em camadas, evitando aparência de formulário/cartões genéricos.
@@ -893,7 +899,7 @@ function emergencyPrompt(data){
     c.date?`DATA EXATA: ${compactPromptText(c.date,500)}`:"",
     c.time?`HORÁRIO EXATO: ${compactPromptText(c.time,500)}`:"",
     c.address?`ENDEREÇO EXATO: ${compactPromptText(c.address,1200)}`:"",
-    ...(Array.isArray(c.pastorNames)?c.pastorNames.slice(0,3).filter(Boolean).map((n,i)=>`${i===0?'PREGADOR PRINCIPAL':`PREGADOR AUXILIAR ${i}`} — NOME EXATO: ${compactPromptText(n,700)}`):[])
+    ...(Array.isArray(c.pastorNames)?c.pastorNames.slice(0,3).filter(Boolean).map((n,i)=>`NOME EXATO DA PESSOA ${i+1} (renderizar SOMENTE o valor após os dois-pontos; nunca renderizar "PESSOA ${i+1}" nem função interna): ${compactPromptText(n,700)}`):[])
   ].filter(Boolean).join("\n");
 
   const correction=compactPromptText(data.revisionInstruction||data.variantInstruction||"",6000);
@@ -919,6 +925,9 @@ ${texts||"Sem textos obrigatórios."}
 TEXTOS LEGÍVEIS PERMITIDOS:
 ${JSON.stringify(allow)}
 Não invente nenhuma outra palavra, número, slogan, nome de igreja ou placeholder.
+
+RÓTULOS INTERNOS DE PESSOAS:
+Nunca renderize “PREGADOR PRINCIPAL”, “PREGADOR AUXILIAR”, “PRINCIPAL”, “AUXILIAR”, “PESSOA 1”, “PESSOA 2”, “PESSOA 3” ou equivalentes. São somente metadados internos. Se houver nome, renderize somente o nome fornecido. Esta proibição não impede rótulos editoriais legítimos como “DATA”, “HORÁRIO”, “LOCAL” ou “ENDEREÇO” quando autorizados.
 
 LOGOS:
 ZERO logos, marcas ou emblemas no canvas generativo. Logos oficiais serão inseridas depois.
