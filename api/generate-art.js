@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.30.0
+// CHURCHDESIGN — generate-art v0.30.1
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -849,7 +849,7 @@ function prompt(data){
 }
 
 
-const IMAGE_PROMPT_SAFE_LIMIT=31800;
+const IMAGE_PROMPT_SAFE_LIMIT=30000;
 function compactPromptText(v,max){
   const s=String(v??"");
   if(s.length<=max)return s;
@@ -951,9 +951,13 @@ Priorize fidelidade ao pedido do usuário e preserve tudo que não foi explicita
 function hardPromptBound(text){
   const s=String(text||"");
   if(s.length<=IMAGE_PROMPT_SAFE_LIMIT)return s;
-  // Última garantia técnica: nunca enviar acima do limite aceito pela API.
-  // O prompt essencial é construído com as instruções críticas no início.
-  return s.slice(0,IMAGE_PROMPT_SAFE_LIMIT);
+  // Garantia final no mesmo critério de comprimento usado pela API: string JS.
+  // 30.000 deixa 2.000 caracteres de folga abaixo do limite de 32.000.
+  let out=s.slice(0,IMAGE_PROMPT_SAFE_LIMIT);
+  // Não termine no meio de um par substituto UTF-16.
+  const last=out.charCodeAt(out.length-1);
+  if(last>=0xD800&&last<=0xDBFF)out=out.slice(0,-1);
+  return out;
 }
 
 function promptForApi(data){
@@ -982,12 +986,14 @@ function promptForApi(data){
   if(text.length<=IMAGE_PROMPT_SAFE_LIMIT)return text;
 
   // 3. Fallback operacional: prompt essencial curto.
-  // Não falha por tamanho; mantém correção, textos, pessoas, logos e safe area.
   text=emergencyPrompt(data);
   return hardPromptBound(text);
 }
+
 async function generate(data){
-  const images=collectInputImages(data),size=modelSize(data.target),text=promptForApi(data);
+  const images=collectInputImages(data),size=modelSize(data.target),rawPrompt=promptForApi(data),text=hardPromptBound(rawPrompt);
+  if(text.length>IMAGE_PROMPT_SAFE_LIMIT)throw new Error(`Preflight prompt: ${text.length} caracteres excedem o limite interno de ${IMAGE_PROMPT_SAFE_LIMIT}.`);
+  if(rawPrompt.length!==text.length)console.warn("[ChurchDesign][generate-art] Prompt limitado no boundary da API.",{before:rawPrompt.length,after:text.length,limit:IMAGE_PROMPT_SAFE_LIMIT});
   let r;
   if(images.length){
     // ZERO-COST PREFLIGHT: multiple edit inputs MUST use image[].
