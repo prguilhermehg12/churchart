@@ -1,4 +1,4 @@
-// CHURCHDESIGN — church-data v0.55.0
+// CHURCHDESIGN — church-data v0.56.1
 // ChurchDesign V0.48.0 — multi-church, membership validated, web/mobile-ready
 const BUCKET = "churchart-assets";
 
@@ -543,15 +543,92 @@ module.exports=async function handler(req,res){
       if(!targetChurchId||!planId)throw Object.assign(new Error("Igreja e plano são obrigatórios."),{statusCode:400});
       const plan=(await serviceRest(`plans?id=eq.${encodeURIComponent(planId)}&select=*`))?.[0];
       if(!plan)throw Object.assign(new Error("Plano não encontrado."),{statusCode:404});
+
+      const creditsMonthly=Math.max(0,Math.trunc(Number(plan.credits_monthly)||0));
+      if(creditsMonthly<=0)throw Object.assign(new Error("O plano selecionado não possui franquia mensal de créditos configurada."),{statusCode:409});
+
       const current=(await serviceRest(`church_subscriptions?church_id=eq.${encodeURIComponent(targetChurchId)}&status=in.(trialing,active,past_due,paused)&select=*&order=created_at.desc&limit=1`))?.[0];
+      const previousPlanId=current?.plan_id||null;
+      const now=new Date().toISOString();
       let sub;
+
       if(current){
-        sub=(await serviceRest(`church_subscriptions?id=eq.${encodeURIComponent(current.id)}`,{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify({plan_id:plan.id,status:"active",price_monthly:plan.price_monthly,updated_at:new Date().toISOString()})}))?.[0];
+        sub=(await serviceRest(`church_subscriptions?id=eq.${encodeURIComponent(current.id)}`,{
+          method:"PATCH",
+          headers:{Prefer:"return=representation"},
+          body:JSON.stringify({plan_id:plan.id,status:"active",price_monthly:plan.price_monthly,updated_at:now})
+        }))?.[0];
       }else{
-        sub=(await serviceRest("church_subscriptions",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify([{church_id:targetChurchId,plan_id:plan.id,status:"active",price_monthly:plan.price_monthly,current_period_start:new Date().toISOString(),provider:"manual",metadata:{assigned_by:authUser.id}}])}))?.[0];
+        sub=(await serviceRest("church_subscriptions",{
+          method:"POST",
+          headers:{Prefer:"return=representation"},
+          body:JSON.stringify([{
+            church_id:targetChurchId,plan_id:plan.id,status:"active",price_monthly:plan.price_monthly,
+            current_period_start:now,provider:"manual",metadata:{assigned_by:authUser.id}
+          }])
+        }))?.[0];
       }
-      await serviceRest("billing_events",{method:"POST",body:JSON.stringify([{church_id:targetChurchId,actor_user_id:authUser.id,event_type:"subscription_plan_set",entity_type:"church_subscription",entity_id:sub?.id||null,amount:plan.price_monthly,currency:"BRL",metadata:{plan_id:plan.id,plan_code:plan.code}}])});
-      return res.json({ok:true,subscription:sub});
+
+      // Aplicar plano pelo painel administrativo também provisiona a franquia.
+      // A franquia é tratada como saldo-alvo: se a igreja já possui créditos,
+      // concede somente a diferença. Assim, clicar "Aplicar" novamente não duplica créditos.
+      const balanceRows=await serviceRest(`church_credit_ledger?church_id=eq.${encodeURIComponent(targetChurchId)}&select=amount`);
+      const previousBalance=(balanceRows||[]).reduce((sum,row)=>sum+(Number(row.amount)||0),0);
+      const creditAdjustment=Math.max(0,creditsMonthly-Math.trunc(previousBalance));
+
+      if(creditAdjustment>0){
+        await serviceRest("church_credit_ledger",{method:"POST",body:JSON.stringify([{
+          church_id:targetChurchId,
+          user_id:authUser.id,
+          amount:creditAdjustment,
+          event_type:"admin_adjustment",
+          operation_id:null,
+          metadata:{
+            source:"admin_plan_apply",
+            admin_user_id:authUser.id,
+            subscription_id:sub?.id||current?.id||null,
+            plan_id:plan.id,
+            plan_code:plan.code||null,
+            previous_plan_id:previousPlanId,
+            previous_balance:Math.trunc(previousBalance),
+            target_balance:creditsMonthly,
+            adjustment:creditAdjustment,
+            applied_at:now
+          }
+        }])});
+      }
+
+      const finalBalance=Math.trunc(previousBalance)+creditAdjustment;
+
+      await serviceRest("billing_events",{method:"POST",body:JSON.stringify([{
+        church_id:targetChurchId,
+        actor_user_id:authUser.id,
+        event_type:"subscription_plan_set",
+        entity_type:"church_subscription",
+        entity_id:sub?.id||null,
+        amount:plan.price_monthly,
+        currency:"BRL",
+        metadata:{
+          plan_id:plan.id,
+          plan_code:plan.code,
+          previous_plan_id:previousPlanId,
+          credits_monthly:creditsMonthly,
+          credits_granted:creditAdjustment,
+          previous_credit_balance:Math.trunc(previousBalance),
+          final_credit_balance:finalBalance
+        }
+      }])});
+
+      return res.json({
+        ok:true,
+        subscription:sub,
+        credits:{
+          monthly:creditsMonthly,
+          previousBalance:Math.trunc(previousBalance),
+          granted:creditAdjustment,
+          balance:finalBalance
+        }
+      });
     }
 
     if(action==="billing-create-coupon"&&req.method==="POST"){
@@ -871,11 +948,21 @@ module.exports=async function handler(req,res){
       const members=[...gm.values()].filter(x=>requestedGroups.has(galleryItemMergeGroup(x,byId)));
       if(!members.length)throw Object.assign(new Error("Nenhuma arte encontrada para os projetos selecionados."),{statusCode:404});
 
-      // Capa sempre = arte original do projeto mais antigo.
-      const roots=members.filter(x=>galleryItemNaturalRoot(x,byId)===String(x.galleryId||""));
-      roots.sort((a,b)=>galleryItemTime(a)-galleryItemTime(b));
-      const oldestRoot=roots[0]||members.slice().sort((a,b)=>galleryItemTime(a)-galleryItemTime(b))[0];
-      const mergeGroupId=String(oldestRoot.galleryId);
+      // O projeto com mais artes absorve o menor. Em empate, preserva o projeto
+      // iniciado pelo usuário em “Fundir com”; depois, o mais antigo.
+      const preferredProjectId=String(req.body?.preferredProjectId||requested[0]||"");
+      const groupStats=[...requestedGroups].map(groupId=>{
+        const groupMembers=members.filter(x=>galleryItemMergeGroup(x,byId)===groupId);
+        const roots=groupMembers.filter(x=>galleryItemNaturalRoot(x,byId)===String(x.galleryId||""));
+        roots.sort((a,b)=>galleryItemTime(a)-galleryItemTime(b));
+        const root=roots[0]||groupMembers.slice().sort((a,b)=>galleryItemTime(a)-galleryItemTime(b))[0];
+        return {groupId,members:groupMembers,count:groupMembers.length,root};
+      });
+      const preferredItem=byId.get(preferredProjectId);
+      const preferredGroup=preferredItem?galleryItemMergeGroup(preferredItem,byId):preferredProjectId;
+      groupStats.sort((a,b)=>b.count-a.count||(a.groupId===preferredGroup?-1:b.groupId===preferredGroup?1:0)||galleryItemTime(a.root)-galleryItemTime(b.root));
+      const destination=groupStats[0];
+      const mergeGroupId=String(destination?.root?.galleryId||destination?.groupId||members[0].galleryId);
       const mergedAt=new Date().toISOString();
 
       // Atualiza somente a ocorrência persistida mais recente de cada galleryId.
@@ -904,7 +991,7 @@ module.exports=async function handler(req,res){
           method:"PATCH",body:JSON.stringify({images:p.images})
         });
       }
-      return res.json({ok:true,mergeGroupId,coverGalleryId:mergeGroupId,mergedProjects:requestedGroups.size,mergedArtworks:members.length});
+      return res.json({ok:true,mergeGroupId,coverGalleryId:mergeGroupId,mergedProjects:requestedGroups.size,mergedArtworks:members.length,destinationArtworks:destination?.count||0});
     }
 
     if(action==="create-art-share"&&req.method==="POST"){
