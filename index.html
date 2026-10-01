@@ -12070,5 +12070,61 @@ function toggleMobileSidebar(){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
 })();
 </script>
+
+
+<style id="churchdesign-v1-34-hotfix">
+/* CHURCHDESIGN v1.34 — correções: sidebar desktop + tutorial de primeiro acesso */
+
+/*
+  A v0.93 redefinia overflow:hidden!important no desktop e anulava a correção
+  anterior da sidebar. Este bloco fica no final do documento para ter precedência.
+*/
+@media (min-width:901px){
+  .sidebar{
+    height:100dvh!important;
+    min-height:0!important;
+    max-height:100dvh!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    overscroll-behavior-y:contain!important;
+    scrollbar-gutter:stable;
+    padding-bottom:14px!important;
+  }
+  .sidebar .account-card{
+    flex:0 0 auto!important;
+    margin-top:auto!important;
+    margin-bottom:10px!important;
+  }
+  .sidebar .account-legal-links{
+    flex:0 0 auto!important;
+    padding-bottom:4px!important;
+  }
+}
+
+/*
+  O tutorial de primeiro acesso precisa ser a camada soberana enquanto estiver
+  aberto. Outros modais de onboarding/conta podem ser disparados na mesma carga.
+*/
+.cd-backdrop{
+  z-index:500000!important;
+}
+.cd-backdrop.cd-is-open{
+  isolation:isolate!important;
+}
+.cd-backdrop.cd-is-open .cd-panel{
+  position:relative!important;
+  z-index:1!important;
+}
+.cd-backdrop.cd-is-open .cd-foot{
+  position:relative!important;
+  z-index:20!important;
+}
+.cd-backdrop.cd-is-open #cdNext,
+.cd-backdrop.cd-is-open #cdBack{
+  position:relative!important;
+  z-index:21!important;
+  pointer-events:auto!important;
+}
+</style>
 </body>
 </html>
