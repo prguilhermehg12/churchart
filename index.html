@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.40 -->
+<!-- CHURCHDESIGN — index v1.41 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -9962,7 +9962,15 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const op=await startGenerationOperation({artType:generationArtTypeFromContext({format:formatId,backgroundMode:!!adaptOptions.backgroundMode,freeMode:!!adaptOptions.freeMode,screenThemeMode:!!adaptOptions.screenThemeMode}),format:formatId,projectName:state.quick?.title||state.projectTitle||'',sourceKey:sourceKey||null});
     const sourceRef=await prepareImageForAI(source.baseDataUrl||source.sourceUrl||source.dataUrl,1400,.9);
     const studioDerivativeMode=!!adaptOptions?.studioDerivativeMode;
-    const required=studioDerivativeMode?{}:{...(source.requiredContent||parent.requiredContent||{})};
+    const required={...(source.requiredContent||parent.requiredContent||{})};
+    // v1.41 — regressão corrigida: o Estúdio não pode apagar o contrato semântico
+    // da arte selecionada. O preset reorganiza o conteúdo; somente uma remoção
+    // explícita da ação atual pode limpar um campo.
+    if(studioDerivativeMode){
+      const sourceRequired=source.requiredContent&&typeof source.requiredContent==='object'?source.requiredContent:{};
+      const parentRequired=parent.requiredContent&&typeof parent.requiredContent==='object'?parent.requiredContent:{};
+      Object.assign(required,parentRequired,sourceRequired);
+    }
     const screenInfoContent={...required,pastorNames:Array.isArray(required.pastorNames)?[...required.pastorNames]:required.pastorNames};
     const discreteTitleText='';
     const screenOccupancyMode=!!adaptOptions?.screenOccupancyMode;
@@ -10102,6 +10110,7 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
 4. A arte de origem fornece identidade visual e conteúdo atual; suas posições NÃO vencem o preset.
 5. ESTRUTURA OBRIGATÓRIA: ${layoutPresetInstruction}
 6. As observações atuais do usuário podem remover/alterar conteúdo e têm prioridade semântica: ${presetObservation||'nenhuma'}.
+6A. CONTEÚDO EXISTENTE: título, subtítulo, pregador e demais dados presentes em requiredContent continuam obrigatórios, exceto os campos explicitamente removidos pela instrução atual. O preset NUNCA transforma texto existente em caixa vazia/placeholder.
 7. Nenhuma informação obrigatória pode ficar escondida, parcialmente coberta ou ilegível. Se houver conflito, reduza/reorganize dentro da silhueta do preset.
 7. Instruções antigas da raiz/linhagem servem apenas para consulta e nunca restauram decisões visuais antigas.
 `:`HIERARQUIA DE VERDADE PARA ARTES DERIVADAS — PRIORIDADE ABSOLUTA:
@@ -10198,7 +10207,7 @@ COMPOSIÇÃO LIMPA: não crie quadro/cartaz dentro de outro canvas sem referênc
     const adaptationInstruction=backgroundMode
       ?'MODO FUNDO ABSOLUTO. Use a imagem selecionada apenas como fonte visual do FUNDO da campanha. Ignore conteúdo semântico herdado.'
       :layoutPresetInstruction
-        ?`LAYOUT PRÉ-PROGRAMADO — PRIORIDADE DE ESTRUTURA: ${layoutPresetInstruction}${presetObservation?`\nOBSERVAÇÕES SECUNDÁRIAS DO USUÁRIO: ${presetObservation}`:''}`
+        ?`LAYOUT PRÉ-PROGRAMADO — PRIORIDADE DE ESTRUTURA: ${layoutPresetInstruction}${presetObservation?`\nINSTRUÇÃO ATUAL DO USUÁRIO — PRIORIDADE SEMÂNTICA MÁXIMA: ${presetObservation}`:''}`
         :currentDerivativeInstruction;
     const referenceNote=backgroundMode
       ?`REFERÊNCIA CONTAMINADA COM CONTEÚDO QUE DEVE SER APAGADO: preserve somente fundo, atmosfera, cores, texturas, formas abstratas e foto real da igreja quando houver. REMOVA COMPLETAMENTE título, subtítulo, letras, números, datas, horários, nomes, slogans, logos, selos e qualquer conteúdo legível. ${addPastorOverride?'EXCEÇÃO: adicione obrigatoriamente o pregador selecionado como única pessoa humana.':'Remova também todas as pessoas.'}`
