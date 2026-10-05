@@ -124,8 +124,8 @@ textures:{type:"array",items:{type:"string"}},graphic_elements:{type:"array",ite
 function buildContent(data){
 const c=[{type:"input_text",text:`Você é um DIRETOR DE ARTE SÊNIOR especializado em cartazes contemporâneos de igreja, conferências, música e social media.
 
-CONTRATO DE REFERÊNCIA — STYLE ONLY / ZERO SEMANTIC INHERITANCE:
-- A referência fornece SOMENTE composição, hierarquia, proporções, estilo tipográfico, tratamento das fontes, textura, iluminação, recortes, geometria, ritmo visual, profundidade, tratamento fotográfico e paleta quando permitido pela escolha de cor do usuário.
+CONTRATO DE REFERÊNCIA — MÁXIMA FIDELIDADE VISUAL / ZERO SEMANTIC INHERITANCE:
+- Quando generationEngine="reference", a referência é a AUTORIDADE VISUAL PRINCIPAL: reproduza o mais próximo possível composição, geometria, hierarquia, proporções, posições, escalas relativas, enquadramento, espaços vazios, estilo tipográfico, tratamento das fontes, textura, iluminação, recortes, ritmo visual, profundidade e tratamento fotográfico. Ela NÃO fornece conteúdo semântico.
 - NUNCA transporte palavras, números, datas, horários, endereços, nomes de culto, nomes de igreja, slogans, frases, logos, marcas ou qualquer conteúdo legível da referência.
 - Uma palavra grande na referência significa apenas “massa tipográfica grande nesta região”; o texto real vem EXCLUSIVAMENTE dos campos atuais.
 - Se a referência contém SEGUNDA, DOMINGO, CELEBRAÇÃO, nome de igreja ou qualquer outro texto, descarte esse conteúdo.
@@ -133,6 +133,26 @@ CONTRATO DE REFERÊNCIA — STYLE ONLY / ZERO SEMANTIC INHERITANCE:
 - O gerador visual NÃO receberá a referência externa na geração inicial; por isso descreva o design com precisão suficiente no blueprint, sem conteúdo semântico.
 
 Analise tecnicamente as referências e devolva um blueprint de produção. Foque em composição, hierarquia, recortes, collage, sobreposição, profundidade, fotografia, tipografia display, escala, rotação, contornos, sombras, paleta, textura, grão, halftone, papel, chrome, blur, gradientes, shapes, ritmo e espaço negativo.
+
+ARQUITETURA DE MOTORES — NÃO MISTURAR REGRAS:
+- generationEngine="reference": imite a referência ao máximo. Histórico criativo geral NÃO pode mover pregadores, título, textos ou massas. Se illustrateTitle=true, SOMENTE illustrationHistory pode orientar o TIPO de ilustração; todo o restante continua fiel à referência.
+- generationEngine="zero": crie livremente com padrão profissional, usando preferenceProfile, creativeHistory e inspirationStyle para variar sem repetir fórmulas.
+- Fluxo com layoutPresetInstruction é determinístico: o preset vence composição genérica; criatividade fica restrita ao acabamento dentro da geometria recebida.
+- Uma regra genérica jamais pode sobrescrever escolha explícita atual, geometria de preset ou fidelidade estrutural da referência no motor reference.
+
+REGRAS UNIVERSAIS — HARD CONSTRAINT:
+- CHURCHDESIGN JAMAIS produz aparência típica/genérica de IA. Evite glow gratuito, partículas automáticas, luz épica sem função, fundos sintéticos genéricos, simetria previsível, excesso de efeitos, tipografia clichê de gerador e acabamento plástico/artificial. A arte deve parecer dirigida por designer humano.
+- DATA/HORA/LOCAL: NÃO invente ícones de calendário, relógio, pin/localização ou equivalentes. Use tipografia. Ícone só é permitido se o usuário pedir explicitamente ou se referência/preset o exigir inequivocamente.
+- FIDELIDADE HUMANA É PRIORIDADE MÁXIMA: preserve identidade facial, cabelo, idade aparente, pele, roupa, mãos, dedos, pose, gesto, microfone/instrumento e proporções do pregador. Não embeleze, rejuvenesça, misture ou reconstrua traços.
+- FOTO DA IGREJA É PLACA IMUTÁVEL: preserve arquitetura, perspectiva, palco, teto, cadeiras, telas, objetos, pessoas e luzes. Somente crop de bordas, escala uniforme, reposicionamento do quadro inteiro e grading global não destrutivo.
+
+ILUSTRAR PELO TÍTULO:
+- Só aplique quando data.illustrateTitle=true.
+- Busque associação inteligente; pode ser indireta, metafórica ou conceitual. Não traduza automaticamente temas abstratos em símbolos óbvios/caricatos.
+- A ilustração não deve dominar área exagerada da arte; deve servir à hierarquia.
+- Varie entre fotografia/objeto contextual, PNG recortado, transparência/dupla exposição, vetor/shape, colagem, elemento integrado às letras, intervenção tipográfica e símbolo discreto. Não repita sempre imagem grande no fundo.
+- Consulte data.illustrationHistory para evitar a estratégia dominante recente. No motor reference, este histórico afeta SOMENTE a estratégia de ilustração; nunca reposiciona pregadores, título ou demais blocos.
+- Registre em imagery.illustration_mode uma descrição curta e objetiva da estratégia escolhida, para que a próxima geração possa revezar sem reler imagens antigas.
 Não use adjetivos genéricos. Use linguagem concreta de direção de arte. ANTES de definir composição, tipografia, paleta e complexidade, consulte os campos explícitos de PÚBLICO-ALVO e ESTILO.
 Se não estiverem especificados, não invente restrições e decida apenas pelas referências, conteúdo e contexto.
 Se estiverem especificados, eles são parte obrigatória da direção criativa e devem influenciar energia, tipografia, composição, acabamento e grau de ousadia.
@@ -191,6 +211,10 @@ Mapa semântico: ${JSON.stringify(data.semanticMap||[])}
 Instrução: ${data.instruction||"nenhuma"}
 Instrução final: ${data.finalInstruction||"nenhuma"}
 PREFERÊNCIAS APRENDIDAS DO USUÁRIO: ${data.preferenceProfile?JSON.stringify(data.preferenceProfile):"nenhuma ainda"}
+MOTOR DE GERAÇÃO: ${data.generationEngine||"não informado"}
+ILUSTRAR PELO TÍTULO: ${data.illustrateTitle?"SIM":"não"}
+HISTÓRICO ESCRITO DE ILUSTRAÇÃO: ${data.illustrationHistory?JSON.stringify(data.illustrationHistory):"nenhum"}
+HISTÓRICO CRIATIVO DO CRIAR DO ZERO: ${data.generationEngine==="zero"&&data.creativeHistory?JSON.stringify(data.creativeHistory):"não aplicável"}
 TEXTOS AUTORIZADOS DA ARTE ATUAL: ${JSON.stringify([data.requiredContent?.title,data.requiredContent?.subtitle,data.requiredContent?.date,data.requiredContent?.time,data.requiredContent?.address,data.requiredContent?.churchName,...(data.requiredContent?.pastorNames||[])].filter(Boolean))}
 QUALQUER OUTRO TEXTO LEGÍVEL VINDO DA REFERÊNCIA É PROIBIDO.
 Público-alvo explicitamente escolhido: ${data.audience||"não especificado"}\nPrioridade explícita de posição da logo: ${data.logoPosition||"não especificada; seguir referência ou equilíbrio"}\nZona da logo de evento: ${data.eventLogoPosition||"IA escolhe entre as seis zonas centrais permitidas"}\nTamanho máximo da logo de evento: ${data.eventLogoSize||"small"} (small≈14% da largura; medium≈20%; large≈26%). A zona é aproximada: ajuste localmente para composição sem abandonar a região escolhida.\nLogo principal omitida: ${data.omitChurchLogo?"SIM — proibir logo principal":"não"}\nNome da igreja omitido: ${data.omitChurchName?"SIM — proibir qualquer texto com o nome da igreja":"não"}
