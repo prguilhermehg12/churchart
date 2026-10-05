@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.30.3
+// CHURCHDESIGN — generate-art v0.30.2
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -214,9 +214,24 @@ Observação de logos: posições e áreas de logos NÃO fazem parte do canvas g
 Preservar: ${(a.preserve_rules||[]).join(" | ")}
 Evitar: ${(a.avoid_rules||[]).join(" | ")}
 Orientação especializada: ${a.generation_prompt||""}`;}
+function universalGenerationHardBlock(data={}){
+  return `REGRAS UNIVERSAIS CHURCHDESIGN — HARD CONSTRAINT / NÃO COMPACTAR:
+- A arte JAMAIS deve ter aparência típica/genérica de IA. Evite glow gratuito, partículas automáticas, luz épica sem função, fundo sintético genérico, simetria previsível, acabamento plástico e tipografia clichê de gerador. Resultado deve parecer direção humana profissional.
+- DATA/HORA/LOCAL: NÃO invente ícones de calendário, relógio, pin de localização ou equivalentes. Use somente tipografia, salvo pedido explícito atual ou exigência inequívoca da referência/preset.
+- PREGADORES: preserve identidade facial, cabelo, idade aparente, pele, roupa, mãos, dedos, pose, gesto, microfone/instrumento e proporções. Não embeleze, rejuvenesça, envelheça, funda identidades ou reconstrua traços.
+- FOTO DA IGREJA: se fornecida, é placa fotográfica imutável. Não redesenhe arquitetura, perspectiva, palco, teto, cadeiras, telas, objetos, pessoas ou luzes; somente crop de bordas, escala uniforme, reposicionamento do quadro inteiro e grading global não destrutivo.
+- MOTOR REFERENCE: quando generationEngine=reference, a referência manda na composição/geometria. Imite posições, escalas relativas, enquadramento, hierarquia, massas e espaços vazios o máximo possível. Histórico criativo NÃO altera layout. Se illustrateTitle=true, illustrationHistory influencia SOMENTE o tipo de ilustração.
+- MOTOR ZERO: quando generationEngine=zero, crie com liberdade profissional sem cair em fórmulas de IA; use creativeHistory apenas para evitar repetição mecânica.
+- ILUSTRAR PELO TÍTULO: quando ativo, prefira interpretação inteligente inclusive indireta/metafórica; ilustração subordinada à hierarquia, sem dominar área exagerada. Varie entre objeto/foto contextual, PNG, transparência, vetor/shape, colagem e intervenção tipográfica; não use sempre imagem grande de fundo.
+`;
+}
+
 function layoutPresetStructuralBlock(data={}){
   if(!data.layoutPresetInstruction)return "";
   const els=Array.isArray(data.layoutPresetBlueprint?.elements)?data.layoutPresetBlueprint.elements:[];
+  const omitted=Array.isArray(data.layoutPresetOmittedElements)?data.layoutPresetOmittedElements.map(String):[];
+  const pastorMode=String(data.pastorMode||'keep');
+  const effectiveOmitted=omitted.filter(t=>!(t==='preacher'&&pastorMode!=='remove'));
   const row=e=>{
     const x=Number(e.x)||0,y=Number(e.y)||0,w=Number(e.w)||0,h=Number(e.h)||0;
     const small=e.type==="title"&&(w<=25||h<=20);
@@ -229,9 +244,13 @@ function layoutPresetStructuralBlock(data={}){
 - TÍTULO PRINCIPAL: a posição (x/y) e o tamanho (w/h) indicados são a GEOMETRIA-ALVO. Preserve-os proporcionalmente ao canvas, com tolerância máxima de cerca de 2 pontos percentuais.
 - Se o texto não couber, reduza fonte, quebre linha ou compacte DENTRO DA MESMA CAIXA; jamais aumente a área nem mova o título para outra região.
 - Se o preset tiver título pequeno no rodapé/canto, ele DEVE continuar pequeno exatamente naquela região proporcional.
+- TELÃO — HARMONIA DE ESCALA: títulos central, inferior-central e inferior-direito NÃO podem crescer para preencher a caixa. w/h são LIMITES MÁXIMOS. Texto curto deve permanecer visualmente contido e proporcional à miniatura; prefira reduzir a aumentar. O título não deve dominar o telão quando a miniatura não o mostra dominante.
 - Elemento decorativo sempre atrás do pregador.
 - LOGOS REAIS continuam fora da geração e serão adicionadas depois pelo Assistente de Logos. NÃO confunda o TÍTULO da pregação com logo: o título é conteúdo obrigatório e deve seguir exatamente a caixa do preset.
 - Se a seleção de pregador do usuário conflitar com a presença/ausência de pessoa no preset, a seleção do usuário vence; ajuste a pessoa dentro da silhueta sem destruir os demais blocos.
+- AUSÊNCIAS DO PRESET SÃO OBRIGATÓRIAS POR PADRÃO: ${effectiveOmitted.length?effectiveOmitted.join(', '):'nenhuma'}.
+- Para cada categoria ausente, REMOVA o elemento correspondente que exista na arte de origem. A arte de origem não autoriza manter conteúdo que o modelo não contém.
+- Uma observação atual do usuário pode pedir conteúdo adicional; nesse caso, a observação atual vence a ausência padrão.
 ${els.map(row).join("\n")}
 ${isDataImage(data.layoutGuideImage)?`- Uma das imagens de entrada é um WIREframe sintético escuro com blocos planos: BRANCO=título, CINZA=pregador, AZUL=informações e LARANJA=decoração. Essa imagem serve SOMENTE para GEOMETRIA. NÃO copie sua aparência, não copie cores, não gere retângulos do wireframe.`:""}`;
 }
@@ -250,6 +269,7 @@ function promptLegacyMain(data){
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
 
+${universalGenerationHardBlock(data)}
 ${transparentBackgroundIntent(data)?`MODO PNG TRANSPARENTE — HARD CONSTRAINT TÉCNICO / ALPHA REAL:
 - A saída deve ser um PNG RGBA com CANAL ALPHA REAL.
 - Todo pixel fora do objeto/elemento solicitado deve ter alpha = 0 (totalmente transparente).
@@ -321,8 +341,6 @@ ${blueprint(data)}
 
 CONTEÚDO QUE DEVE APARECER EXATAMENTE:
 ${texts||"Sem textos obrigatórios."}
-- Se TÍTULO EXATO estiver listado acima, ele é obrigatório e NÃO pode ser omitido por ausência de caixa no preset.
-- Se houver pregador fornecido/selecionado e a ação atual não pedir remoção, sua presença é obrigatória; o preset deve se adaptar semanticamente a ele.
 
 ${c.secondaryInfo?`HIERARQUIA DA INFORMAÇÃO SECUNDÁRIA — HARD CONSTRAINT:
 - "${c.secondaryInfo}" é INFORMAÇÃO SECUNDÁRIA, nunca título.
@@ -334,8 +352,7 @@ ${c.secondaryInfo?`HIERARQUIA DA INFORMAÇÃO SECUNDÁRIA — HARD CONSTRAINT:
 
 ${data.referenceSemanticPolicy==='current-art-truth'?`DERIVAÇÃO — ARTE ATUAL COMO VERDADE:
 - A referência selecionada é a ARTE ATUAL, não uma referência style-only.
-- Preserve textos realmente visíveis nela por padrão. Só remova/substitua quando houver ordem ATUAL, explícita e inequívoca para isso.
-- Presença/ausência de caixa no preset NÃO é ordem de remoção semântica.
+- Preserve textos realmente visíveis nela somente quando não houver ordem atual para removê-los/substituí-los.
 - Textos pedidos explicitamente nesta ação devem aparecer EXATAMENTE: ${JSON.stringify(data.explicitDerivativeTexts||[])}.
 - CADA item dessa lista é conteúdo obrigatório independente. Não omita linhas por falta de espaço: reduza/reorganize a composição para acomodar todas.
 - Não transforme essas linhas em texto genérico, placeholders ou pseudo-tipografia.
@@ -548,6 +565,7 @@ function promptPresetOnly(data){
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
 
+${universalGenerationHardBlock(data)}
 ${transparentBackgroundIntent(data)?`MODO PNG TRANSPARENTE — HARD CONSTRAINT TÉCNICO / ALPHA REAL:
 - A saída deve ser um PNG RGBA com CANAL ALPHA REAL.
 - Todo pixel fora do objeto/elemento solicitado deve ter alpha = 0 (totalmente transparente).
@@ -696,9 +714,7 @@ ${data.layoutPresetInstruction?`LAYOUT PRÉ-PROGRAMADO — AUTORIDADE ESTRUTURAL
 - Para o TÍTULO PRINCIPAL, a geometria proporcional do preset é vinculante: manter região e caixa praticamente exatas.
 - NÃO pode trocar o lado dos elementos, transformar bloco pequeno em grande, ampliar além dos limites do preset nem abandonar a silhueta escolhida.
 - A composição da arte de origem NÃO pode engolir o preset.
-- O preset controla GEOMETRIA, REGIÃO, ESCALA RELATIVA e SILHUETA; ele NÃO decide sozinho quais conteúdos existentes devem desaparecer.
-- Conteúdo só pode ser removido por comando explícito da ação atual (omit, pastorMode='remove', backgroundMode, screenThemeMode ou instrução atual inequívoca).
-- Se o preset não tiver caixa para um conteúdo que deve permanecer, REORGANIZE/REDUZA esse conteúdo dentro da silhueta sem descartá-lo.
+- O que NÃO existe no preset deve desaparecer da composição final por padrão. Não preserve automaticamente pessoas, datas, horários, endereços, subtítulos ou informações secundárias vindas da origem quando a categoria estiver ausente no mapa.
 - Nenhuma regra genérica de YouTube, Telão ou revezamento de pessoas pode sobrescrever o mapa estrutural acima.
 - Toda informação obrigatória deve continuar legível; resolva conflitos REDUZINDO ou REORGANIZANDO dentro da silhueta, não ampliando arbitrariamente.
 `:`TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
@@ -906,6 +922,7 @@ function emergencyPrompt(data){
 
   return `Crie uma ARTE FINAL profissional para igreja.
 
+${universalGenerationHardBlock(data)}
 ${data.revisionMode==='delta-only'?`CORREÇÃO CIRÚRGICA:
 A primeira imagem enviada é o MOLDE BLOQUEADO.
 ALTERE SOMENTE: ${correction||"o ajuste explicitamente solicitado"}.
