@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.40.1 -->
+<!-- CHURCHDESIGN — index v1.40.2 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -8215,13 +8215,33 @@ async function logAppIssue(error,context={}){
 }
 function showCreditLimitPopup(error=null){
   const root=document.querySelector('#appDialogRoot');if(!root)return;
-  const raw=String(error?.message||''),m=raw.match(/Saldo atual:\s*(\d+).*?necess[aá]rio:\s*(\d+)/i),balance=m?Number(m[1]):Math.max(0,Number(state.user?.credits)||0),required=m?Number(m[2]):null;
+  const raw=String(error?.message||'');
+  const m=raw.match(/Saldo atual:\s*(\d+).*?necess[aá]rio:\s*(\d+)/i);
+  const balance=m?Number(m[1]):Math.max(0,Number(state.user?.credits)||0);
+  const required=m?Number(m[2]):null;
   const creditTitle=balance<=0?'Seus créditos acabaram':'Créditos insuficientes';
   const creditIntro=balance<=0?'Seu saldo chegou a zero.':'Seu saldo não é suficiente para esta operação.';
-  const creditRequired=required!=null?`<br>Esta operação precisa de ${required} créditos.`:'';
-  root.innerHTML=`<div class="app-dialog-backdrop credit-limit-dialog"><div class="app-dialog" role="dialog" aria-modal="true"><div class="app-dialog-head"><i>!</i><div><strong>${creditTitle}</strong></div></div><div class="app-dialog-body">${creditIntro}<br><br><strong>Saldo atual: ${balance} créditos.</strong>${creditRequired}<br><br>Você pode consultar seu plano para continuar criando.</div><div class="app-dialog-actions"><button class="mini-btn" data-credit-close>Agora não</button><button class="btn primary" data-credit-plans>Ver planos</button></div></div></div>`;
-  root.querySelector('[data-credit-close]').onclick=()=>{root.innerHTML=''};
-  root.querySelector('[data-credit-plans]').onclick=()=>{root.innerHTML='';openPlansPage()};
+
+  // v1.40.2: este diálogo é montado via DOM/textContent de propósito.
+  // Não usar concatenação de strings nem interpolação de template aqui:
+  // isso evita que variáveis apareçam literalmente no popup após empacotamento/deploy.
+  root.replaceChildren();
+  const backdrop=document.createElement('div');backdrop.className='app-dialog-backdrop credit-limit-dialog';
+  const dialog=document.createElement('div');dialog.className='app-dialog';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');
+  const head=document.createElement('div');head.className='app-dialog-head';
+  const icon=document.createElement('i');icon.textContent='!';
+  const headCopy=document.createElement('div');const title=document.createElement('strong');title.textContent=creditTitle;headCopy.appendChild(title);head.append(icon,headCopy);
+  const body=document.createElement('div');body.className='app-dialog-body';
+  body.append(document.createTextNode(creditIntro),document.createElement('br'),document.createElement('br'));
+  const saldo=document.createElement('strong');saldo.textContent='Saldo atual: '+String(balance)+' créditos.';body.appendChild(saldo);
+  if(required!=null){body.appendChild(document.createElement('br'));body.appendChild(document.createTextNode('Esta operação precisa de '+String(required)+' créditos.'));}
+  body.append(document.createElement('br'),document.createElement('br'),document.createTextNode('Você pode consultar seu plano para continuar criando.'));
+  const actions=document.createElement('div');actions.className='app-dialog-actions';
+  const closeBtn=document.createElement('button');closeBtn.type='button';closeBtn.className='mini-btn';closeBtn.textContent='Agora não';
+  const plansBtn=document.createElement('button');plansBtn.type='button';plansBtn.className='btn primary';plansBtn.textContent='Ver planos';
+  actions.append(closeBtn,plansBtn);dialog.append(head,body,actions);backdrop.appendChild(dialog);root.appendChild(backdrop);
+  closeBtn.onclick=()=>root.replaceChildren();
+  plansBtn.onclick=()=>{root.replaceChildren();openPlansPage()};
 }
 function friendlyGenerationFailurePopup(refund,errorClass='processing'){
   const refunded=Number(refund?.creditsRefunded)||0,balance=refund?.balance;
