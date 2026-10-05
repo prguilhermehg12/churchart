@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.40.2 -->
+<!-- CHURCHDESIGN — index v1.40.3 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -7475,139 +7475,7 @@ function tableRowsToCSV(rows,headers){return [headers.map(h=>csvCell(h.label)).j
 function tableRowsToExcel(rows,headers,title='ChurchDesign'){
   const escx=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   return `<!doctype html><html><head><meta charset="utf-8"></head><body><table border="1"><caption>${escx(title)}</caption><thead><tr>${headers.map(h=>`<th>${escx(h.label)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${headers.map(h=>`<td>${escx(typeof h.value==='function'?h.value(r):r[h.value])}</td>`).join('')}</tr>`).join('')}</tbody></table>
-<script id="churchdesign-mobile-flow-v139">
-(()=>{
-  const oldSetup=window.setupMobileQuickWizard;
-  const escv=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-  function ensureMobileBrand(){
-    if(!matchMedia('(max-width:900px)').matches)return;
-    const top=document.querySelector('.topbar');
-    if(!top||top.querySelector('.cd-mobile-brand'))return;
-    const brand=document.createElement('div');
-    brand.className='cd-mobile-brand';
-    brand.innerHTML='<span class="brand-logo" role="img" aria-label="ChurchDesign"></span>';
-    top.insertBefore(brand,top.firstChild?.nextSibling||top.firstChild);
-  }
-
-  function reviewHTML(){
-    const q=state.quick||{}, spec=typeof quickTargetSpec==='function'?quickTargetSpec(q.format):null;
-    const pastors=(q.pastorAssetIds||[]).map(id=>{
-      const a=(state.library?.assets||[]).find(x=>x.id===id);
-      return q.pastorNames?.[id]||a?.meta?.displayName||a?.name||'Pregador';
-    });
-    const ref=q.referenceMode==='upload'?(q.reference?'Referência selecionada':'Sem referência'):(q.inspirationStyle||'Criar do zero');
-    return `<div class="cd-review-note">Revise principalmente nomes, data, horário e informações da igreja. A geração só deve começar depois desta conferência.</div>
-      <div class="cd-review-card">
-        <div class="cd-review-row"><span>Formato</span><strong>${escv(spec?.label||q.format||'—')}${spec?.width?` • ${spec.width}×${spec.height}`:''}</strong></div>
-        <div class="cd-review-row"><span>Tema</span><strong>${escv(q.title||'Não informado')}</strong></div>
-        <div class="cd-review-row"><span>Subtítulo</span><strong>${escv(q.subtitle||'—')}</strong></div>
-        <div class="cd-review-row"><span>Data e horário</span><strong>${escv([q.date,q.time].filter(Boolean).join(' • ')||'—')}</strong></div>
-        <div class="cd-review-row"><span>Pregadores</span><strong>${escv(pastors.join(', ')||'Nenhum')}</strong></div>
-        <div class="cd-review-row"><span>Direção visual</span><strong>${escv(ref)}</strong></div>
-        <div class="cd-review-row"><span>Ilustrar pelo título</span><strong>${q.illustrateTitle?'Sim':'Não'}</strong></div>
-      </div>`;
-  }
-
-  window.setupMobileQuickWizard=function(){
-    if(!isMobileCreationFlow()){document.body.classList.remove('mobile-wizard-active');return}
-    document.body.classList.add('mobile-wizard-active');ensureMobileBrand();
-    const shell=document.querySelector('.quick-shell'),grid=shell?.querySelector('.quick-grid');
-    if(!shell||!grid)return;
-    const cards=[...grid.children].filter(x=>x.classList.contains('card')),meta=cards[0],visual=cards[1];
-    const generateCard=[...shell.children].find(x=>x.classList?.contains('card')&&x!==meta&&x!==visual);
-    const results=document.querySelector('#quickResultsWrap');
-    if(!meta||!visual||!generateCard||!results)return;
-
-    const wizard=document.createElement('div');wizard.className='mobile-quick-wizard';
-    const names=['Dados','Referências','Revisão','Logo','Derivadas'];
-    wizard.innerHTML=`<div class="mobile-wizard-progress"><div class="cd-flow-label"><strong>Criação de arte</strong><span id="mobileWizardCounter"></span></div><div class="cd-five-steps">${names.map((n,i)=>`<button class="cd-step" type="button" data-cd-step="${i}"><b>${i+1}. ${n}</b><i></i></button>`).join('')}</div></div>
-      ${names.map((n,i)=>`<section class="mobile-wizard-screen" data-mobile-screen="${i}"><div class="mobile-app-card"><h2>${[
-        'Dados da Arte','Referências e Inspiração','Revisão da Arte','Assistente de Logos','Artes Derivadas'
-      ][i]}</h2><p class="mobile-step-copy">${[
-        'Defina formato, conteúdo, pessoas e elementos reais que devem participar da criação.',
-        'Escolha uma referência visual ou crie do zero. Ajuste somente as direções que realmente existem no ChurchDesign.',
-        'Confira os dados antes de iniciar a operação paga. O custo real continua sendo calculado pelo sistema.',
-        'A arte base é criada sem redesenhar a marca. Use as logos originais da sua igreja no assistente.',
-        'Depois da arte final, crie Stories, Telão, YouTube, Fundo ou uma adaptação livre a partir da mesma família.'
-      ][i]}</p><div class="mobile-screen-content"></div></div></section>`).join('')}
-      <nav class="mobile-wizard-nav"><button class="mini-btn" id="mobileWizardHome" type="button">⌂</button><button class="mini-btn" id="mobileWizardBack" type="button">← Voltar</button><button class="btn primary mobile-next" id="mobileWizardNext" type="button">Avançar →</button></nav>`;
-    shell.appendChild(wizard);
-    const zone=i=>wizard.querySelector(`[data-mobile-screen="${i}"] .mobile-screen-content`);
-    const moveClosest=(sel,closest,target=0)=>{const el=document.querySelector(sel),node=el?.closest(closest);if(node&&!zone(target).contains(node))zone(target).appendChild(node)};
-
-    // 1. DADOS — apenas controles que realmente existem no produto atual.
-    const formatHeading=[...meta.querySelectorAll('h3')].find(x=>/Tamanho da arte/i.test(x.textContent||''));
-    if(formatHeading){let f=formatHeading;while(f){const next=f.nextSibling;zone(0).appendChild(f);f=next}}
-    moveClosest('#qTitle','.field');moveClosest('#qSubtitle','.field');moveClosest('#qSecondaryInfo','.field');
-    moveClosest('#qDate','.grid2');moveClosest('#qAddress','.field');
-    const churchMode=document.querySelector('.church-name-mode-field');if(churchMode)zone(0).appendChild(churchMode);
-    const illustrate=document.querySelector('#qIllustrate')?.closest('.layer');if(illustrate)zone(0).appendChild(illustrate);
-
-    // Do bloco visual, mover pessoas, igreja e PNGs para Dados.
-    const pastorHeading=[...visual.querySelectorAll('h3')].find(x=>/Pregadores/i.test(x.textContent||''));
-    if(pastorHeading){let n=pastorHeading;while(n){const next=n.nextSibling;zone(0).appendChild(n);n=next}}
-
-    // 2. REFERÊNCIAS — referência/inspiração + opções reais de direção visual.
-    while(visual.firstChild)zone(1).appendChild(visual.firstChild);
-    moveClosest('#qAudience','.grid2',1);moveClosest('#qColor','.grid2',1);
-    const designStyle=document.querySelector('#qDesignStyle')?.closest('.grid2');if(designStyle&&!zone(1).contains(designStyle))zone(1).appendChild(designStyle);
-
-    // 3. REVISÃO — resumo + botão/controle real de geração e supervisor de custo.
-    zone(2).innerHTML=reviewHTML();
-    while(generateCard.firstChild)zone(2).appendChild(generateCard.firstChild);
-
-    // 4. LOGO — mantém o Assistente de Logos real.
-    zone(3).innerHTML=`<div class="mobile-logo-explainer"><strong>Logos originais, sem redesenho por IA.</strong><p>Depois que a arte base for gerada, o ChurchDesign abre o Assistente de Logos. Nele você posiciona e redimensiona as marcas originais cadastradas em Minha Igreja.</p><div class="flow-row"><span>Arte base</span><span>Logo original</span><span>Arte final</span></div></div><button class="btn ghost" id="cdOpenLogoAssistant" type="button" style="width:100%;min-height:52px;border-radius:999px">Abrir Assistente de Logos</button>`;
-
-    // 5. DERIVADAS — usa o resultado e os comandos reais já existentes.
-    results.classList.add('mobile-final-shell');zone(4).appendChild(results);
-
-    document.querySelector('#qUseReference')?.addEventListener('click',()=>{state.quick.referenceMode='upload';state.mobileQuickStep=1;screenQuickMode()});
-    document.querySelector('#qUseInspiration')?.addEventListener('click',()=>{state.quick.referenceMode='inspiration';state.quick.reference=null;state.mobileQuickStep=1;screenQuickMode()});
-    document.querySelectorAll('[data-qformat]').forEach(el=>el.addEventListener('click',()=>{state.quick.format=el.dataset.qformat;state.mobileQuickStep=0;screenQuickMode()}));
-
-    wizard.querySelector('#mobileWizardHome').onclick=mobileQuickHome;
-    wizard.querySelector('#mobileWizardBack').onclick=()=>mobileQuickGo((state.mobileQuickStep||0)-1);
-    wizard.querySelector('#mobileWizardNext').onclick=()=>mobileQuickGo((state.mobileQuickStep||0)+1);
-    wizard.querySelectorAll('[data-cd-step]').forEach(b=>b.onclick=()=>{
-      const target=Number(b.dataset.cdStep);
-      if(target===3 && !state.quickResults?.some(r=>r.finalized===true)){appToast('Gere a arte base e finalize as logos antes desta etapa.',{type:'info',title:'Assistente de Logos'});return}
-      if(target===4 && !state.quickResults?.length){appToast('As derivadas ficam disponíveis depois da primeira arte.',{type:'info',title:'Artes derivadas'});return}
-      mobileQuickGo(target);
-    });
-    wizard.querySelector('#cdOpenLogoAssistant').onclick=()=>{
-      const idx=Math.max(0,state.quickResults?.findLastIndex?.(r=>r.finalized===true)??-1);
-      if(idx<0){appAlert('Primeiro gere a arte base. O Assistente de Logos será aberto no fluxo da geração.',{type:'info',title:'Assistente de Logos'});return}
-      openLogoAssistant(`main:${idx}`);
-    };
-    mobileQuickGo(Math.min(4,state.mobileQuickStep||0));
-  };
-
-  window.mobileQuickGo=function(step){
-    state.mobileQuickStep=Math.max(0,Math.min(4,Number(step)||0));
-    const screens=[...document.querySelectorAll('.mobile-wizard-screen')];
-    if(!screens.length){screenQuickMode();return}
-    screens.forEach((x,i)=>x.classList.toggle('active',i===state.mobileQuickStep));
-    const counter=document.querySelector('#mobileWizardCounter');
-    if(counter)counter.textContent=`Etapa ${state.mobileQuickStep+1} de 5`;
-    document.querySelectorAll('.cd-step').forEach((x,i)=>{
-      x.classList.toggle('active',i===state.mobileQuickStep);
-      x.classList.toggle('done',i<state.mobileQuickStep);
-    });
-    const next=document.querySelector('#mobileWizardNext'),back=document.querySelector('#mobileWizardBack');
-    if(back)back.disabled=state.mobileQuickStep===0;
-    if(next){
-      const hasFinal=state.quickResults?.some(r=>r.finalized===true);
-      next.style.display=(state.mobileQuickStep<2 || (state.mobileQuickStep===3&&hasFinal))?'block':'none';
-      next.textContent=state.mobileQuickStep===1?'Avançar: Revisão →':'Avançar →';
-    }
-    window.scrollTo({top:0,behavior:'smooth'});
-  };
-
-  document.addEventListener('DOMContentLoaded',ensureMobileBrand,{once:true});
-})();
-</script>
 
 </body></html>`;
 }
@@ -10411,6 +10279,139 @@ document.addEventListener('click',e=>{
     return;
   }
   if(e.target.closest?.('#tutorialNavBtn')){const r=document.getElementById('cdRoot');if(r)r.setAttribute('data-theme',document.documentElement.dataset.theme==='light'?'light':'dark');window.openTutorial?.();}});
+</script>
+<script id="churchdesign-mobile-flow-v139">
+(()=>{
+  const oldSetup=window.setupMobileQuickWizard;
+  const escv=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  function ensureMobileBrand(){
+    if(!matchMedia('(max-width:900px)').matches)return;
+    const top=document.querySelector('.topbar');
+    if(!top||top.querySelector('.cd-mobile-brand'))return;
+    const brand=document.createElement('div');
+    brand.className='cd-mobile-brand';
+    brand.innerHTML='<span class="brand-logo" role="img" aria-label="ChurchDesign"></span>';
+    top.insertBefore(brand,top.firstChild?.nextSibling||top.firstChild);
+  }
+
+  function reviewHTML(){
+    const q=state.quick||{}, spec=typeof quickTargetSpec==='function'?quickTargetSpec(q.format):null;
+    const pastors=(q.pastorAssetIds||[]).map(id=>{
+      const a=(state.library?.assets||[]).find(x=>x.id===id);
+      return q.pastorNames?.[id]||a?.meta?.displayName||a?.name||'Pregador';
+    });
+    const ref=q.referenceMode==='upload'?(q.reference?'Referência selecionada':'Sem referência'):(q.inspirationStyle||'Criar do zero');
+    return `<div class="cd-review-note">Revise principalmente nomes, data, horário e informações da igreja. A geração só deve começar depois desta conferência.</div>
+      <div class="cd-review-card">
+        <div class="cd-review-row"><span>Formato</span><strong>${escv(spec?.label||q.format||'—')}${spec?.width?` • ${spec.width}×${spec.height}`:''}</strong></div>
+        <div class="cd-review-row"><span>Tema</span><strong>${escv(q.title||'Não informado')}</strong></div>
+        <div class="cd-review-row"><span>Subtítulo</span><strong>${escv(q.subtitle||'—')}</strong></div>
+        <div class="cd-review-row"><span>Data e horário</span><strong>${escv([q.date,q.time].filter(Boolean).join(' • ')||'—')}</strong></div>
+        <div class="cd-review-row"><span>Pregadores</span><strong>${escv(pastors.join(', ')||'Nenhum')}</strong></div>
+        <div class="cd-review-row"><span>Direção visual</span><strong>${escv(ref)}</strong></div>
+        <div class="cd-review-row"><span>Ilustrar pelo título</span><strong>${q.illustrateTitle?'Sim':'Não'}</strong></div>
+      </div>`;
+  }
+
+  window.setupMobileQuickWizard=function(){
+    if(!isMobileCreationFlow()){document.body.classList.remove('mobile-wizard-active');return}
+    document.body.classList.add('mobile-wizard-active');ensureMobileBrand();
+    const shell=document.querySelector('.quick-shell'),grid=shell?.querySelector('.quick-grid');
+    if(!shell||!grid)return;
+    const cards=[...grid.children].filter(x=>x.classList.contains('card')),meta=cards[0],visual=cards[1];
+    const generateCard=[...shell.children].find(x=>x.classList?.contains('card')&&x!==meta&&x!==visual);
+    const results=document.querySelector('#quickResultsWrap');
+    if(!meta||!visual||!generateCard||!results)return;
+
+    const wizard=document.createElement('div');wizard.className='mobile-quick-wizard';
+    const names=['Dados','Referências','Revisão','Logo','Derivadas'];
+    wizard.innerHTML=`<div class="mobile-wizard-progress"><div class="cd-flow-label"><strong>Criação de arte</strong><span id="mobileWizardCounter"></span></div><div class="cd-five-steps">${names.map((n,i)=>`<button class="cd-step" type="button" data-cd-step="${i}"><b>${i+1}. ${n}</b><i></i></button>`).join('')}</div></div>
+      ${names.map((n,i)=>`<section class="mobile-wizard-screen" data-mobile-screen="${i}"><div class="mobile-app-card"><h2>${[
+        'Dados da Arte','Referências e Inspiração','Revisão da Arte','Assistente de Logos','Artes Derivadas'
+      ][i]}</h2><p class="mobile-step-copy">${[
+        'Defina formato, conteúdo, pessoas e elementos reais que devem participar da criação.',
+        'Escolha uma referência visual ou crie do zero. Ajuste somente as direções que realmente existem no ChurchDesign.',
+        'Confira os dados antes de iniciar a operação paga. O custo real continua sendo calculado pelo sistema.',
+        'A arte base é criada sem redesenhar a marca. Use as logos originais da sua igreja no assistente.',
+        'Depois da arte final, crie Stories, Telão, YouTube, Fundo ou uma adaptação livre a partir da mesma família.'
+      ][i]}</p><div class="mobile-screen-content"></div></div></section>`).join('')}
+      <nav class="mobile-wizard-nav"><button class="mini-btn" id="mobileWizardHome" type="button">⌂</button><button class="mini-btn" id="mobileWizardBack" type="button">← Voltar</button><button class="btn primary mobile-next" id="mobileWizardNext" type="button">Avançar →</button></nav>`;
+    shell.appendChild(wizard);
+    const zone=i=>wizard.querySelector(`[data-mobile-screen="${i}"] .mobile-screen-content`);
+    const moveClosest=(sel,closest,target=0)=>{const el=document.querySelector(sel),node=el?.closest(closest);if(node&&!zone(target).contains(node))zone(target).appendChild(node)};
+
+    // 1. DADOS — apenas controles que realmente existem no produto atual.
+    const formatHeading=[...meta.querySelectorAll('h3')].find(x=>/Tamanho da arte/i.test(x.textContent||''));
+    if(formatHeading){let f=formatHeading;while(f){const next=f.nextSibling;zone(0).appendChild(f);f=next}}
+    moveClosest('#qTitle','.field');moveClosest('#qSubtitle','.field');moveClosest('#qSecondaryInfo','.field');
+    moveClosest('#qDate','.grid2');moveClosest('#qAddress','.field');
+    const churchMode=document.querySelector('.church-name-mode-field');if(churchMode)zone(0).appendChild(churchMode);
+    const illustrate=document.querySelector('#qIllustrate')?.closest('.layer');if(illustrate)zone(0).appendChild(illustrate);
+
+    // Do bloco visual, mover pessoas, igreja e PNGs para Dados.
+    const pastorHeading=[...visual.querySelectorAll('h3')].find(x=>/Pregadores/i.test(x.textContent||''));
+    if(pastorHeading){let n=pastorHeading;while(n){const next=n.nextSibling;zone(0).appendChild(n);n=next}}
+
+    // 2. REFERÊNCIAS — referência/inspiração + opções reais de direção visual.
+    while(visual.firstChild)zone(1).appendChild(visual.firstChild);
+    moveClosest('#qAudience','.grid2',1);moveClosest('#qColor','.grid2',1);
+    const designStyle=document.querySelector('#qDesignStyle')?.closest('.grid2');if(designStyle&&!zone(1).contains(designStyle))zone(1).appendChild(designStyle);
+
+    // 3. REVISÃO — resumo + botão/controle real de geração e supervisor de custo.
+    zone(2).innerHTML=reviewHTML();
+    while(generateCard.firstChild)zone(2).appendChild(generateCard.firstChild);
+
+    // 4. LOGO — mantém o Assistente de Logos real.
+    zone(3).innerHTML=`<div class="mobile-logo-explainer"><strong>Logos originais, sem redesenho por IA.</strong><p>Depois que a arte base for gerada, o ChurchDesign abre o Assistente de Logos. Nele você posiciona e redimensiona as marcas originais cadastradas em Minha Igreja.</p><div class="flow-row"><span>Arte base</span><span>Logo original</span><span>Arte final</span></div></div><button class="btn ghost" id="cdOpenLogoAssistant" type="button" style="width:100%;min-height:52px;border-radius:999px">Abrir Assistente de Logos</button>`;
+
+    // 5. DERIVADAS — usa o resultado e os comandos reais já existentes.
+    results.classList.add('mobile-final-shell');zone(4).appendChild(results);
+
+    document.querySelector('#qUseReference')?.addEventListener('click',()=>{state.quick.referenceMode='upload';state.mobileQuickStep=1;screenQuickMode()});
+    document.querySelector('#qUseInspiration')?.addEventListener('click',()=>{state.quick.referenceMode='inspiration';state.quick.reference=null;state.mobileQuickStep=1;screenQuickMode()});
+    document.querySelectorAll('[data-qformat]').forEach(el=>el.addEventListener('click',()=>{state.quick.format=el.dataset.qformat;state.mobileQuickStep=0;screenQuickMode()}));
+
+    wizard.querySelector('#mobileWizardHome').onclick=mobileQuickHome;
+    wizard.querySelector('#mobileWizardBack').onclick=()=>mobileQuickGo((state.mobileQuickStep||0)-1);
+    wizard.querySelector('#mobileWizardNext').onclick=()=>mobileQuickGo((state.mobileQuickStep||0)+1);
+    wizard.querySelectorAll('[data-cd-step]').forEach(b=>b.onclick=()=>{
+      const target=Number(b.dataset.cdStep);
+      if(target===3 && !state.quickResults?.some(r=>r.finalized===true)){appToast('Gere a arte base e finalize as logos antes desta etapa.',{type:'info',title:'Assistente de Logos'});return}
+      if(target===4 && !state.quickResults?.length){appToast('As derivadas ficam disponíveis depois da primeira arte.',{type:'info',title:'Artes derivadas'});return}
+      mobileQuickGo(target);
+    });
+    wizard.querySelector('#cdOpenLogoAssistant').onclick=()=>{
+      const idx=Math.max(0,state.quickResults?.findLastIndex?.(r=>r.finalized===true)??-1);
+      if(idx<0){appAlert('Primeiro gere a arte base. O Assistente de Logos será aberto no fluxo da geração.',{type:'info',title:'Assistente de Logos'});return}
+      openLogoAssistant(`main:${idx}`);
+    };
+    mobileQuickGo(Math.min(4,state.mobileQuickStep||0));
+  };
+
+  window.mobileQuickGo=function(step){
+    state.mobileQuickStep=Math.max(0,Math.min(4,Number(step)||0));
+    const screens=[...document.querySelectorAll('.mobile-wizard-screen')];
+    if(!screens.length){screenQuickMode();return}
+    screens.forEach((x,i)=>x.classList.toggle('active',i===state.mobileQuickStep));
+    const counter=document.querySelector('#mobileWizardCounter');
+    if(counter)counter.textContent=`Etapa ${state.mobileQuickStep+1} de 5`;
+    document.querySelectorAll('.cd-step').forEach((x,i)=>{
+      x.classList.toggle('active',i===state.mobileQuickStep);
+      x.classList.toggle('done',i<state.mobileQuickStep);
+    });
+    const next=document.querySelector('#mobileWizardNext'),back=document.querySelector('#mobileWizardBack');
+    if(back)back.disabled=state.mobileQuickStep===0;
+    if(next){
+      const hasFinal=state.quickResults?.some(r=>r.finalized===true);
+      next.style.display=(state.mobileQuickStep<2 || (state.mobileQuickStep===3&&hasFinal))?'block':'none';
+      next.textContent=state.mobileQuickStep===1?'Avançar: Revisão →':'Avançar →';
+    }
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+
+  document.addEventListener('DOMContentLoaded',ensureMobileBrand,{once:true});
+})();
 </script>
 
 <!-- ===================================================================
