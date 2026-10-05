@@ -144,6 +144,11 @@ OMISSÕES DA ARTE FILHA — PRIORIDADE ABSOLUTA:
 - Preservar a referência NUNCA supera uma omissão explícita do usuário.
 - A presença de um elemento explicitamente omitido é ERRO CRÍTICO.
 
+PADRÃO UNIVERSAL CHURCHDESIGN:
+- Reprove aparência claramente típica/genérica de IA: glow/partículas automáticas sem função, luz épica gratuita, fundo sintético genérico, simetria previsível, acabamento plástico ou composição clichê de gerador quando isso dominar a peça.
+- DATA/HORA/LOCAL: reprove ícones inventados de calendário, relógio, pin/localização ou equivalentes, salvo pedido explícito atual ou presença inequívoca exigida pela referência/preset.
+- FIDELIDADE HUMANA: qualquer alteração perceptível de identidade, cabelo, idade aparente, roupa, mãos/dedos, pose, gesto ou objeto associado deve pesar fortemente contra aprovação.
+
 TIPOGRAFIA:
 - Toda tipografia deve estar integrada à arte final.
 - Conte ocorrências de data, hora, endereço, subtítulo e nomes.
@@ -184,7 +189,9 @@ COMPOSIÇÃO ADAPTATIVA:
 - Verifique se a arte usa apenas as pessoas realmente fornecidas.
 - Se a referência tinha mais pessoas que os assets fornecidos, a arte deve ter sido recomposta para a quantidade real.
 - Reprove silhuetas, sombras humanas, espaços reservados ou pessoas inventadas usados apenas para imitar posições de pessoas ausentes na referência.
-- A referência deve ser preservada como linguagem visual, não como molde rígido.
+- Se generationEngine="reference", a referência É molde visual/estrutural: compare posição e escala relativa dos pregadores, título, textos, massas, enquadramento e espaços vazios; diferenças relevantes sem necessidade devem reduzir reference_coherence e podem reprovar.
+- Nesse motor, se illustrateTitle=true, aceite variação SOMENTE na estratégia da ilustração; o revezamento não autoriza mudar o restante do layout.
+- Se generationEngine não for "reference", preserve linguagem visual conforme as regras específicas do modo.
 
 Conteúdo obrigatório: ${JSON.stringify(data.requiredContent||{})}
 TIPOGRAFIA FINAL:
@@ -193,7 +200,10 @@ TIPOGRAFIA FINAL:
 - Reprove texto sobre texto, informação ilegível, conteúdo cortado ou contraste inadequado.
 - Compare a linguagem tipográfica com a referência; diferença significativa sem justificativa reduz a fidelidade.
 Público-alvo escolhido: ${data.audience||"não especificado"}
-Estilo escolhido: ${data.designStyle||"não especificado"}\nPosição prioritária da logo: ${data.logoPosition||"seguir referência / automática"}\nPosição/zona da logo de evento: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"automática entre seis zonas centrais"}\nTamanho máximo da logo de evento: ${data.eventLogoSize||data.assets?.eventLogo?.size||"small"} (small≈14% da largura; medium≈20%; large≈26%)\nOmitir logo principal: ${data.omitChurchLogo?"SIM":"não"}\nOmitir nome da igreja: ${data.omitChurchName?"SIM":"não"}
+Estilo escolhido: ${data.designStyle||"não especificado"}
+Motor de geração: ${data.generationEngine||"não informado"}
+Ilustrar pelo título: ${data.illustrateTitle?"SIM":"não"}
+Histórico de ilustração (somente para revezamento da ilustração): ${JSON.stringify(data.illustrationHistory||[])}\nPosição prioritária da logo: ${data.logoPosition||"seguir referência / automática"}\nPosição/zona da logo de evento: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"automática entre seis zonas centrais"}\nTamanho máximo da logo de evento: ${data.eventLogoSize||data.assets?.eventLogo?.size||"small"} (small≈14% da largura; medium≈20%; large≈26%)\nOmitir logo principal: ${data.omitChurchLogo?"SIM":"não"}\nOmitir nome da igreja: ${data.omitChurchName?"SIM":"não"}
 TEXTOS AUTORIZADOS (ALLOWLIST): ${JSON.stringify(data.allowedTexts||[data.requiredContent?.title,data.requiredContent?.subtitle,data.requiredContent?.date,data.requiredContent?.time,data.requiredContent?.address,data.requiredContent?.churchName,...(data.requiredContent?.pastorNames||[])].filter(Boolean))}
 REGRA: qualquer outro texto legível é inventado/herdado e deve reprovar.
 Mapa/posições: ${JSON.stringify(data.semanticMap||[])}
@@ -226,14 +236,15 @@ module.exports=async function handler(req,res){
     try{review=JSON.parse(text)}
     catch{
       review={
-        approved:true,critical_error:false,score:0,
+        approved:false,critical_error:false,score:0,
         human_fidelity:0,logo_fidelity:0,content_accuracy:0,reference_coherence:0,
         gross_errors:["Fiscal devolveu resposta inválida."],
         correction_prompt:"",
         technicalFailure:true
       };
     }
-    // hard gates
+    // hard gates — falha técnica nunca pode virar aprovação silenciosa
+    if(review.technicalFailure)review.approved=false;
     if(!review.technicalFailure&&(review.human_fidelity<82||review.logo_fidelity<88||review.content_accuracy<90))review.approved=false;
     if(!review.technicalFailure&&(review.human_fidelity<65||review.logo_fidelity<70||review.content_accuracy<75))review.critical_error=true;
     
