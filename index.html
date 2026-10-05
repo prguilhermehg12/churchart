@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.40 MOBILE STITCH INTEGRATION -->
+<!-- CHURCHDESIGN — index v1.40.1 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -8218,8 +8218,8 @@ function showCreditLimitPopup(error=null){
   const raw=String(error?.message||''),m=raw.match(/Saldo atual:\s*(\d+).*?necess[aá]rio:\s*(\d+)/i),balance=m?Number(m[1]):Math.max(0,Number(state.user?.credits)||0),required=m?Number(m[2]):null;
   const creditTitle=balance<=0?'Seus créditos acabaram':'Créditos insuficientes';
   const creditIntro=balance<=0?'Seu saldo chegou a zero.':'Seu saldo não é suficiente para esta operação.';
-  const creditRequired=required!=null?'<br>Esta operação precisa de '+required+' créditos.':'';
-  root.innerHTML='<div class="app-dialog-backdrop credit-limit-dialog"><div class="app-dialog" role="dialog" aria-modal="true"><div class="app-dialog-head"><i>!</i><div><strong>'+creditTitle+'</strong></div></div><div class="app-dialog-body">'+creditIntro+'<br><br><strong>Saldo atual: '+balance+' créditos.</strong>'+creditRequired+'<br><br>Você pode consultar seu plano para continuar criando.</div><div class="app-dialog-actions"><button class="mini-btn" data-credit-close>Agora não</button><button class="btn primary" data-credit-plans>Ver planos</button></div></div></div>';
+  const creditRequired=required!=null?`<br>Esta operação precisa de ${required} créditos.`:'';
+  root.innerHTML=`<div class="app-dialog-backdrop credit-limit-dialog"><div class="app-dialog" role="dialog" aria-modal="true"><div class="app-dialog-head"><i>!</i><div><strong>${creditTitle}</strong></div></div><div class="app-dialog-body">${creditIntro}<br><br><strong>Saldo atual: ${balance} créditos.</strong>${creditRequired}<br><br>Você pode consultar seu plano para continuar criando.</div><div class="app-dialog-actions"><button class="mini-btn" data-credit-close>Agora não</button><button class="btn primary" data-credit-plans>Ver planos</button></div></div></div>`;
   root.querySelector('[data-credit-close]').onclick=()=>{root.innerHTML=''};
   root.querySelector('[data-credit-plans]').onclick=()=>{root.innerHTML='';openPlansPage()};
 }
