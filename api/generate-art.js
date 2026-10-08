@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.31.1
+// CHURCHDESIGN — generate-art v0.30.2
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -214,17 +214,6 @@ Observação de logos: posições e áreas de logos NÃO fazem parte do canvas g
 Preservar: ${(a.preserve_rules||[]).join(" | ")}
 Evitar: ${(a.avoid_rules||[]).join(" | ")}
 Orientação especializada: ${a.generation_prompt||""}`;}
-function generationCoreGuard(data={}){
-  return `NÚCLEO DE GERAÇÃO CHURCHDESIGN — PRIORIDADE ALTA:
-- CONTEÚDO OBRIGATÓRIO: todo campo preenchido em requiredContent e todo item de explicitDerivativeTexts DEVE aparecer exatamente uma vez, completo, legível e sem omissões. Se faltar espaço, reduza/reorganize o design; nunca apague informação para simplificar a composição.
-- DERIVAÇÃO: a instrução atual do usuário tem prioridade máxima. Quando referenceSemanticPolicy=current-art-truth, a arte selecionada é a verdade visual atual: preserve o que está nela, exceto aquilo que a instrução atual mandar alterar/remover. Não recupere conteúdo antigo de versões anteriores.
-- DATA, DIA, HORÁRIO E LOCAL: por padrão use SOMENTE TIPOGRAFIA discreta, limpa e integrada ao layout. NÃO use ícones de calendário, relógio, pin/mapa/localização, telefone, globo ou equivalentes. A presença desses ícones na referência NÃO é autorização para repeti-los. Só use ícone quando a INSTRUÇÃO ATUAL DO USUÁRIO pedir claramente esse ícone.
-- DATA, DIA, HORÁRIO E LOCAL: NÃO coloque essas informações dentro de cards, caixas, cápsulas, tarjas, selos, botões, placas, contornos ou quadros por hábito. Prefira texto solto e hierarquia tipográfica. Só use recipiente gráfico quando a INSTRUÇÃO ATUAL DO USUÁRIO pedir claramente esse tratamento.
-- NÃO INVENTE: não crie textos, datas, horários, endereços, nomes, pessoas, slogans, logos ou informações que não estejam autorizadas pelos dados atuais.
-- REFERÊNCIA: preserve identidade visual, composição, hierarquia, enquadramento, proporções relativas e linguagem tipográfica o máximo possível, salvo mudanças pedidas agora. Não deixe regras genéricas vencerem um pedido explícito atual.
-`;
-}
-
 function layoutPresetStructuralBlock(data={}){
   if(!data.layoutPresetInstruction)return "";
   const els=Array.isArray(data.layoutPresetBlueprint?.elements)?data.layoutPresetBlueprint.elements:[];
@@ -267,7 +256,6 @@ function promptLegacyMain(data){
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
 
-${generationCoreGuard(data)}
 ${transparentBackgroundIntent(data)?`MODO PNG TRANSPARENTE — HARD CONSTRAINT TÉCNICO / ALPHA REAL:
 - A saída deve ser um PNG RGBA com CANAL ALPHA REAL.
 - Todo pixel fora do objeto/elemento solicitado deve ter alpha = 0 (totalmente transparente).
@@ -563,7 +551,6 @@ function promptPresetOnly(data){
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
 
-${generationCoreGuard(data)}
 ${transparentBackgroundIntent(data)?`MODO PNG TRANSPARENTE — HARD CONSTRAINT TÉCNICO / ALPHA REAL:
 - A saída deve ser um PNG RGBA com CANAL ALPHA REAL.
 - Todo pixel fora do objeto/elemento solicitado deve ter alpha = 0 (totalmente transparente).
@@ -920,7 +907,6 @@ function emergencyPrompt(data){
 
   return `Crie uma ARTE FINAL profissional para igreja.
 
-${generationCoreGuard(data)}
 ${data.revisionMode==='delta-only'?`CORREÇÃO CIRÚRGICA:
 A primeira imagem enviada é o MOLDE BLOQUEADO.
 ALTERE SOMENTE: ${correction||"o ajuste explicitamente solicitado"}.
