@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — index v1.43 -->
+<!-- CHURCHDESIGN — index v1.44 -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -8057,31 +8057,7 @@ function assertInspectorResponse(data){if(data?.endpointType&&data.endpointType!
 
 
 
-function derivativeDebugPayload(label,value){
-  try{console.log(`[DERIVATIVE DEBUG] ${label}`,JSON.parse(JSON.stringify(value)))}catch{console.log(`[DERIVATIVE DEBUG] ${label}`,value)}
-}
-const __churchDesignFetch=window.fetch.bind(window);
-window.fetch=async function(input,init){
-  const url=typeof input==='string'?input:String(input?.url||'');
-  const watch=['/api/design-director','/api/generate-art','/api/quality-inspector'].some(x=>url.includes(x));
-  if(watch){
-    try{
-      const body=init?.body&&typeof init.body==='string'?JSON.parse(init.body):init?.body;
-      derivativeDebugPayload(`REQUEST ${url}`,body);
-    }catch(e){console.log(`[DERIVATIVE DEBUG] REQUEST ${url} (raw)`,init?.body)}
-  }
-  const response=await __churchDesignFetch(input,init);
-  if(watch){
-    try{
-      const clone=response.clone();
-      const data=await clone.json();
-      derivativeDebugPayload(`RESPONSE ${url}`,data);
-    }catch(e){console.log(`[DERIVATIVE DEBUG] RESPONSE ${url}: não-JSON`,response.status)}
-  }
-  return response;
-};
 async function requestArtDirection(base,signal=null){
-  derivativeDebugPayload('DESIGN DIRECTOR INPUT BASE',base);
   const r=await authFetch('/api/design-director',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     references:base.references||[],semanticMap:base.semanticMap||[],church:base.church||{},
     instruction:base.instruction||'',finalInstruction:base.finalInstruction||'',effects:base.effects||[],
@@ -9206,7 +9182,7 @@ function derivativePresetHardInstruction(preset){
     const cx=(e.x+e.w/2).toFixed(1),cy=(e.y+e.h/2).toFixed(1);
     const small=e.type==='title'&&(e.w<=25||e.h<=20);
     const maxNote=e.type==='title'
-      ?`GEOMETRIA EXATA DO TÍTULO — HARD LOCK: caixa-alvo x=${e.x.toFixed(1)}%, y=${e.y.toFixed(1)}%, w=${e.w.toFixed(1)}%, h=${e.h.toFixed(1)}% da arte. Esta largura e esta altura são LIMITES MÁXIMOS, não uma sugestão e não uma área a ser preenchida. NÃO mover o título para outra região e NÃO aumentar a caixa. Tolere no máximo 2 pontos percentuais por eixo apenas para acabamento. Se o texto não couber, REDUZA a fonte, condense discretamente ou quebre linhas DENTRO da mesma caixa. Se sobrar espaço no canvas, DEIXE O ESPAÇO VAZIO: espaço livre NUNCA autoriza ampliar o título.${small?` ESTE PRESET USA TÍTULO DELIBERADAMENTE PEQUENO/DISCRETO: ele NÃO deve virar elemento dominante, NÃO deve avançar para o centro da arte e NÃO pode ultrapassar w=${(e.w+2).toFixed(1)}% ou h=${(e.h+2).toFixed(1)}% do canvas. Ignore qualquer regra genérica/legada que diga que o título deve ser dominante. Preserve visualmente a mesma escala pequena mostrada na miniatura.`:''}`
+      ?`GEOMETRIA EXATA DO TÍTULO: ocupar aproximadamente x=${e.x.toFixed(1)}%, y=${e.y.toFixed(1)}%, w=${e.w.toFixed(1)}%, h=${e.h.toFixed(1)}% da arte. NÃO mover para outra região e NÃO aumentar essa caixa. Tolere no máximo pequenos ajustes de acabamento (cerca de 2 pontos percentuais). Se o texto não couber, REDUZA a fonte ou quebre linhas dentro desta mesma caixa${small?'; este é um título deliberadamente PEQUENO e deve permanecer pequeno':''}.`
       :'';
     return `- ${e.type.toUpperCase()}: caixa-guia x=${e.x.toFixed(1)}%, y=${e.y.toFixed(1)}%, w=${e.w.toFixed(1)}%, h=${e.h.toFixed(1)}%; centro aproximado ${cx}%/${cy}%. ${maxNote}`;
   };
@@ -9216,13 +9192,12 @@ function derivativePresetHardInstruction(preset){
 - Este preset define a SILHUETA da composição. Não troque esquerda por direita, não transforme composição central em lateral e não converta elemento pequeno em elemento dominante.
 - As coordenadas podem receber pequenos ajustes de acabamento, mas a região, o lado, a proporção relativa e o TAMANHO MÁXIMO dos elementos devem permanecer reconhecíveis em relação à miniatura escolhida.
 - Para título e demais textos, se o conteúdo não couber, REDUZA a tipografia, quebre linhas ou ajuste discretamente o espaçamento. NÃO aumente a caixa para resolver falta de espaço.
-- TRAVA DE ESCALA DO TÍTULO: a caixa do título é um LIMITE MÁXIMO. Nunca aumente o título para preencher área vazia, aumentar impacto, melhorar legibilidade ou torná-lo mais dominante. A escala visual da miniatura escolhida tem prioridade. Nos presets de título pequeno (incluindo o inferior central e o inferior direito), o título deve permanecer deliberadamente pequeno e secundário.
-- POSIÇÃO NÃO É ESCALA: "central" ou "inferior/direita" define onde a caixa fica; jamais significa autorização para ampliar o título.
-- A arte de origem fornece identidade visual, fundo, tratamento e CONTEÚDO ATUAL. O preset tem autoridade sobre GEOMETRIA, não sobre existência semântica do conteúdo.
+- A arte de origem fornece identidade visual, fundo, tratamento e conteúdo atual; ela NÃO tem prioridade sobre a geometria deste preset.
 - Decoração fica sempre atrás de pessoas e textos.
 - LOGOS NÃO pertencem à geração por IA. Qualquer slot de logo do preset será usado somente depois pelo Assistente de Logos; não desenhe nem reserve logo agora.
-- PREGADOR NO PRESET: ${hasPreacher?'existe uma região prevista para pessoa; a presença real continua controlada pelo seletor Manter/Trocar/Adicionar/Remover.':'não existe região pré-definida para pessoa, mas isso NÃO remove pregador existente. Se Manter estiver ativo, recomponha o layout para preservá-lo.'}
-- REGRA SEMÂNTICA: ausência de uma categoria na miniatura NÃO significa remover essa categoria da arte atual. O preset define somente a silhueta/posição. Remoção exige comando explícito do usuário.
+- PREGADOR NO PRESET: ${hasPreacher?'existe uma região prevista para pessoa, mas a presença real é controlada pelo seletor Manter/Trocar/Adicionar/Remover.':'o modelo-base NÃO contém pessoa; por padrão qualquer pregador da arte de origem deve ser REMOVIDO. O usuário pode sobrescrever isso escolhendo Manter/Trocar/Adicionar.'}
+- REGRA DE AUSÊNCIA: tudo o que pertence às categorias estruturais e NÃO aparece neste modelo deve ser removido da arte de origem por padrão. Ausentes neste preset: ${omitted.length?omitted.join(', '):'nenhum'}.
+- A caixa de observações pode solicitar conteúdo adicional e, nesse caso, a instrução explícita do usuário vence a ausência padrão.
 ${bp.elements.map(region).join('\n')}`;
 }
 async function derivativePresetGuideDataUrl(preset){
@@ -9413,16 +9388,8 @@ async function runDerivativeStudioGeneration(ov){
     if(!preset)return appAlert('Selecione um modelo de layout antes de gerar.',{type:'warning',title:'Variação pré-programada'});
     const presetBlueprint=derivativePresetBlueprint(preset);
     const presetGuideImage=await derivativePresetGuideDataUrl(preset);
+    if(!preset.elements?.some(e=>e?.type==='preacher')&&st.pastorMode==='keep')st.pastorMode=derivativePresetDefaultPastorMode(preset);
     options={studioDerivativeMode:true,layoutPresetId:preset.id,layoutPresetName:preset.name,layoutPresetInstruction:derivativePresetHardInstruction(preset),layoutPresetBlueprint:presetBlueprint,layoutPresetOmittedElements:derivativePresetOmittedElements(preset),layoutGuideImage:presetGuideImage,presetObservation:st.observation,pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,backgroundMode:!!preset.backgroundMode,screenThemeMode:!!preset.screenThemeMode,screenOccupancyMode:!!preset.screenOccupancyMode,screenInfoPct:preset.screenInfoPct||null};
-    console.group('[DERIVATIVE DEBUG] PRESET');
-    console.log('preset',preset);
-    console.log('preset.elements',preset?.elements||[]);
-    console.log('layoutPresetOmittedElements',options.layoutPresetOmittedElements);
-    console.log('pastorMode',options.pastorMode);
-    console.log('layoutPresetBlueprint',options.layoutPresetBlueprint);
-    console.log('layoutPresetInstruction',options.layoutPresetInstruction);
-    console.log('presetObservation',options.presetObservation);
-    console.groupEnd();
   }else{
     options={studioDerivativeMode:true,pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,churchImageMode:st.churchMode,churchImageAssetId:st.churchId,graphicMode:st.graphicMode,graphicAssetIds:st.graphicIds,manualDerivativeInstruction:st.instruction};
   }
