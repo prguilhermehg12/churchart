@@ -8057,7 +8057,31 @@ function assertInspectorResponse(data){if(data?.endpointType&&data.endpointType!
 
 
 
+function derivativeDebugPayload(label,value){
+  try{console.log(`[DERIVATIVE DEBUG] ${label}`,JSON.parse(JSON.stringify(value)))}catch{console.log(`[DERIVATIVE DEBUG] ${label}`,value)}
+}
+const __churchDesignFetch=window.fetch.bind(window);
+window.fetch=async function(input,init){
+  const url=typeof input==='string'?input:String(input?.url||'');
+  const watch=['/api/design-director','/api/generate-art','/api/quality-inspector'].some(x=>url.includes(x));
+  if(watch){
+    try{
+      const body=init?.body&&typeof init.body==='string'?JSON.parse(init.body):init?.body;
+      derivativeDebugPayload(`REQUEST ${url}`,body);
+    }catch(e){console.log(`[DERIVATIVE DEBUG] REQUEST ${url} (raw)`,init?.body)}
+  }
+  const response=await __churchDesignFetch(input,init);
+  if(watch){
+    try{
+      const clone=response.clone();
+      const data=await clone.json();
+      derivativeDebugPayload(`RESPONSE ${url}`,data);
+    }catch(e){console.log(`[DERIVATIVE DEBUG] RESPONSE ${url}: não-JSON`,response.status)}
+  }
+  return response;
+};
 async function requestArtDirection(base,signal=null){
+  derivativeDebugPayload('DESIGN DIRECTOR INPUT BASE',base);
   const r=await authFetch('/api/design-director',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     references:base.references||[],semanticMap:base.semanticMap||[],church:base.church||{},
     instruction:base.instruction||'',finalInstruction:base.finalInstruction||'',effects:base.effects||[],
@@ -9390,6 +9414,15 @@ async function runDerivativeStudioGeneration(ov){
     const presetBlueprint=derivativePresetBlueprint(preset);
     const presetGuideImage=await derivativePresetGuideDataUrl(preset);
     options={studioDerivativeMode:true,layoutPresetId:preset.id,layoutPresetName:preset.name,layoutPresetInstruction:derivativePresetHardInstruction(preset),layoutPresetBlueprint:presetBlueprint,layoutPresetOmittedElements:derivativePresetOmittedElements(preset),layoutGuideImage:presetGuideImage,presetObservation:st.observation,pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,backgroundMode:!!preset.backgroundMode,screenThemeMode:!!preset.screenThemeMode,screenOccupancyMode:!!preset.screenOccupancyMode,screenInfoPct:preset.screenInfoPct||null};
+    console.group('[DERIVATIVE DEBUG] PRESET');
+    console.log('preset',preset);
+    console.log('preset.elements',preset?.elements||[]);
+    console.log('layoutPresetOmittedElements',options.layoutPresetOmittedElements);
+    console.log('pastorMode',options.pastorMode);
+    console.log('layoutPresetBlueprint',options.layoutPresetBlueprint);
+    console.log('layoutPresetInstruction',options.layoutPresetInstruction);
+    console.log('presetObservation',options.presetObservation);
+    console.groupEnd();
   }else{
     options={studioDerivativeMode:true,pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,churchImageMode:st.churchMode,churchImageAssetId:st.churchId,graphicMode:st.graphicMode,graphicAssetIds:st.graphicIds,manualDerivativeInstruction:st.instruction};
   }
