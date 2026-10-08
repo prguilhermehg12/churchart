@@ -1,4 +1,4 @@
-// CHURCHDESIGN — quality-inspector v0.33.0
+// CHURCHDESIGN — quality-inspector v0.33.2
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -146,7 +146,9 @@ OMISSÕES DA ARTE FILHA — PRIORIDADE ABSOLUTA:
 
 PADRÃO UNIVERSAL CHURCHDESIGN:
 - Reprove aparência claramente típica/genérica de IA: glow/partículas automáticas sem função, luz épica gratuita, fundo sintético genérico, simetria previsível, acabamento plástico ou composição clichê de gerador quando isso dominar a peça.
-- DATA/HORA/LOCAL: reprove ícones inventados de calendário, relógio, pin/localização ou equivalentes, salvo pedido explícito atual ou presença inequívoca exigida pela referência/preset.
+- DATA/DIA/HORA/HORÁRIO/LOCAL/ENDEREÇO: reprove ícones de calendário, relógio, pin/localização ou equivalentes, salvo quando a INSTRUÇÃO ATUAL DO USUÁRIO pedir claramente esses ícones. A presença na referência, arte-base, preset ou histórico, sozinha, NÃO autoriza o uso.
+- Reprove cards, caixas, cápsulas, selos, placas, tarjas ou quadros criados para data, dia, horário, local ou endereço quando não tiverem sido pedidos claramente pelo usuário atual. O padrão ChurchDesign é tratamento tipográfico discreto.
+- OMISSÃO DE CONTEÚDO: qualquer título, subtítulo, data, horário, endereço/local ou nome presente em requiredContent e ausente, truncado, ilegível ou substituído deve reprovar. Nunca aceite omissão como solução para falta de espaço; a solução correta é recompor ou reduzir a tipografia.
 - FIDELIDADE HUMANA: qualquer alteração perceptível de identidade, cabelo, idade aparente, roupa, mãos/dedos, pose, gesto ou objeto associado deve pesar fortemente contra aprovação.
 
 TIPOGRAFIA:
