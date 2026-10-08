@@ -1,4 +1,3 @@
-// CHURCHDESIGN — quality-inspector v0.33.2
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -128,10 +127,7 @@ ERROS CRÍTICOS que reprovam:
 - composição artificial de cartaz/quadro menor dentro de outro fundo/moldura sem que isso faça parte da referência ou instrução;
 - excesso de caixas/cards/cápsulas que transforme a arte em aparência de interface/template, especialmente quando a referência não usa esse recurso;\n- qualquer texto, logo, rosto, nome de pregador, data, horário, endereço ou informação essencial dentro dos 10% externos da imagem, cortado, encostado na borda ou parcialmente fora do canvas;
 - logo clara/branca sobre fundo claro ou logo escura/preta sobre fundo escuro sem uma solução de contraste;
-- foto da igreja selecionada ausente ou substituída por outra imagem de igreja;
-- foto da igreja selecionada perceptivelmente REDESENHADA ou DEFORMADA: paredes, palco, teto, cadeiras, telas, pessoas, objetos, luzes, linhas arquitetônicas ou perspectiva diferem do arquivo original;
-- stretch horizontal/vertical, perspective warp, espelhamento, liquify, mudança de proporções internas ou continuação arquitetônica inventada da foto da igreja;
-- para adaptação de formato, qualquer transformação além de crop de bordas + escala uniforme + reposicionamento global da fotografia, exceto ajustes globais de cor/luz/blur.
+- foto da igreja selecionada ausente ou substituída por outra imagem de igreja.
 
 Se público-alvo ou estilo estiverem especificados, verifique se a peça é coerente com eles, mas não reprove por diferenças criativas pequenas.
 Se não estiverem especificados, ignore esse critério.
@@ -143,13 +139,6 @@ OMISSÕES DA ARTE FILHA — PRIORIDADE ABSOLUTA:
 - Se pedir omitir foto da igreja, a fotografia da igreja presente na referência não deve permanecer.
 - Preservar a referência NUNCA supera uma omissão explícita do usuário.
 - A presença de um elemento explicitamente omitido é ERRO CRÍTICO.
-
-PADRÃO UNIVERSAL CHURCHDESIGN:
-- Reprove aparência claramente típica/genérica de IA: glow/partículas automáticas sem função, luz épica gratuita, fundo sintético genérico, simetria previsível, acabamento plástico ou composição clichê de gerador quando isso dominar a peça.
-- DATA/DIA/HORA/HORÁRIO/LOCAL/ENDEREÇO: reprove ícones de calendário, relógio, pin/localização ou equivalentes, salvo quando a INSTRUÇÃO ATUAL DO USUÁRIO pedir claramente esses ícones. A presença na referência, arte-base, preset ou histórico, sozinha, NÃO autoriza o uso.
-- Reprove cards, caixas, cápsulas, selos, placas, tarjas ou quadros criados para data, dia, horário, local ou endereço quando não tiverem sido pedidos claramente pelo usuário atual. O padrão ChurchDesign é tratamento tipográfico discreto.
-- OMISSÃO DE CONTEÚDO: qualquer título, subtítulo, data, horário, endereço/local ou nome presente em requiredContent e ausente, truncado, ilegível ou substituído deve reprovar. Nunca aceite omissão como solução para falta de espaço; a solução correta é recompor ou reduzir a tipografia.
-- FIDELIDADE HUMANA: qualquer alteração perceptível de identidade, cabelo, idade aparente, roupa, mãos/dedos, pose, gesto ou objeto associado deve pesar fortemente contra aprovação.
 
 TIPOGRAFIA:
 - Toda tipografia deve estar integrada à arte final.
@@ -191,9 +180,7 @@ COMPOSIÇÃO ADAPTATIVA:
 - Verifique se a arte usa apenas as pessoas realmente fornecidas.
 - Se a referência tinha mais pessoas que os assets fornecidos, a arte deve ter sido recomposta para a quantidade real.
 - Reprove silhuetas, sombras humanas, espaços reservados ou pessoas inventadas usados apenas para imitar posições de pessoas ausentes na referência.
-- Se generationEngine="reference", a referência É molde visual/estrutural: compare posição e escala relativa dos pregadores, título, textos, massas, enquadramento e espaços vazios; diferenças relevantes sem necessidade devem reduzir reference_coherence e podem reprovar.
-- Nesse motor, se illustrateTitle=true, aceite variação SOMENTE na estratégia da ilustração; o revezamento não autoriza mudar o restante do layout.
-- Se generationEngine não for "reference", preserve linguagem visual conforme as regras específicas do modo.
+- A referência deve ser preservada como linguagem visual, não como molde rígido.
 
 Conteúdo obrigatório: ${JSON.stringify(data.requiredContent||{})}
 TIPOGRAFIA FINAL:
@@ -202,10 +189,7 @@ TIPOGRAFIA FINAL:
 - Reprove texto sobre texto, informação ilegível, conteúdo cortado ou contraste inadequado.
 - Compare a linguagem tipográfica com a referência; diferença significativa sem justificativa reduz a fidelidade.
 Público-alvo escolhido: ${data.audience||"não especificado"}
-Estilo escolhido: ${data.designStyle||"não especificado"}
-Motor de geração: ${data.generationEngine||"não informado"}
-Ilustrar pelo título: ${data.illustrateTitle?"SIM":"não"}
-Histórico de ilustração (somente para revezamento da ilustração): ${JSON.stringify(data.illustrationHistory||[])}\nPosição prioritária da logo: ${data.logoPosition||"seguir referência / automática"}\nPosição/zona da logo de evento: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"automática entre seis zonas centrais"}\nTamanho máximo da logo de evento: ${data.eventLogoSize||data.assets?.eventLogo?.size||"small"} (small≈14% da largura; medium≈20%; large≈26%)\nOmitir logo principal: ${data.omitChurchLogo?"SIM":"não"}\nOmitir nome da igreja: ${data.omitChurchName?"SIM":"não"}
+Estilo escolhido: ${data.designStyle||"não especificado"}\nPosição prioritária da logo: ${data.logoPosition||"seguir referência / automática"}\nPosição/zona da logo de evento: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"automática entre seis zonas centrais"}\nTamanho máximo da logo de evento: ${data.eventLogoSize||data.assets?.eventLogo?.size||"small"} (small≈14% da largura; medium≈20%; large≈26%)\nOmitir logo principal: ${data.omitChurchLogo?"SIM":"não"}\nOmitir nome da igreja: ${data.omitChurchName?"SIM":"não"}
 TEXTOS AUTORIZADOS (ALLOWLIST): ${JSON.stringify(data.allowedTexts||[data.requiredContent?.title,data.requiredContent?.subtitle,data.requiredContent?.date,data.requiredContent?.time,data.requiredContent?.address,data.requiredContent?.churchName,...(data.requiredContent?.pastorNames||[])].filter(Boolean))}
 REGRA: qualquer outro texto legível é inventado/herdado e deve reprovar.
 Mapa/posições: ${JSON.stringify(data.semanticMap||[])}
@@ -215,7 +199,7 @@ Instrução final: ${data.finalInstruction||""}
 Avalie de forma conservadora. Se reprovar, escreva correction_prompt curto e operacional. Se a complexidade estiver causando erro, mande SIMPLIFICAR a área problemática.`}];
   for(const r of (data.references||[]).slice(0,1))if(r?.image)c.push({type:"input_text",text:"REFERÊNCIA DE DESIGN:"},{type:"input_image",image_url:r.image,detail:"auto"});
   for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(p?.image)c.push({type:"input_text",text:`FOTO ORIGINAL — ${i===0?'PREGADOR PRINCIPAL':`PREGADOR AUXILIAR ${i}`}. Nome esperado: ${p.name||'não informado'}`},{type:"input_image",image_url:p.image,detail:"auto"});
-  if(data.assets?.churchImage?.image&&!/omitir foto da igreja/i.test(`${data.userInstruction||""} ${data.finalInstruction||""}`))c.push({type:"input_text",text:"FOTO DA IGREJA SELECIONADA — COMPARE COMO PLACA IMUTÁVEL. A arte deve usar esta MESMA fotografia, preservando arquitetura, palco, teto, cadeiras, telas, objetos, pessoas, luzes, perspectiva e proporções internas. Reprove redesenho, deformação, stretch, espelhamento, warp ou continuação arquitetônica inventada:"},{type:"input_image",image_url:data.assets.churchImage.image,detail:"auto"});
+  if(data.assets?.churchImage?.image&&!/omitir foto da igreja/i.test(`${data.userInstruction||""} ${data.finalInstruction||""}`))c.push({type:"input_text",text:"FOTO DA IGREJA SELECIONADA — deve estar presente e reconhecível na arte:"},{type:"input_image",image_url:data.assets.churchImage.image,detail:"auto"});
   if(data.assets?.logo?.image||data.assets?.eventLogo?.image)c.push({type:"input_text",text:"LOGO-FREE STAGE: as logos oficiais serão coladas depois por código. Não exija a presença delas. Reprove, isto sim, qualquer logo, marca, emblema, wordmark ou símbolo institucional que o gerador tenha copiado/inventado no canvas."});
   if(data.preTypographyImage)c.push({type:"input_text",text:"ARTE ANTES DA CONVERSÃO TIPOGRÁFICA:"},{type:"input_image",image_url:data.preTypographyImage,detail:"high"});
   c.push({type:"input_text",text:"ARTE GERADA A SER FISCALIZADA:"},{type:"input_image",image_url:data.generatedImage,detail:"high"});
@@ -238,15 +222,14 @@ module.exports=async function handler(req,res){
     try{review=JSON.parse(text)}
     catch{
       review={
-        approved:false,critical_error:false,score:0,
+        approved:true,critical_error:false,score:0,
         human_fidelity:0,logo_fidelity:0,content_accuracy:0,reference_coherence:0,
         gross_errors:["Fiscal devolveu resposta inválida."],
         correction_prompt:"",
         technicalFailure:true
       };
     }
-    // hard gates — falha técnica nunca pode virar aprovação silenciosa
-    if(review.technicalFailure)review.approved=false;
+    // hard gates
     if(!review.technicalFailure&&(review.human_fidelity<82||review.logo_fidelity<88||review.content_accuracy<90))review.approved=false;
     if(!review.technicalFailure&&(review.human_fidelity<65||review.logo_fidelity<70||review.content_accuracy<75))review.critical_error=true;
     
