@@ -1,4 +1,4 @@
-// CHURCHDESIGN — design-director v0.33.0
+// CHURCHDESIGN — design-director v0.34.1
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -142,7 +142,10 @@ ARQUITETURA DE MOTORES — NÃO MISTURAR REGRAS:
 
 REGRAS UNIVERSAIS — HARD CONSTRAINT:
 - CHURCHDESIGN JAMAIS produz aparência típica/genérica de IA. Evite glow gratuito, partículas automáticas, luz épica sem função, fundos sintéticos genéricos, simetria previsível, excesso de efeitos, tipografia clichê de gerador e acabamento plástico/artificial. A arte deve parecer dirigida por designer humano.
-- DATA/HORA/LOCAL: NÃO invente ícones de calendário, relógio, pin/localização ou equivalentes. Use tipografia. Ícone só é permitido se o usuário pedir explicitamente ou se referência/preset o exigir inequivocamente.
+- DATA/DIA/HORA/HORÁRIO/LOCAL/ENDEREÇO: por padrão use composição TIPOGRÁFICA, discreta e integrada ao design. NÃO use ícones de calendário, relógio, pin/localização ou equivalentes.
+- A simples presença desses ícones na referência, arte-base, preset, histórico ou blueprint NÃO autoriza copiá-los. Ícones só são permitidos quando a INSTRUÇÃO ATUAL DO USUÁRIO pedir isso claramente.
+- Pelo mesmo princípio, NÃO transforme data, dia, horário, local ou endereço em cards, caixas, cápsulas, selos, placas, tarjas ou quadros por hábito. Esses recipientes só são permitidos quando o pedido atual exigir claramente.
+- CONTEÚDO OBRIGATÓRIO NÃO PODE SER SACRIFICADO POR ESTÉTICA: título, subtítulo, data, horário, endereço/local e nomes presentes em requiredContent devem permanecer completos, corretos, legíveis e dentro da safe area. Falta de espaço exige recomposição/redução tipográfica, nunca omissão.
 - FIDELIDADE HUMANA É PRIORIDADE MÁXIMA: preserve identidade facial, cabelo, idade aparente, pele, roupa, mãos, dedos, pose, gesto, microfone/instrumento e proporções do pregador. Não embeleze, rejuvenesça, misture ou reconstrua traços.
 - FOTO DA IGREJA É PLACA IMUTÁVEL: preserve arquitetura, perspectiva, palco, teto, cadeiras, telas, objetos, pessoas e luzes. Somente crop de bordas, escala uniforme, reposicionamento do quadro inteiro e grading global não destrutivo.
 
