@@ -1,4 +1,4 @@
-// CHURCHDESIGN — generate-art v0.30.2
+// CHURCHDESIGN — generate-art v0.31.1
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -214,15 +214,14 @@ Observação de logos: posições e áreas de logos NÃO fazem parte do canvas g
 Preservar: ${(a.preserve_rules||[]).join(" | ")}
 Evitar: ${(a.avoid_rules||[]).join(" | ")}
 Orientação especializada: ${a.generation_prompt||""}`;}
-function universalGenerationHardBlock(data={}){
-  return `REGRAS UNIVERSAIS CHURCHDESIGN — HARD CONSTRAINT / NÃO COMPACTAR:
-- A arte JAMAIS deve ter aparência típica/genérica de IA. Evite glow gratuito, partículas automáticas, luz épica sem função, fundo sintético genérico, simetria previsível, acabamento plástico e tipografia clichê de gerador. Resultado deve parecer direção humana profissional.
-- DATA/HORA/LOCAL: NÃO invente ícones de calendário, relógio, pin de localização ou equivalentes. Use somente tipografia, salvo pedido explícito atual ou exigência inequívoca da referência/preset.
-- PREGADORES: preserve identidade facial, cabelo, idade aparente, pele, roupa, mãos, dedos, pose, gesto, microfone/instrumento e proporções. Não embeleze, rejuvenesça, envelheça, funda identidades ou reconstrua traços.
-- FOTO DA IGREJA: se fornecida, é placa fotográfica imutável. Não redesenhe arquitetura, perspectiva, palco, teto, cadeiras, telas, objetos, pessoas ou luzes; somente crop de bordas, escala uniforme, reposicionamento do quadro inteiro e grading global não destrutivo.
-- MOTOR REFERENCE: quando generationEngine=reference, a referência manda na composição/geometria. Imite posições, escalas relativas, enquadramento, hierarquia, massas e espaços vazios o máximo possível. Histórico criativo NÃO altera layout. Se illustrateTitle=true, illustrationHistory influencia SOMENTE o tipo de ilustração.
-- MOTOR ZERO: quando generationEngine=zero, crie com liberdade profissional sem cair em fórmulas de IA; use creativeHistory apenas para evitar repetição mecânica.
-- ILUSTRAR PELO TÍTULO: quando ativo, prefira interpretação inteligente inclusive indireta/metafórica; ilustração subordinada à hierarquia, sem dominar área exagerada. Varie entre objeto/foto contextual, PNG, transparência, vetor/shape, colagem e intervenção tipográfica; não use sempre imagem grande de fundo.
+function generationCoreGuard(data={}){
+  return `NÚCLEO DE GERAÇÃO CHURCHDESIGN — PRIORIDADE ALTA:
+- CONTEÚDO OBRIGATÓRIO: todo campo preenchido em requiredContent e todo item de explicitDerivativeTexts DEVE aparecer exatamente uma vez, completo, legível e sem omissões. Se faltar espaço, reduza/reorganize o design; nunca apague informação para simplificar a composição.
+- DERIVAÇÃO: a instrução atual do usuário tem prioridade máxima. Quando referenceSemanticPolicy=current-art-truth, a arte selecionada é a verdade visual atual: preserve o que está nela, exceto aquilo que a instrução atual mandar alterar/remover. Não recupere conteúdo antigo de versões anteriores.
+- DATA, DIA, HORÁRIO E LOCAL: por padrão use SOMENTE TIPOGRAFIA discreta, limpa e integrada ao layout. NÃO use ícones de calendário, relógio, pin/mapa/localização, telefone, globo ou equivalentes. A presença desses ícones na referência NÃO é autorização para repeti-los. Só use ícone quando a INSTRUÇÃO ATUAL DO USUÁRIO pedir claramente esse ícone.
+- DATA, DIA, HORÁRIO E LOCAL: NÃO coloque essas informações dentro de cards, caixas, cápsulas, tarjas, selos, botões, placas, contornos ou quadros por hábito. Prefira texto solto e hierarquia tipográfica. Só use recipiente gráfico quando a INSTRUÇÃO ATUAL DO USUÁRIO pedir claramente esse tratamento.
+- NÃO INVENTE: não crie textos, datas, horários, endereços, nomes, pessoas, slogans, logos ou informações que não estejam autorizadas pelos dados atuais.
+- REFERÊNCIA: preserve identidade visual, composição, hierarquia, enquadramento, proporções relativas e linguagem tipográfica o máximo possível, salvo mudanças pedidas agora. Não deixe regras genéricas vencerem um pedido explícito atual.
 `;
 }
 
@@ -244,7 +243,6 @@ function layoutPresetStructuralBlock(data={}){
 - TÍTULO PRINCIPAL: a posição (x/y) e o tamanho (w/h) indicados são a GEOMETRIA-ALVO. Preserve-os proporcionalmente ao canvas, com tolerância máxima de cerca de 2 pontos percentuais.
 - Se o texto não couber, reduza fonte, quebre linha ou compacte DENTRO DA MESMA CAIXA; jamais aumente a área nem mova o título para outra região.
 - Se o preset tiver título pequeno no rodapé/canto, ele DEVE continuar pequeno exatamente naquela região proporcional.
-- TELÃO — HARMONIA DE ESCALA: títulos central, inferior-central e inferior-direito NÃO podem crescer para preencher a caixa. w/h são LIMITES MÁXIMOS. Texto curto deve permanecer visualmente contido e proporcional à miniatura; prefira reduzir a aumentar. O título não deve dominar o telão quando a miniatura não o mostra dominante.
 - Elemento decorativo sempre atrás do pregador.
 - LOGOS REAIS continuam fora da geração e serão adicionadas depois pelo Assistente de Logos. NÃO confunda o TÍTULO da pregação com logo: o título é conteúdo obrigatório e deve seguir exatamente a caixa do preset.
 - Se a seleção de pregador do usuário conflitar com a presença/ausência de pessoa no preset, a seleção do usuário vence; ajuste a pessoa dentro da silhueta sem destruir os demais blocos.
@@ -269,7 +267,7 @@ function promptLegacyMain(data){
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
 
-${universalGenerationHardBlock(data)}
+${generationCoreGuard(data)}
 ${transparentBackgroundIntent(data)?`MODO PNG TRANSPARENTE — HARD CONSTRAINT TÉCNICO / ALPHA REAL:
 - A saída deve ser um PNG RGBA com CANAL ALPHA REAL.
 - Todo pixel fora do objeto/elemento solicitado deve ter alpha = 0 (totalmente transparente).
@@ -565,7 +563,7 @@ function promptPresetOnly(data){
   ].filter(Boolean).join("\n");
   return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
 
-${universalGenerationHardBlock(data)}
+${generationCoreGuard(data)}
 ${transparentBackgroundIntent(data)?`MODO PNG TRANSPARENTE — HARD CONSTRAINT TÉCNICO / ALPHA REAL:
 - A saída deve ser um PNG RGBA com CANAL ALPHA REAL.
 - Todo pixel fora do objeto/elemento solicitado deve ter alpha = 0 (totalmente transparente).
@@ -922,7 +920,7 @@ function emergencyPrompt(data){
 
   return `Crie uma ARTE FINAL profissional para igreja.
 
-${universalGenerationHardBlock(data)}
+${generationCoreGuard(data)}
 ${data.revisionMode==='delta-only'?`CORREÇÃO CIRÚRGICA:
 A primeira imagem enviada é o MOLDE BLOQUEADO.
 ALTERE SOMENTE: ${correction||"o ajuste explicitamente solicitado"}.
