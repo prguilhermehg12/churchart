@@ -1,3 +1,4 @@
+// CHURCHDESIGN — quality-inspector v0.33.0
 async function requireChurchDesignUser(req){
   const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
   const anon=process.env.SUPABASE_ANON_KEY;
@@ -127,7 +128,10 @@ ERROS CRÍTICOS que reprovam:
 - composição artificial de cartaz/quadro menor dentro de outro fundo/moldura sem que isso faça parte da referência ou instrução;
 - excesso de caixas/cards/cápsulas que transforme a arte em aparência de interface/template, especialmente quando a referência não usa esse recurso;\n- qualquer texto, logo, rosto, nome de pregador, data, horário, endereço ou informação essencial dentro dos 10% externos da imagem, cortado, encostado na borda ou parcialmente fora do canvas;
 - logo clara/branca sobre fundo claro ou logo escura/preta sobre fundo escuro sem uma solução de contraste;
-- foto da igreja selecionada ausente ou substituída por outra imagem de igreja.
+- foto da igreja selecionada ausente ou substituída por outra imagem de igreja;
+- foto da igreja selecionada perceptivelmente REDESENHADA ou DEFORMADA: paredes, palco, teto, cadeiras, telas, pessoas, objetos, luzes, linhas arquitetônicas ou perspectiva diferem do arquivo original;
+- stretch horizontal/vertical, perspective warp, espelhamento, liquify, mudança de proporções internas ou continuação arquitetônica inventada da foto da igreja;
+- para adaptação de formato, qualquer transformação além de crop de bordas + escala uniforme + reposicionamento global da fotografia, exceto ajustes globais de cor/luz/blur.
 
 Se público-alvo ou estilo estiverem especificados, verifique se a peça é coerente com eles, mas não reprove por diferenças criativas pequenas.
 Se não estiverem especificados, ignore esse critério.
@@ -199,7 +203,7 @@ Instrução final: ${data.finalInstruction||""}
 Avalie de forma conservadora. Se reprovar, escreva correction_prompt curto e operacional. Se a complexidade estiver causando erro, mande SIMPLIFICAR a área problemática.`}];
   for(const r of (data.references||[]).slice(0,1))if(r?.image)c.push({type:"input_text",text:"REFERÊNCIA DE DESIGN:"},{type:"input_image",image_url:r.image,detail:"auto"});
   for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).entries())if(p?.image)c.push({type:"input_text",text:`FOTO ORIGINAL — ${i===0?'PREGADOR PRINCIPAL':`PREGADOR AUXILIAR ${i}`}. Nome esperado: ${p.name||'não informado'}`},{type:"input_image",image_url:p.image,detail:"auto"});
-  if(data.assets?.churchImage?.image&&!/omitir foto da igreja/i.test(`${data.userInstruction||""} ${data.finalInstruction||""}`))c.push({type:"input_text",text:"FOTO DA IGREJA SELECIONADA — deve estar presente e reconhecível na arte:"},{type:"input_image",image_url:data.assets.churchImage.image,detail:"auto"});
+  if(data.assets?.churchImage?.image&&!/omitir foto da igreja/i.test(`${data.userInstruction||""} ${data.finalInstruction||""}`))c.push({type:"input_text",text:"FOTO DA IGREJA SELECIONADA — COMPARE COMO PLACA IMUTÁVEL. A arte deve usar esta MESMA fotografia, preservando arquitetura, palco, teto, cadeiras, telas, objetos, pessoas, luzes, perspectiva e proporções internas. Reprove redesenho, deformação, stretch, espelhamento, warp ou continuação arquitetônica inventada:"},{type:"input_image",image_url:data.assets.churchImage.image,detail:"auto"});
   if(data.assets?.logo?.image||data.assets?.eventLogo?.image)c.push({type:"input_text",text:"LOGO-FREE STAGE: as logos oficiais serão coladas depois por código. Não exija a presença delas. Reprove, isto sim, qualquer logo, marca, emblema, wordmark ou símbolo institucional que o gerador tenha copiado/inventado no canvas."});
   if(data.preTypographyImage)c.push({type:"input_text",text:"ARTE ANTES DA CONVERSÃO TIPOGRÁFICA:"},{type:"input_image",image_url:data.preTypographyImage,detail:"high"});
   c.push({type:"input_text",text:"ARTE GERADA A SER FISCALIZADA:"},{type:"input_image",image_url:data.generatedImage,detail:"high"});
