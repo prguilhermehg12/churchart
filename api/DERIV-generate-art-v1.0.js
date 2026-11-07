@@ -1,0 +1,1060 @@
+// CHURCHDESIGN — DERIVADOR INDEPENDENTE
+// ARQUIVO: DERIV-generate-art-v1.0
+// VERSÃO: 1.0
+// FINALIDADE: Endpoint próprio para gerar derivações nos modos Manual e Pré-pronto.
+// BASE TÉCNICA: Generate Art v0.30.2; arquivo original inalterado.
+// INFRAESTRUTURA COMPARTILHADA: autenticação, acesso à igreja, Storage e registro de uso.
+// CHURCHDESIGN — generate-art v0.30.2
+async function requireChurchDesignUser(req){
+  const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
+  const anon=process.env.SUPABASE_ANON_KEY;
+  if(!raw||!anon)throw Object.assign(new Error("SUPABASE_URL ou SUPABASE_ANON_KEY não configuradas."),{statusCode:500});
+  const authorization=String(req.headers.authorization||"");
+  if(!/^Bearer\s+\S+/i.test(authorization))throw Object.assign(new Error("Autenticação obrigatória."),{statusCode:401});
+  const r=await fetch(`${raw}/auth/v1/user`,{headers:{apikey:anon,Authorization:authorization}});
+  const user=await r.json().catch(()=>null);
+  if(!r.ok||!user?.id)throw Object.assign(new Error("Sessão inválida ou expirada."),{statusCode:401});
+  return user;
+}
+function serverCfg(){
+  const raw=String(process.env.SUPABASE_URL||"").replace(/\/+$/,"");
+  const key=process.env.SUPABASE_SECRET_KEY;
+  if(!raw||!key)throw Object.assign(new Error("SUPABASE_URL ou SUPABASE_SECRET_KEY não configuradas."),{statusCode:500});
+  return {url:raw,key};
+}
+async function serverRest(path,opt={}){
+  const c=serverCfg();const r=await fetch(`${c.url}/rest/v1/${path}`,{...opt,headers:{apikey:c.key,Authorization:`Bearer ${c.key}`,"Content-Type":"application/json",...(opt.headers||{})}});
+  const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
+  if(!r.ok)throw Object.assign(new Error(data?.message||data?.error||`Supabase ${r.status}`),{statusCode:r.status});return data;
+}
+function churchIdFromRequest(req){const id=String(req.headers['x-church-id']||req.body?.church_id||'').trim();if(!id)throw Object.assign(new Error("Igreja ativa não informada."),{statusCode:400});return id}
+async function requireChurchAccess(req,user){
+  const churchId=churchIdFromRequest(req);const rows=await serverRest(`church_members?church_id=eq.${encodeURIComponent(churchId)}&user_id=eq.${encodeURIComponent(user.id)}&status=eq.active&select=role`);
+  if(!rows?.length)throw Object.assign(new Error("Você não possui acesso a esta igreja."),{statusCode:403});return churchId;
+}
+function usageNumber(u,...paths){for(const path of paths){let v=u;for(const k of path.split('.'))v=v?.[k];if(Number.isFinite(Number(v)))return Number(v)}return null}
+
+const USAGE_PRICE_VERSION="2026-08-18";
+const USAGE_COST_RATES={
+  "gpt-5.6-sol":{kind:"text",input:5,cached:.5,output:30},
+  "gpt-5.6":{kind:"text",input:5,cached:.5,output:30},
+  "gpt-5.6-terra":{kind:"text",input:2,cached:.2,output:12},
+  "gpt-5.6-luna":{kind:"text",input:.2,cached:.02,output:1.2},
+  "gpt-image-2":{kind:"image",text_input:5,text_cached:1.25,text_output:10,image_input:8,image_cached:2,image_output:30}
+};
+function usageCostEstimate(model,usage){
+  if(!usage)return 0;
+  const r=USAGE_COST_RATES[model]||USAGE_COST_RATES["gpt-5.6-sol"];
+  const num=(...paths)=>usageNumber(usage,...paths)||0;
+  if(r.kind==="text"){
+    const input=num("input_tokens","prompt_tokens"),output=num("output_tokens","completion_tokens"),cached=num("input_tokens_details.cached_tokens","prompt_tokens_details.cached_tokens");
+    return ((Math.max(0,input-cached)*r.input)+(cached*r.cached)+(output*r.output))/1e6;
+  }
+  const ti=num("input_tokens_details.text_tokens","input_details.text_tokens","text_input_tokens");
+  const ii=num("input_tokens_details.image_tokens","input_details.image_tokens","image_input_tokens");
+  const ci=num("input_tokens_details.cached_tokens","input_details.cached_tokens");
+  const to=num("output_tokens_details.text_tokens","output_details.text_tokens","text_output_tokens");
+  const io=num("output_tokens_details.image_tokens","output_details.image_tokens","image_output_tokens");
+  const input=num("input_tokens","prompt_tokens"),output=num("output_tokens","completion_tokens");
+  if(ti||ii||to||io){
+    const imageCached=Math.min(ii,ci),textCached=Math.max(0,ci-imageCached);
+    return ((Math.max(0,ti-textCached)*r.text_input)+(textCached*r.text_cached)+(Math.max(0,ii-imageCached)*r.image_input)+(imageCached*r.image_cached)+(to*r.text_output)+(io*r.image_output))/1e6;
+  }
+  return ((input*r.image_input)+(output*r.image_output))/1e6;
+}
+function costContextFromData(data={}){
+  const ctx=data.costContext||{},target=data.target||{};
+  let artType=ctx.artType||"";
+  if(!artType){
+    if(data.backgroundMode)artType="Fundo";
+    else if(data.freeMode)artType="Modo Livre";
+    else if(data.screenThemeMode)artType="Telão Tema";
+    else if(data.revisionMode)artType="Correção";
+    else if(data.mode==="adaptation")artType="Derivada";
+    else artType="Arte base";
+  }
+  return{
+    cost_session_id:String(data.costSessionId||ctx.sessionId||"")||null,
+    project_name:String(ctx.projectName||data.projectName||data.requiredContent?.title||"").trim()||null,
+    art_type:artType,
+    format:String(ctx.format||data.format||target.id||"").trim()||null,
+    target_label:String(ctx.targetLabel||target.label||"").trim()||null,
+    mode:String(data.mode||"").trim()||null,
+    variant_label:String(data.variantLabel||"").trim()||null,
+    background_mode:!!data.backgroundMode,
+    free_mode:!!data.freeMode,
+    screen_theme_mode:!!data.screenThemeMode,
+    revision_mode:String(data.revisionMode||"").trim()||null
+  };
+}
+async function logUsage({churchId,userId,operationType,model,endpoint,usage,imageCount=0,metadata={}}){
+  try{
+    const costUSD=usageCostEstimate(model,usage),fx=Number(process.env.COST_USD_BRL_RATE)||null;
+    await serverRest("generation_usage",{method:"POST",body:JSON.stringify([{
+      church_id:churchId,user_id:userId,operation_type:operationType,model,endpoint,
+      input_tokens:usageNumber(usage,'input_tokens','prompt_tokens'),
+      output_tokens:usageNumber(usage,'output_tokens','completion_tokens'),
+      image_count:imageCount,
+      cost_usd:costUSD||0,
+      cost_brl:fx?costUSD*fx:null,
+      currency_rate:fx,
+      metadata:{...metadata,usage:usage||null,pricing_version:USAGE_PRICE_VERSION,cost_estimated:true}
+    }])});
+  }catch(e){console.error("Usage log",e.message)}
+}
+
+// ChurchDesign NEWFLOW v0.12 — authentication only; V0.21 church-photo semantics unchanged
+module.exports.config={maxDuration:180};
+
+const IMAGES_EDIT_URL="https://api.openai.com/v1/images/edits";
+const IMAGES_GENERATE_URL="https://api.openai.com/v1/images/generations";
+const BUCKET="churchart-assets";
+
+function cfg(){
+  const raw=process.env.SUPABASE_URL,key=process.env.SUPABASE_SECRET_KEY;
+  if(!raw||!key)throw new Error("SUPABASE_URL ou SUPABASE_SECRET_KEY não configuradas.");
+  return{url:raw.replace(/\/+$/,""),key};
+}
+function encodePath(path){return String(path).split("/").filter(Boolean).map(encodeURIComponent).join("/");}
+async function saveBase64ToStorage(base64,churchId,label="art"){
+  const c=cfg(),path=`${churchId}/generated-final/${Date.now()}-${crypto.randomUUID()}-${String(label).replace(/[^a-z0-9_-]+/gi,"-")}.png`;
+  const r=await fetch(`${c.url}/storage/v1/object/${encodeURIComponent(BUCKET)}/${encodePath(path)}`,{
+    method:"POST",headers:{apikey:c.key,Authorization:`Bearer ${c.key}`,"Content-Type":"image/png","x-upsert":"true"},body:Buffer.from(base64,"base64")
+  });
+  const text=await r.text();if(!r.ok)throw new Error(`Falha ao salvar arte: ${text.slice(0,180)}`);
+  return`${c.url}/storage/v1/object/public/${encodeURIComponent(BUCKET)}/${encodePath(path)}`;
+}
+
+
+function allowedTexts(data={}){const c=data.requiredContent||{};return[c.title,c.subtitle,c.secondaryInfo,c.date,c.time,c.address,c.churchName,...(c.pastorNames||[])].map(x=>String(x||"").trim()).filter(Boolean);}
+function isLogoLikeGraphic(a){
+  if(!a)return false;
+  const type=String(a.type||'').toLowerCase();
+  const m=a.meta||a.metadata||a.data||{};
+  const category=String(m.category||m.assetCategory||m.kind||'').toLowerCase();
+  if(type==='logo'||type==='event_logo')return true;
+  if(['logo','church_logo','event_logo','brand_logo'].includes(category))return true;
+  if(m.logoGroupId||m.variantGroupId||m.variantOf||m.logoVariantRole||m.variantRole)return true;
+  return false;
+}
+function pipelineGuard(input={}){const data={...input,assets:{...(input.assets||{})}};delete data.assets.logo;delete data.assets.eventLogo;delete data.assets.event_logo;data.assets.graphics=(data.assets.graphics||[]).filter(a=>!isLogoLikeGraphic(a));const pastors=(data.assets.pastors||[data.assets.pastor].filter(Boolean)).slice(0,3);data.assets.pastors=pastors;data.assets.pastor=pastors[0]||null;data.referenceSemanticPolicy=String(input.referenceSemanticPolicy||"style-only");data.explicitDerivativeTexts=(Array.isArray(input.explicitDerivativeTexts)?input.explicitDerivativeTexts:[]).map(x=>String(x||"").trim()).filter(Boolean).slice(0,12);data.allowedTexts=[...allowedTexts(data),...data.explicitDerivativeTexts].map(x=>String(x||"").trim()).filter(Boolean);return data;}
+
+function transparentBackgroundIntent(data={}){
+  const parts=[
+    data.instruction,data.finalInstruction,data.revisionInstruction,data.variantInstruction,
+    data.qualityCorrection,data.freeInstruction,data.requiredContent?.title,data.requiredContent?.subtitle
+  ].map(x=>String(x||"").toLowerCase()).filter(Boolean);
+  const text=parts.join(" ");
+  return (
+    /\bpng\s+(?:com\s+)?(?:fundo\s+)?transparente\b/i.test(text) ||
+    /\bfundo\s+transparente\b/i.test(text) ||
+    /\bbackground\s+transparente\b/i.test(text) ||
+    /\btransparent\s+background\b/i.test(text) ||
+    /\bsem\s+fundo\b/i.test(text) ||
+    /\brecorte\s+(?:em\s+)?png\b/i.test(text) ||
+    /\bcanal\s+alpha\b/i.test(text)
+  );
+}
+
+
+function modelSize(target={}){
+  // GPT Image 2 aceita WIDTHxHEIGHT arbitrário, desde que:
+  // - ambos sejam múltiplos de 16
+  // - aspect ratio fique entre 1:3 e 3:1
+  // Mantemos a proporção EXATA pedida pelo ChurchDesign e usamos uma área
+  // econômica/prática próxima de 1.3 MP para a geração normal.
+  const rawW=Math.max(1,Number(target.width)||1080);
+  const rawH=Math.max(1,Number(target.height)||1350);
+  const ratio=rawW/rawH;
+
+  // Os formatos oferecidos pelo ChurchDesign já estão dentro de 1:3..3:1.
+  // Se algum formato futuro sair disso, limitamos sem distorcer silenciosamente.
+  const safeRatio=Math.min(3,Math.max(1/3,ratio));
+  const targetPixels=1_327_104; // ~864x1536: bom equilíbrio de custo/qualidade.
+  let h=Math.sqrt(targetPixels/safeRatio);
+  let w=h*safeRatio;
+
+  const round16=n=>Math.max(16,Math.round(n/16)*16);
+  w=round16(w);h=round16(h);
+
+  // Evita ultrapassar aresta segura; preserva o ratio ao reduzir.
+  const maxEdge=2560;
+  if(Math.max(w,h)>maxEdge){
+    const scale=maxEdge/Math.max(w,h);
+    w=round16(w*scale);h=round16(h*scale);
+  }
+
+  return `${w}x${h}`;
+}
+function isDataImage(v){return typeof v==="string"&&v.startsWith("data:image/");}
+function dataUrlPart(dataUrl,name="image.png"){
+  const m=String(dataUrl||"").match(/^data:([^;]+);base64,(.+)$/);
+  if(!m)throw new Error(`Imagem inválida: ${name}`);
+  return new Blob([Buffer.from(m[2],"base64")],{type:m[1]||"image/png"});
+}
+function collectInputImages(data){
+  const imgs=[];
+  // Logos nunca entram no gerador visual.
+  // Pregadores continuam como identidades protegidas; referências de working-base continuam como guia visual.
+  for(const [i,p] of (data.assets?.pastors||[data.assets?.pastor].filter(Boolean)).slice(0,3).entries())
+    if(isDataImage(p?.image))imgs.push({data:p.image,name:`${i===0?'principal':`auxiliar-${i}`}.png`});
+  if(data.revisionMode==="delta-only"||data.mode==="adaptation"||data.referenceRole==="working-base"){
+    for(const [i,r] of (data.references||[]).slice(0,1).entries())
+      if(isDataImage(r?.image))imgs.push({data:r.image,name:`working-base-${i+1}.png`});
+  }
+  if(data.layoutPresetInstruction&&isDataImage(data.layoutGuideImage))
+    imgs.push({data:data.layoutGuideImage,name:"layout-geometry-guide.png"});
+  // Foto da igreja volta à mesma posição de entrada usada antes da tentativa v0.9.
+  if(isDataImage(data.assets?.churchImage?.image))imgs.push({data:data.assets.churchImage.image,name:"church-background.png"});
+  return imgs;
+}
+function blueprint(data){const a=data.artDirection||{};return `Direção visual: ${a.visual_summary||""}
+Estilo: ${(a.style_tags||[]).join(", ")}
+Paleta: ${JSON.stringify(a.palette||{})}
+Composição: ${JSON.stringify(a.composition||{})}
+Tipografia: ${JSON.stringify(a.typography||{})}
+Imagem: ${JSON.stringify(a.imagery||{})}
+Texturas: ${(a.textures||[]).join(", ")}
+Elementos: ${(a.graphic_elements||[]).join(", ")}
+Observação de logos: posições e áreas de logos NÃO fazem parte do canvas generativo e não devem influenciar a geometria visual.
+Preservar: ${(a.preserve_rules||[]).join(" | ")}
+Evitar: ${(a.avoid_rules||[]).join(" | ")}
+Orientação especializada: ${a.generation_prompt||""}`;}
+function layoutPresetStructuralBlock(data={}){
+  if(!data.layoutPresetInstruction)return "";
+  const els=Array.isArray(data.layoutPresetBlueprint?.elements)?data.layoutPresetBlueprint.elements:[];
+  const omitted=Array.isArray(data.layoutPresetOmittedElements)?data.layoutPresetOmittedElements.map(String):[];
+  const pastorMode=String(data.pastorMode||'keep');
+  const effectiveOmitted=omitted.filter(t=>!(t==='preacher'&&pastorMode!=='remove'));
+  const row=e=>{
+    const x=Number(e.x)||0,y=Number(e.y)||0,w=Number(e.w)||0,h=Number(e.h)||0;
+    const small=e.type==="title"&&(w<=25||h<=20);
+    return `• ${String(e.type||"element").toUpperCase()}: x ${x.toFixed(1)}%, y ${y.toFixed(1)}%, w ${w.toFixed(1)}%, h ${h.toFixed(1)}%${e.type==="title"?` — GEOMETRIA PRATICAMENTE EXATA: preservar esta região e esta proporção, com tolerância máxima de aproximadamente 2 pontos percentuais. NÃO ampliar a caixa; se não couber, reduzir fonte/quebrar linhas${small?"; título deliberadamente PEQUENO, PROIBIDO promover para headline grande":""}`:""}.`;
+  };
+  return `MAPA ESTRUTURAL DO PRESET — HARD CONSTRAINT / PRIORIDADE SOBRE COMPOSIÇÃO GENÉRICA:
+- A geometria do PRESET vence a geometria da arte de origem. A origem fornece identidade visual, não posição.
+- NÃO aplique revezamento automático esquerda/direita, NÃO centralize por hábito e NÃO substitua o preset por uma composição comum de YouTube/Telão.
+- Preserve lado, região, ocupação relativa e escala dos blocos. Pequenos ajustes são permitidos apenas para legibilidade.
+- TÍTULO PRINCIPAL: a posição (x/y) e o tamanho (w/h) indicados são a GEOMETRIA-ALVO. Preserve-os proporcionalmente ao canvas, com tolerância máxima de cerca de 2 pontos percentuais.
+- Se o texto não couber, reduza fonte, quebre linha ou compacte DENTRO DA MESMA CAIXA; jamais aumente a área nem mova o título para outra região.
+- Se o preset tiver título pequeno no rodapé/canto, ele DEVE continuar pequeno exatamente naquela região proporcional.
+- Elemento decorativo sempre atrás do pregador.
+- LOGOS REAIS continuam fora da geração e serão adicionadas depois pelo Assistente de Logos. NÃO confunda o TÍTULO da pregação com logo: o título é conteúdo obrigatório e deve seguir exatamente a caixa do preset.
+- Se a seleção de pregador do usuário conflitar com a presença/ausência de pessoa no preset, a seleção do usuário vence; ajuste a pessoa dentro da silhueta sem destruir os demais blocos.
+- AUSÊNCIAS DO PRESET SÃO OBRIGATÓRIAS POR PADRÃO: ${effectiveOmitted.length?effectiveOmitted.join(', '):'nenhuma'}.
+- Para cada categoria ausente, REMOVA o elemento correspondente que exista na arte de origem. A arte de origem não autoriza manter conteúdo que o modelo não contém.
+- Uma observação atual do usuário pode pedir conteúdo adicional; nesse caso, a observação atual vence a ausência padrão.
+${els.map(row).join("\n")}
+${isDataImage(data.layoutGuideImage)?`- Uma das imagens de entrada é um WIREframe sintético escuro com blocos planos: BRANCO=título, CINZA=pregador, AZUL=informações e LARANJA=decoração. Essa imagem serve SOMENTE para GEOMETRIA. NÃO copie sua aparência, não copie cores, não gere retângulos do wireframe.`:""}`;
+}
+function promptLegacyMain(data){
+  const c=data.requiredContent||{},target=data.target||{};
+  const explicitDerivativeTexts=(data.explicitDerivativeTexts||[]).map(t=>`TEXTO EXATO PEDIDO AGORA: ${t}`);
+  const texts=[
+    c.title?`TÍTULO EXATO: ${c.title}`:"",
+    c.subtitle?`SUBTÍTULO EXATO: ${c.subtitle}`:"",
+    c.secondaryInfo?`INFORMAÇÃO SECUNDÁRIA EXATA: ${c.secondaryInfo}`:"",
+    c.date?`DATA EXATA: ${c.date}`:"",
+    c.time?`HORÁRIO EXATO: ${c.time}`:"",
+    c.address?`ENDEREÇO EXATO: ${c.address}`:"",
+    ...(Array.isArray(c.pastorNames)?c.pastorNames.filter(Boolean).map((n,i)=>`NOME EXATO DA PESSOA ${i+1} (renderizar SOMENTE o valor após os dois-pontos; nunca renderizar "PESSOA ${i+1}" nem função interna): ${n}`):[]),
+    ...explicitDerivativeTexts
+  ].filter(Boolean).join("\n");
+  return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
+
+${transparentBackgroundIntent(data)?`MODO PNG TRANSPARENTE — HARD CONSTRAINT TÉCNICO / ALPHA REAL:
+- A saída deve ser um PNG RGBA com CANAL ALPHA REAL.
+- Todo pixel fora do objeto/elemento solicitado deve ter alpha = 0 (totalmente transparente).
+- NÃO desenhe fundo branco, preto, cinza, colorido, degradê, textura, cenário, papel, parede ou superfície atrás do objeto.
+- NÃO desenhe padrão quadriculado/checkerboard. O quadriculado é apenas uma convenção visual de softwares para representar transparência; ele NUNCA deve fazer parte dos pixels da imagem.
+- NÃO simule transparência com quadrados cinza/branco, grid, mosaico, máscara visível ou textura.
+- As bordas do objeto devem terminar naturalmente em transparência, com antialiasing correto e sem halo branco/preto.
+- Preserve sombras somente quando fizerem parte do próprio objeto e permita que desapareçam progressivamente no alpha; não crie uma placa de fundo para sustentar a sombra.
+- Se houver vazio entre partes do objeto, esse vazio também deve ser alpha = 0.
+- Esta regra tem prioridade sobre qualquer direção estética de fundo, salvo ordem explícita do usuário dizendo que NÃO quer transparência.
+- TESTE MENTAL OBRIGATÓRIO: se o PNG for colocado sobre fundo vermelho, azul ou preto, nenhuma área retangular, quadrícula ou cor de fundo deve aparecer; deve aparecer somente o objeto recortado.
+`:''}
+${data.backgroundMode?`MODO FUNDO ABSOLUTO — ESTA REGRA SOBRESCREVE QUALQUER OUTRA INSTRUÇÃO DE TEXTO OU CONTEÚDO:
+- Gere somente um FUNDO LIMPO da mesma identidade visual.
+- ZERO TEXTO LEGÍVEL. Não renderize nem preserve título, subtítulo, palavras, letras, números, datas, horários, endereço, nomes, slogans, chamadas, assinatura, selo ou placeholder.
+${data.addPastorOverride?`- EXCEÇÃO HUMANA OBRIGATÓRIA: renderize EXATAMENTE o pregador fornecido como PESSOA 1. A pessoa deve ficar claramente visível, reconhecível e integrada ao fundo; não inclua nenhuma outra pessoa.`:`- ZERO PESSOAS. Não renderize pregadores, rostos, corpos, silhuetas ou figuras humanas.`}
+- ZERO LOGOS, marcas ou emblemas.
+- A referência é uma fonte de paleta, atmosfera, iluminação, textura, formas abstratas e cenário; todo conteúdo semântico visível nela deve ser removido e a área reconstruída naturalmente.
+- Se existir fotografia real da igreja fornecida como asset de fundo, ela é uma PLACA IMUTÁVEL: preserve o arquivo original sem redesenho, deformação, reconstrução, espelhamento, stretch ou alteração de perspectiva. Para encaixar no formato use somente crop de bordas + escala uniforme + reposicionamento; complete áreas restantes com design gráfico, nunca com arquitetura inventada.
+- Não transforme palavras da referência em textura tipográfica. Não deixe fragmentos de letras.
+- O resultado deve parecer um background pronto para receber novos elementos depois.
+`:''}
+${data.revisionMode==='delta-only'?`MODO CORREÇÃO CIRÚRGICA / DELTA ONLY:
+A primeira referência é a última versão e funciona como MOLDE BLOQUEADO.
+Altere SOMENTE: ${data.revisionInstruction||data.variantInstruction||'o ajuste explicitamente pedido'}.
+Todo elemento não mencionado deve permanecer visualmente igual: rostos, mãos, dedos, roupas, poses, textos, palavras de fundo, efeitos, cores, posições e composição. Logos permanecem ausentes do canvas generativo e serão recoladas deterministicamente depois.
+Não reinterprete áreas não solicitadas. Se precisar reconstruir uma pequena região, consulte os assets originais e preserve a identidade exata.
+`:''}
+${data.addPastorOverride?`ADICIONAR PREGADOR — OVERRIDE ABSOLUTO / HARD CONSTRAINT:
+- A imagem PESSOA 1 é um ASSET OBRIGATÓRIO desta derivada.
+- O resultado final DEVE CONTER PESSOA 1 claramente visível. Não é opcional.
+- Mesmo que a working-base/referência tenha ZERO pessoas, RECOMPONHA o layout e INSIRA PESSOA 1.
+- Não preserve “ausência de pessoa” da referência.
+- Não substitua por pessoa da referência, modelo genérico, silhueta, sombra ou rosto inventado.
+- Preserve fortemente a identidade facial, cabelo, roupa, pose, gesto, mãos, microfone/objeto e orientação natural da foto enviada.
+- Rosto e cabeça inteiros devem permanecer dentro da safe area e não podem ficar escondidos por texto.
+- Esta ordem vence qualquer regra herdada de artDirection, referência ou modo que diga sem pessoas/remover pregador.
+- Em Modo Fundo, continue removendo textos e logos, mas mantenha PESSOA 1.
+- Em Modo Tema, mantenha somente o título como texto, mas mantenha PESSOA 1.
+`:''}
+
+ATIVOS SAGRADOS:
+Fotos de pregadores, logo da igreja e logo de evento são ativos independentes e invioláveis. Nunca misture símbolos, textos, membros, objetos ou identidades entre eles.
+Campo de nome vazio = nenhum texto ou placeholder para aquela pessoa.
+Camadas humanas não podem se fundir. Objetos de um auxiliar não podem atravessar para frente do principal.
+
+REGRA ABSOLUTA DE ENQUADRAMENTO DOS PREGADORES / NÃO COMPLETAR CORPO:
+- NUNCA invente, complete ou gere pernas, quadris, cintura, pés ou qualquer parte inferior do corpo que não esteja claramente presente na fotografia original enviada.
+- NUNCA transforme uma foto de busto, meio-corpo ou recorte de torso em uma pessoa de corpo inteiro.
+- Preserve o recorte corporal original da foto. Se a imagem termina no peito, cintura ou torso, mantenha o personagem enquadrado/cortado nessa mesma região ou faça um crop ainda mais fechado.
+- É preferível cortar o pregador atrás de elementos gráficos, degradê, névoa, luz ou fora da borda da composição do que completar anatomia inexistente.
+- Não invente roupa abaixo do limite visível da fotografia para construir corpo adicional.
+- Esta regra vale para pregador principal, auxiliares, correções, variações e artes derivadas e vence qualquer instrução estética que sugira corpo inteiro.
+
+
+${(data.references||[]).length?'Use as referências como referência real de DESIGN: composição, hierarquia, tratamento tipográfico, recortes, textura, paleta, profundidade e linguagem visual.':`CRIAÇÃO SEM REFERÊNCIA: desenvolva uma proposta original a partir desta direção: ${data.inspirationStyle?.name||''} — ${data.inspirationStyle?.prompt||''}. Não copie uma peça específica.`}
+NÃO crie uma base vazia para ser montada depois. Resolva a peça completa como um designer, EXCETO pelas logos oficiais, que serão coladas deterministicamente depois.
+
+LOGO-FREE CANVAS — HARD CONSTRAINT:
+- Gere ZERO logos, ZERO marcas, ZERO emblemas institucionais e ZERO versões reconstruídas de logos.
+- Se a referência contém qualquer logo, símbolo de igreja, wordmark, selo, marca de evento ou assinatura institucional, REMOVA completamente esse elemento e reconstrua naturalmente o fundo atrás dele.
+- Não copie símbolo, não deixe fantasma, não deixe marca d'água e não converta logo em texto.
+- Quando houver logo oficial selecionada para composição posterior, não escreva o nome da igreja como substituto da logo.
+- Mesmo sem logo selecionada, o nome da igreja só pode aparecer quando requiredContent.churchName estiver explicitamente preenchido.
+- NÃO reserve área visual para logos. Não abra buraco na composição, não deixe caixa vazia, contorno, moldura, halo, placa, selo ou placeholder.
+- Faça a arte parecer completamente finalizada MESMO SEM LOGOS. O compositor pós-arte analisará o resultado pronto e escolherá depois a melhor posição para os PNGs originais.
+
+${blueprint(data)}
+
+CONTEÚDO QUE DEVE APARECER EXATAMENTE:
+${texts||"Sem textos obrigatórios."}
+
+${c.secondaryInfo?`HIERARQUIA DA INFORMAÇÃO SECUNDÁRIA — HARD CONSTRAINT:
+- "${c.secondaryInfo}" é INFORMAÇÃO SECUNDÁRIA, nunca título.
+- Deve ser visivelmente MENOR que o título principal em escala e peso.
+- Deve ficar DESLOCADA do título, em uma ÁREA ABERTA da composição.
+- Não empilhe como continuação do título, não centralize junto ao título por padrão e não a transforme em segundo headline.
+- Não cubra rosto, pessoa, logo futura ou elemento focal.
+`:''}
+
+${data.referenceSemanticPolicy==='current-art-truth'?`DERIVAÇÃO — ARTE ATUAL COMO VERDADE:
+- A referência selecionada é a ARTE ATUAL, não uma referência style-only.
+- Preserve textos realmente visíveis nela somente quando não houver ordem atual para removê-los/substituí-los.
+- Textos pedidos explicitamente nesta ação devem aparecer EXATAMENTE: ${JSON.stringify(data.explicitDerivativeTexts||[])}.
+- CADA item dessa lista é conteúdo obrigatório independente. Não omita linhas por falta de espaço: reduza/reorganize a composição para acomodar todas.
+- Não transforme essas linhas em texto genérico, placeholders ou pseudo-tipografia.
+- NÃO recupere textos de requiredContent antigo, artDirection antiga, arte raiz ou versões anteriores.
+- NÃO invente slogan, nome de culto, data, horário, endereço, local, nome de pregador, nome de igreja ou qualquer outra informação ausente da arte selecionada e das instruções atuais.
+- SAÍDA LOGO-FREE: remova qualquer logo de igreja ou logo de evento visível na referência. Não redesenhe, não imite e não preserve essas marcas na imagem gerada.
+- Logos de igreja/evento nunca são "elementos PNG" nesta etapa; elas serão aplicadas somente no Assistente de Logos após a geração.
+- É erro crítico criar pessoa, data, horário, endereço, título ou logo não autorizada pela ação atual.
+- Hierarquia: INSTRUÇÃO ATUAL > ARTE SELECIONADA > qualquer contexto antigo.
+`:`TEXT ALLOWLIST — HARD CONSTRAINT:
+Os ÚNICOS textos legíveis permitidos são: ${JSON.stringify(data.allowedTexts||[])}.
+Não invente slogans, chamadas, nomes de culto, nomes de igreja, palavras de fundo, datas, números ou frases.
+Não copie qualquer texto da referência original, porque ela é STYLE-ONLY.
+Se quiser reproduzir uma massa tipográfica da referência, use somente um texto autorizado ou geometria abstrata NÃO legível.
+Qualquer palavra legível fora da allowlist é erro crítico.`}
+
+IGREJA — CONTEXTO INTERNO, NÃO AUTORIZAÇÃO DE TEXTO: ${data.church?.name||""}
+REGRA ABSOLUTA DO NOME DA IGREJA:
+${c.churchName?`- O usuário AUTORIZOU o nome da igreja nesta arte. Escreva SOMENTE o texto exato presente em NOME DA IGREJA / requiredContent.churchName: "${c.churchName}".`:`- O usuário NÃO autorizou nome de igreja como texto. NÃO escreva o nome institucional, mesmo que ele apareça neste contexto interno, na referência, em metadados ou em qualquer instrução herdada.
+- Não use nome da igreja como assinatura, rodapé, selo, chamada, placeholder ou substituto da logo.
+- A identificação institucional será feita por uma LOGO ORIGINAL em etapa posterior.`}
+- Nunca invente outro nome de igreja.
+PÚBLICO-ALVO ESCOLHIDO: ${data.audience||"não especificado"}\nPOSIÇÃO PRIORITÁRIA DA LOGO: ${data.logoPosition||"seguir referência / automática"}
+ESTILO ESCOLHIDO: ${data.designStyle||"não especificado"}
+${String(data.designStyle||'').toLowerCase()==='minimalista'?`ESTILO MINIMALISTA — HARD DIRECTION:
+- poucos elementos visuais;
+- bastante espaço negativo intencional;
+- hierarquia tipográfica limpa;
+- formas simples e precisas;
+- paleta contida;
+- zero ornamento gratuito, excesso de efeitos, ruído ou poluição;
+- resultado sofisticado e profissional pela redução e pelo equilíbrio.
+`:''}
+Se uma LOGO oficial foi fornecida, use a logo e NÃO repita o nome da igreja em texto separado.
+
+FOTO DA IGREJA — PLACA FOTOGRÁFICA IMUTÁVEL / HARD CONSTRAINT UNIVERSAL:
+${data.assets?.churchImage?.image?`- Existe um asset churchImage. Ele é a FONTE DE VERDADE e deve permanecer como a MESMA FOTOGRAFIA, não como uma interpretação visual.
+- Preserve rigorosamente arquitetura, paredes, palco, teto, cadeiras, telas, pessoas, objetos, luminárias, luzes, linhas, perspectiva e proporções internas do arquivo original.
+- PROIBIDO redesenhar, reconstruir, completar, remover, adicionar, mover ou substituir qualquer elemento interno da foto.
+- PROIBIDO alterar a geometria por stretch, escala não uniforme, perspective warp, liquify, deformação, espelhamento ou mudança de perspectiva.
+- Para adaptar a outro aspect ratio, use SOMENTE crop nas BORDAS + escala UNIFORME + reposicionamento do quadro fotográfico inteiro.
+- Se a foto não preencher o canvas sem deformação, NÃO invente continuação arquitetônica. Complete o canvas com elementos gráficos, gradientes, sombras, texturas ou áreas abstratas coerentes com a arte.
+- Permitidos sobre a FOTO INTEIRA: color grading, exposição, contraste, saturação, temperatura, tonalidade, vinheta, escurecimento e blur global leve. Não faça edição generativa localizada que altere a estrutura.
+- A foto deve ser reconhecível por comparação direta como O MESMO ARQUIVO. Uma igreja apenas "parecida" é FALHA CRÍTICA.
+- Esta regra vale em ARTE BASE, VARIAÇÃO, CORREÇÃO/DELTA-ONLY, DERIVADA, MODO LIVRE, MODO FUNDO e MODO TEMA, salvo quando o usuário selecionar explicitamente "omitir foto da igreja".`:`- Nenhum asset churchImage foi fornecido. Se a referência já possui ambiente de igreja, congregação ou adoração ao fundo, preserve apenas o tipo de atmosfera; não invente silhuetas humanas para preencher lugares vazios.`}
+
+REGRA DE COMPOSIÇÃO ADAPTATIVA:
+- A referência é uma linguagem visual, NÃO um molde rígido.
+- Conte quantas pessoas existem nas fotos realmente fornecidas. Use SOMENTE essas pessoas.
+- Se a referência tiver mais pessoas do que foram fornecidas, NÃO crie silhuetas, sombras, manequins, espaços vazios ou pessoas inventadas para preencher posições.
+- Refaça a composição de forma coesa para a quantidade real de pessoas.
+- Uma pessoa deve receber uma composição intencional de protagonista; duas devem ser equilibradas; três podem usar composição de trio.
+- Preserve a sensação, hierarquia, energia, paleta, tipografia, recortes e texturas da referência, mas adapte geometria, escala e espaços.
+- Nunca interprete ausência de uma foto como pedido para reservar um espaço para ela.
+- Se houver apenas um pregador, faça a arte parecer desenhada originalmente para UM pregador.
+
+
+
+TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
+- Trate os 12% externos de CADA LADO como zona proibida para conteúdo essencial.
+- Todo texto, título, subtítulo, data, hora, endereço, logo, nome de pregador, rosto e cabeça deve ficar integralmente dentro do retângulo central de 76% da largura por 76% da altura.
+- Nada essencial pode tocar a borda. Nada essencial pode ser parcialmente cortado.
+- Faça o layout MENOR e mais central se houver qualquer dúvida. Espaço vazio nas bordas é aceitável; conteúdo cortado não é.
+- Elementos abstratos/texturas podem sangrar; informação e pessoas nunca.
+- Faça uma revisão final das quatro bordas antes de concluir.
+
+REGRA DE LOGOS PÓS-ARTE:
+- Nenhuma logo será desenhada nesta etapa.
+- Não reserve, marque ou sinalize posição de logo.
+- Ignore logoPosition, eventLogoPosition, eventLogoSize e artDirection.protected_assets ao compor a imagem visual.
+- Se a referência tiver logo, remova-a e reconstrua o fundo naturalmente, sem deixar vestígio nem espaço artificial.
+
+REGRA DE SAFE AREA / ÁREA SEGURA:
+- Nenhum texto, logo, rosto, data, horário, endereço ou informação essencial pode encostar, ultrapassar ou ficar parcialmente fora do canvas.
+- Reserve no mínimo 8% de margem interna em TODOS os lados para conteúdo essencial.
+- Em formatos verticais, não coloque títulos ou endereços colados no topo ou na base.
+- Em formatos horizontais, proteja especialmente as laterais.
+- Elementos decorativos podem sangrar para fora; conteúdo essencial, jamais.
+- Antes de finalizar, revise mentalmente as quatro bordas e confirme que nada importante está cortado.
+
+ 
+TIPOGRAFIA FINAL:
+- Toda a tipografia é desenhada pela IA visual dentro da arte.
+- Não existe camada de texto posterior.
+- Cada informação obrigatória deve aparecer uma única vez.
+- Preserve tipografia, tratamentos, escala e função visual da referência sempre que possível.
+
+
+PREGADOR:
+- O sistema aceita NO MÁXIMO 3 pregadores.
+${data.addPastorOverride?'- OVERRIDE ATIVO: existe uma foto de pregador explicitamente selecionada para ADIÇÃO nesta derivada. A presença desse pregador é OBRIGATÓRIA, mesmo que a arte-base não tenha pessoa.':''}
+- A ordem dos assets é semântica e obrigatória: PESSOA 1 = PRINCIPAL; PESSOA 2 = AUXILIAR 1; PESSOA 3 = AUXILIAR 2.
+- TODA PESSOA HUMANA NA ARTE DE REFERÊNCIA É PLACEHOLDER DE COMPOSIÇÃO E DEVE SER REMOVIDA quando houver pregadores enviados, salvo comando explícito para preservar uma pessoa da referência.
+- JAMAIS mantenha o pregador/modelo/pessoa original da referência no lugar do PRINCIPAL enviado pelo usuário.
+- Se a referência possui uma pessoa central, substitua semanticamente essa pessoa pelo PRINCIPAL enviado: preserve a FUNÇÃO/REGIÃO composicional, mas use a IDENTIDADE e, quando possível, a POSE do principal enviado.
+- Não misture rosto, cabelo, barba, roupa, corpo ou identidade entre referência e fotos enviadas.
+- O PRINCIPAL deve ter maior prioridade visual: posição mais central, escala igual ou maior e leitura imediata antes dos auxiliares.
+- Com 2 pessoas: mantenha o PRINCIPAL mais central/dominante e o AUXILIAR 1 em posição lateral secundária.
+- Com 3 pessoas: mantenha o PRINCIPAL no eixo ou região central dominante e distribua AUXILIAR 1 e AUXILIAR 2 nas laterais de forma equilibrada.
+- DIREÇÃO DOS AUXILIARES: a equipe deve visualmente ABRIR PARA FORA do centro. Auxiliar à esquerda olha/orienta-se preferencialmente para a esquerda externa; auxiliar à direita, para a direita externa.
+- Primeiro escolha o lado pela orientação natural da foto. Se dois auxiliares olharem para o mesmo lado, é permitido FLIP HORIZONTAL integral de um deles, sem redesenhar rosto, mãos, roupa, microfone ou instrumento. Nunca espelhe logos/textos.
+- Preserve pose, gesto, braço levantado/abaixado, mãos, microfone, inclinação da cabeça e direção do olhar de cada foto enviada. Não neutralize poses expressivas.
+- Preserve fortemente a fisionomia. Não embeleze, rejuvenesça, envelheça ou invente traços.
+- Nunca troque rostos, nomes, funções ou hierarquia entre as pessoas.
+- Auxiliares podem ficar parcialmente atrás do principal quando a composição pedir profundidade, mas nunca devem cobrir o rosto do principal.
+- Com referência, replique primeiro o ENQUADRAMENTO e a função espacial, não a identidade humana.
+- Se a referência mostrar busto, peito ou cintura, não transforme em corpo inteiro.
+- Sem referência/instrução, priorize peito para cima ou cintura para cima.
+- Corpo inteiro apenas se referência/instrução justificar.
+- Preserve direção e função espacial de sombras, glows e brilhos.
+
+LOGOS OFICIAIS — PROIBIÇÃO FINAL:
+- Logo da igreja e logo de evento NÃO pertencem a esta geração.
+- Toda logo da referência deve desaparecer.
+- NÃO preserve espaço negativo específico para logos e NÃO desenhe qualquer marcador de posição.
+- Não invente símbolo institucional ou marca substituta.
+
+REGRA DE CANVAS NATIVO — HARD CONSTRAINT:
+- O tamanho/proporção solicitados são o canvas real da arte.
+- Crie a composição diretamente nessa proporção e preencha 100% dela.
+- PROIBIDO gerar um pôster/cartaz menor dentro de outro canvas.
+- PROIBIDO usar a própria arte ampliada, borrada, desfocada ou duplicada como fundo para completar a proporção. Isso inclui qualquer efeito de 'contain' visual, vinheta externa, frame interno ou preenchimento por blur.
+- PROIBIDO adicionar barras, margens externas ou moldura de compensação, salvo quando referência/instrução explicitamente usar isso.
+- Se a composição original não couber, redistribua e redimensione os elementos.
+
+REGRA DE CAMADAS — HARD CONSTRAINT:
+- Foto da igreja = BACKGROUND.
+- Pregadores selecionados = FOREGROUND.
+- Nenhuma mão, cabeça, braço, pessoa ou objeto da foto da igreja pode sobrepor visualmente rosto ou corpo do pregador.
+- Quando houver múltiplos pregadores, componha-os deliberadamente; não duplique pessoas apenas para preencher espaço.
+
+REGRA DE TEXTO — HARD CONSTRAINT:
+- Cada dado semântico deve aparecer no máximo uma vez.
+- Se a instrução disser que determinado campo será renderizado posteriormente, NÃO o desenhe na imagem base; apenas reserve espaço coerente.
+
+REGRA DE ENQUADRAMENTO DO PREGADOR:
+- Preserve o corpo inteiro sempre que a fotografia original tiver corpo suficiente para isso.
+- Evite ao máximo cortar cabeça, mãos, braços, pernas, pés ou tronco.
+- Não faça crop agressivo por estética automática.
+- Corte corporal só é permitido quando a referência tiver claramente esse enquadramento ou quando o usuário instruir.
+- Se precisar acomodar título e pessoa, reduza escala ou reorganize a composição antes de cortar partes do corpo.
+
+REGRAS DE FIDELIDADE:
+- A foto do pregador fornecida é uma identidade protegida. Preserve a pessoa; não invente outro rosto.
+- FIDELIDADE FACIAL É PRIORIDADE ABSOLUTA: não redesenhe, embeleze, rejuvenesça, envelheça, afine, alargue ou reinterpretе o rosto. Não altere olhos, nariz, boca, mandíbula, barba, cabelo, pele, expressão ou proporções faciais.
+- A fotografia do pregador deve funcionar como identidade visual bloqueada: prefira recorte, escala, reposicionamento, máscara, iluminação e correção de cor ao redor da foto em vez de regenerar seus traços.
+- Se qualquer efeito/estilo puder modificar a fisionomia, reduza ou remova esse efeito sobre rosto e cabeça. A fidelidade da pessoa vale mais que a fidelidade ao estilo.
+- Se não conseguir uma transformação sofisticada sem alterar a identidade, use um recorte/tratamento mais simples e fiel.
+- Logo oficial: preservar exatamente. Não redesenhar.
+- Não invente datas, horários, endereço, nomes, slogans ou textos.
+- RÓTULOS INTERNOS DE PESSOAS SÃO PROIBIDOS COMO TEXTO VISÍVEL: nunca renderize “PREGADOR PRINCIPAL”, “PREGADOR AUXILIAR”, “PRINCIPAL”, “AUXILIAR”, “PESSOA 1”, “PESSOA 2”, “PESSOA 3” ou equivalentes. Esses termos são somente metadados internos.
+- Quando houver nome de pregador, renderize somente o nome fornecido pelo usuário, sem prefixar função, papel ou identificador interno.
+- Esta proibição NÃO se aplica a rótulos editoriais legítimos da referência como “DATA”, “HORÁRIO”, “LOCAL” ou “ENDEREÇO”, quando seu uso estiver autorizado pelo conteúdo e pela referência.
+- Não escreva outros rótulos internos como "logo", "reserva", "pregador" ou nomes de camada.
+- Complexidade visual somente quando for coerente e segura. Coerência sempre.
+${data.backgroundMode?'- MODO FUNDO: título e qualquer texto são proibidos.':'- Título deve fazer parte do design: escala, composição, contraste, possível inclinação, outline, sombra ou deformação quando coerente com a referência.'}
+- Integre pessoas, título e elementos em camadas, evitando aparência de formulário/cartões genéricos.
+- COMPOSIÇÃO LIMPA: salvo quando a referência ou o usuário pedir explicitamente, nunca crie um cartaz/quadro menor flutuando dentro de outro fundo, moldura ou canvas. A arte deve ocupar o canvas inteiro.
+- Evite caixas, cartões, cápsulas, placas e contornos em torno de data, hora, endereço e textos; só use quando a referência ou instrução justificar claramente.
+- LOGO PRINCIPAL DA IGREJA e LOGO DE EVENTO são IDENTIDADES DIFERENTES e NÃO INTERCAMBIÁVEIS.
+- A LOGO PRINCIPAL pode aparecer NO MÁXIMO UMA VEZ. É proibido repetir a logo principal para preencher o lugar da logo de evento.
+- Se LOGO DE EVENTO foi fornecida, ela é OBRIGATÓRIA e deve aparecer exatamente UMA VEZ, fiel ao arquivo enviado.
+- Nunca transforme a logo principal em logo de evento, nunca extraia seu símbolo para fazer uma segunda marca e nunca invente variações.
+- LOGO ORIGINAL: use uma única vez, limpa e intacta. Não coloque a logo dentro de caixa, card, placa, selo, cápsula ou fundo próprio, salvo referência/instrução explícita. Nunca extraia o símbolo da logo para repetir em outro ponto; nunca redesenhe, reescreva, reconstrua ou duplique partes da identidade visual.
+- LOGO DE EVENTO: quando fornecida, é um segundo asset protegido e diferente da logo principal. Use-a UMA única vez e intacta. Ela só pode ocupar uma das seis zonas laterais dentro dos 3/5 centrais do canvas: esquerda-superior, esquerda-meio, esquerda-inferior, direita-superior, direita-meio ou direita-inferior. Não use cantos extremos. Não sobreponha logo principal, rosto, título ou dados essenciais. A logo principal tem prioridade espacial. Se houver posição explícita, siga: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"IA escolhe a melhor das seis zonas permitidas"}. TAMANHO MÁXIMO: ${data.eventLogoSize||data.assets?.eventLogo?.size||"small"} — small ≈ 14% da largura do canvas; medium ≈ 20%; large ≈ 26%. Preserve a proporção original e não ultrapasse esse limite visual.
+- Em TELÃO, prefira título centralizado quando não houver outro elemento visual principal. Havendo pregador/figura/ilustração solicitada, prefira composição lateral equilibrada: título de um lado e imagem do outro.
+- Se solicitado MODO ESCURO DE TELÃO, use predominância escura sobretudo no fundo, contraste alto e foto da igreja mais discreta/escurecida.
+
+FORMATO FINAL: ${target.width||1080}x${target.height||1350}, proporção ${target.ratio||""}
+VARIAÇÃO: ${data.variantLabel||"principal"} — ${data.variantInstruction||""}
+INSTRUÇÃO DO USUÁRIO: ${data.instruction||""}\nSe público-alvo ou estilo tiverem sido especificados, siga a interpretação que o DIRETOR DE ARTE já incorporou ao blueprint.
+Use também os campos explícitos acima como trava de consistência.
+Se estiverem como 'não especificado', não force nenhum estilo ou público artificialmente.
+INSTRUÇÃO FINAL: ${data.finalInstruction||""}
+CORREÇÃO DO FISCAL, se houver: ${data.qualityCorrection||"nenhuma"}
+
+${data.safeMode?`MODO SEGURO OBRIGATÓRIO:
+- reduza a complexidade;
+- não deforme o rosto;
+- não estilize a pessoa de forma que altere sua identidade;
+- trate a foto do pregador como fotografia real recortada/encaixada;
+- não gere nenhuma logo ou marca;
+- use tipografia forte porém simples;
+- não use distorções em textos obrigatórios;
+- todos os dados precisam estar legíveis e corretos;
+- prefira fundo gráfico simples e profissional a uma composição arriscada.`:""}
+
+REGRA DE CANVAS NATIVO — CRÍTICA:
+- O tamanho de saída informado pela API é o CANVAS FINAL desta arte.
+- Componha diretamente nesse aspect ratio. A referência NÃO define o tamanho do canvas.
+- Se a referência tiver outra proporção, REORGANIZE a composição; não reproduza a referência como um quadro dentro de outro quadro.
+- Não crie padding, bordas, molduras, barras, fundo borrado ou extensão artificial para compensar proporção.
+- Todo conteúdo essencial deve permanecer dentro da safe area já definida.
+
+Entregue a arte final, não um mockup.`;
+}
+
+function promptPresetOnly(data){
+  const c=data.requiredContent||{},target=data.target||{};
+  const explicitDerivativeTexts=(data.explicitDerivativeTexts||[]).map(t=>`TEXTO EXATO PEDIDO AGORA: ${t}`);
+  const texts=[
+    c.title?`TÍTULO EXATO: ${c.title}`:"",
+    c.subtitle?`SUBTÍTULO EXATO: ${c.subtitle}`:"",
+    c.secondaryInfo?`INFORMAÇÃO SECUNDÁRIA EXATA: ${c.secondaryInfo}`:"",
+    c.date?`DATA EXATA: ${c.date}`:"",
+    c.time?`HORÁRIO EXATO: ${c.time}`:"",
+    c.address?`ENDEREÇO EXATO: ${c.address}`:"",
+    ...(Array.isArray(c.pastorNames)?c.pastorNames.filter(Boolean).map((n,i)=>`NOME EXATO DA PESSOA ${i+1} (renderizar SOMENTE o valor após os dois-pontos; nunca renderizar "PESSOA ${i+1}" nem função interna): ${n}`):[]),
+    ...explicitDerivativeTexts
+  ].filter(Boolean).join("\n");
+  return `Crie uma ARTE FINAL profissional para igreja, pronta para publicação.
+
+${transparentBackgroundIntent(data)?`MODO PNG TRANSPARENTE — HARD CONSTRAINT TÉCNICO / ALPHA REAL:
+- A saída deve ser um PNG RGBA com CANAL ALPHA REAL.
+- Todo pixel fora do objeto/elemento solicitado deve ter alpha = 0 (totalmente transparente).
+- NÃO desenhe fundo branco, preto, cinza, colorido, degradê, textura, cenário, papel, parede ou superfície atrás do objeto.
+- NÃO desenhe padrão quadriculado/checkerboard. O quadriculado é apenas uma convenção visual de softwares para representar transparência; ele NUNCA deve fazer parte dos pixels da imagem.
+- NÃO simule transparência com quadrados cinza/branco, grid, mosaico, máscara visível ou textura.
+- As bordas do objeto devem terminar naturalmente em transparência, com antialiasing correto e sem halo branco/preto.
+- Preserve sombras somente quando fizerem parte do próprio objeto e permita que desapareçam progressivamente no alpha; não crie uma placa de fundo para sustentar a sombra.
+- Se houver vazio entre partes do objeto, esse vazio também deve ser alpha = 0.
+- Esta regra tem prioridade sobre qualquer direção estética de fundo, salvo ordem explícita do usuário dizendo que NÃO quer transparência.
+- TESTE MENTAL OBRIGATÓRIO: se o PNG for colocado sobre fundo vermelho, azul ou preto, nenhuma área retangular, quadrícula ou cor de fundo deve aparecer; deve aparecer somente o objeto recortado.
+`:''}
+${data.backgroundMode?`MODO FUNDO ABSOLUTO — ESTA REGRA SOBRESCREVE QUALQUER OUTRA INSTRUÇÃO DE TEXTO OU CONTEÚDO:
+- Gere somente um FUNDO LIMPO da mesma identidade visual.
+- ZERO TEXTO LEGÍVEL. Não renderize nem preserve título, subtítulo, palavras, letras, números, datas, horários, endereço, nomes, slogans, chamadas, assinatura, selo ou placeholder.
+${data.addPastorOverride?`- EXCEÇÃO HUMANA OBRIGATÓRIA: renderize EXATAMENTE o pregador fornecido como PESSOA 1. A pessoa deve ficar claramente visível, reconhecível e integrada ao fundo; não inclua nenhuma outra pessoa.`:`- ZERO PESSOAS. Não renderize pregadores, rostos, corpos, silhuetas ou figuras humanas.`}
+- ZERO LOGOS, marcas ou emblemas.
+- A referência é uma fonte de paleta, atmosfera, iluminação, textura, formas abstratas e cenário; todo conteúdo semântico visível nela deve ser removido e a área reconstruída naturalmente.
+- Se existir fotografia real da igreja fornecida como asset de fundo, ela é uma PLACA IMUTÁVEL: preserve o arquivo original sem redesenho, deformação, reconstrução, espelhamento, stretch ou alteração de perspectiva. Para encaixar no formato use somente crop de bordas + escala uniforme + reposicionamento; complete áreas restantes com design gráfico, nunca com arquitetura inventada.
+- Não transforme palavras da referência em textura tipográfica. Não deixe fragmentos de letras.
+- O resultado deve parecer um background pronto para receber novos elementos depois.
+`:''}
+${data.revisionMode==='delta-only'?`MODO CORREÇÃO CIRÚRGICA / DELTA ONLY:
+A primeira referência é a última versão e funciona como MOLDE BLOQUEADO.
+Altere SOMENTE: ${data.revisionInstruction||data.variantInstruction||'o ajuste explicitamente pedido'}.
+Todo elemento não mencionado deve permanecer visualmente igual: rostos, mãos, dedos, roupas, poses, textos, palavras de fundo, efeitos, cores, posições e composição. Logos permanecem ausentes do canvas generativo e serão recoladas deterministicamente depois.
+Não reinterprete áreas não solicitadas. Se precisar reconstruir uma pequena região, consulte os assets originais e preserve a identidade exata.
+`:''}
+${data.addPastorOverride?`ADICIONAR PREGADOR — OVERRIDE ABSOLUTO / HARD CONSTRAINT:
+- A imagem PESSOA 1 é um ASSET OBRIGATÓRIO desta derivada.
+- O resultado final DEVE CONTER PESSOA 1 claramente visível. Não é opcional.
+- Mesmo que a working-base/referência tenha ZERO pessoas, RECOMPONHA o layout e INSIRA PESSOA 1.
+- Não preserve “ausência de pessoa” da referência.
+- Não substitua por pessoa da referência, modelo genérico, silhueta, sombra ou rosto inventado.
+- Preserve fortemente a identidade facial, cabelo, roupa, pose, gesto, mãos, microfone/objeto e orientação natural da foto enviada.
+- Rosto e cabeça inteiros devem permanecer dentro da safe area e não podem ficar escondidos por texto.
+- Esta ordem vence qualquer regra herdada de artDirection, referência ou modo que diga sem pessoas/remover pregador.
+- Em Modo Fundo, continue removendo textos e logos, mas mantenha PESSOA 1.
+- Em Modo Tema, mantenha somente o título como texto, mas mantenha PESSOA 1.
+`:''}
+
+ATIVOS SAGRADOS:
+Fotos de pregadores, logo da igreja e logo de evento são ativos independentes e invioláveis. Nunca misture símbolos, textos, membros, objetos ou identidades entre eles.
+Campo de nome vazio = nenhum texto ou placeholder para aquela pessoa.
+Camadas humanas não podem se fundir. Objetos de um auxiliar não podem atravessar para frente do principal.
+
+REGRA ABSOLUTA DE ENQUADRAMENTO DOS PREGADORES / NÃO COMPLETAR CORPO:
+- NUNCA invente, complete ou gere pernas, quadris, cintura, pés ou qualquer parte inferior do corpo que não esteja claramente presente na fotografia original enviada.
+- NUNCA transforme uma foto de busto, meio-corpo ou recorte de torso em uma pessoa de corpo inteiro.
+- Preserve o recorte corporal original da foto. Se a imagem termina no peito, cintura ou torso, mantenha o personagem enquadrado/cortado nessa mesma região ou faça um crop ainda mais fechado.
+- É preferível cortar o pregador atrás de elementos gráficos, degradê, névoa, luz ou fora da borda da composição do que completar anatomia inexistente.
+- Não invente roupa abaixo do limite visível da fotografia para construir corpo adicional.
+- Esta regra vale para pregador principal, auxiliares, correções, variações e artes derivadas e vence qualquer instrução estética que sugira corpo inteiro.
+
+
+${layoutPresetStructuralBlock(data)}
+
+${(data.references||[]).length?'Use as referências como referência real de DESIGN: composição, hierarquia, tratamento tipográfico, recortes, textura, paleta, profundidade e linguagem visual.':`CRIAÇÃO SEM REFERÊNCIA: desenvolva uma proposta original a partir desta direção: ${data.inspirationStyle?.name||''} — ${data.inspirationStyle?.prompt||''}. Não copie uma peça específica.`}
+NÃO crie uma base vazia para ser montada depois. Resolva a peça completa como um designer, EXCETO pelas logos oficiais, que serão coladas deterministicamente depois.
+
+LOGO-FREE CANVAS — HARD CONSTRAINT:
+- Gere ZERO logos, ZERO marcas, ZERO emblemas institucionais e ZERO versões reconstruídas de logos.
+- Se a referência contém qualquer logo, símbolo de igreja, wordmark, selo, marca de evento ou assinatura institucional, REMOVA completamente esse elemento e reconstrua naturalmente o fundo atrás dele.
+- Não copie símbolo, não deixe fantasma, não deixe marca d'água e não converta logo em texto.
+- Quando houver logo oficial selecionada para composição posterior, não escreva o nome da igreja como substituto da logo.
+- Mesmo sem logo selecionada, o nome da igreja só pode aparecer quando requiredContent.churchName estiver explicitamente preenchido.
+- NÃO reserve área visual para logos. Não abra buraco na composição, não deixe caixa vazia, contorno, moldura, halo, placa, selo ou placeholder.
+- Faça a arte parecer completamente finalizada MESMO SEM LOGOS. O compositor pós-arte analisará o resultado pronto e escolherá depois a melhor posição para os PNGs originais.
+
+${blueprint(data)}
+
+CONTEÚDO QUE DEVE APARECER EXATAMENTE:
+${texts||"Sem textos obrigatórios."}
+
+${c.secondaryInfo?`HIERARQUIA DA INFORMAÇÃO SECUNDÁRIA — HARD CONSTRAINT:
+- "${c.secondaryInfo}" é INFORMAÇÃO SECUNDÁRIA, nunca título.
+- Deve ser visivelmente MENOR que o título principal em escala e peso.
+- Deve ficar DESLOCADA do título, em uma ÁREA ABERTA da composição.
+- Não empilhe como continuação do título, não centralize junto ao título por padrão e não a transforme em segundo headline.
+- Não cubra rosto, pessoa, logo futura ou elemento focal.
+`:''}
+
+${data.referenceSemanticPolicy==='current-art-truth'?`DERIVAÇÃO — ARTE ATUAL COMO VERDADE:
+- A referência selecionada é a ARTE ATUAL, não uma referência style-only.
+- Preserve textos realmente visíveis nela somente quando não houver ordem atual para removê-los/substituí-los.
+- Textos pedidos explicitamente nesta ação devem aparecer EXATAMENTE: ${JSON.stringify(data.explicitDerivativeTexts||[])}.
+- CADA item dessa lista é conteúdo obrigatório independente. Não omita linhas por falta de espaço: reduza/reorganize a composição para acomodar todas.
+- Não transforme essas linhas em texto genérico, placeholders ou pseudo-tipografia.
+- NÃO recupere textos de requiredContent antigo, artDirection antiga, arte raiz ou versões anteriores.
+- NÃO invente slogan, nome de culto, data, horário, endereço, local, nome de pregador, nome de igreja ou qualquer outra informação ausente da arte selecionada e das instruções atuais.
+- SAÍDA LOGO-FREE: remova qualquer logo de igreja ou logo de evento visível na referência. Não redesenhe, não imite e não preserve essas marcas na imagem gerada.
+- Logos de igreja/evento nunca são "elementos PNG" nesta etapa; elas serão aplicadas somente no Assistente de Logos após a geração.
+- É erro crítico criar pessoa, data, horário, endereço, título ou logo não autorizada pela ação atual.
+- Hierarquia: INSTRUÇÃO ATUAL > ARTE SELECIONADA > qualquer contexto antigo.
+`:`TEXT ALLOWLIST — HARD CONSTRAINT:
+Os ÚNICOS textos legíveis permitidos são: ${JSON.stringify(data.allowedTexts||[])}.
+Não invente slogans, chamadas, nomes de culto, nomes de igreja, palavras de fundo, datas, números ou frases.
+Não copie qualquer texto da referência original, porque ela é STYLE-ONLY.
+Se quiser reproduzir uma massa tipográfica da referência, use somente um texto autorizado ou geometria abstrata NÃO legível.
+Qualquer palavra legível fora da allowlist é erro crítico.`}
+
+IGREJA — CONTEXTO INTERNO, NÃO AUTORIZAÇÃO DE TEXTO: ${data.church?.name||""}
+REGRA ABSOLUTA DO NOME DA IGREJA:
+${c.churchName?`- O usuário AUTORIZOU o nome da igreja nesta arte. Escreva SOMENTE o texto exato presente em NOME DA IGREJA / requiredContent.churchName: "${c.churchName}".`:`- O usuário NÃO autorizou nome de igreja como texto. NÃO escreva o nome institucional, mesmo que ele apareça neste contexto interno, na referência, em metadados ou em qualquer instrução herdada.
+- Não use nome da igreja como assinatura, rodapé, selo, chamada, placeholder ou substituto da logo.
+- A identificação institucional será feita por uma LOGO ORIGINAL em etapa posterior.`}
+- Nunca invente outro nome de igreja.
+PÚBLICO-ALVO ESCOLHIDO: ${data.audience||"não especificado"}\nPOSIÇÃO PRIORITÁRIA DA LOGO: ${data.logoPosition||"seguir referência / automática"}
+ESTILO ESCOLHIDO: ${data.designStyle||"não especificado"}
+${String(data.designStyle||'').toLowerCase()==='minimalista'?`ESTILO MINIMALISTA — HARD DIRECTION:
+- poucos elementos visuais;
+- bastante espaço negativo intencional;
+- hierarquia tipográfica limpa;
+- formas simples e precisas;
+- paleta contida;
+- zero ornamento gratuito, excesso de efeitos, ruído ou poluição;
+- resultado sofisticado e profissional pela redução e pelo equilíbrio.
+`:''}
+Se uma LOGO oficial foi fornecida, use a logo e NÃO repita o nome da igreja em texto separado.
+
+FOTO DA IGREJA — PLACA FOTOGRÁFICA IMUTÁVEL / HARD CONSTRAINT UNIVERSAL:
+${data.assets?.churchImage?.image?`- Existe um asset churchImage. Ele é a FONTE DE VERDADE e deve permanecer como a MESMA FOTOGRAFIA, não como uma interpretação visual.
+- Preserve rigorosamente arquitetura, paredes, palco, teto, cadeiras, telas, pessoas, objetos, luminárias, luzes, linhas, perspectiva e proporções internas do arquivo original.
+- PROIBIDO redesenhar, reconstruir, completar, remover, adicionar, mover ou substituir qualquer elemento interno da foto.
+- PROIBIDO alterar a geometria por stretch, escala não uniforme, perspective warp, liquify, deformação, espelhamento ou mudança de perspectiva.
+- Para adaptar a outro aspect ratio, use SOMENTE crop nas BORDAS + escala UNIFORME + reposicionamento do quadro fotográfico inteiro.
+- Se a foto não preencher o canvas sem deformação, NÃO invente continuação arquitetônica. Complete o canvas com elementos gráficos, gradientes, sombras, texturas ou áreas abstratas coerentes com a arte.
+- Permitidos sobre a FOTO INTEIRA: color grading, exposição, contraste, saturação, temperatura, tonalidade, vinheta, escurecimento e blur global leve. Não faça edição generativa localizada que altere a estrutura.
+- A foto deve ser reconhecível por comparação direta como O MESMO ARQUIVO. Uma igreja apenas "parecida" é FALHA CRÍTICA.
+- Esta regra vale em ARTE BASE, VARIAÇÃO, CORREÇÃO/DELTA-ONLY, DERIVADA, MODO LIVRE, MODO FUNDO e MODO TEMA, salvo quando o usuário selecionar explicitamente "omitir foto da igreja".`:`- Nenhum asset churchImage foi fornecido. Se a referência já possui ambiente de igreja, congregação ou adoração ao fundo, preserve apenas o tipo de atmosfera; não invente silhuetas humanas para preencher lugares vazios.`}
+
+REGRA DE COMPOSIÇÃO ADAPTATIVA:
+- A referência é uma linguagem visual, NÃO um molde rígido.
+- Conte quantas pessoas existem nas fotos realmente fornecidas. Use SOMENTE essas pessoas.
+- Se a referência tiver mais pessoas do que foram fornecidas, NÃO crie silhuetas, sombras, manequins, espaços vazios ou pessoas inventadas para preencher posições.
+- Refaça a composição de forma coesa para a quantidade real de pessoas.
+- Uma pessoa deve receber uma composição intencional de protagonista; duas devem ser equilibradas; três podem usar composição de trio.
+- Preserve a sensação, hierarquia, energia, paleta, tipografia, recortes e texturas da referência, mas adapte geometria, escala e espaços.
+- Nunca interprete ausência de uma foto como pedido para reservar um espaço para ela.
+- Se houver apenas um pregador, faça a arte parecer desenhada originalmente para UM pregador.
+
+
+
+${data.layoutPresetInstruction?`LAYOUT PRÉ-PROGRAMADO — AUTORIDADE ESTRUTURAL:
+- O Diretor de Design pode refinar alinhamento, espaçamento fino, crop e acabamento.
+- Para o TÍTULO PRINCIPAL, a geometria proporcional do preset é vinculante: manter região e caixa praticamente exatas.
+- NÃO pode trocar o lado dos elementos, transformar bloco pequeno em grande, ampliar além dos limites do preset nem abandonar a silhueta escolhida.
+- A composição da arte de origem NÃO pode engolir o preset.
+- O que NÃO existe no preset deve desaparecer da composição final por padrão. Não preserve automaticamente pessoas, datas, horários, endereços, subtítulos ou informações secundárias vindas da origem quando a categoria estiver ausente no mapa.
+- Nenhuma regra genérica de YouTube, Telão ou revezamento de pessoas pode sobrescrever o mapa estrutural acima.
+- Toda informação obrigatória deve continuar legível; resolva conflitos REDUZINDO ou REORGANIZANDO dentro da silhueta, não ampliando arbitrariamente.
+`:`TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
+- Trate os 12% externos de CADA LADO como zona proibida para conteúdo essencial.
+- Todo texto, título, subtítulo, data, hora, endereço, logo, nome de pregador, rosto e cabeça deve ficar integralmente dentro do retângulo central de 76% da largura por 76% da altura.
+- Nada essencial pode tocar a borda. Nada essencial pode ser parcialmente cortado.
+- Faça o layout MENOR e mais central se houver qualquer dúvida. Espaço vazio nas bordas é aceitável; conteúdo cortado não é.
+- Elementos abstratos/texturas podem sangrar; informação e pessoas nunca.
+- Faça uma revisão final das quatro bordas antes de concluir.`}
+
+REGRA DE LOGOS PÓS-ARTE:
+- Nenhuma logo será desenhada nesta etapa.
+- Não reserve, marque ou sinalize posição de logo.
+- Ignore logoPosition, eventLogoPosition, eventLogoSize e artDirection.protected_assets ao compor a imagem visual.
+- Se a referência tiver logo, remova-a e reconstrua o fundo naturalmente, sem deixar vestígio nem espaço artificial.
+
+REGRA DE SAFE AREA / ÁREA SEGURA:
+${data.layoutPresetInstruction?`- No modo pré-programado, as margens são flexíveis e podem ser reduzidas ou violadas pelo Diretor de Design.
+- O que NÃO pode ser violado é a VISIBILIDADE da informação: nenhum texto, data, hora ou endereço obrigatório pode ficar cortado, escondido ou ilegível.
+- Pregador e elementos decorativos podem sangrar/cortar quando isso fizer parte da composição, desde que não ocultem informação obrigatória.`:`- Nenhum texto, logo, rosto, data, horário, endereço ou informação essencial pode encostar, ultrapassar ou ficar parcialmente fora do canvas.
+- Reserve no mínimo 8% de margem interna em TODOS os lados para conteúdo essencial.
+- Em formatos verticais, não coloque títulos ou endereços colados no topo ou na base.
+- Em formatos horizontais, proteja especialmente as laterais.
+- Elementos decorativos podem sangrar para fora; conteúdo essencial, jamais.
+- Antes de finalizar, revise mentalmente as quatro bordas e confirme que nada importante está cortado.`}
+
+ 
+TIPOGRAFIA FINAL:
+- Toda a tipografia é desenhada pela IA visual dentro da arte.
+- Não existe camada de texto posterior.
+- Cada informação obrigatória deve aparecer uma única vez.
+- Preserve tipografia, tratamentos, escala e função visual da referência sempre que possível.
+
+
+PREGADOR:
+- O sistema aceita NO MÁXIMO 3 pregadores.
+${data.layoutPresetInstruction?'- QUANDO HOUVER PRESET: regras genéricas de centralização, dominância lateral, simetria e revezamento NÃO definem posição. O MAPA ESTRUTURAL DO PRESET define a região da pessoa.':''}
+${data.addPastorOverride?'- OVERRIDE ATIVO: existe uma foto de pregador explicitamente selecionada para ADIÇÃO nesta derivada. A presença desse pregador é OBRIGATÓRIA, mesmo que a arte-base não tenha pessoa.':''}
+- A ordem dos assets é semântica e obrigatória: PESSOA 1 = PRINCIPAL; PESSOA 2 = AUXILIAR 1; PESSOA 3 = AUXILIAR 2.
+- TODA PESSOA HUMANA NA ARTE DE REFERÊNCIA É PLACEHOLDER DE COMPOSIÇÃO E DEVE SER REMOVIDA quando houver pregadores enviados, salvo comando explícito para preservar uma pessoa da referência.
+- JAMAIS mantenha o pregador/modelo/pessoa original da referência no lugar do PRINCIPAL enviado pelo usuário.
+- Se a referência possui uma pessoa central, substitua semanticamente essa pessoa pelo PRINCIPAL enviado: preserve a FUNÇÃO/REGIÃO composicional, mas use a IDENTIDADE e, quando possível, a POSE do principal enviado.
+- Não misture rosto, cabelo, barba, roupa, corpo ou identidade entre referência e fotos enviadas.
+- O PRINCIPAL deve ter maior prioridade visual: posição mais central, escala igual ou maior e leitura imediata antes dos auxiliares.
+- Com 2 pessoas: mantenha o PRINCIPAL mais central/dominante e o AUXILIAR 1 em posição lateral secundária.
+- Com 3 pessoas: mantenha o PRINCIPAL no eixo ou região central dominante e distribua AUXILIAR 1 e AUXILIAR 2 nas laterais de forma equilibrada.
+- DIREÇÃO DOS AUXILIARES: a equipe deve visualmente ABRIR PARA FORA do centro. Auxiliar à esquerda olha/orienta-se preferencialmente para a esquerda externa; auxiliar à direita, para a direita externa.
+- Primeiro escolha o lado pela orientação natural da foto. Se dois auxiliares olharem para o mesmo lado, é permitido FLIP HORIZONTAL integral de um deles, sem redesenhar rosto, mãos, roupa, microfone ou instrumento. Nunca espelhe logos/textos.
+- Preserve pose, gesto, braço levantado/abaixado, mãos, microfone, inclinação da cabeça e direção do olhar de cada foto enviada. Não neutralize poses expressivas.
+- Preserve fortemente a fisionomia. Não embeleze, rejuvenesça, envelheça ou invente traços.
+- Nunca troque rostos, nomes, funções ou hierarquia entre as pessoas.
+- Auxiliares podem ficar parcialmente atrás do principal quando a composição pedir profundidade, mas nunca devem cobrir o rosto do principal.
+- Com referência, replique primeiro o ENQUADRAMENTO e a função espacial, não a identidade humana.
+- Se a referência mostrar busto, peito ou cintura, não transforme em corpo inteiro.
+- Sem referência/instrução, priorize peito para cima ou cintura para cima.
+- Corpo inteiro apenas se referência/instrução justificar.
+- Preserve direção e função espacial de sombras, glows e brilhos.
+
+LOGOS OFICIAIS — PROIBIÇÃO FINAL:
+- Logo da igreja e logo de evento NÃO pertencem a esta geração.
+- Toda logo da referência deve desaparecer.
+- NÃO preserve espaço negativo específico para logos e NÃO desenhe qualquer marcador de posição.
+- Não invente símbolo institucional ou marca substituta.
+
+REGRA DE CANVAS NATIVO — HARD CONSTRAINT:
+- O tamanho/proporção solicitados são o canvas real da arte.
+- Crie a composição diretamente nessa proporção e preencha 100% dela.
+- PROIBIDO gerar um pôster/cartaz menor dentro de outro canvas.
+- PROIBIDO usar a própria arte ampliada, borrada, desfocada ou duplicada como fundo para completar a proporção. Isso inclui qualquer efeito de 'contain' visual, vinheta externa, frame interno ou preenchimento por blur.
+- PROIBIDO adicionar barras, margens externas ou moldura de compensação, salvo quando referência/instrução explicitamente usar isso.
+- Se a composição original não couber, redistribua e redimensione os elementos.
+
+REGRA DE CAMADAS — HARD CONSTRAINT:
+- Foto da igreja = BACKGROUND.
+- Pregadores selecionados = FOREGROUND.
+- Nenhuma mão, cabeça, braço, pessoa ou objeto da foto da igreja pode sobrepor visualmente rosto ou corpo do pregador.
+- Quando houver múltiplos pregadores, componha-os deliberadamente; não duplique pessoas apenas para preencher espaço.
+
+REGRA DE TEXTO — HARD CONSTRAINT:
+- Cada dado semântico deve aparecer no máximo uma vez.
+- Se a instrução disser que determinado campo será renderizado posteriormente, NÃO o desenhe na imagem base; apenas reserve espaço coerente.
+
+REGRA DE ENQUADRAMENTO DO PREGADOR:
+- Preserve o corpo inteiro sempre que a fotografia original tiver corpo suficiente para isso.
+- Evite ao máximo cortar cabeça, mãos, braços, pernas, pés ou tronco.
+- Não faça crop agressivo por estética automática.
+- Corte corporal só é permitido quando a referência tiver claramente esse enquadramento ou quando o usuário instruir.
+- Se precisar acomodar título e pessoa, reduza escala ou reorganize a composição antes de cortar partes do corpo.
+
+REGRAS DE FIDELIDADE:
+- A foto do pregador fornecida é uma identidade protegida. Preserve a pessoa; não invente outro rosto.
+- FIDELIDADE FACIAL É PRIORIDADE ABSOLUTA: não redesenhe, embeleze, rejuvenesça, envelheça, afine, alargue ou reinterpretе o rosto. Não altere olhos, nariz, boca, mandíbula, barba, cabelo, pele, expressão ou proporções faciais.
+- A fotografia do pregador deve funcionar como identidade visual bloqueada: prefira recorte, escala, reposicionamento, máscara, iluminação e correção de cor ao redor da foto em vez de regenerar seus traços.
+- Se qualquer efeito/estilo puder modificar a fisionomia, reduza ou remova esse efeito sobre rosto e cabeça. A fidelidade da pessoa vale mais que a fidelidade ao estilo.
+- Se não conseguir uma transformação sofisticada sem alterar a identidade, use um recorte/tratamento mais simples e fiel.
+- Logo oficial: preservar exatamente. Não redesenhar.
+- Não invente datas, horários, endereço, nomes, slogans ou textos.
+- RÓTULOS INTERNOS DE PESSOAS SÃO PROIBIDOS COMO TEXTO VISÍVEL: nunca renderize “PREGADOR PRINCIPAL”, “PREGADOR AUXILIAR”, “PRINCIPAL”, “AUXILIAR”, “PESSOA 1”, “PESSOA 2”, “PESSOA 3” ou equivalentes. Esses termos são somente metadados internos.
+- Quando houver nome de pregador, renderize somente o nome fornecido pelo usuário, sem prefixar função, papel ou identificador interno.
+- Esta proibição NÃO se aplica a rótulos editoriais legítimos da referência como “DATA”, “HORÁRIO”, “LOCAL” ou “ENDEREÇO”, quando seu uso estiver autorizado pelo conteúdo e pela referência.
+- Não escreva outros rótulos internos como "logo", "reserva", "pregador" ou nomes de camada.
+- Complexidade visual somente quando for coerente e segura. Coerência sempre.
+${data.backgroundMode?'- MODO FUNDO: título e qualquer texto são proibidos.':'- Título deve fazer parte do design: escala, composição, contraste, possível inclinação, outline, sombra ou deformação quando coerente com a referência.'}
+- Integre pessoas, título e elementos em camadas, evitando aparência de formulário/cartões genéricos.
+- COMPOSIÇÃO LIMPA: salvo quando a referência ou o usuário pedir explicitamente, nunca crie um cartaz/quadro menor flutuando dentro de outro fundo, moldura ou canvas. A arte deve ocupar o canvas inteiro.
+- Evite caixas, cartões, cápsulas, placas e contornos em torno de data, hora, endereço e textos; só use quando a referência ou instrução justificar claramente.
+- LOGO PRINCIPAL DA IGREJA e LOGO DE EVENTO são IDENTIDADES DIFERENTES e NÃO INTERCAMBIÁVEIS.
+- A LOGO PRINCIPAL pode aparecer NO MÁXIMO UMA VEZ. É proibido repetir a logo principal para preencher o lugar da logo de evento.
+- Se LOGO DE EVENTO foi fornecida, ela é OBRIGATÓRIA e deve aparecer exatamente UMA VEZ, fiel ao arquivo enviado.
+- Nunca transforme a logo principal em logo de evento, nunca extraia seu símbolo para fazer uma segunda marca e nunca invente variações.
+- LOGO ORIGINAL: use uma única vez, limpa e intacta. Não coloque a logo dentro de caixa, card, placa, selo, cápsula ou fundo próprio, salvo referência/instrução explícita. Nunca extraia o símbolo da logo para repetir em outro ponto; nunca redesenhe, reescreva, reconstrua ou duplique partes da identidade visual.
+- LOGO DE EVENTO: quando fornecida, é um segundo asset protegido e diferente da logo principal. Use-a UMA única vez e intacta. Ela só pode ocupar uma das seis zonas laterais dentro dos 3/5 centrais do canvas: esquerda-superior, esquerda-meio, esquerda-inferior, direita-superior, direita-meio ou direita-inferior. Não use cantos extremos. Não sobreponha logo principal, rosto, título ou dados essenciais. A logo principal tem prioridade espacial. Se houver posição explícita, siga: ${data.eventLogoPosition||data.assets?.eventLogo?.position||"IA escolhe a melhor das seis zonas permitidas"}. TAMANHO MÁXIMO: ${data.eventLogoSize||data.assets?.eventLogo?.size||"small"} — small ≈ 14% da largura do canvas; medium ≈ 20%; large ≈ 26%. Preserve a proporção original e não ultrapasse esse limite visual.
+- Em TELÃO SEM PRESET, prefira título centralizado quando não houver outro elemento visual principal. Havendo PRESET, IGNORE esta preferência genérica e siga a região/tamanho do preset, inclusive quando o título for deliberadamente mínimo no rodapé ou canto.
+- Se solicitado MODO ESCURO DE TELÃO, use predominância escura sobretudo no fundo, contraste alto e foto da igreja mais discreta/escurecida.
+
+FORMATO FINAL: ${target.width||1080}x${target.height||1350}, proporção ${target.ratio||""}
+VARIAÇÃO: ${data.variantLabel||"principal"} — ${data.variantInstruction||""}
+INSTRUÇÃO DO USUÁRIO: ${data.instruction||""}\nSe público-alvo ou estilo tiverem sido especificados, siga a interpretação que o DIRETOR DE ARTE já incorporou ao blueprint.
+Use também os campos explícitos acima como trava de consistência.
+Se estiverem como 'não especificado', não force nenhum estilo ou público artificialmente.
+INSTRUÇÃO FINAL: ${data.finalInstruction||""}
+CORREÇÃO DO FISCAL, se houver: ${data.qualityCorrection||"nenhuma"}
+
+${data.safeMode?`MODO SEGURO OBRIGATÓRIO:
+- reduza a complexidade;
+- não deforme o rosto;
+- não estilize a pessoa de forma que altere sua identidade;
+- trate a foto do pregador como fotografia real recortada/encaixada;
+- não gere nenhuma logo ou marca;
+- use tipografia forte porém simples;
+- não use distorções em textos obrigatórios;
+- todos os dados precisam estar legíveis e corretos;
+- prefira fundo gráfico simples e profissional a uma composição arriscada.`:""}
+
+REGRA DE CANVAS NATIVO — CRÍTICA:
+- O tamanho de saída informado pela API é o CANVAS FINAL desta arte.
+- Componha diretamente nesse aspect ratio. A referência NÃO define o tamanho do canvas.
+- Se a referência tiver outra proporção, REORGANIZE a composição; não reproduza a referência como um quadro dentro de outro quadro.
+- Não crie padding, bordas, molduras, barras, fundo borrado ou extensão artificial para compensar proporção.
+- Todo conteúdo essencial deve permanecer dentro da safe area já definida.
+
+Entregue a arte final, não um mockup.`;
+}
+
+
+function derivationPromptRules(data={}){
+  if(data.derivationMode==='manual')return 'DERIVADOR — MODO MANUAL:\n- A imagem exata selecionada é a verdade visual atual.\n- A instrução desta ação define o que mudar; preserve o restante visível.\n- Não aplique preset, grade ou silhueta pré-programada.\n- Não recupere elementos de versões anteriores nem invente textos, datas, nomes, pessoas ou marcas.\n- Logos oficiais serão adicionadas depois pelo Assistente de Logos.';
+  if(data.derivationMode==='preset')return 'DERIVADOR — MODO PRÉ-PRONTO:\n- O preset selecionado e seu blueprint definem a estrutura e o posicionamento relativos.\n- Preserve lado, região, escala, caixas, camadas, corte, zoom e regras de ausência do preset. Não use uma composição genérica.\n- A imagem selecionada define identidade e conteúdo atual; o preset define a geometria.\n- Observações atuais podem alterar conteúdo, sem anular silenciosamente a estrutura do preset.\n- Não invente conteúdo ausente. Logos oficiais serão aplicadas depois.';
+  throw new Error('Modo de derivação inválido. Informe manual ou preset.');
+}
+function prompt(data){
+  if(data?.mode==='adaptation'){
+    const base=data?.layoutPresetInstruction?promptPresetOnly(data):promptLegacyMain(data);
+    return derivationPromptRules(data)+'\n\n'+base;
+  }
+  return data?.layoutPresetInstruction?promptPresetOnly(data):promptLegacyMain(data);
+}
+
+
+const IMAGE_PROMPT_SAFE_LIMIT=30000;
+function compactPromptText(v,max){
+  const s=String(v??"");
+  if(s.length<=max)return s;
+  return s.slice(0,Math.max(0,max-38)).trimEnd()+" …[direção herdada compactada]";
+}
+function compactPromptArray(v,maxItems=10,maxEach=160){
+  return Array.isArray(v)?v.slice(0,maxItems).map(x=>compactPromptText(x,maxEach)):[];
+}
+function compactPromptObject(v,max=1400){
+  if(!v||typeof v!=="object")return v||{};
+  const raw=JSON.stringify(v);
+  if(raw.length<=max)return v;
+  return {summary:compactPromptText(raw,max)};
+}
+function compactInheritedDirection(data,aggressive=false){
+  const a=data.artDirection||{};
+  const clone={...data,
+    inspirationStyle:data.inspirationStyle?{...data.inspirationStyle,prompt:compactPromptText(data.inspirationStyle.prompt,aggressive?500:1000)}:data.inspirationStyle,
+    artDirection:{
+      ...a,
+      visual_summary:compactPromptText(a.visual_summary,aggressive?500:900),
+      generation_prompt:compactPromptText(a.generation_prompt,aggressive?700:2200),
+      style_tags:compactPromptArray(a.style_tags,aggressive?6:10,90),
+      textures:compactPromptArray(a.textures,aggressive?6:10,110),
+      graphic_elements:compactPromptArray(a.graphic_elements,aggressive?8:14,120),
+      preserve_rules:compactPromptArray(a.preserve_rules,aggressive?6:12,aggressive?110:170),
+      avoid_rules:compactPromptArray(a.avoid_rules,aggressive?6:12,aggressive?110:170),
+      palette:compactPromptObject(a.palette,aggressive?500:900),
+      composition:compactPromptObject(a.composition,aggressive?700:1300),
+      typography:compactPromptObject(a.typography,aggressive?700:1300),
+      imagery:compactPromptObject(a.imagery,aggressive?700:1300)
+    }
+  };
+  return clone;
+}
+function emergencyPrompt(data){
+  const c=data.requiredContent||{},texts=[
+    c.title?`TÍTULO EXATO: ${compactPromptText(c.title,1200)}`:"",
+    c.subtitle?`SUBTÍTULO EXATO: ${compactPromptText(c.subtitle,1200)}`:"",
+    c.secondaryInfo?`INFORMAÇÃO SECUNDÁRIA EXATA: ${compactPromptText(c.secondaryInfo,1200)}`:"",
+    c.date?`DATA EXATA: ${compactPromptText(c.date,500)}`:"",
+    c.time?`HORÁRIO EXATO: ${compactPromptText(c.time,500)}`:"",
+    c.address?`ENDEREÇO EXATO: ${compactPromptText(c.address,1200)}`:"",
+    ...(Array.isArray(c.pastorNames)?c.pastorNames.slice(0,3).filter(Boolean).map((n,i)=>`NOME EXATO DA PESSOA ${i+1} (renderizar SOMENTE o valor após os dois-pontos; nunca renderizar "PESSOA ${i+1}" nem função interna): ${compactPromptText(n,700)}`):[])
+  ].filter(Boolean).join("\n");
+
+  const correction=compactPromptText(data.revisionInstruction||data.variantInstruction||"",6000);
+  const allow=(data.allowedTexts||[]).slice(0,20).map(x=>compactPromptText(x,900));
+
+  return `Crie uma ARTE FINAL profissional para igreja.
+
+${data.revisionMode==='delta-only'?`CORREÇÃO CIRÚRGICA:
+A primeira imagem enviada é o MOLDE BLOQUEADO.
+ALTERE SOMENTE: ${correction||"o ajuste explicitamente solicitado"}.
+Preserve integralmente todo o restante: identidade das pessoas, rostos, mãos, roupas, poses, composição, cores, textos e efeitos não citados.
+Não redesenhe áreas que não precisam mudar.
+`:''}
+
+${data.backgroundMode?`MODO FUNDO:
+Gere fundo limpo. ZERO textos e ZERO logos.
+${data.addPastorOverride?'A única exceção humana é a PESSOA 1 fornecida, que deve permanecer claramente visível e reconhecível.':'ZERO pessoas.'}
+`:''}
+
+CONTEÚDO OBRIGATÓRIO:
+${texts||"Sem textos obrigatórios."}
+
+TEXTOS LEGÍVEIS PERMITIDOS:
+${JSON.stringify(allow)}
+Não invente nenhuma outra palavra, número, slogan, nome de igreja ou placeholder.
+
+RÓTULOS INTERNOS DE PESSOAS:
+Nunca renderize “PREGADOR PRINCIPAL”, “PREGADOR AUXILIAR”, “PRINCIPAL”, “AUXILIAR”, “PESSOA 1”, “PESSOA 2”, “PESSOA 3” ou equivalentes. São somente metadados internos. Se houver nome, renderize somente o nome fornecido. Esta proibição não impede rótulos editoriais legítimos como “DATA”, “HORÁRIO”, “LOCAL” ou “ENDEREÇO” quando autorizados.
+
+LOGOS:
+ZERO logos, marcas ou emblemas no canvas generativo. Logos oficiais serão inseridas depois.
+
+PESSOAS:
+Use somente as pessoas realmente fornecidas como assets.
+Preserve identidade facial, cabelo, roupa, pose, mãos e objetos.
+Não invente pessoas nem funda identidades.
+
+NOME DA IGREJA:
+${c.churchName?`Pode aparecer SOMENTE como "${compactPromptText(c.churchName,900)}".`:`Não escreva o nome da igreja. A identificação será feita posteriormente por logo original.`}
+
+COMPOSIÇÃO:
+Mantenha todo texto, rosto, cabeça e informação essencial dentro de área segura, com folga das quatro bordas.
+Elementos decorativos podem sangrar; conteúdo essencial não.
+Não corte texto nem rosto.
+
+${data.addPastorOverride?`PESSOA 1 É OBRIGATÓRIA e deve permanecer claramente visível.`:''}
+
+FORMATO:
+${compactPromptText(data.target?.label||data.target?.id||data.format||"formato solicitado",500)}
+
+ESTILO:
+${compactPromptText(data.designStyle||data.artDirection?.visual_summary||data.inspirationStyle?.name||"profissional contemporâneo",1600)}
+
+A imagem enviada como referência de trabalho é a autoridade visual principal.
+Priorize fidelidade ao pedido do usuário e preserve tudo que não foi explicitamente solicitado para alteração.`;
+}
+
+function hardPromptBound(text){
+  const s=String(text||"");
+  if(s.length<=IMAGE_PROMPT_SAFE_LIMIT)return s;
+  // Garantia final no mesmo critério de comprimento usado pela API: string JS.
+  // 30.000 deixa 2.000 caracteres de folga abaixo do limite de 32.000.
+  let out=s.slice(0,IMAGE_PROMPT_SAFE_LIMIT);
+  // Não termine no meio de um par substituto UTF-16.
+  const last=out.charCodeAt(out.length-1);
+  if(last>=0xD800&&last<=0xDBFF)out=out.slice(0,-1);
+  return out;
+}
+
+function promptForApi(data){
+  let text=prompt(data);
+  if(text.length<=IMAGE_PROMPT_SAFE_LIMIT)return text;
+
+  // 1. Reduz somente a direção herdada/redundante.
+  let compact=compactInheritedDirection(data,false);
+  text=prompt(compact);
+  if(text.length<=IMAGE_PROMPT_SAFE_LIMIT)return text;
+
+  // 2. Compactação mais forte, sem remover o pedido atual.
+  compact=compactInheritedDirection(data,true);
+  if(data.revisionMode==='delta-only'){
+    compact.artDirection={
+      ...compact.artDirection,
+      generation_prompt:"",
+      preserve_rules:compactPromptArray(data.artDirection?.preserve_rules,4,90),
+      avoid_rules:compactPromptArray(data.artDirection?.avoid_rules,4,90),
+      composition:{},
+      typography:{},
+      imagery:{}
+    };
+  }
+  text=prompt(compact);
+  if(text.length<=IMAGE_PROMPT_SAFE_LIMIT)return text;
+
+  // 3. Fallback operacional: prompt essencial curto.
+  text=emergencyPrompt(data);
+  return hardPromptBound(text);
+}
+
+async function generate(data){
+  const images=collectInputImages(data),size=modelSize(data.target),rawPrompt=promptForApi(data),text=hardPromptBound(rawPrompt);
+  if(text.length>IMAGE_PROMPT_SAFE_LIMIT)throw new Error(`Preflight prompt: ${text.length} caracteres excedem o limite interno de ${IMAGE_PROMPT_SAFE_LIMIT}.`);
+  if(rawPrompt.length!==text.length)console.warn("[ChurchDesign][generate-art] Prompt limitado no boundary da API.",{before:rawPrompt.length,after:text.length,limit:IMAGE_PROMPT_SAFE_LIMIT});
+  let r;
+  if(images.length){
+    // ZERO-COST PREFLIGHT: multiple edit inputs MUST use image[].
+    // This is validated locally before any Images API request is sent.
+    if(!Array.isArray(images)||images.some(im=>!isDataImage(im?.data)))throw new Error("Preflight: imagens de entrada inválidas.");
+    const form=new FormData();
+    form.append("model","gpt-image-2");
+    form.append("prompt",text);
+    form.append("quality","medium");
+    form.append("size",size);
+    form.append("output_format","png");
+    if(transparentBackgroundIntent(data))form.append("background","transparent");
+    for(const im of images)form.append("image[]",dataUrlPart(im.data,im.name),im.name);
+    const imageFields=[...form.keys()].filter(k=>k==="image[]"||k==="image");
+    if(imageFields.length!==images.length||imageFields.some(k=>k!=="image[]"))throw new Error("Preflight multipart: use image[] para múltiplas imagens.");
+    r=await fetch(IMAGES_EDIT_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`},body:form});
+  }else{
+    r=await fetch(IMAGES_GENERATE_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({
+      model:"gpt-image-2",prompt:text,quality:"medium",size,output_format:"png",
+      ...(transparentBackgroundIntent(data)?{background:"transparent"}:{})
+    })});
+  }
+  const requestId=r.headers.get("x-request-id")||null;
+  const d=await r.json();
+  if(!r.ok){const e=new Error(d?.error?.message||`OpenAI ${r.status}`);e.requestId=requestId;throw e;}
+  const item=d?.data?.[0];
+  const base64=item?.b64_json||item?.base64||null;
+  if(!base64)throw new Error("GPT Image 2 não retornou imagem.");
+  return {base64,usage:d.usage||null,requestId,endpoint:images.length?"images/edits":"images/generations",size};
+}
+module.exports=async function handler(req,res){
+  if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
+  if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY não configurada."});
+  try{
+    const authUser=await requireChurchDesignUser(req);
+    const churchId=await requireChurchAccess(req,authUser);
+    const raw=req.body||{};if(raw.mode!=='adaptation'||!['manual','preset'].includes(String(raw.derivationMode||'')))return res.status(400).json({error:'Este endpoint aceita somente derivações nos modos manual ou preset.'});const data=pipelineGuard(raw);
+    if(!data.inspirationStyle&&!data.artDirection&&data.revisionMode!=="delta-only"&&data.mode!=="adaptation")return res.status(400).json({error:"Direção visual ausente."});
+    const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
+    const url=await saveBase64ToStorage(generated.base64,churchId,label);
+    const image={label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.usage||null,requestId:generated.requestId||null,endpoint:generated.endpoint,size:generated.size}};
+    await logUsage({churchId,userId:authUser.id,operationType:"generation",model:"gpt-image-2",endpoint:generated.endpoint,usage:generated.usage,imageCount:1,metadata:{...costContextFromData(data),requestId:generated.requestId||null,size:generated.size,label}});
+    return res.status(200).json({success:true,endpointType:'derivation-generate',image});
+  }catch(e){console.error("ChurchDesign generate",e);return res.status(e.statusCode||500).json({error:e.message||"Erro ao gerar."});}
+};
