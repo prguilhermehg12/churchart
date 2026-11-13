@@ -1,8 +1,8 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
 // ARQUIVO DE DESTINO: api/DERIV-derivation-inspector-v1.0.js
 // TÍTULO: Fiscal independente do Derivador
-// VERSÃO DO CONTEÚDO: 1.3
-// FINALIDADE: Fiscalizar rigorosamente a ordem espacial dos presets, aceitando apenas ajustes finos de posição.
+// VERSÃO DO CONTEÚDO: 1.4
+// FINALIDADE: Fiscalizar a derivação e, no modo rastreado autorizado, registrar o prompt recebido, referências e decisão estruturada.
 // INFRAESTRUTURA COMPARTILHADA: autenticação Supabase e membership da igreja ativa.
 module.exports.config={maxDuration:120};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
@@ -50,7 +50,7 @@ function presetSpatialRelations(blueprint={}){
   }
   return out.slice(0,24).join(' ');
 }
-function buildInput(data){
+function buildInput(data,traceAuthorized=false){
   const mode=String(data.derivationMode||"");
   const isPreset=mode==="preset";
   const relationMap=presetSpatialRelations(data.layoutPresetBlueprint||{});
@@ -59,10 +59,12 @@ function buildInput(data){
     const url=imageValue(ref?.image||ref?.url);
     if(url)images.push({type:"input_image",image_url:url});
   }
+  if(traceAuthorized&&isPreset&&imageValue(data.layoutGuideImage))images.push({type:"input_image",image_url:imageValue(data.layoutGuideImage)});
   const text=[
     "Você é o Fiscal Visual Independente do Derivador ChurchDesign. Inspecione a imagem final usando critérios objetivos.",
     "MODO: "+(isPreset?"PRÉ-PRONTO":"MANUAL")+".",
     "IMAGEM 1: resultado que será entregue. Imagens seguintes, quando existirem: arte-base e referências.",
+    traceAuthorized&&isPreset&&imageValue(data.layoutGuideImage)?"No modo rastreado, a última imagem anexada é o guia visual do preset. Compare diretamente a posição do pregador, do título e do nome com esse modelo.":"",
     "No modo Manual, confira se mudanças atuais foram obedecidas e se elementos não solicitados foram preservados sem recuperar conteúdo antigo.",
     isPreset?"No modo Pré-pronto, compare com a miniatura e o blueprint como referência aproximada: mantenha regiões principais, lados e hierarquia/tamanho relativo. As relações de lado e ordem acima/abaixo são obrigatórias: reprove se forem invertidas, mesmo que a arte continue bonita. Aceite apenas ajustes finos dentro da mesma região, em torno de 5–8% do canvas; não exija coordenadas exatas nem reprove só por proximidade da borda se o conteúdo estiver visível e dentro do canvas. Reprove também conteúdo obrigatório ausente, ilegível, cortado ou fora do canvas. Relações calculadas: "+relationMap+". Mapa: "+JSON.stringify(data.layoutPresetBlueprint||{}).slice(0,3500)+". Instruções: "+String(data.finalInstruction||data.userInstruction||"").slice(0,4500):"",
     "Conteúdo obrigatório atual: "+JSON.stringify(data.requiredContent||{}).slice(0,3000),
@@ -90,11 +92,13 @@ module.exports=async function handler(req,res){
   if(!process.env.OPENAI_API_KEY)return res.status(500).json({error:"OPENAI_API_KEY não configurada."});
   try{
     const user=await requireChurchDesignUser(req),data=req.body||{};
+    const traceAuthorized=data.traceMode===true&&String(user.email||'').trim().toLowerCase()==='pr.guilhermehg12@gmail.com';
     await verifyChurchAccess(req,user);
     if(!["manual","preset"].includes(String(data.derivationMode||"")))return res.status(400).json({error:"Modo de derivação inválido."});
     if(!imageValue(data.generatedImage))return res.status(400).json({error:"Imagem gerada ausente ou inválida."});
+    const inputContent=buildInput(data,traceAuthorized);
     const response=await fetch(RESPONSES_URL,{method:"POST",headers:{Authorization:"Bearer "+process.env.OPENAI_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({
-      model:"gpt-5.6-terra",reasoning:{effort:"low"},store:false,input:[{role:"user",content:buildInput(data)}],
+      model:"gpt-5.6-terra",reasoning:{effort:"low"},store:false,input:[{role:"user",content:inputContent}],
       text:{format:{type:"json_schema",name:"derivation_visual_review",strict:true,schema},verbosity:"low"}
     })});
     const requestId=response.headers.get("x-request-id")||null,payload=await response.json();
@@ -102,7 +106,8 @@ module.exports=async function handler(req,res){
     const raw=outputText(payload);if(!raw)throw new Error("Fiscal Visual não retornou uma avaliação.");
     const review=JSON.parse(raw);
     if(typeof review.approved!=="boolean"||!Array.isArray(review.gross_errors))throw new Error("Contrato de resposta do Fiscal Visual inválido.");
-    return res.status(200).json({success:true,endpointType:"derivation-inspector",review,meta:{model:"gpt-5.6-terra",usage:payload.usage||null,requestId,endpoint:"responses"}});
+    const trace=traceAuthorized?{agent:'Fiscal visual do Derivador',received:{mode:data.derivationMode||null,presetBlueprint:data.layoutPresetBlueprint||null,requiredContent:data.requiredContent||{},userInstruction:data.userInstruction||'',finalInstruction:data.finalInstruction||'',omissions:data.omit||[]},sent:{model:'gpt-5.6-terra',prompt:inputContent.find(x=>x.type==='input_text')?.text||'',images:[{index:1,role:'resultado gerado'},...(Array.isArray(data.references)?data.references.slice(0,3).map((r,i)=>({index:i+2,role:r?.note||'arte-base/referência'})):[]),...(traceAuthorized&&isPreset&&imageValue(data.layoutGuideImage)?[{index:2+(Array.isArray(data.references)?Math.min(data.references.length,3):0),role:'guia visual do preset'}]:[])]},decision:{approved:review.approved,critical_error:review.critical_error,score:review.score,gross_errors:review.gross_errors,correction_prompt:review.correction_prompt},response:{model:'gpt-5.6-terra',usage:payload.usage||null,requestId}}:undefined;
+    return res.status(200).json({success:true,endpointType:"derivation-inspector",review,meta:{model:"gpt-5.6-terra",usage:payload.usage||null,requestId,endpoint:"responses"},...(trace?{trace}:{})});
   }catch(e){console.error("ChurchDesign Derivation Inspector",e);return res.status(e.statusCode||500).json({error:e.message||"Erro no Fiscal Visual."});}
 };
 
