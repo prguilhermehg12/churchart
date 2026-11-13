@@ -1,7 +1,8 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
-// ARQUIVO: DERIV-generate-art-v1.0
-// VERSÃO: 1.0
-// FINALIDADE: Endpoint próprio para gerar derivações nos modos Manual e Pré-pronto.
+// ARQUIVO DE DESTINO: api/DERIV-generate-art-v1.0.js
+// TÍTULO: Gerador independente do Derivador
+// VERSÃO DO CONTEÚDO: 1.2
+// FINALIDADE: Gerar derivações com aproximação flexível dos presets, sem alterar o gerador principal.
 // BASE TÉCNICA: Generate Art v0.30.2; arquivo original inalterado.
 // INFRAESTRUTURA COMPARTILHADA: autenticação, acesso à igreja, Storage e registro de uso.
 // CHURCHDESIGN — generate-art v0.30.2
@@ -228,24 +229,19 @@ function layoutPresetStructuralBlock(data={}){
   const effectiveOmitted=omitted.filter(t=>!(t==='preacher'&&pastorMode!=='remove'));
   const row=e=>{
     const x=Number(e.x)||0,y=Number(e.y)||0,w=Number(e.w)||0,h=Number(e.h)||0;
-    const small=e.type==="title"&&(w<=25||h<=20);
-    return `• ${String(e.type||"element").toUpperCase()}: x ${x.toFixed(1)}%, y ${y.toFixed(1)}%, w ${w.toFixed(1)}%, h ${h.toFixed(1)}%${e.type==="title"?` — GEOMETRIA PRATICAMENTE EXATA: preservar esta região e esta proporção, com tolerância máxima de aproximadamente 2 pontos percentuais. NÃO ampliar a caixa; se não couber, reduzir fonte/quebrar linhas${small?"; título deliberadamente PEQUENO, PROIBIDO promover para headline grande":""}`:""}.`;
+    const title=e.type==='title';
+    return '• '+String(e.type||'element').toUpperCase()+': região aproximada perto de x='+x.toFixed(1)+'%, y='+y.toFixed(1)+'%; dimensão relativa de cerca de '+w.toFixed(1)+'% × '+h.toFixed(1)+'%'+(title?'; preserve destaque e tamanho relativo, sem exigir caixa exata':'')+'.';
   };
-  return `MAPA ESTRUTURAL DO PRESET — HARD CONSTRAINT / PRIORIDADE SOBRE COMPOSIÇÃO GENÉRICA:
-- A geometria do PRESET vence a geometria da arte de origem. A origem fornece identidade visual, não posição.
-- NÃO aplique revezamento automático esquerda/direita, NÃO centralize por hábito e NÃO substitua o preset por uma composição comum de YouTube/Telão.
-- Preserve lado, região, ocupação relativa e escala dos blocos. Pequenos ajustes são permitidos apenas para legibilidade.
-- TÍTULO PRINCIPAL: a posição (x/y) e o tamanho (w/h) indicados são a GEOMETRIA-ALVO. Preserve-os proporcionalmente ao canvas, com tolerância máxima de cerca de 2 pontos percentuais.
-- Se o texto não couber, reduza fonte, quebre linha ou compacte DENTRO DA MESMA CAIXA; jamais aumente a área nem mova o título para outra região.
-- Se o preset tiver título pequeno no rodapé/canto, ele DEVE continuar pequeno exatamente naquela região proporcional.
-- Elemento decorativo sempre atrás do pregador.
-- LOGOS REAIS continuam fora da geração e serão adicionadas depois pelo Assistente de Logos. NÃO confunda o TÍTULO da pregação com logo: o título é conteúdo obrigatório e deve seguir exatamente a caixa do preset.
-- Se a seleção de pregador do usuário conflitar com a presença/ausência de pessoa no preset, a seleção do usuário vence; ajuste a pessoa dentro da silhueta sem destruir os demais blocos.
-- AUSÊNCIAS DO PRESET SÃO OBRIGATÓRIAS POR PADRÃO: ${effectiveOmitted.length?effectiveOmitted.join(', '):'nenhuma'}.
-- Para cada categoria ausente, REMOVA o elemento correspondente que exista na arte de origem. A arte de origem não autoriza manter conteúdo que o modelo não contém.
-- Uma observação atual do usuário pode pedir conteúdo adicional; nesse caso, a observação atual vence a ausência padrão.
-${els.map(row).join("\n")}
-${isDataImage(data.layoutGuideImage)?`- Uma das imagens de entrada é um WIREframe sintético escuro com blocos planos: BRANCO=título, CINZA=pregador, AZUL=informações e LARANJA=decoração. Essa imagem serve SOMENTE para GEOMETRIA. NÃO copie sua aparência, não copie cores, não gere retângulos do wireframe.`:""}`;
+  return 'PRESET PRÉ-PROGRAMADO — REFERÊNCIA DE COMPOSIÇÃO:\n'+
+    '- A miniatura escolhida é o modelo visual prioritário. Ao bater o olho, a arte final deve lembrar o arranjo apresentado.\n'+
+    '- Preserve relações principais: esquerda/direita/centro, acima/abaixo, hierarquia e tamanho relativo.\n'+
+    '- As posições e dimensões são aproximações, não coordenadas obrigatórias. Ajustes moderados de cerca de 10–15% do canvas são aceitáveis para legibilidade e adaptação.\n'+
+    '- Evite inversões claras de lado ou hierarquia; não force caixas exatas nem reproduza pixels da miniatura.\n'+
+    '- Remova categorias ausentes e não invente textos, pessoas, logos ou placeholders. Preserve elementos gráficos não textuais da arte de origem.\n'+
+    '- LOGOS reais serão adicionadas depois pelo Assistente de Logos.\n'+
+    '- Categorias ausentes obrigatórias: '+(effectiveOmitted.length?effectiveOmitted.join(', '):'nenhuma')+'.\n'+
+    els.map(row).join("\\n")+'\n'+
+    (isDataImage(data.layoutGuideImage)?'- O guia geométrico mostra regiões aproximadas. Use-o para reconhecer o arranjo geral; não copie retângulos, cores ou aparência do guia.':'');
 }
 function promptLegacyMain(data){
   const c=data.requiredContent||{},target=data.target||{};
@@ -702,12 +698,12 @@ REGRA DE COMPOSIÇÃO ADAPTATIVA:
 
 ${data.layoutPresetInstruction?`LAYOUT PRÉ-PROGRAMADO — AUTORIDADE ESTRUTURAL:
 - O Diretor de Design pode refinar alinhamento, espaçamento fino, crop e acabamento.
-- Para o TÍTULO PRINCIPAL, a geometria proporcional do preset é vinculante: manter região e caixa praticamente exatas.
-- NÃO pode trocar o lado dos elementos, transformar bloco pequeno em grande, ampliar além dos limites do preset nem abandonar a silhueta escolhida.
+- Para o TÍTULO PRINCIPAL, preserve a região geral e o destaque relativo mostrados na miniatura, com ajustes moderados para legibilidade.
+- Evite trocar claramente os lados principais ou transformar bloco pequeno em dominante. Ajustes moderados de posição e tamanho são permitidos.
 - A composição da arte de origem NÃO pode engolir o preset.
 - O que NÃO existe no preset deve desaparecer da composição final por padrão. Não preserve automaticamente pessoas, datas, horários, endereços, subtítulos ou informações secundárias vindas da origem quando a categoria estiver ausente no mapa.
 - Nenhuma regra genérica de YouTube, Telão ou revezamento de pessoas pode sobrescrever o mapa estrutural acima.
-- Toda informação obrigatória deve continuar legível; resolva conflitos REDUZINDO ou REORGANIZANDO dentro da silhueta, não ampliando arbitrariamente.
+- Toda informação obrigatória deve continuar legível; resolva conflitos reorganizando a composição com bom senso, sem perder a semelhança geral com a miniatura.
 `:`TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
 - Trate os 12% externos de CADA LADO como zona proibida para conteúdo essencial.
 - Todo texto, título, subtítulo, data, hora, endereço, logo, nome de pregador, rosto e cabeça deve ficar integralmente dentro do retângulo central de 76% da largura por 76% da altura.
@@ -853,7 +849,7 @@ Entregue a arte final, não um mockup.`;
 
 function derivationPromptRules(data={}){
   if(data.derivationMode==='manual')return 'DERIVADOR — MODO MANUAL:\n- A imagem exata selecionada é a verdade visual atual.\n- A instrução desta ação define o que mudar; preserve o restante visível.\n- Não aplique preset, grade ou silhueta pré-programada.\n- Não recupere elementos de versões anteriores nem invente textos, datas, nomes, pessoas ou marcas.\n- Logos oficiais serão adicionadas depois pelo Assistente de Logos.';
-  if(data.derivationMode==='preset')return 'DERIVADOR — MODO PRÉ-PRONTO:\n- O preset selecionado e seu blueprint definem a estrutura e o posicionamento relativos.\n- Preserve lado, região, escala, caixas, camadas, corte, zoom e regras de ausência do preset. Não use uma composição genérica.\n- A imagem selecionada define identidade e conteúdo atual; o preset define a geometria.\n- Observações atuais podem alterar conteúdo, sem anular silenciosamente a estrutura do preset.\n- Não invente conteúdo ausente. Logos oficiais serão aplicadas depois.';
+  if(data.derivationMode==='preset')return 'DERIVADOR — MODO PRÉ-PRONTO:\n- O preset define a estrutura visual geral e a hierarquia. Preserve as regiões e relações espaciais principais mostradas na miniatura.\n- Posições e tamanhos são aproximados; aceite ajustes moderados para legibilidade e formato. Não exija coordenadas exatas nem permita inversões evidentes do layout.\n- A imagem selecionada define identidade e conteúdo atual; o preset define a organização geral.\n- Observações atuais podem alterar conteúdo, sem apagar silenciosamente a identidade do preset.\n- Não invente conteúdo ausente. Logos oficiais serão aplicadas depois.';
   throw new Error('Modo de derivação inválido. Informe manual ou preset.');
 }
 function prompt(data){
@@ -1058,3 +1054,4 @@ module.exports=async function handler(req,res){
     return res.status(200).json({success:true,endpointType:'derivation-generate',image});
   }catch(e){console.error("ChurchDesign generate",e);return res.status(e.statusCode||500).json({error:e.message||"Erro ao gerar."});}
 };
+
