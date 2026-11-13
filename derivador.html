@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v1.3 | BASE: Derivador v1.2 | FINALIDADE: evitar a exibição momentânea do login enquanto a sessão existente é validada, preservando as rotas e funções do Derivador. -->
+<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v1.5 | TÍTULO: Derivador independente | VERSÃO: 1.5 | FINALIDADE: derivação manual com omissões explícitas, fidelidade visual e presets estritos. -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -4076,7 +4076,7 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
 </head>
 <body class="derivator-standalone">
 
-  <div id="authLoading" class="derivator-auth-loading" role="status" aria-live="polite"><div class="derivator-auth-loading-card"><span class="brand-logo" role="img" aria-label="ChurchDesign"></span><span class="derivator-auth-spinner" aria-hidden="true"></span><p>Conferindo seu acesso ao Derivador…</p></div></div>
+  <div id="authLoading" class="derivator-auth-loading" role="status" aria-live="polite"><div class="derivator-auth-loading-card"><span class="brand-logo" role="img" aria-label="ChurchDesign"></span><span class="derivator-auth-spinner" aria-hidden="true"></span><p>Carregando informações da I.A para sua arte</p></div></div>
   <div id="authGate" class="auth-gate hidden">
     <div class="auth-card">
       <span class="brand-logo" role="img" aria-label="ChurchDesign" style="width:260px;max-width:100%;margin-bottom:12px"></span>
@@ -8689,6 +8689,7 @@ function bindLogoAssistantNodes(ov,key){
 }
 function addLogoToAssistant(key,slot,assetId,dropPoint=null){
   const node=artworkFlowNode(key),asset=(state.library.assets||[]).find(a=>String(a.id)===String(assetId));if(!node||!asset)return;
+  if(slot==='CHURCH'&&Array.isArray(node.omit)&&node.omit.includes('logo')){appToast('A logo da igreja foi marcada para omissão nesta derivada.',{type:'info',title:'Logo omitida'});return}
   node.manualLogoPlacements=node.manualLogoPlacements||[];let p=node.manualLogoPlacements.find(x=>x.slot===slot);
   if(!p){p=logoAssistantPlacementDefault(slot,asset,node);node.manualLogoPlacements.push(p)}
   p.assetId=asset.id;p.variantRole=logoVariantRole(asset)||'primary';
@@ -8737,6 +8738,7 @@ async function composeManualLogos(baseDataUrl,placements=[]){
 async function finalizeArtworkFlow(key,withoutLogo=false){
   const node=artworkFlowNode(key);if(!node)return;
   const base=node.baseDataUrl||node.sourceUrl||node.dataUrl;if(!base)return;
+  if(Array.isArray(node.omit)&&node.omit.includes('logo'))node.manualLogoPlacements=(node.manualLogoPlacements||[]).filter(p=>p.slot!=='CHURCH');
   let receipt=[];if(withoutLogo){node.dataUrl=base;node.manualLogoPlacements=[];node.finalizedWithoutLogo=true}else{const done=await composeManualLogos(base,node.manualLogoPlacements||[]);node.dataUrl=done.dataUrl;receipt=done.receipt;node.finalizedWithoutLogo=false}
   node.finalized=true;node.logoReceipt=receipt;node.logoPlan={version:'manual-newflow-v2',placements:receipt.map(r=>({slot:r.slot,rect:{x0:r.x,y0:r.y,x1:r.x+r.w,y1:r.y+r.h},manual:true,assetId:r.assetId}))};node.occupancy=null;node.logoDegradations=[];
   const parentIndex=Number(String(key).split(':')[1]);
@@ -8786,7 +8788,7 @@ function openLogoAssistant(key,options={}){
   setNewflowStage(2);
   const node=artworkFlowNode(key);if(!node)return appAlert('Arte não encontrada.');
   const base=node.baseDataUrl||node.sourceUrl||node.dataUrl;if(!base)return appAlert('A arte base não está disponível.');
-  const assets=logoAssistantAssets(),old=document.querySelector('.logo-assistant-overlay');if(old)old.remove();
+  const assets=logoAssistantAssets(),churchLogoOmitted=Array.isArray(node.omit)&&node.omit.includes('logo'),old=document.querySelector('.logo-assistant-overlay');if(churchLogoOmitted)assets.church=[];if(old)old.remove();
   node.manualLogoPlacements=Array.isArray(node.manualLogoPlacements)?node.manualLogoPlacements:[];
   const target=node.target||{},ratio=(Number(target.width)||1080)/(Number(target.height)||1350),ov=document.createElement('div');ov.className='logo-assistant-overlay';
   const cards=(arr,slot)=>arr.length?arr.map(a=>`<button type="button" class="logo-palette-item" data-palette-asset="${a.id}" data-palette-slot="${slot}"><div class="logo-preview-surface" data-logo-preview-src="${a.url}"><img src="${a.url}"></div><strong>${esc(a.name||'Logo')}</strong><small>${logoVariantRole(a)==='contrast'?'variante de contraste':'principal'} • clique ou arraste</small></button>`).join(''):`<div class="logo-assistant-note">Nenhuma logo cadastrada nesta categoria.</div>`;
@@ -9048,16 +9050,19 @@ function derivativePresetMockHTML(p){
 function derivativePresetBlueprint(preset){
   const elements=(preset?.elements||[]).filter(e=>e&&e.type!=='logo').map(e=>({
     type:String(e.type||''),x:Number(e.x)||0,y:Number(e.y)||0,w:Number(e.w)||0,h:Number(e.h)||0,
-    z:e.type==='decor'?0:(Number(e.z)===1?1:2),
+    z:e.type==='decor'?0:(Number(e.z)===1?1:(Number(e.z)||2)),
+    alignmentLocked:!!e.alignmentLocked,
     cropScale:e.type==='preacher'?Number(e.cropScale||1):undefined,
     cropX:e.type==='preacher'?Number(e.cropX||0):undefined,
-    cropY:e.type==='preacher'?Number(e.cropY||0):undefined
+    cropY:e.type==='preacher'?Number(e.cropY||0):undefined,
+    overflowCrop:e.type==='preacher'?!!e.overflowCrop:undefined,
+    framing:e.type==='preacher'?String(e.hiddenFramingProfile?.framing||''):undefined
   }));
   return {id:preset?.id||'',name:preset?.name||'',format:preset?.format||'',elements};
 }
 function derivativePresetOmittedElements(preset){
   const present=new Set((preset?.elements||[]).map(e=>String(e?.type||'')).filter(Boolean));
-  return ['title','subtitle','date','time','info','address','preacher'].filter(t=>!present.has(t));
+  return ['title','subtitle','date','time','info','address','preacher_name','preacher'].filter(t=>!present.has(t));
 }
 function derivativePresetDefaultPastorMode(preset){
   return (preset?.elements||[]).some(e=>e?.type==='preacher')?'keep':'remove';
@@ -9066,33 +9071,49 @@ function derivativePresetLogoSlot(preset){
   const e=(preset?.elements||[]).find(x=>x?.type==='logo');if(!e)return null;
   return {x:Number(e.x)||0,y:Number(e.y)||0,w:Number(e.w)||0,h:Number(e.h)||0};
 }
+function derivativePresetSpecificGuidance(preset){
+  return String(preset?.prompt||'')
+    .replace(/POLÍTICA DO LAYOUT PRÉ-PROGRAMADO — GUIA FLEXÍVEL:\n(?:[ \t]*- [^\n]*\n)+/g,'')
+    .replace(/^Use os vazios definidos como referência[^\n]*$/gm,'')
+    .replace(/^REGRA DE CAMADAS SEMÂNTICAS:[^\n]*$/gm,'')
+    .replace(/^ALINHAMENTO TEXTUAL: livre[^\n]*$/gm,'')
+    .replace(/^TELÃO: use esta composição[^\n]*$/gm,'')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
 function derivativePresetHardInstruction(preset){
   const bp=derivativePresetBlueprint(preset);
-  const region=e=>{
-    const cx=(e.x+e.w/2).toFixed(1),cy=(e.y+e.h/2).toFixed(1);
-    const small=e.type==='title'&&(e.w<=25||e.h<=20);
-    const maxNote=e.type==='title'
-      ?`GEOMETRIA EXATA DO TÍTULO: ocupar aproximadamente x=${e.x.toFixed(1)}%, y=${e.y.toFixed(1)}%, w=${e.w.toFixed(1)}%, h=${e.h.toFixed(1)}% da arte. NÃO mover para outra região e NÃO aumentar essa caixa. Tolere no máximo pequenos ajustes de acabamento (cerca de 2 pontos percentuais). Se o texto não couber, REDUZA a fonte ou quebre linhas dentro desta mesma caixa${small?'; este é um título deliberadamente PEQUENO e deve permanecer pequeno':''}.`
-      :'';
-    return `- ${e.type.toUpperCase()}: caixa-guia x=${e.x.toFixed(1)}%, y=${e.y.toFixed(1)}%, w=${e.w.toFixed(1)}%, h=${e.h.toFixed(1)}%; centro aproximado ${cx}%/${cy}%. ${maxNote}`;
-  };
-  const hasPreacher=bp.elements.some(e=>e.type==='preacher');
+  const presentTypes=[...new Set(bp.elements.map(e=>e.type))];
+  const textTypes=['title','subtitle','date','time','info','address','preacher_name'];
+  const included=textTypes.filter(t=>presentTypes.includes(t));
   const omitted=derivativePresetOmittedElements(preset);
-  const photoAndTitleYoutubePreset=preset?.id==='preset_1789090826582_bzagx'&&preset?.group==='youtube';
-  const titleAndPreacherNameYoutubePreset=preset?.id==='preset_youtube_title_preacher_name_v1'&&preset?.group==='youtube';
-  return `LAYOUT PRÉ-PROGRAMADO "${preset?.name||''}" — SILHUETA ESTRUTURAL OBRIGATÓRIA:
-- Este preset define a SILHUETA da composição. Não troque esquerda por direita, não transforme composição central em lateral e não converta elemento pequeno em elemento dominante.
-- As coordenadas podem receber pequenos ajustes de acabamento, mas a região, o lado, a proporção relativa e o TAMANHO MÁXIMO dos elementos devem permanecer reconhecíveis em relação à miniatura escolhida.
-- Para título e demais textos, se o conteúdo não couber, REDUZA a tipografia, quebre linhas ou ajuste discretamente o espaçamento. NÃO aumente a caixa para resolver falta de espaço.
-- A arte de origem fornece a identidade visual, o fundo, o tratamento e os elementos gráficos não textuais. Preserve vetores, linhas, formas, luzes, efeitos, texturas, gradientes, sombras e grafismos existentes. O preset determina a geometria dos conteúdos previstos, mas NÃO autoriza apagar ou simplificar a identidade gráfica da origem.
-- Elementos gráficos e decorativos da arte-fonte são parte essencial de sua identidade: preserve-os por padrão e adapte-os ao novo formato sem removê-los. Mantenha-os atrás de pessoas e textos quando essa for a composição original.
-- LOGOS NÃO pertencem à geração por IA. Qualquer slot de logo do preset será usado somente depois pelo Assistente de Logos; não desenhe nem reserve logo agora.
-- PREGADOR NO PRESET: ${hasPreacher?'existe uma região prevista para pessoa, mas a presença real é controlada pelo seletor Manter/Trocar/Adicionar/Remover.':'o modelo-base NÃO contém pessoa; por padrão qualquer pregador da arte de origem deve ser REMOVIDO. O usuário pode sobrescrever isso escolhendo Manter/Trocar/Adicionar.'}
-- REGRA DE AUSÊNCIA: remova somente conteúdos das categorias semânticas ausentes neste modelo, como textos informativos ou pessoas. A ausência de um texto NÃO significa ausência dos elementos gráficos da arte-fonte. Ausentes neste preset: ${omitted.length?omitted.join(', '):'nenhum'}. Preserve vetores, linhas, luzes, efeitos, texturas e grafismos não textuais, salvo remoção visual expressamente pedida.
-- A caixa de observações pode solicitar conteúdo adicional e, nesse caso, a instrução explícita do usuário vence a ausência padrão.
-${photoAndTitleYoutubePreset?`- CONTEÚDO DE PRIMEIRO PLANO — HARD CONSTRAINT: mantenha somente a fotografia do pregador e o título como conteúdos principais. Remova os textos informativos ausentes no preset, mas preserve integralmente os elementos gráficos não textuais da arte-fonte — vetores, linhas, formas, luzes, efeitos, texturas, gradientes, sombras e grafismos. Não os trate como conteúdo informativo nem os remova por causa da ausência de textos.`:''}
-${titleAndPreacherNameYoutubePreset?`- YOUTUBE 4 — REGRA CONDICIONAL DA PESSOA — HARD CONSTRAINT: verifique a imagem-base selecionada. Se ela já contiver um pregador real, preserve a foto e inclua o nome somente quando estiver confirmado/legível. Se não contiver pregador, NÃO invente ou gere pessoa, rosto, corpo ou silhueta; ignore a região de foto mostrada na miniatura/guia, omita o nome e centralize somente o título no canvas (centro X=50%, Y=50%; caixa x=12.3%, y=30.6%, w=75.4%, h=38.8%). Esta exceção substitui a caixa usual do título descrita acima. Em ambos os casos preserve vetores, linhas, luzes, efeitos, texturas, gradientes, sombras e grafismos não textuais da arte-fonte.`:''}
-${bp.elements.map(region).join('\n')}`;
+  const geometry=bp.elements.map(e=>{
+    const centerX=(e.x+e.w/2).toFixed(2),centerY=(e.y+e.h/2).toFixed(2);
+    const layer=e.z===0?'fundo':e.z===1?'camada intermediária':'primeiro plano';
+    let crop='';
+    if(e.type==='preacher')crop=' Enquadramento '+(e.framing||'da origem')+'; cropScale '+Number(e.cropScale||1).toFixed(3)+'; cropX '+Number(e.cropX||0).toFixed(3)+'%; cropY '+Number(e.cropY||0).toFixed(3)+'%; corte fora do canvas '+(e.overflowCrop?'intencional':'não permitido')+'.';
+    return '- '+e.type.toUpperCase()+': caixa final x='+e.x.toFixed(3)+'%, y='+e.y.toFixed(3)+'%, largura='+e.w.toFixed(3)+'%, altura='+e.h.toFixed(3)+'%; centro '+centerX+'%/'+centerY+'%; camada '+layer+'.'+crop;
+  }).join('\n');
+  const specific=derivativePresetSpecificGuidance(preset);
+  const rules=[
+    'PRESET PRÉ-PROGRAMADO "'+(preset?.name||'')+'" — CONTRATO ESTRITO:',
+    'O cartão escolhido é um modelo de composição, não uma inspiração. Reproduza sua posição, lado, escala, hierarquia e relação entre os elementos. Não reorganize, espelhe, centralize por conveniência nem altere a proporção.',
+    'As caixas abaixo são percentuais do canvas final. Respeite cada posição e proporção, com tolerância máxima de 1 ponto percentual. Se o conteúdo não couber, reduza a fonte ou quebre linhas dentro da caixa; não aumente a caixa. Preserve os cortes marcados como intencionais.',
+    'Elementos textuais previstos neste cartão: '+(included.join(', ')||'nenhum')+'. Use exatamente o texto legível na imagem selecionada ou nos dados dessa mesma arte. Nunca use exemplos/placeholders do preset. Se não houver conteúdo exato no original/dados, deixe o campo vazio; não invente.',
+    'Categorias ausentes neste cartão: '+(omitted.join(', ')||'nenhuma')+'. Remova-as da arte selecionada. Uma exceção requer pedido atual, direto e específico para incluir/substituir aquela categoria com o texto ou asset exato.',
+    'PESSOA: a presença depende da arte selecionada e do controle Manter/Trocar/Adicionar/Remover. Nunca invente pessoa, rosto, corpo ou silhueta para preencher uma caixa vazia.',
+    'DESIGN ORIGINAL: preserve vetores, linhas, formas, ilustrações, molduras, luzes, efeitos, texturas, gradientes, sombras e grafismos não textuais, com a mesma identidade, cor, camada e função. Remover texto não remove design. Uma região decorativa do preset usa a linguagem visual da origem, não uma decoração genérica.',
+    'Não importe elementos de outro preset. Não desenhe logos, placeholders ou placas vazias; as logos oficiais são tratadas depois.',
+    'ÍCONES: não adicione ícones ao lado de dia/data, hora ou local. Preserve somente ícones que já existam na arte selecionada e cujo conteúdo continue presente, ou inclua se o usuário pedir expressamente. Quando pedidos, use tamanho discreto, altura máxima de 65% do texto e sem novo círculo/cartão/fundo.',
+    'O alinhamento e a hierarquia devem seguir a miniatura escolhida. Não acrescente texto ou decoração para preencher espaços vazios.',
+    'DIRETRIZES ESPECÍFICAS DESTE PRESET (flexibilidade genérica removida):',
+    specific,
+    'GEOMETRIA EXATA — UMA CAIXA PARA CADA ELEMENTO:',
+    geometry
+  ];
+  if(preset?.id==='preset_1789090826582_bzagx')rules.push('YOUTUBE 2: somente foto real do pregador e título. Remova os demais textos informativos. Se a imagem selecionada não tiver pregador real, mostre somente o título e não invente pessoa.');
+  if(preset?.id==='preset_youtube_title_preacher_name_v1')rules.push('YOUTUBE 4: com pregador real visível, preserve foto, título e nome confirmado nas caixas. Sem pregador real, não invente foto nem nome; mostre somente o título centralizado, caixa x=12.300%, y=30.600%, largura=75.400%, altura=38.800%.');
+  return rules.filter(Boolean).join('\n');
 }
 async function derivativePresetGuideDataUrl(preset){
   const bp=derivativePresetBlueprint(preset),fmt=String(preset?.format||'');
@@ -9165,13 +9186,34 @@ function derivativePresetObserve(root=document){
 function derivativePresetCards(group,selectedId=''){
   return DERIVATIVE_PRESETS.filter(x=>x.group===group).map(p=>`<button type="button" class="derivative-preset ${p.id===selectedId?'active':''}" data-derivative-preset="${p.id}">${derivativePresetMockHTML(p)}<strong>${esc(p.name)}</strong><small>${esc(quickTargetSpec(p.format).label)}</small></button>`).join('');
 }
+function derivativeManualOmissionHTML(state0){
+  const options=[
+    ['pastorMain','foto do pregador principal','Remove apenas a foto/pessoa principal; não adiciona outra pessoa.'],
+    ['pastorAux1','foto do pregador auxiliar 1','Remove somente a primeira pessoa auxiliar.'],
+    ['pastorAux2','foto do pregador auxiliar 2','Remove somente a segunda pessoa auxiliar.'],
+    ['pastorNames','nomes dos pregadores','Remove os nomes escritos, sem remover fotos não marcadas.'],
+    ['date','dia e data','Remove dia da semana e data escritos; tira o ícone ligado a eles se ficar órfão.'],
+    ['time','hora','Remove o horário escrito; tira o ícone ligado a ele se ficar órfão.'],
+    ['address','local e endereço','Remove o local/endereço escrito; tira o ícone ligado a ele se ficar órfão.'],
+    ['title','título','Remove o título escrito, sem criar outro.'],
+    ['visualElements','elementos visuais de design','Vetores, linhas, formas, luzes, efeitos, texturas, molduras e grafismos.'],
+    ['churchImage','foto de fundo da igreja','Remove a fotografia real do templo; não o fundo gráfico abstrato.'],
+    ['graphicElements','elementos PNG','Remove figuras/ornamentos PNG; não confundir com o design gráfico original.'],
+    ['logo','logo da igreja','Impede que a logo seja recolocada na etapa de logos.']
+  ];
+  const selected=Array.isArray(state0.manualOmit)?state0.manualOmit:[];
+  const choices=options.map(function(o){
+    return '<label class="derivative-omit-item"><input type="checkbox" data-manual-omit value="'+esc(o[0])+'" '+(selected.includes(o[0])?'checked':'')+'><span><strong>Omitir '+esc(o[1])+'</strong><small>'+esc(o[2])+'</small></span></label>';
+  }).join('');
+  return '<section class="derivative-section" data-mobile-step="4"><div class="derivative-section-title"><strong>O que deseja omitir?</strong><small>Todos começam desmarcados</small></div><p class="derivative-omit-intro">Sem seleção, preserve o que está visível na arte original. Marque somente o que deve sair.</p><div class="derivative-omit-grid">'+choices+'</div><div class="derivative-omit-note"><strong>Sem substituições.</strong> Cada item marcado é removido sem colocar outro em seu lugar. Só volta se as instruções escritas pedirem claramente essa mesma categoria e informarem o texto ou arquivo exato. Ícones de dia, hora e local não serão acrescentados; só permanecem se já existirem na origem e a informação continuar, ou se você pedir claramente. Quando usados, ficam discretos (até 65% da altura do texto).</div></section>';
+}
 function derivativeManualSections(state0){
   return `
   <section class="derivative-section mobile-active" data-mobile-step="0"><div class="derivative-section-title"><strong>Novo tamanho</strong><small>Escolha o formato da próxima arte</small></div><div class="derivative-format-grid">${derivativeFormatCards(state0.format)}</div></section>
   <section class="derivative-section" data-mobile-step="1"><div class="derivative-section-title"><strong>Pregador</strong><small>Manter, trocar, adicionar ou remover</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['add','Adicionar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.pastorMode===x[0]?'active':''}" data-pastor-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid" data-pastor-assets>${derivativeAssetCards('pastor',['replace','add'].includes(state0.pastorMode)?state0.pastorIds:[],['replace','add'].includes(state0.pastorMode))}</div>${['replace','add'].includes(state0.pastorMode)?`<div class="derivative-treatment"><button type="button" data-pastor-treatment="original" class="${state0.pastorTreatment==='original'?'active':''}">Manter tratamento</button><button type="button" data-pastor-treatment="bw" class="${state0.pastorTreatment==='bw'?'active':''}">Preto e branco</button><button type="button" data-pastor-treatment="ai" class="${state0.pastorTreatment==='ai'?'active':''}">IA escolhe</button></div>`:''}</section>
   <section class="derivative-section" data-mobile-step="2"><div class="derivative-section-title"><strong>Foto da igreja / fundo</strong><small>Fotografia protegida contra deformação</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.churchMode===x[0]?'active':''}" data-church-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid">${derivativeAssetCards('church',state0.churchMode==='replace'&&state0.churchId?[state0.churchId]:[],state0.churchMode==='replace')}</div></section>
   <section class="derivative-section" data-mobile-step="3"><div class="derivative-section-title"><strong>Elementos PNG</strong><small>Até 3 elementos</small></div><div class="derivative-choice-row">${[['keep','Manter'],['replace','Trocar'],['add','Adicionar'],['remove','Remover']].map(x=>`<button class="derivative-choice ${state0.graphicMode===x[0]?'active':''}" data-graphic-mode="${x[0]}" type="button">${x[1]}</button>`).join('')}</div><div class="derivative-assets-grid">${derivativeAssetCards('graphic',['replace','add'].includes(state0.graphicMode)?state0.graphicIds:[],['replace','add'].includes(state0.graphicMode))}</div></section>
-  <section class="derivative-section" data-mobile-step="4"><div class="derivative-section-title"><strong>Novas instruções</strong><small>Estas ordens vencem qualquer instrução antiga</small></div><textarea class="derivative-textarea" data-derivative-instruction placeholder="Descreva apenas o que deseja mudar nesta nova arte...">${esc(state0.instruction||'')}</textarea></section>
+  <section class="derivative-section" data-mobile-step="5"><div class="derivative-section-title"><strong>Novas instruções</strong><small>Estas ordens vencem qualquer instrução antiga</small></div><textarea class="derivative-textarea" data-derivative-instruction placeholder="Descreva apenas o que deseja mudar nesta nova arte...">${esc(state0.instruction||'')}</textarea></section>
   <div class="derivative-generate-wrap"><button class="btn primary derivative-generate-btn" type="button" data-derivative-generate>✦ Gerar nova derivada</button></div>`;
 }
 function derivativePresetSections(state0){
@@ -9199,7 +9241,7 @@ function derivativeStudioRenderBody(ov){
   if(currentScroll)st.configScrollTop=currentScroll.scrollTop;
   const sourceStrip=ov.querySelector('.derivative-source-strip');
   if(sourceStrip)st.sourceStripScrollLeft=sourceStrip.scrollLeft;
-  const config=st.tab==='manual'?derivativeManualSections(st):derivativePresetSections(st);
+  const config=st.tab==='manual'?derivativeManualSections(st).replace('<section class="derivative-section" data-mobile-step="5">',derivativeManualOmissionHTML(st)+'<section class="derivative-section" data-mobile-step="5">'):derivativePresetSections(st);
   const grid=ov.querySelector('[data-derivative-grid]');
   grid.innerHTML=`${derivativeStudioSourceHTML(st)}<div class="derivative-panel derivative-config-panel"><div class="derivative-panel-head"><div><strong>${st.tab==='manual'?'Selecione o que deseja na nova arte':'Escolha um layout pronto'}</strong><small>${st.tab==='manual'?'Configure somente o que deseja mudar':'A estrutura escolhida tem prioridade'}</small></div></div><div class="derivative-config-scroll">${config}</div></div>${derivativeStudioResultHTML(st)}`;
   ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x.dataset.derivativeTab===st.tab));
@@ -9219,8 +9261,10 @@ function derivativeStudioSetMobileStep(ov,n){
 }
 function derivativeCollectUI(ov){
   const st=ov.__derivativeState;
-  st.instruction=String(ov.querySelector('[data-derivative-instruction]')?.value||st.instruction||'').trim();
-  st.observation=String(ov.querySelector('[data-derivative-observation]')?.value||st.observation||'').trim();
+  st.instruction=String(ov.querySelector('[data-derivative-instruction]')?.value??st.instruction??'').trim();
+  st.observation=String(ov.querySelector('[data-derivative-observation]')?.value??st.observation??'').trim();
+  const controls=[...ov.querySelectorAll('[data-manual-omit]')];
+  if(controls.length)st.manualOmit=[...new Set(controls.filter(x=>x.checked).map(x=>String(x.value||'')).filter(Boolean))];
 }
 function bindDerivativeStudioBody(ov){
   const st=ov.__derivativeState;
@@ -9284,7 +9328,7 @@ async function runDerivativeStudioGeneration(ov){
     const presetGuideImage=await derivativePresetGuideDataUrl(preset);
     options={studioDerivativeMode:true,layoutPresetId:preset.id,layoutPresetName:preset.name,layoutPresetInstruction:derivativePresetHardInstruction(preset),layoutPresetBlueprint:presetBlueprint,layoutPresetOmittedElements:derivativePresetOmittedElements(preset),layoutGuideImage:presetGuideImage,presetObservation:st.observation,pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,backgroundMode:!!preset.backgroundMode,screenThemeMode:!!preset.screenThemeMode,screenOccupancyMode:!!preset.screenOccupancyMode,screenInfoPct:preset.screenInfoPct||null};
   }else{
-    options={studioDerivativeMode:true,pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,churchImageMode:st.churchMode,churchImageAssetId:st.churchId,graphicMode:st.graphicMode,graphicAssetIds:st.graphicIds,manualDerivativeInstruction:st.instruction};
+    options={studioDerivativeMode:true,manualOmit:Array.isArray(st.manualOmit)?[...st.manualOmit]:[],pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,churchImageMode:st.churchMode,churchImageAssetId:st.churchId,graphicMode:st.graphicMode,graphicAssetIds:st.graphicIds,manualDerivativeInstruction:st.instruction};
   }
   const btn=ov.querySelector('[data-derivative-generate]'),cancelGeneration=ov.querySelector('[data-derivative-cancel]');if(btn){btn.disabled=true;btn.textContent='Gerando…'}if(cancelGeneration)cancelGeneration.hidden=false;
   try{
@@ -9320,7 +9364,7 @@ function openDerivativeStudio({parentIndex=0,sourceKey=null,sourceItem=null}={})
   const defaultChurchId=String(srcAssets.churchImage?.id||'');
   const defaultGraphicIds=(srcAssets.graphics||[]).map(x=>String(x?.id||'')).filter(Boolean).slice(0,3);
   state.quickResults[parentIndex]=sourceNode;
-  ov.__derivativeState={parentIndex,sourceKey:`main:${parentIndex}`,source:sourceNode,candidates,tab:'manual',format:sourceNode.target?.id||sourceNode.format||state.quick?.format||'feed',pastorMode:'keep',pastorIds:defaultPastorIds,pastorTreatment:state.quick?.pastorPhotoTreatment||'original',churchMode:'keep',churchId:defaultChurchId,graphicMode:'keep',graphicIds:defaultGraphicIds,instruction:'',observation:'',presetGroup:'feed',presetId:'',result:null,mobileStep:0,configScrollTop:0,sourceStripScrollLeft:0};
+  ov.__derivativeState={parentIndex,sourceKey:`main:${parentIndex}`,source:sourceNode,candidates,tab:'manual',format:sourceNode.target?.id||sourceNode.format||state.quick?.format||'feed',pastorMode:'keep',pastorIds:defaultPastorIds,pastorTreatment:state.quick?.pastorPhotoTreatment||'original',churchMode:'keep',churchId:defaultChurchId,graphicMode:'keep',graphicIds:defaultGraphicIds,manualOmit:[],instruction:'',observation:'',presetGroup:'feed',presetId:'',result:null,mobileStep:0,configScrollTop:0,sourceStripScrollLeft:0};
   ov.innerHTML=`<div class="derivative-studio-head"><div><h2>Criação por derivação</h2><small>Imagem selecionada + instruções atuais têm prioridade. Histórico antigo serve apenas como consulta.</small></div><div class="derivative-studio-head-actions"><div class="derivative-balance"><span>Saldo</span><b>${Math.max(0,Number(state.user?.credits)||0)}</b> créditos</div><button class="mini-btn derivative-cancel-generation" type="button" data-derivative-cancel hidden>Cancelar geração</button><button class="close-modal" type="button" data-derivative-close>×</button></div></div><div class="derivative-tabs"><button class="derivative-tab active" type="button" data-derivative-tab="manual">Variação manual</button><button class="derivative-tab" type="button" data-derivative-tab="preset">Variação pré-programada</button></div><div class="derivative-studio-grid" data-derivative-grid></div><div class="derivative-mobile-nav"><button class="btn ghost" type="button" data-derivative-prev>Voltar</button><button class="btn primary" type="button" data-derivative-next>Próximo</button></div>`;
   document.body.appendChild(ov);
   ov.querySelector('[data-derivative-close]').onclick=()=>{if(generationJobBusy())return appAlert('Cancele a geração antes de fechar esta tela.',{type:'info'});ov.remove();if(document.body.classList.contains('derivator-standalone'))window.openGallery()};
@@ -9791,6 +9835,27 @@ function derivativeExplicitTexts(...values){
 }
 
 
+
+function derivativeManualOmissionOverrides(requested,instruction,explicitTexts,options={}){
+  const text=String(instruction||'');
+  const exactText=Array.isArray(explicitTexts)&&explicitTexts.length>0;
+  const directAction=/(?:mantenha|manter|preserve|preservar|inclua|incluir|adicione|adicionar|coloque|colocar|insira|inserir|use|utilize|mostre|exiba|escreva|recoloque|reintroduza|n[aã]o\s+(?:remova|retire|apague))/i.test(text);
+  const named=(rx)=>rx.test(text);
+  const chosenPastor=['replace','add'].includes(String(options.pastorMode||''))&&Array.isArray(options.pastorAssetIds)&&options.pastorAssetIds.length>0;
+  const chosenChurch=String(options.churchImageMode||'')==='replace'&&!!String(options.churchImageAssetId||'').trim();
+  const chosenGraphics=['replace','add'].includes(String(options.graphicMode||''))&&Array.isArray(options.graphicAssetIds)&&options.graphicAssetIds.length>0;
+  const out=new Set();
+  for(const key of (Array.isArray(requested)?requested:[])){
+    if(['title','pastorNames'].includes(key)&&directAction&&exactText&&named(key==='title'?/(?:t[ií]tulo|chamada principal)/i:/(?:nome|nomes)\s+(?:do|dos)\s+(?:pregador|pastor)|nomes?\s+de\s+pregador/i))out.add(key);
+    else if(['date','time','address'].includes(key)&&directAction&&exactText&&named(key==='date'?/(?:data|dia|domingo|segunda|ter[cç]a|quarta|quinta|sexta|s[aá]bado)/i:key==='time'?/(?:hora|hor[aá]rio)/i:/(?:local|endere[cç]o|avenida|rua|bairro)/i))out.add(key);
+    else if(['pastorMain','pastorAux1','pastorAux2'].includes(key)&&directAction&&named(key==='pastorMain'?/(?:pregador|pastor)\s+principal/i:key==='pastorAux1'?/(?:pregador|pastor)\s+auxiliar\s+1/i:/(?:pregador|pastor)\s+auxiliar\s+2/i)&&(chosenPastor||/(?:mantenha|manter|preserve|preservar)\s+(?:a\s+)?(?:foto|imagem|pregador|pastor)/i.test(text)))out.add(key);
+    else if(key==='churchImage'&&directAction&&named(/(?:foto|imagem|fundo|fotografia).{0,35}(?:igreja|templo)|(?:igreja|templo).{0,35}(?:foto|imagem|fundo|fotografia)/i)&&(chosenChurch||/(?:mantenha|manter|preserve|preservar)\s+(?:a\s+)?(?:foto|imagem|fotografia)\s+(?:da\s+)?(?:igreja|templo)/i.test(text)))out.add(key);
+    else if(key==='graphicElements'&&directAction&&chosenGraphics&&named(/(?:png|elemento|ornamento|figura|grafismo)/i))out.add(key);
+    else if(key==='logo'&&directAction&&named(/logo\s+(?:da\s+)?igreja/i)&&/(?:inclua|incluir|adicione|adicionar|coloque|colocar|insira|inserir|recoloque|reintroduza|mantenha|preserve)/i.test(text))out.add(key);
+  }
+  return [...out];
+}
+
 async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,sourceKey=null,screenDiscreteTitle=false,childCorrection='',adaptOptions={}){
   if(generationJobBusy()){
     appAlert('Já existe uma arte sendo processada. Aguarde a conclusão ou cancele antes de iniciar outra geração.',{type:'info',title:'Geração em andamento'});
@@ -9810,6 +9875,7 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const op=await startGenerationOperation({artType:generationArtTypeFromContext({format:formatId,backgroundMode:!!adaptOptions.backgroundMode,freeMode:!!adaptOptions.freeMode,screenThemeMode:!!adaptOptions.screenThemeMode}),format:formatId,projectName:state.quick?.title||state.projectTitle||'',sourceKey:sourceKey||null});
     const sourceRef=await prepareImageForAI(source.baseDataUrl||source.sourceUrl||source.dataUrl,1400,.9);
     const studioDerivativeMode=!!adaptOptions?.studioDerivativeMode;
+    const layoutPresetInstruction=String(adaptOptions?.layoutPresetInstruction||'').trim();
     const requestedLayoutPresetId=String(adaptOptions?.layoutPresetId||'').trim();
     const useNameOnlyYoutubePreset=requestedLayoutPresetId==='preset_youtube_title_preacher_name_v1';
     const sourceRequiredForPreset=source.requiredContent||parent.requiredContent||{};
@@ -9836,7 +9902,6 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const backgroundMode=!!adaptOptions?.backgroundMode;
     const freeInstruction=String(adaptOptions?.freeInstruction||'').trim();
     const manualDerivativeInstruction=String(adaptOptions?.manualDerivativeInstruction||'').trim();
-    const layoutPresetInstruction=String(adaptOptions?.layoutPresetInstruction||'').trim();
     const layoutPresetId=String(adaptOptions?.layoutPresetId||'').trim();
     const photoAndTitleYoutubePreset=layoutPresetId==='preset_1789090826582_bzagx'&&String(adaptOptions?.layoutPresetName||'')==='YouTube 2';
     const titleAndPreacherNameYoutubePreset=layoutPresetId==='preset_youtube_title_preacher_name_v1'&&String(adaptOptions?.layoutPresetName||'')==='YouTube 4';
@@ -9855,6 +9920,14 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const addPastorAsset=addPastorAssetId?(state.library.assets||[]).find(a=>a.type==='pastor'&&String(a.id)===addPastorAssetId):null;
     const addPastorOverride=!!addPastorAsset;
     const addPastorName=String(addPastorAsset?.meta?.displayName||addPastorAsset?.name||'Pregador').trim();
+    const inheritedRootInstruction=String(source.instruction||parent.instruction||'').trim();
+    const currentDerivativeInstruction=String(manualDerivativeInstruction||(freeMode?freeInstruction:(childCorrection||''))).trim();
+    const explicitDerivativeTexts=derivativeExplicitTexts(currentDerivativeInstruction,presetObservation);
+    const requestedManualOmissions=studioDerivativeMode&&!layoutPresetInstruction&&Array.isArray(adaptOptions?.manualOmit)?[...new Set(adaptOptions.manualOmit.map(String))]:[];
+    const manualOmissionOverrides=derivativeManualOmissionOverrides(requestedManualOmissions,currentDerivativeInstruction,explicitDerivativeTexts,{pastorMode,pastorAssetIds,churchImageMode,churchImageAssetId,graphicMode,graphicAssetIds});
+    const effectiveManualOmissions=requestedManualOmissions.filter(k=>!manualOmissionOverrides.includes(k));
+    omit=Array.isArray(omit)?[...omit]:[];
+    if(effectiveManualOmissions.length)omit=[...new Set([...omit,...effectiveManualOmissions])];
     if(studioDerivativeMode&&pastorMode==='remove'&&!omit.includes('pastors'))omit=[...omit,'pastors'];
     if(studioDerivativeMode&&churchImageMode==='remove'&&!omit.includes('churchImage'))omit=[...omit,'churchImage'];
     if(screenThemeMode){
@@ -9895,7 +9968,7 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     }
     assets.graphics=(assets.graphics||[]).filter(a=>!isLogoLikeAsset(a));
     if(studioDerivativeMode&&graphicMode==='keep')assets.graphics=[];
-    if(graphicMode==='remove')assets.graphics=[];
+    if(graphicMode==='remove'||omit.includes('graphicElements'))assets.graphics=[];
     else if((graphicMode==='replace'||graphicMode==='add')&&graphicAssetIds.length){
       const ga=graphicAssetIds.map(id=>(state.library.assets||[]).find(a=>a.type==='graphic'&&String(a.id)===id&&!isLogoLikeAsset(a))).filter(Boolean);
       const hg=await hydrateGalleryAssets({graphics:ga});
@@ -9919,7 +9992,7 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
 - O modelo selecionado NÃO contém estas categorias: ${presetAbsentEffective.join(', ')}.
 - REMOVA da arte de origem somente o conteúdo semântico dessas categorias. A ausência vale para textos informativos e para pessoas quando aplicável; ela NÃO autoriza remover elementos de design não textuais, como vetores, linhas, formas, luzes, efeitos, texturas, gradientes, sombras ou grafismos. Ao retirar palavras, preserve o tratamento visual e reconstrua o fundo sob o texto.
 - Não mantenha pessoa, data, hora, endereço, subtítulo, informação secundária ou título se a respectiva categoria estiver ausente no preset.
-- Exceção: se a instrução/observação ATUAL do usuário pedir explicitamente um desses conteúdos, siga a instrução atual.
+- Exceção somente se a instrução/observação atual nomear diretamente a mesma categoria e fornecer texto literal exato ou asset exato selecionado. Menção indireta ou contexto antigo não autoriza reintrodução.
 - Para PREGADOR, o seletor Manter/Trocar/Adicionar/Remover vence esta ausência padrão.`:'';
 
     const studioPastorRemoval=studioDerivativeMode&&pastorMode==='remove'?`ZERO PESSOAS — HARD CONSTRAINT DA AÇÃO ATUAL:
@@ -9939,10 +10012,23 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
 - Se a arte selecionada não tiver pregador, trate a nova foto como o primeiro pregador da composição.
 - Esta escolha do usuário vence qualquer trecho do preset que diga “sem pregador”, “sem pessoa” ou equivalente.
 - O Diretor de Design pode reposicionar e redimensionar todos os elementos para integrar as pessoas sem ocultar informações obrigatórias.`:'';
-    const studioGraphicRemoval=studioDerivativeMode&&graphicMode==='remove'?`REMOÇÃO DOS ELEMENTOS PNG — HARD CONSTRAINT DA AÇÃO ATUAL:
-- Não reutilize nem recrie os PNGs removidos.
-- Não invente substitutos para preencher o espaço deixado por eles.`:'';
-    const churchRemoval=omit.includes('churchImage')?`REMOÇÃO DE FOTO DA IGREJA — HARD CONSTRAINT: não reutilize a fotografia/plateia/ambiente real da igreja visível na referência; reconstrua a área coerentemente com o design.`:'';
+    const studioGraphicRemoval=studioDerivativeMode&&(graphicMode==='remove'||omit.includes('graphicElements'))?'REMOÇÃO DOS ELEMENTOS PNG — HARD CONSTRAINT: remova os PNGs sem substituí-los por figuras, vetores ou ornamentos. Não confunda arquivos PNG com o design já impresso na arte.':'';
+    const churchRemoval=omit.includes('churchImage')?'REMOÇÃO DA FOTO DA IGREJA: remova somente a fotografia real. Não substitua por outra foto ou prédio inventado. Continue naturalmente o fundo gráfico, sem painel vazio.':'';
+    const visualElementsOmitted=studioDerivativeMode&&!layoutPresetInstruction&&omit.includes('visualElements');
+    const visualElementsRemoval=visualElementsOmitted?'REMOÇÃO VISUAL PEDIDA: remova os elementos de design marcados sem criar substitutos. Preserve textos, pessoas e fotos não marcados; não deixe caixas vazias nem áreas artificiais.':'';
+    const manualOmissionNames={pastorMain:'foto do pregador principal',pastorAux1:'foto do pregador auxiliar 1',pastorAux2:'foto do pregador auxiliar 2',pastorNames:'nomes dos pregadores',date:'dia/data',time:'hora',address:'local/endereço',title:'título',visualElements:'elementos visuais',churchImage:'foto de fundo da igreja',graphicElements:'elementos PNG',logo:'logo da igreja'};
+    const manualOmissionConstraint=studioDerivativeMode&&!layoutPresetInstruction?[
+      'VARIAÇÃO MANUAL — PRESERVAR E OMITIR POR CATEGORIA:',
+      'A imagem selecionada é a verdade visual atual. Se uma categoria não está marcada e não foi alterada nos controles, preserve sua presença, texto, identidade, aparência e relação com os demais elementos; adapte posição e escala somente o necessário ao novo formato.',
+      effectiveManualOmissions.length?'Itens marcados para remoção: '+effectiveManualOmissions.map(k=>manualOmissionNames[k]||k).join(', ')+'.':'Nenhum item marcado para remoção.',
+      'Remova somente as categorias listadas. Não coloque substitutos, placeholders, molduras vazias, ícones ou formas para ocupar o espaço. Ao apagar texto, pessoa ou foto, continue o fundo original apenas o mínimo necessário.',
+      manualOmissionOverrides.length?'Exceção escrita confirmada para a mesma categoria: '+manualOmissionOverrides.map(k=>manualOmissionNames[k]||k).join(', ')+'. Use apenas o texto exato ou asset exato selecionado.':'Uma categoria marcada só pode voltar se a instrução atual nomear essa mesma categoria e trouxer texto literal exato ou asset exato selecionado.',
+      'ÍCONES DE DATA, HORA E LOCAL: forte preferência por NÃO criar. Só mantenha ícones existentes na arte selecionada se a informação continuar, ou crie quando forem pedidos claramente. Quando pedidos, limite sua altura a 65% da altura do texto, sem círculo/cartão/fundo novo. Se a informação for omitida, retire também o ícone.',
+      'Não acrescente texto informativo que não esteja visível na arte selecionada ou explicitamente fornecido com conteúdo exato.'
+    ].join('\n'):'';
+    const visualIdentityInstruction=visualElementsOmitted
+      ?'ELEMENTOS VISUAIS — REMOÇÃO PEDIDA: remova os elementos de design da arte-fonte sem substitutos. Preserve somente categorias não marcadas e o fundo natural.'
+      :'IDENTIDADE VISUAL — PRESERVAÇÃO: trate vetores, linhas, formas, ilustrações, padrões, molduras, gradientes, texturas, luzes, brilhos, sombras, efeitos e grafismos não textuais como parte essencial da arte. Preserve cor, linguagem, camada, posição relativa e função. Remover palavras remove a escrita, não o design.';
     const addPastorInstruction=addPastorOverride?`ADICIONAR PREGADOR — OVERRIDE ABSOLUTO / HARD CONSTRAINT:
 - A foto do pregador selecionado (${addPastorName}) foi fornecida como asset humano obrigatório.
 - ESTA DERIVADA DEVE CONTER esse pregador de forma claramente visível, reconhecível e integrada ao layout.
@@ -9963,9 +10049,6 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
 - Permitido: color grading global, exposição, contraste, saturação, temperatura, tonalidade, vinheta, escurecimento e blur global leve.
 - A fotografia deve continuar reconhecível por comparação direta como O MESMO ARQUIVO, não uma recriação parecida.
 `:'';
-    const inheritedRootInstruction=String(source.instruction||parent.instruction||'').trim();
-    const currentDerivativeInstruction=String(manualDerivativeInstruction||(freeMode?freeInstruction:(childCorrection||''))).trim();
-    const explicitDerivativeTexts=derivativeExplicitTexts(currentDerivativeInstruction,presetObservation);
     const finalInstruction=`${layoutPresetInstruction?`HIERARQUIA DA VARIAÇÃO PRÉ-PROGRAMADA:
 1. A IMAGEM EXATAMENTE SELECIONADA é a fonte de identidade visual, pessoas e conteúdo existente.
 2. O LAYOUT PRÉ-PROGRAMADO escolhido é a AUTORIDADE DE SILHUETA. Para o TÍTULO PRINCIPAL, posição e caixa são praticamente EXATAS e devem ser preservadas proporcionalmente à arte. Para os demais blocos, preserve lado, região e proporção relativa. NÃO alterne automaticamente lados e NÃO substitua o modelo por uma composição genérica.
@@ -9982,12 +10065,11 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
 ${inheritedRootInstruction?`CONTEXTO ANTIGO — CONSULTA SOMENTE, BAIXA PRIORIDADE: ${inheritedRootInstruction}`:'Não há contexto textual antigo relevante.'}
 REGRA OPERACIONAL: se a imagem selecionada e uma instrução antiga divergirem, SEMPRE siga a imagem selecionada. Se a instrução atual divergir da imagem selecionada, siga a instrução atual.
 `}
-IDENTIDADE VISUAL DA ARTE-FONTE — PRESERVAÇÃO OBRIGATÓRIA EM TODAS AS DERIVAÇÕES:
-- Trate os elementos gráficos não textuais como parte essencial da identidade da arte selecionada: preserve vetores, linhas, formas, ilustrações, padrões, molduras, gradientes, texturas, luzes, brilhos, sombras, efeitos, profundidade, grafismos e seu tratamento visual.
-- Mantenha cores, linguagem, camada, posição relativa e função desses elementos sempre que o novo formato permitir. Adapte ou recorte com cuidado; não os elimine, substitua por um fundo genérico ou simplifique sem pedido explícito.
-- As regras de ausência do preset e os pedidos para remover elementos se referem ao conteúdo textual indicado (data, horário, local, subtítulo e informações extras) e às categorias explicitamente escolhidas. Retire a escrita, não a identidade gráfica que a acompanha. Preserve o elemento gráfico ao redor e reconstrua o fundo atrás das palavras removidas.
-- Remova um painel ou placa junto com o texto somente quando ele existir exclusivamente para conter essa informação e não fizer parte do design da campanha.
-- O guia visual do preset define caixas e posições; ele não substitui a identidade visual da arte-fonte.
+${visualIdentityInstruction}
+${manualOmissionConstraint}
+${visualElementsRemoval}
+REGRA GLOBAL DE ÍCONES: não acrescente ícones junto a dia/data, hora ou local por iniciativa própria. Só mantenha os já existentes se o dado continuar ou use quando pedido explicitamente; altura máxima de 65% do texto, sem círculo/cartão/fundo novo. Se a informação sair, retire também seu ícone.
+
 Adapte o layout NATIVAMENTE para ${target.ratio||target.label}; não estique e não apenas recorte. A referência selecionada serve como base visual atual.
 ${layoutPresetInstruction?(photoAndTitleYoutubePreset?'PRÉ-PROGRAMADO YOUTUBE 2: preserve as caixas originais da foto do pregador e do título. Remova somente os textos informativos não previstos e mantenha a identidade gráfica não textual da origem.':titleAndPreacherNameYoutubePreset?'PRÉ-PROGRAMADO YOUTUBE 4: se houver pregador real na origem, preserve a foto, o título e o nome confirmado. Se não houver, não invente pessoa nem nome e centralize somente o título (centro X=50%, Y=50%; caixa x=12.3%, y=30.6%, w=75.4%, h=38.8%). Preserve a identidade gráfica não textual da origem.':'PRÉ-PROGRAMADO: margens externas podem ser flexíveis, porém as CAIXAS/REGIÕES e TAMANHOS MÁXIMOS definidos pelo preset são obrigatórios. Não aumente título, pessoa ou bloco informacional para fora da proporção prevista. REGRA INVIOLÁVEL: toda informação obrigatória deve continuar visível e legível.'):`SAFE FRAME RÍGIDO: 12% de margem livre em cada lado para TODO conteúdo essencial.`}
 Omitir explicitamente: ${omit.join(', ')||'nada'}.
@@ -10074,7 +10156,7 @@ ${titleAndPreacherNameYoutubePreset?'YOUTUBE 4 — ORDEM FINAL: se a imagem-base
     const referenceNote=backgroundMode
       ?`REFERÊNCIA CONTAMINADA COM CONTEÚDO QUE DEVE SER APAGADO: preserve somente fundo, atmosfera, cores, texturas, formas abstratas e foto real da igreja quando houver. REMOVA COMPLETAMENTE título, subtítulo, letras, números, datas, horários, nomes, slogans, logos, selos e qualquer conteúdo legível. ${addPastorOverride?'EXCEÇÃO: adicione obrigatoriamente o pregador selecionado como única pessoa humana.':'Remova também todas as pessoas.'}`
       :studioDerivativeMode
-        ?'ESTA IMAGEM SELECIONADA É A FONTE DE VERDADE VISUAL E SEMÂNTICA ATUAL. Preserve o que realmente está visível nela, exceto mudanças pedidas agora. NÃO recupere pregadores, textos, datas, horários, endereços ou elementos de versões anteriores. Preserve obrigatoriamente os elementos gráficos não textuais existentes — vetores, linhas, formas, luzes, efeitos, texturas, gradientes, sombras e grafismos — como parte da identidade visual. Remover texto não autoriza removê-los. NÃO invente conteúdo ausente. REMOVA qualquer logo de igreja ou de evento visível na referência. A nova base deve sair LOGO-FREE; as logos oficiais serão inseridas somente depois pelo Assistente de Logos.'
+        ?('ESTA IMAGEM SELECIONADA É A FONTE DE VERDADE VISUAL E SEMÂNTICA ATUAL. Preserve o que realmente está visível nela, exceto mudanças pedidas agora. NÃO recupere conteúdo de versões anteriores. '+(visualElementsOmitted?'A omissão visual foi marcada: remova esses elementos sem substituí-los. ':'Preserve o design gráfico não textual existente; remover texto não autoriza removê-lo. ')+'NÃO invente conteúdo ausente. REMOVA logos visíveis; as marcas oficiais serão inseridas depois pelo Assistente de Logos.')
         :'ESTA IMAGEM É A FONTE DE VERDADE VISUAL ATUAL DA DERIVADA. Preserve o que está visível nela, não reconstrua a partir da memória da arte raiz e não reverta alterações já presentes. Preserve os elementos de design não textuais da arte selecionada — vetores, linhas, formas, luzes, efeitos, texturas, gradientes, sombras e grafismos — como parte essencial da identidade visual. Use esta versão LOGO-FREE como base visual. Não desenhe, sinalize nem reserve visualmente áreas para logos; o compositor pós-arte fará isso depois.';
     const payload={mode:'adaptation',derivationMode:studioDerivativeMode?(layoutPresetInstruction?'preset':'manual'):undefined,manualLogoFlow:true,format:formatId,reference:sourceRef,references:[{image:sourceRef,note:referenceNote}],target,assets,requiredContent:required,referenceSemanticPolicy:studioDerivativeMode?'current-art-truth':'style-only',explicitDerivativeTexts,instruction:adaptationInstruction,finalInstruction,semanticMap:[],effects:[],artDirection:backgroundDirection||pastorSafeDirection,redesign:false,variantLabel:`${source.label} • ${target.label}`,omit,sourceKey:source.key,logoPosition:source.logoPosition??parent.logoPosition??null,eventLogoPosition:source.eventLogoPosition??parent.eventLogoPosition??null,eventLogoSize:source.eventLogoSize??parent.eventLogoSize??null,omitChurchLogo:true,omitChurchName:backgroundMode,allowedTexts:backgroundMode?[]:undefined,screenDiscreteTitle:false,discreteTitleText:'',screenInfoPct,screenInfoContent,screenOccupancyMode,screenThemeMode,freeMode,backgroundMode,freeInstruction,manualDerivativeInstruction,layoutPresetInstruction,layoutPresetBlueprint,layoutPresetOmittedElements,layoutGuideImage,presetObservation,pastorMode,pastorAssetIds,pastorPhotoTreatment,churchImageMode,churchImageAssetId,graphicMode,graphicAssetIds,darkScreen:!!darkScreen,addPastorOverride,addPastorAssetId:addPastorOverride?addPastorAssetId:null,addPastorName:addPastorOverride?addPastorName:''};
 
