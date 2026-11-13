@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v1.1 | BASE LOCAL: Index Geral v1.35 (o index.html atual no GitHub é v1.34) | FINALIDADE: interface dedicada à derivação, iniciada pela Galeria; o Index Geral não é modificado. -->
+<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v1.2 | BASE LOCAL: Index Geral v1.35 | FINALIDADE: abrir a derivação nos mesmos pontos acionados no Index principal, mantendo a Galeria original e recebendo a arte e o formato selecionados. -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -4064,9 +4064,6 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
     .derivator-standalone .derivator-shell-brand small{margin-top:3px;color:var(--muted);font-size:11px}
     .derivator-standalone #derivatorAccountEmail{max-width:240px;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-size:11px}
     .derivator-standalone .gallery-modal-panel{width:min(1500px,98vw)!important;max-height:calc(100dvh - 96px)!important}
-    .derivator-standalone .gallery-deriv-entry{border-color:var(--brand-orange)!important;color:var(--text)!important;background:color-mix(in srgb,var(--brand-orange) 12%,var(--field-bg))!important;font-weight:850!important}
-    .derivator-standalone .gallery-empty{padding:28px;text-align:center;line-height:1.6}
-    .derivator-standalone .gallery-empty a{display:inline-flex;margin-top:12px;color:var(--brand-orange);font-weight:800}
     @media(max-width:700px){.derivator-standalone .derivator-shell{padding:10px 12px;min-height:65px}.derivator-standalone .derivator-shell-brand{gap:8px}.derivator-standalone .derivator-shell-brand .brand-logo{width:80px;height:30px}.derivator-standalone .derivator-shell-brand small{max-width:190px;font-size:9px}.derivator-standalone #derivatorAccountEmail{display:none}.derivator-standalone .gallery-modal-panel{max-height:calc(100dvh - 76px)!important}}
   </style>
 </head>
@@ -6456,10 +6453,6 @@ async function shareImageToDeviceGallery(sourceUrl,filename='churchdesign.png'){
 }
 
 function galleryActionsHTML(x,compact=false){
-  if(document.body.classList.contains('derivator-standalone')){
-    const id=esc(String(x.galleryId||''));
-    return `<div class="${compact?'gallery-derivative-actions':'gallery-actions'} gallery-actions-clean"><button class="gallery-main-action gallery-deriv-entry" type="button" data-gallery-deriv="${id}">✦ Criar derivada</button><button class="gallery-main-action" type="button" data-gallery-fullscreen="${id}">⛶ Ver arte</button><button class="gallery-main-action download-btn" type="button" data-gallery-download-direct="${id}">↓ Baixar</button></div>`;
-  }
   const id=esc(String(x.galleryId||''));
   const published=!!(x?.recipe?.feedPublishedAt||x?.feedPublishedAt);
   const publishButton=compact?'':published
@@ -6503,15 +6496,6 @@ function galleryActionsHTML(x,compact=false){
   </div>`;
 }
 function galleryChildActionsHTML(x,compact=false){const id=esc(String(x.galleryId||''));return `<div class="gallery-child-actions" style="${compact?'margin-top:6px':''}"><strong style="font-size:${compact?'7':'8'}px;grid-column:1/-1">Gerar artes derivadas</strong><button class="mini-btn" data-gallery-child="${id}|youtube">YouTube</button><button class="mini-btn" data-gallery-child="${id}|screen">Telão</button><button class="mini-btn" data-gallery-child="${id}|story">Stories</button><button class="mini-btn" data-gallery-child="${id}|background">Fundo</button><span class="background-derivative-note">Mantém fundo, elementos visuais e foto da igreja (caso haja).</span><button class="mini-btn" data-gallery-child="${id}|free">Modo Livre</button></div>`}
-
-const churchDesignGalleryChildActionsHTML=galleryChildActionsHTML;
-galleryChildActionsHTML=function(x,compact=false){
-  if(document.body.classList.contains('derivator-standalone')){
-    const id=esc(String(x.galleryId||''));
-    return `<div class="gallery-child-actions" style="${compact?'margin-top:6px':''}"><button class="mini-btn gallery-deriv-entry" type="button" data-gallery-deriv="${id}">✦ Criar derivada desta arte</button></div>`;
-  }
-  return churchDesignGalleryChildActionsHTML(x,compact);
-};
 
 function galleryThemeTitle(item){
   const projectName=item?.recipe?.projectName||item?.projectName||'';
@@ -7102,7 +7086,6 @@ window.openGallery=function(query='',viewMode=null,focusGalleryId=null){
     ?`<div class="persistent-gallery-list">${families.map(galleryFamilyListHTML).join('')}</div>`
     :`<div class="persistent-gallery-grid">${families.map(galleryFamilyHTML).join('')}</div>`;
   root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel gallery-modal-panel"><div class="modal-head"><div><h2>Galeria</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Artes e receitas salvas':'Banco não conectado'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body">${galleryMergeWithSourceId?`<div class="gallery-merge-with-notice"><span>selecione o outro projeto que será fundido com o atual</span><button type="button" id="galleryCancelMergeWith">Cancelar</button></div>`:''}<div class="gallery-toolbar"><div class="gallery-toolbar-summary"><strong>${items.length} arte(s)</strong><small style="display:block;color:var(--muted);margin-top:3px">Busque pelo tema/título da arte. Use as opções do projeto para “Fundir com”, ou arraste um projeto sobre outro.</small></div><div class="gallery-project-selection-actions"><button class="mini-btn ${galleryProjectSelectMode?'active':''}" id="gallerySelectProjectsBtn" type="button">${galleryProjectSelectMode?'Cancelar seleção':'Selecionar projetos'}</button><button class="mini-btn gallery-merge-selected-btn" id="galleryMergeSelectedBtn" type="button" style="${galleryProjectSelectMode&&galleryProjectSelection.size>=2?'':'display:none'}">⇄ Mesclar (${galleryProjectSelection.size})</button></div><div class="gallery-search-wrap"><input id="gallerySearch" type="search" placeholder="Buscar pelo tema da arte..." value="${esc(query||'')}"></div><div class="gallery-view-toggle"><button type="button" data-gallery-view="grid" class="${view==='grid'?'active':''}">▦ Grade</button><button type="button" data-gallery-view="list" class="${view==='list'?'active':''}">☷ Lista</button></div></div>${families.length?galleryHTML:`<div class="gallery-empty">Nenhuma arte encontrada para “${esc(query||'')}”.</div>`}</div></div></div>`;
-  if(document.body.classList.contains('derivator-standalone')&&!families.length){const empty=root.querySelector('.gallery-empty');if(empty)empty.innerHTML='As artes-base salvas no ChurchDesign aparecem aqui. Crie ou salve uma arte no app principal e depois volte para derivá-la.<br><a href="/">Abrir o ChurchDesign principal</a>';}
   const search=root.querySelector('#gallerySearch');
   if(search){
     search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();openGallery(search.value,view)}};
@@ -7179,7 +7162,6 @@ window.openGallery=function(query='',viewMode=null,focusGalleryId=null){
     e.stopPropagation();closeGalleryActionPopovers();openShareDownloadAssistant(b.dataset.galleryShare);
   });
   root.querySelectorAll('[data-gallery-fullscreen]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryFullscreen);if(x)openArtworkFullscreen(x.url,x.label||'Arte')});
-  root.querySelectorAll('[data-gallery-deriv]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();reopenGalleryProject(b.dataset.galleryDeriv)});
   if(focusGalleryId){requestAnimationFrame(()=>{const selector=`[data-gallery-fullscreen="${CSS.escape(String(focusGalleryId))}"]`,target=root.querySelector(selector);if(!target)return;const card=target.closest('.gallery-derivative-card,.gallery-family-card,.gallery-list-child,.gallery-project-wrap,.gallery-list-row')||target;card.classList.add('gallery-new-art-focus');target.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});setTimeout(()=>card.classList.remove('gallery-new-art-focus'),3200);});}
   root.querySelectorAll('[data-gallery-diagnostic]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDiagnostic);if(!x)return;const a=galleryItemToQuickResult(x);openLogoDiagnostic(a)});
   root.querySelectorAll('[data-gallery-logo-assistant]').forEach(b=>b.onclick=e=>{e.stopPropagation();openGalleryLogoAssistant(b.dataset.galleryLogoAssistant)});
@@ -10118,6 +10100,28 @@ ${titleAndPreacherNameYoutubePreset?'YOUTUBE 4 — ORDEM FINAL: se a imagem-base
 // NEWFLOW v0.40 — legacy stepper remains only as shared/internal code; it is not an executable product mode.
 next.onclick=()=>{};back.onclick=()=>{};
 let churchDesignAppStarted=false;
+const DERIVATOR_REQUEST_KEY='churchdesign.derivator.request.v1';
+const DERIVATOR_HANDOFF_KEY='churchdesign.derivator.handoff.v1';
+function captureStandaloneDerivatorRequest(){
+  if(!document.body.classList.contains('derivator-standalone'))return;
+  try{
+    const u=new URL(location.href),source=String(u.searchParams.get('source')||'').trim(),format=String(u.searchParams.get('format')||'').trim();
+    if(source)sessionStorage.setItem(DERIVATOR_REQUEST_KEY,JSON.stringify({source,format:['youtube','screen','story','background','free'].includes(format)?format:''}));
+    else if(!u.searchParams.has('handoff'))return;
+    u.searchParams.delete('source');u.searchParams.delete('format');u.searchParams.delete('handoff');history.replaceState(null,'',u.pathname+u.search+u.hash);
+  }catch(e){console.warn('[Derivador] Não foi possível guardar a arte solicitada.',e)}
+}
+function consumeStandaloneDerivatorRequest(){
+  if(!document.body.classList.contains('derivator-standalone'))return null;
+  try{
+    const raw=sessionStorage.getItem(DERIVATOR_REQUEST_KEY),handoffRaw=sessionStorage.getItem(DERIVATOR_HANDOFF_KEY);
+    sessionStorage.removeItem(DERIVATOR_REQUEST_KEY);sessionStorage.removeItem(DERIVATOR_HANDOFF_KEY);
+    const request=raw?JSON.parse(raw):null;if(request&&typeof request.source==='string')return request;
+    const handoff=handoffRaw?JSON.parse(handoffRaw):null;
+    return handoff?.source&&typeof handoff.source==='object'?{handoff:handoff.source,format:['youtube','screen','story','background','free'].includes(handoff.format)?handoff.format:''}:null;
+  }catch{return null}
+}
+captureStandaloneDerivatorRequest();
 
 const PENDING_SUBSCRIPTION_KEY='churchdesign.pendingSubscription.v1';
 function capturePendingSubscriptionIntent(){
@@ -10149,6 +10153,17 @@ async function startAuthenticatedApp(){
     updateSidebarAccount();
     renderChurchSwitcher();
     window.openGallery();
+    const requestedDerivation=consumeStandaloneDerivatorRequest();
+    if(requestedDerivation?.handoff){
+      closeModal();
+      openDerivativeStudio({parentIndex:0,sourceKey:'main:0',sourceItem:requestedDerivation.handoff});
+      const ov=document.querySelector('.derivative-studio-overlay'),format=requestedDerivation.format;
+      if(ov&&format){const st=ov.__derivativeState;if(format==='background'){st.tab='preset';st.presetGroup='screen';st.presetId='screen-background';st.format='screen'}else if(format==='free'){st.tab='manual'}else{st.tab='manual';st.format=format}ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x.dataset.derivativeTab===st.tab));derivativeStudioRenderBody(ov)}
+    }else if(requestedDerivation?.source)requestAnimationFrame(()=>{
+      if(!findGalleryItem(requestedDerivation.source)){appToast('A arte solicitada não está mais na Galeria. Escolha uma arte salva para continuar.',{type:'warning',title:'Arte não encontrada'});return;}
+      if(requestedDerivation.format)startGalleryChild(requestedDerivation.source,requestedDerivation.format);
+      else reopenGalleryProject(requestedDerivation.source);
+    });
     consumePendingSubscriptionIntent();
   }catch(e){
     churchDesignAppStarted=false;
