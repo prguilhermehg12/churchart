@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v2.2 | TÍTULO: Derivador independente | VERSÃO: 2.2 | FINALIDADE: usar endpoints DERIV independentes, aderência flexível aos presets, correções adaptativas com limite e entrega da melhor tentativa. -->
+<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v2.4 | TÍTULO: Derivador independente | VERSÃO: 2.4 | FINALIDADE: enviar instruções textuais inequívocas por preset, preservar a identidade visual do título e manter os fluxos manual e pré-programado independentes. -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -10122,11 +10122,11 @@ async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,
     const finalInstruction=`${layoutPresetInstruction?`HIERARQUIA DA VARIAÇÃO PRÉ-PROGRAMADA:
 1. A IMAGEM EXATAMENTE SELECIONADA é a fonte de identidade visual, pessoas e conteúdo existente.
 2. O LAYOUT PRÉ-PROGRAMADO fixa as relações espaciais e as regiões dos elementos. Preserve rigorosamente quem fica à esquerda/direita e acima/abaixo dos demais. Coordenadas exatas não são exigidas; pequenos ajustes dentro da mesma região são permitidos. NÃO alterne lados nem substitua o modelo por uma composição genérica.
-3. O DIRETOR DE DESIGN continua livre para acabamento, alinhamento textual e pequenos reajustes, mas NÃO pode inverter a estrutura nem ampliar um elemento além do tamanho máximo indicado no preset.
+3. O DIRETOR DE DESIGN só pode fazer acabamento e ajustes pequenos de espaçamento/escala dentro da região atribuída. Não pode escolher outra composição, mudar o alinhamento estrutural, trocar elementos de lado, inverter a ordem vertical nem alterar a identidade tipográfica do título.
 4. A arte de origem fornece identidade visual e conteúdo atual; suas posições NÃO vencem o preset.
 5. ESTRUTURA OBRIGATÓRIA: ${layoutPresetInstruction}
 6. As observações atuais do usuário podem remover/alterar conteúdo e têm prioridade semântica: ${presetObservation||'nenhuma'}.
-7. Nenhuma informação obrigatória pode ficar escondida, parcialmente coberta ou ilegível. Se houver conflito, reduza/reorganize dentro da silhueta do preset.
+7. Nenhuma informação obrigatória pode ficar escondida, parcialmente coberta ou ilegível. Se houver conflito, ajuste escala e espaçamento dentro das regiões atribuídas, sem reorganizar a composição.
 7. Instruções antigas da raiz/linhagem servem apenas para consulta e nunca restauram decisões visuais antigas.
 `:`HIERARQUIA DE VERDADE PARA ARTES DERIVADAS — PRIORIDADE ABSOLUTA:
 1. A IMAGEM EXATAMENTE SELECIONADA para gerar esta derivada é a fonte principal de verdade visual. Concentre-se nela, mesmo que seja a segunda, terceira, quarta ou qualquer geração da linhagem.
