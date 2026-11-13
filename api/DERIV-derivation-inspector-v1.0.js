@@ -1,7 +1,8 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
-// ARQUIVO: DERIV-derivation-inspector-v1.0
-// VERSÃO: 1.0
-// FINALIDADE: Inspeção visual independente de imagens derivadas dos modos Manual e Pré-pronto.
+// ARQUIVO DE DESTINO: api/DERIV-derivation-inspector-v1.0.js
+// TÍTULO: Fiscal independente do Derivador
+// VERSÃO DO CONTEÚDO: 1.2
+// FINALIDADE: Conferir presets por semelhança espacial geral, sem coordenadas rígidas.
 // INFRAESTRUTURA COMPARTILHADA: autenticação Supabase e membership da igreja ativa.
 module.exports.config={maxDuration:120};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
@@ -51,12 +52,12 @@ function buildInput(data){
     "MODO: "+(isPreset?"PRÉ-PRONTO":"MANUAL")+".",
     "IMAGEM 1: resultado que será entregue. Imagens seguintes, quando existirem: arte-base e referências.",
     "No modo Manual, confira se mudanças atuais foram obedecidas e se elementos não solicitados foram preservados sem recuperar conteúdo antigo.",
-    isPreset?"No modo Pré-pronto, confira se a composição respeita o preset e seu blueprint: regiões, lados, escala, camadas, recorte e ausências. Blueprint: "+String(data.finalInstruction||data.userInstruction||"").slice(0,7000):"",
+    isPreset?"No modo Pré-pronto, compare com a miniatura e o blueprint como referência aproximada: mantenha regiões principais, lados e hierarquia/tamanho relativo. Aceite deslocamentos moderados de 10–15% do canvas para adaptação e legibilidade; não exija caixas/coordenadas exatas e não reprove só por proximidade da borda se o conteúdo está visível e dentro do canvas. Reprove somente inversão clara, mudança de região que torne o layout irreconhecível, conteúdo obrigatório ausente, ilegível, cortado ou fora do canvas. Mapa: "+JSON.stringify(data.layoutPresetBlueprint||{}).slice(0,3500)+". Instruções: "+String(data.finalInstruction||data.userInstruction||"").slice(0,4500):"",
     "Conteúdo obrigatório atual: "+JSON.stringify(data.requiredContent||{}).slice(0,3000),
     "Textos permitidos: "+JSON.stringify(data.allowedTexts||[]).slice(0,2500),
     "Instrução atual: "+String(data.userInstruction||"").slice(0,3000),
     "Omissões solicitadas: "+JSON.stringify(data.omit||[]),
-    "Avalie: texto inventado ou ilegível; pessoa/pregador ausente, duplicado ou com identidade evidentemente incompatível com assets; informação obrigatória omitida; logo indevida; composição fora do formato; corte de rosto/texto; no modo Pré-pronto, violação clara da geometria prescrita.",
+    "Avalie: texto inventado ou ilegível; pessoa/pregador ausente, duplicado ou com identidade evidentemente incompatível com assets; informação obrigatória omitida; logo indevida; composição fora do formato; corte de rosto/texto; no modo Pré-pronto, inversão clara dos elementos principais ou perda das regiões gerais mostradas na miniatura.",
     "Se não houver erro objetivo que impeça a entrega, aprove. Não exija perfeição estética subjetiva. Não peça mudança apenas por preferência de estilo.",
     "Devolva correction_prompt breve e acionável somente se houver erro objetivo. Não solicite alterações em áreas corretas."
   ].filter(Boolean).join("\n\n");
@@ -92,3 +93,4 @@ module.exports=async function handler(req,res){
     return res.status(200).json({success:true,endpointType:"derivation-inspector",review,meta:{model:"gpt-5.6-terra",usage:payload.usage||null,requestId,endpoint:"responses"}});
   }catch(e){console.error("ChurchDesign Derivation Inspector",e);return res.status(e.statusCode||500).json({error:e.message||"Erro no Fiscal Visual."});}
 };
+
