@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — INDEX GERAL v1.34 | FINALIDADE: preservar elementos gráficos da arte-fonte em todas as derivações, removendo somente conteúdo textual solicitado e categorias expressamente removidas. -->
+<!-- CHURCHDESIGN — INDEX GERAL v1.35.1 | BASE: GitHub Index v1.34 | FINALIDADE: manter integralmente o visual e os botões existentes, encaminhando somente os pontos que abriam o Estúdio de Derivação à página DERIVADOR v1.2. -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -6693,7 +6693,8 @@ function startGalleryChild(id,format){
     const source=galleryItemToQuickResult(item);source.finalized=true;source.manualLogoFlow=true;source.galleryId=item.galleryId;state.quickResults=[source];
     closeModal();screenQuickMode();
     requestAnimationFrame(()=>{
-      const studio=openDerivativeStudio({parentIndex:0,sourceKey:'main:0',sourceItem:item});
+      const studio=openDerivativeStudio({parentIndex:0,sourceKey:'main:0',sourceItem:item,format});
+      if(!studio)return;
       const ov=document.querySelector('.derivative-studio-overlay');
       if(ov&&format){
         const st=ov.__derivativeState;
@@ -9271,11 +9272,32 @@ async function runDerivativeStudioGeneration(ov){
     }
   }finally{const b=ov.querySelector('[data-derivative-generate]'),c=ov.querySelector('[data-derivative-cancel]');if(b){b.disabled=false;b.textContent=st.tab==='manual'?'✦ Gerar nova derivada':'✦ Gerar variação programada'}if(c)c.hidden=true;}
 }
-function openDerivativeStudio({parentIndex=0,sourceKey=null,sourceItem=null}={}){
+function derivativeHandoffSnapshot(source){
+  if(!source||typeof source!=='object')return null;
+  const keys=['id','galleryId','label','dataUrl','baseDataUrl','sourceUrl','url','target','format','artDirection','requiredContent','assets','instruction','logoPosition','eventLogoPosition','eventLogoSize','occupancy','logoPlan','logoReceipt','logoDegradations','manualLogoFlow','finalized','manualLogoPlacements','layoutPresetBlueprint','parentArtworkId','sourceArtworkId','recipe'];
+  const snapshot={};for(const key of keys)if(source[key]!==undefined)snapshot[key]=source[key];
+  return snapshot.dataUrl||snapshot.baseDataUrl||snapshot.sourceUrl||snapshot.url? snapshot:null;
+}
+function routeToIndependentDerivator(source,format=''){
+  if(!source)return false;
+  const url=new URL('/derivador.html',location.origin);
+  if(source.galleryId)url.searchParams.set('source',String(source.galleryId));
+  else{
+    const snapshot=derivativeHandoffSnapshot(source);
+    if(!snapshot){appAlert('Esta arte ainda não está disponível para derivação. Salve-a na Galeria e tente novamente.',{type:'info',title:'Salve a arte na Galeria'});return true;}
+    try{sessionStorage.setItem('churchdesign.derivator.handoff.v1',JSON.stringify({source:snapshot,format:String(format||'')}));url.searchParams.set('handoff','1');}
+    catch(e){appAlert('Não foi possível transferir esta arte para o Derivador. Salve-a na Galeria e tente novamente.',{type:'warning',title:'Salve a arte na Galeria'});return true;}
+  }
+  if(format)url.searchParams.set('format',String(format));
+  location.assign(url.href);return true;
+}
+function openDerivativeStudio(options={}){
+  const {parentIndex=0,sourceKey=null,sourceItem=null,format=''}=options;
   document.querySelector('.derivative-studio-overlay')?.remove();
   let source=sourceItem||resolveQuickReferenceCandidate(sourceKey||preferredQuickReferenceKey(parentIndex),parentIndex)||state.quickResults?.[parentIndex];
   if(sourceItem?.galleryId&&!sourceItem.dataUrl)source=galleryItemToQuickResult(sourceItem);
   if(!source)return appAlert('Não foi possível localizar a arte de origem.',{type:'error'});
+  if(!document.body.classList.contains('derivator-standalone')&&routeToIndependentDerivator(source,format))return null;
   const candidates=derivativeFamilyCandidates(source);
   let matched=candidates.find(x=>String(x.galleryId||x.key||'')===String(source.galleryId||sourceKey||''))||source;
   const sourceNode=derivativeSourceFromCandidate(matched)||source;
@@ -9294,6 +9316,7 @@ function openDerivativeStudio({parentIndex=0,sourceKey=null,sourceItem=null}={})
   ov.querySelector('[data-derivative-prev]').onclick=()=>derivativeStudioSetMobileStep(ov,(ov.__derivativeState.mobileStep||0)-1);
   ov.querySelector('[data-derivative-next]').onclick=()=>{const st=ov.__derivativeState,sections=[...ov.querySelectorAll('[data-mobile-step]')],max=Math.max(0,sections.length-1);if(st.mobileStep>=max)runDerivativeStudioGeneration(ov);else derivativeStudioSetMobileStep(ov,st.mobileStep+1)};
   derivativeStudioRenderBody(ov);
+  return ov;
 }
 
 function openQuickAdaptConfig(i,f,explicitSourceKey=null){
