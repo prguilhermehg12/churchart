@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v2.1 | TÍTULO: Derivador independente | VERSÃO: 2.1 | FINALIDADE: aderência visual flexível aos presets, correções adaptativas com limite e entrega da melhor tentativa sem travar a geração. -->
+<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v2.2 | TÍTULO: Derivador independente | VERSÃO: 2.2 | FINALIDADE: usar endpoints DERIV independentes, aderência flexível aos presets, correções adaptativas com limite e entrega da melhor tentativa. -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -7780,7 +7780,8 @@ function exactContentFromLayers(){
 }
 async function callQualityInspector(payload,signal=null){
   try{
-    const r=await authFetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});
+    const inspectorEndpoint=['manual','preset'].includes(String(payload?.derivationMode||''))?'/api/DERIV-derivation-inspector-v1.0':'/api/quality-inspector';
+    const r=await authFetch(inspectorEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});
     const text=await r.text();
     let data;
     try{data=JSON.parse(text)}
@@ -8004,9 +8005,10 @@ async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null)
   for(let attempt=0;attempt<maxAttempts;attempt++){
     const qualityCorrection=retryGuidance(attempt);
     const request={...payload,qualityCorrection,revisionAttempt:attempt,safeMode:strictDerivation?false:(attempt>=maxCorrections&&attempt>0)};
-    const r=await authFetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal});
+    const generatorEndpoint=strictDerivation?'/api/DERIV-generate-art-v1.0':'/api/generate-art';
+    const r=await authFetch(generatorEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal});
     const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,180)||`Resposta inválida (${r.status})`);}
-    if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);assertGeneratorResponse(data);recordOpenAIRequest(attempt===0?'Gerador de imagem':`Retry de imagem ${attempt}`,data.image.meta||{});lastImage=data.image;
+    if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);assertGeneratorResponse(data,strictDerivation?'derivation-generate':'generate-art');recordOpenAIRequest(attempt===0?'Gerador de imagem':`Retry de imagem ${attempt}`,data.image.meta||{});lastImage=data.image;
     const review=await callQualityInspector({derivationMode:payload.derivationMode||null,generatedImage:lastImage.url,references:payload.references||[],assets:payload.assets||{},requiredContent:payload.requiredContent||{},semanticMap:payload.semanticMap||[],userInstruction:payload.instruction||'',finalInstruction:payload.finalInstruction||'',layoutPresetBlueprint:payload.layoutPresetBlueprint||null,layoutPresetOmittedElements:payload.layoutPresetOmittedElements||[],omit:payload.omit||[],artDirection:payload.artDirection||null,audience:payload.audience||null,designStyle:payload.designStyle||null,logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,omitChurchLogo:payload.omitChurchLogo||false,omitChurchName:payload.omitChurchName||false,allowedTexts:payload.allowedTexts||[],nativeCanvasRequired:true,churchImageMustBeBackground:true,typographyBlueprint:payload.artDirection?.typographyBlueprint||null},signal);
     lastReview=review;
     if(review?.technicalFailure||review?._meta?.technicalFailure){
@@ -8034,8 +8036,8 @@ async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null)
 }
 class EndpointContractError extends Error{constructor(endpoint,message,details={}){super(message);this.name='EndpointContractError';this.endpoint=endpoint;this.details=details;this.nonRetryable=true;}}
 function assertDirectorResponse(data){if(data?.endpointType&&data.endpointType!=='design-director')throw new EndpointContractError('/api/design-director',`Endpoint trocado: recebeu ${data.endpointType}.`);if(!data?.artDirection||typeof data.artDirection!=='object')throw new EndpointContractError('/api/design-director','Contrato inválido do Diretor. Verifique design-director.js.',{model:data?.meta?.model||null,keys:Object.keys(data||{})});}
-function assertGeneratorResponse(data){if(data?.endpointType&&data.endpointType!=='generate-art')throw new EndpointContractError('/api/generate-art',`Endpoint trocado: recebeu ${data.endpointType}.`);const model=String(data?.image?.meta?.model||data?.image?.modelUsed||'');if(!data?.image||typeof data.image.url!=='string'||!data.image.url)throw new EndpointContractError('/api/generate-art',`generate-art respondeu no formato errado (${data?.meta?.model||'desconhecido'}). NÃO tente novamente: confirme se generate-art.js recebeu o arquivo correto.`,{model:data?.meta?.model||null,keys:Object.keys(data||{})});if(!model.startsWith('gpt-image-'))throw new EndpointContractError('/api/generate-art',`generate-art retornou ${model||'modelo desconhecido'}; esperado gpt-image-2.`,{model});}
-function assertInspectorResponse(data){if(data?.endpointType&&data.endpointType!=='quality-inspector')throw new EndpointContractError('/api/quality-inspector',`Endpoint trocado: recebeu ${data.endpointType}.`);if(!data?.review||typeof data.review.approved!=='boolean')throw new EndpointContractError('/api/quality-inspector','Contrato inválido do Fiscal. Verifique quality-inspector.js.',{model:data?.meta?.model||null,keys:Object.keys(data||{})});}
+function assertGeneratorResponse(data,expectedEndpointType='generate-art'){if(data?.endpointType&&data.endpointType!==expectedEndpointType)throw new EndpointContractError(expectedEndpointType==='derivation-generate'?'/api/DERIV-generate-art-v1.0':'/api/generate-art',`Endpoint trocado: recebeu ${data.endpointType}.`);const model=String(data?.image?.meta?.model||data?.image?.modelUsed||'');if(!data?.image||typeof data.image.url!=='string'||!data.image.url)throw new EndpointContractError(expectedEndpointType==='derivation-generate'?'/api/DERIV-generate-art-v1.0':'/api/generate-art',`Gerador respondeu no formato errado (${data?.meta?.model||'desconhecido'}). Verifique o endpoint correspondente.`,{model:data?.meta?.model||null,keys:Object.keys(data||{})});if(!model.startsWith('gpt-image-'))throw new EndpointContractError(expectedEndpointType==='derivation-generate'?'/api/DERIV-generate-art-v1.0':'/api/generate-art',`Gerador retornou ${model||'modelo desconhecido'}; esperado gpt-image-2.`,{model});}
+function assertInspectorResponse(data){if(data?.endpointType&&!['quality-inspector','derivation-inspector'].includes(data.endpointType))throw new EndpointContractError('/api/quality-inspector ou /api/DERIV-derivation-inspector-v1.0',`Endpoint trocado: recebeu ${data.endpointType}.`);if(!data?.review||typeof data.review.approved!=='boolean')throw new EndpointContractError('/api/quality-inspector','Contrato inválido do Fiscal. Verifique o endpoint de fiscalização correspondente.',{model:data?.meta?.model||null,keys:Object.keys(data||{})});}
 
 
 
