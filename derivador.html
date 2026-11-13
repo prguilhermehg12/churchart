@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v1.2 | BASE LOCAL: Index Geral v1.35 | FINALIDADE: abrir a derivação nos mesmos pontos acionados no Index principal, mantendo a Galeria original e recebendo a arte e o formato selecionados. -->
+<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v1.3 | BASE: Derivador v1.2 | FINALIDADE: evitar a exibição momentânea do login enquanto a sessão existente é validada, preservando as rotas e funções do Derivador. -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -4054,6 +4054,13 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
 @media(max-width:760px){.my-account-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.my-account-panel{width:96vw!important}.cost-history-scroll{max-height:48vh}}
 </style>
   <style id="derivator-standalone-styles">
+    .derivator-standalone #authLoading{position:fixed;inset:0;z-index:400000;display:grid;place-items:center;background:var(--bg,#0b0c0f);color:var(--text,#f4f6fb)}
+    .derivator-standalone #authLoading.hidden{display:none!important}
+    .derivator-standalone .derivator-auth-loading-card{display:grid;justify-items:center;gap:16px;padding:28px;text-align:center}
+    .derivator-standalone .derivator-auth-loading-card .brand-logo{width:220px;height:60px}
+    .derivator-standalone .derivator-auth-loading-card p{margin:0;color:var(--muted);font-size:12px}
+    .derivator-standalone .derivator-auth-spinner{width:24px;height:24px;border:2px solid color-mix(in srgb,var(--brand-orange) 30%,transparent);border-top-color:var(--brand-orange);border-radius:50%;animation:derivator-auth-spin .8s linear infinite}
+    @keyframes derivator-auth-spin{to{transform:rotate(360deg)}}
     .derivator-standalone #appShell{display:none!important}
     .derivator-standalone .derivator-shell{position:sticky;top:0;z-index:1000;min-height:76px;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--panel,#111318);border-bottom:1px solid var(--line,#272b34)}
     .derivator-standalone .derivator-shell[hidden]{display:none!important}
@@ -4069,7 +4076,8 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
 </head>
 <body class="derivator-standalone">
 
-  <div id="authGate" class="auth-gate">
+  <div id="authLoading" class="derivator-auth-loading" role="status" aria-live="polite"><div class="derivator-auth-loading-card"><span class="brand-logo" role="img" aria-label="ChurchDesign"></span><span class="derivator-auth-spinner" aria-hidden="true"></span><p>Conferindo seu acesso ao Derivador…</p></div></div>
+  <div id="authGate" class="auth-gate hidden">
     <div class="auth-card">
       <span class="brand-logo" role="img" aria-label="ChurchDesign" style="width:260px;max-width:100%;margin-bottom:12px"></span>
       <p id="authSubtitle">Entre para acessar o Derivador do ChurchDesign.</p>
@@ -5346,9 +5354,10 @@ async function fetchAuthUser(session){
 }
 function applyAuthenticatedUser(user,session){
   state.authSession=session;state.user={id:user.id,email:user.email||'',plan:null,credits:null,isAdmin:false};
-  document.querySelector('#authGate')?.classList.add('hidden');const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='visible';const ae=document.querySelector('#accountEmail');if(ae)ae.textContent=state.user.email||'Conta autenticada';const derivEmail=document.querySelector('#derivatorAccountEmail');if(derivEmail)derivEmail.textContent=state.user.email||'Conta autenticada';document.querySelector('#derivatorShell')?.removeAttribute('hidden');const sab=document.querySelector('#subscriptionAdminBtn');if(sab)sab.style.display='none';
+  document.querySelector('#authGate')?.classList.add('hidden');document.querySelector('#authLoading')?.classList.remove('hidden');const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='visible';const ae=document.querySelector('#accountEmail');if(ae)ae.textContent=state.user.email||'Conta autenticada';const derivEmail=document.querySelector('#derivatorAccountEmail');if(derivEmail)derivEmail.textContent=state.user.email||'Conta autenticada';document.querySelector('#derivatorShell')?.removeAttribute('hidden');const sab=document.querySelector('#subscriptionAdminBtn');if(sab)sab.style.display='none';
 }
 function showAuthGate(){
+  document.querySelector('#authLoading')?.classList.add('hidden');
   document.querySelector('#authGate')?.classList.remove('hidden');
   const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='hidden';
   document.querySelector('#derivatorShell')?.setAttribute('hidden','');
@@ -10159,15 +10168,19 @@ async function startAuthenticatedApp(){
       openDerivativeStudio({parentIndex:0,sourceKey:'main:0',sourceItem:requestedDerivation.handoff});
       const ov=document.querySelector('.derivative-studio-overlay'),format=requestedDerivation.format;
       if(ov&&format){const st=ov.__derivativeState;if(format==='background'){st.tab='preset';st.presetGroup='screen';st.presetId='screen-background';st.format='screen'}else if(format==='free'){st.tab='manual'}else{st.tab='manual';st.format=format}ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x.dataset.derivativeTab===st.tab));derivativeStudioRenderBody(ov)}
+      document.querySelector('#authLoading')?.classList.add('hidden');
     }else if(requestedDerivation?.source)requestAnimationFrame(()=>{
-      if(!findGalleryItem(requestedDerivation.source)){appToast('A arte solicitada não está mais na Galeria. Escolha uma arte salva para continuar.',{type:'warning',title:'Arte não encontrada'});return;}
+      if(!findGalleryItem(requestedDerivation.source)){document.querySelector('#authLoading')?.classList.add('hidden');appToast('A arte solicitada não está mais na Galeria. Escolha uma arte salva para continuar.',{type:'warning',title:'Arte não encontrada'});return;}
       if(requestedDerivation.format)startGalleryChild(requestedDerivation.source,requestedDerivation.format);
       else reopenGalleryProject(requestedDerivation.source);
+      requestAnimationFrame(()=>document.querySelector('#authLoading')?.classList.add('hidden'));
     });
+    else document.querySelector('#authLoading')?.classList.add('hidden');
     consumePendingSubscriptionIntent();
   }catch(e){
     churchDesignAppStarted=false;
     console.error('[ChurchDesign] start',e);
+    document.querySelector('#authLoading')?.classList.add('hidden');
     appAlert(e.message||'Falha ao iniciar o ChurchDesign.',{type:'error'});
   }
 }
