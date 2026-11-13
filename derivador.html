@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v1.5 | TÍTULO: Derivador independente | VERSÃO: 1.5 | FINALIDADE: derivação manual com omissões explícitas, fidelidade visual e presets estritos. -->
+<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v1.7 | TÍTULO: Derivador independente | VERSÃO: 1.7 | FINALIDADE: derivação com diagnóstico visível de falhas e aviso sonoro discreto ao concluir. -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -3862,6 +3862,7 @@ html:not([data-theme="light"]) .sidebar-primary-actions .feed-nav-btn[aria-curre
 .derivative-progress-row{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:6px;font-size:7.5px;color:var(--muted)}
 .derivative-progress-row b{font-size:8px;color:var(--text)}
 .derivative-progress.error .derivative-progress-row span{color:#d89a75}
+.derivative-error-details{flex:none;margin:0 10px 8px;padding:7px 9px;border:1px solid rgba(216,154,117,.35);border-radius:8px;background:rgba(216,154,117,.06);font-size:8px;color:var(--muted)}.derivative-error-details summary{cursor:pointer;color:#e9b99f;font-weight:700}.derivative-error-details pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:140px;overflow:auto;margin:6px 0 0;font:inherit;color:var(--text)}
 .derivative-progress.done .derivative-progress-row span{color:var(--good)}
 
 
@@ -9233,7 +9234,7 @@ function derivativeStudioSourceHTML(st){
 }
 function derivativeStudioResultHTML(st){
   const r=st.result;
-  return `<div class="derivative-panel derivative-result-panel"><div class="derivative-panel-head"><div><strong>Nova arte</strong><small>${r?'Resultado atual':'Aguardando geração'}</small></div></div><div class="derivative-stage">${r?`<img data-derivative-result-img src="${esc(r.dataUrl||r.baseDataUrl||'')}"><button class="derivative-fullscreen" type="button" data-result-fullscreen>⛶</button>`:`<div class="derivative-result-empty">A nova arte aparecerá aqui.<br>No celular, esta janela permanece fixa enquanto você configura as etapas acima.</div>`}</div><div class="derivative-progress" data-derivative-progress><div class="derivative-progress-track"><i data-derivative-progress-fill></i></div><div class="derivative-progress-row"><span data-derivative-progress-text>${st.status==='error'?'A adaptação foi interrompida.':'Aguardando geração.'}</span><b data-derivative-progress-pct>0%</b></div></div>${r?`<div class="derivative-result-actions">${r.finalized?`<button class="btn primary" type="button" data-result-gallery>Ir para a Galeria</button><button class="mini-btn" type="button" data-result-use-source>Usar como nova origem</button>`:`<button class="mini-btn" type="button" data-result-use-source>Usar como nova origem</button><button class="btn primary" type="button" data-result-proceed>Prosseguir →</button>`}</div>`:''}</div>`;
+  return `<div class="derivative-panel derivative-result-panel"><div class="derivative-panel-head"><div><strong>Nova arte</strong><small>${r?'Resultado atual':'Aguardando geração'}</small></div></div><div class="derivative-stage">${r?`<img data-derivative-result-img src="${esc(r.dataUrl||r.baseDataUrl||'')}"><button class="derivative-fullscreen" type="button" data-result-fullscreen>⛶</button>`:`<div class="derivative-result-empty">A nova arte aparecerá aqui.<br>No celular, esta janela permanece fixa enquanto você configura as etapas acima.</div>`}</div><div class="derivative-progress" data-derivative-progress><div class="derivative-progress-track"><i data-derivative-progress-fill></i></div><div class="derivative-progress-row"><span data-derivative-progress-text>${st.status==='error'?'A adaptação foi interrompida.':'Aguardando geração.'}</span><b data-derivative-progress-pct>0%</b></div></div>${st.errorDetails?'<details class="derivative-error-details" open><summary>Detalhes da falha</summary><pre>'+esc(st.errorDetails)+'</pre></details>':''}${r?`<div class="derivative-result-actions">${r.finalized?`<button class="btn primary" type="button" data-result-gallery>Ir para a Galeria</button><button class="mini-btn" type="button" data-result-use-source>Usar como nova origem</button>`:`<button class="mini-btn" type="button" data-result-use-source>Usar como nova origem</button><button class="btn primary" type="button" data-result-proceed>Prosseguir →</button>`}</div>`:''}</div>`;
 }
 function derivativeStudioRenderBody(ov){
   const st=ov.__derivativeState;
@@ -9318,7 +9319,41 @@ function bindDerivativeStudioBody(ov){
   derivativeStudioSetMobileStep(ov,st.mobileStep||0);
   derivativePresetObserve(ov);
 }
+let derivativeReadyAudioContext=null;
+function primeDerivativeReadySound(){
+  try{
+    const AudioContextType=window.AudioContext||window.webkitAudioContext;
+    if(!AudioContextType)return;
+    if(!derivativeReadyAudioContext)derivativeReadyAudioContext=new AudioContextType();
+    if(derivativeReadyAudioContext.state==='suspended')derivativeReadyAudioContext.resume().catch(()=>{});
+  }catch(e){}
+}
+function playDerivativeReadySound(){
+  try{
+    const ctx=derivativeReadyAudioContext;
+    if(!ctx||ctx.state!=='running')return;
+    const start=ctx.currentTime;
+    [[660,0],[880,0.14]].forEach(([frequency,offset])=>{
+      const oscillator=ctx.createOscillator(),gain=ctx.createGain();
+      oscillator.type='sine';oscillator.frequency.setValueAtTime(frequency,start+offset);
+      gain.gain.setValueAtTime(0.0001,start+offset);
+      gain.gain.exponentialRampToValueAtTime(0.025,start+offset+0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001,start+offset+0.11);
+      oscillator.connect(gain);gain.connect(ctx.destination);
+      oscillator.start(start+offset);oscillator.stop(start+offset+0.12);
+    });
+  }catch(e){}
+}
+function derivativeFailureDetails(error){
+  const e=error||{};
+  const message=String(e.message||e.error||e||'A rotina terminou sem informar o motivo.').trim();
+  const status=e.statusCode||e.status||e.response?.status||e.cause?.statusCode;
+  const code=e.code||e.errorCode||e.response?.data?.code;
+  const requestId=e.requestId||e.response?.data?.requestId||e.cause?.requestId;
+  return [status?'Código HTTP: '+status:'',code?'Código: '+code:'',requestId?'ID da requisição: '+requestId:'',message].filter(Boolean).join('\n').slice(0,1800);
+}
 async function runDerivativeStudioGeneration(ov){
+  primeDerivativeReadySound();
   const st=ov.__derivativeState;derivativeCollectUI(ov);
   let preset=null,options={studioDerivativeMode:true};
   if(st.tab==='preset'){
@@ -9330,6 +9365,8 @@ async function runDerivativeStudioGeneration(ov){
   }else{
     options={studioDerivativeMode:true,manualOmit:Array.isArray(st.manualOmit)?[...st.manualOmit]:[],pastorMode:st.pastorMode,pastorAssetIds:st.pastorIds,pastorPhotoTreatment:st.pastorTreatment,churchImageMode:st.churchMode,churchImageAssetId:st.churchId,graphicMode:st.graphicMode,graphicAssetIds:st.graphicIds,manualDerivativeInstruction:st.instruction};
   }
+  st.errorDetails='';
+  options.onFailure=error=>{st.errorDetails=derivativeFailureDetails(error)};
   const btn=ov.querySelector('[data-derivative-generate]'),cancelGeneration=ov.querySelector('[data-derivative-cancel]');if(btn){btn.disabled=true;btn.textContent='Gerando…'}if(cancelGeneration)cancelGeneration.hidden=false;
   try{
     // O Estúdio é apenas uma nova interface para o motor de derivação já existente.
@@ -9344,9 +9381,12 @@ async function runDerivativeStudioGeneration(ov){
       st.status='completed';
       derivativeStudioRenderBody(ov);
       setDerivativeStudioProgress(100,'Arte derivada pronta.');
+      playDerivativeReadySound();
     }else if(st.status!=='cancelled'){
       st.status='error';
-      setDerivativeStudioProgress(-1,'A adaptação foi interrompida. Os créditos debitados foram devolvidos automaticamente.');
+      if(!st.errorDetails)st.errorDetails='A geração retornou sem resultado e sem uma mensagem técnica. A falha pode ter acontecido antes de a função da Vercel iniciar.';
+      derivativeStudioRenderBody(ov);
+      setDerivativeStudioProgress(-1,'Falha: '+String(st.errorDetails).split('\n').pop().slice(0,150)+' — consulte Detalhes da falha.');
     }
   }finally{const b=ov.querySelector('[data-derivative-generate]'),c=ov.querySelector('[data-derivative-cancel]');if(b){b.disabled=false;b.textContent=st.tab==='manual'?'✦ Gerar nova derivada':'✦ Gerar variação programada'}if(c)c.hidden=true;}
 }
@@ -9857,19 +9897,21 @@ function derivativeManualOmissionOverrides(requested,instruction,explicitTexts,o
 }
 
 async function runQuickAdaptation(sourceIndex,formatId,omit=[],darkScreen=false,sourceKey=null,screenDiscreteTitle=false,childCorrection='',adaptOptions={}){
+  const reportFailure=e=>{try{adaptOptions?.onFailure?.(e)}catch{}};
   if(generationJobBusy()){
+    reportFailure(new Error('Já existe uma arte sendo processada. Aguarde a conclusão ou cancele antes de iniciar outra geração.'));
     appAlert('Já existe uma arte sendo processada. Aguarde a conclusão ou cancele antes de iniciar outra geração.',{type:'info',title:'Geração em andamento'});
     return;
   }
-  try{assertDerivativePipelineReady()}catch(e){const st=document.querySelector('#quickStatus');if(st)st.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;else appAlert(e.message);return}
+  try{assertDerivativePipelineReady()}catch(e){reportFailure(e);const st=document.querySelector('#quickStatus');if(st)st.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${esc(e.message)}`;else appAlert(e.message);return}
   scrollToGenerationPanel();
-  const parent=state.quickResults[sourceIndex];if(!parent)return;
-  const source=resolveQuickReferenceCandidate(sourceKey||preferredQuickReferenceKey(sourceIndex),sourceIndex);if(!source)return;
+  const parent=state.quickResults[sourceIndex];if(!parent){reportFailure(new Error('A arte de origem não foi localizada.'));return;}
+  const source=resolveQuickReferenceCandidate(sourceKey||preferredQuickReferenceKey(sourceIndex),sourceIndex);if(!source){reportFailure(new Error('A imagem de origem não foi localizada.'));return;}
   if(!(source.baseDataUrl||source.sourceUrl||source.dataUrl)){const msg='A arte-base selecionada não possui imagem disponível para gerar a derivada.';const st=document.querySelector('#quickStatus');if(st)st.innerHTML=`<strong style="color:#ff9eac">Não foi possível adaptar.</strong><br>${msg}`;else appAlert(msg);return}
   const target=quickTargetSpec(formatId),status=document.querySelector('#quickStatus'),cancel=document.querySelector('#quickCancel');
   beginBackgroundGenerationJob({kind:'adaptation',label:`Adaptando para ${target.label}…`,projectName:state.quick?.title||state.projectTitle||'',progress:18,message:`Adaptando para ${target.label}…`});
   const signal=beginProcess();
-  if(!signal){finishBackgroundGenerationJob('failed','Já existe um processamento ativo.');return}
+  if(!signal){const e=new Error('Já existe um processamento ativo.');reportFailure(e);finishBackgroundGenerationJob('failed',e.message);return}
   if(cancel)cancel.style.display='block';setQuickProgress(18,`Adaptando para ${target.label}...`);if(status)status.textContent='Processando sua arte...';
   try{
     const op=await startGenerationOperation({artType:generationArtTypeFromContext({format:formatId,backgroundMode:!!adaptOptions.backgroundMode,freeMode:!!adaptOptions.freeMode,screenThemeMode:!!adaptOptions.screenThemeMode}),format:formatId,projectName:state.quick?.title||state.projectTitle||'',sourceKey:sourceKey||null});
@@ -10181,6 +10223,7 @@ ${titleAndPreacherNameYoutubePreset?'YOUTUBE 4 — ORDEM FINAL: se a imagem-base
     });
     return child;
   }catch(e){
+    reportFailure(e)
     const errorClass=generationFailureClass(e);
     if(!state.activeGenerationOperation)await logAppIssue(e,{stage:e.name==='AbortError'?'cancelled':'quick-adaptation',category:errorClass,artType:generationArtTypeFromContext({format:formatId}),format:formatId});
     const refund=await finishGenerationOperation(false,e,{stage:e.name==='AbortError'?'cancelled':'quick-adaptation'}).catch(()=>null);
