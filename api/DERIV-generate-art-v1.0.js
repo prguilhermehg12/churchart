@@ -1,8 +1,8 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
 // ARQUIVO DE DESTINO: api/DERIV-generate-art-v1.0.js
 // TÍTULO: Gerador independente do Derivador
-// VERSÃO DO CONTEÚDO: 1.3
-// FINALIDADE: Gerar derivações preservando relações espaciais dos presets, com pequenos ajustes de posição e sem alterar o gerador principal.
+// VERSÃO DO CONTEÚDO: 1.4
+// FINALIDADE: Enviar instruções de preset sem conflitos, preservar identidade tipográfica e manter o gerador principal inalterado.
 // BASE TÉCNICA: Generate Art v0.30.2; arquivo original inalterado.
 // INFRAESTRUTURA COMPARTILHADA: autenticação, acesso à igreja, Storage e registro de uso.
 // CHURCHDESIGN — generate-art v0.30.2
@@ -240,15 +240,17 @@ function layoutPresetStructuralBlock(data={}){
     const title=e.type==='title';
     return '• '+String(e.type||'element').toUpperCase()+': região aproximada perto de x='+x.toFixed(1)+'%, y='+y.toFixed(1)+'%; dimensão relativa de cerca de '+w.toFixed(1)+'% × '+h.toFixed(1)+'%'+(title?'; preserve destaque e tamanho relativo, sem exigir caixa exata':'')+'.';
   };
-  return 'PRESET PRÉ-PROGRAMADO — REFERÊNCIA DE COMPOSIÇÃO:\n'+
-    '- A miniatura escolhida é o modelo visual prioritário. Ao bater o olho, a arte final deve lembrar o arranjo apresentado.\n'+
+  return 'PRESET PRÉ-PROGRAMADO — INSTRUÇÃO TEXTUAL AUTORITATIVA:\n'+
+    '- Use as instruções textuais e o mapa deste preset como ordem direta para compor a arte. A miniatura é uma referência visual auxiliar.\n'+
+    '- A arte de origem fornece identidade visual, conteúdo e ativos existentes; ela NÃO determina a posição final dos elementos.\n'+
     '- Preserve rigorosamente a ordem espacial da miniatura: o que está à direita continua à direita; o que está abaixo continua abaixo. Nunca cruze, troque ou espelhe essas posições, mesmo que a arte-base esteja invertida.\n'+
     '- Coordenadas não são milimétricas. Permita apenas ajustes finos de cerca de 5–8% do canvas dentro da mesma região, sem alterar lado, ordem vertical ou hierarquia.\n'+
+    '- Preserve no título a identidade tipográfica da arte de origem: aparência da fonte, peso, cor, textura, efeitos e orientação. Mude apenas a posição e o tamanho necessários para a região do preset; não incline, itálique, estique ou redesenhe o título. Mantenha as quebras de linha quando couberem; só reorganize linhas para caber sem mudar o estilo.\n'+
     '- RELAÇÕES ESPACIAIS OBRIGATÓRIAS:\n'+(relations.slice(0,24).join('\n')||'Mantenha os elementos nas regiões gerais mostradas pela miniatura.')+'\n'+
     '- Remova categorias ausentes e não invente textos, pessoas, logos ou placeholders. Preserve elementos gráficos não textuais da arte de origem.\n'+
     '- LOGOS reais serão adicionadas depois pelo Assistente de Logos.\n'+
     '- Categorias ausentes obrigatórias: '+(effectiveOmitted.length?effectiveOmitted.join(', '):'nenhuma')+'.\n'+
-    els.map(row).join("\\n")+'\n'+
+    els.map(row).join('\n')+'\n'+
     (isDataImage(data.layoutGuideImage)?'- O guia geométrico mostra regiões aproximadas. Use-o para reconhecer o arranjo geral; não copie retângulos, cores ou aparência do guia.':'');
 }
 function promptLegacyMain(data){
@@ -395,7 +397,13 @@ ${data.assets?.churchImage?.image?`- Existe um asset churchImage. Ele é a FONTE
 - A foto deve ser reconhecível por comparação direta como O MESMO ARQUIVO. Uma igreja apenas "parecida" é FALHA CRÍTICA.
 - Esta regra vale em ARTE BASE, VARIAÇÃO, CORREÇÃO/DELTA-ONLY, DERIVADA, MODO LIVRE, MODO FUNDO e MODO TEMA, salvo quando o usuário selecionar explicitamente "omitir foto da igreja".`:`- Nenhum asset churchImage foi fornecido. Se a referência já possui ambiente de igreja, congregação ou adoração ao fundo, preserve apenas o tipo de atmosfera; não invente silhuetas humanas para preencher lugares vazios.`}
 
-REGRA DE COMPOSIÇÃO ADAPTATIVA:
+${data.layoutPresetInstruction?`PRESET ATIVO — COMPOSIÇÃO CONTROLADA PELO MAPA:
+- A posição dos elementos vem exclusivamente do mapa textual do preset acima e do guia geométrico anexado.
+- A imagem da arte-base é referência somente para identidade visual, conteúdo permitido, pessoas e elementos gráficos existentes. Ignore as posições relativas da arte-base quando divergirem do preset.
+- Não reorganize, espelhe, troque de lado nem centralize os elementos por iniciativa própria. Não use regras genéricas de composição para substituir as regiões do preset.
+- Mantenha a identidade visual do título original: família/aparência tipográfica, peso, cor, textura, acabamento e orientação. Reposicione-o na região indicada pelo preset sem transformá-lo em itálico, inclinado ou em outro estilo. Ajuste escala e quebras de linha somente o necessário para caber.
+- Ajustes de legibilidade são permitidos dentro da mesma região e sem mudar as relações esquerda/direita e acima/abaixo.
+`:`REGRA DE COMPOSIÇÃO ADAPTATIVA:
 - A referência é uma linguagem visual, NÃO um molde rígido.
 - Conte quantas pessoas existem nas fotos realmente fornecidas. Use SOMENTE essas pessoas.
 - Se a referência tiver mais pessoas do que foram fornecidas, NÃO crie silhuetas, sombras, manequins, espaços vazios ou pessoas inventadas para preencher posições.
@@ -404,8 +412,7 @@ REGRA DE COMPOSIÇÃO ADAPTATIVA:
 - Preserve a sensação, hierarquia, energia, paleta, tipografia, recortes e texturas da referência, mas adapte geometria, escala e espaços.
 - Nunca interprete ausência de uma foto como pedido para reservar um espaço para ela.
 - Se houver apenas um pregador, faça a arte parecer desenhada originalmente para UM pregador.
-
-
+`}
 
 TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
 - Trate os 12% externos de CADA LADO como zona proibida para conteúdo essencial.
@@ -434,7 +441,8 @@ TIPOGRAFIA FINAL:
 - Toda a tipografia é desenhada pela IA visual dentro da arte.
 - Não existe camada de texto posterior.
 - Cada informação obrigatória deve aparecer uma única vez.
-- Preserve tipografia, tratamentos, escala e função visual da referência sempre que possível.
+${data.layoutPresetInstruction?`- MODO PRÉ-PROGRAMADO: a identidade visual do título da arte-base é obrigatória, não opcional. Preserve aparência da fonte, peso, cor, textura, efeitos, caixa alta/baixa e orientação; não incline, itálique, deforme ou substitua por outra tipografia.
+- O preset pode mudar a região e exigir ajuste de escala. Mantenha o bloco de título visualmente fiel; preserve as quebras de linha se couberem e altere-as só para acomodar a região definida, sem mudar o estilo.`:`- Preserve tipografia, tratamentos, escala e função visual da referência sempre que possível.`}
 
 
 PREGADOR:
@@ -692,7 +700,13 @@ ${data.assets?.churchImage?.image?`- Existe um asset churchImage. Ele é a FONTE
 - A foto deve ser reconhecível por comparação direta como O MESMO ARQUIVO. Uma igreja apenas "parecida" é FALHA CRÍTICA.
 - Esta regra vale em ARTE BASE, VARIAÇÃO, CORREÇÃO/DELTA-ONLY, DERIVADA, MODO LIVRE, MODO FUNDO e MODO TEMA, salvo quando o usuário selecionar explicitamente "omitir foto da igreja".`:`- Nenhum asset churchImage foi fornecido. Se a referência já possui ambiente de igreja, congregação ou adoração ao fundo, preserve apenas o tipo de atmosfera; não invente silhuetas humanas para preencher lugares vazios.`}
 
-REGRA DE COMPOSIÇÃO ADAPTATIVA:
+${data.layoutPresetInstruction?`PRESET ATIVO — COMPOSIÇÃO CONTROLADA PELO MAPA:
+- A posição dos elementos vem exclusivamente do mapa textual do preset acima e do guia geométrico anexado.
+- A imagem da arte-base é referência somente para identidade visual, conteúdo permitido, pessoas e elementos gráficos existentes. Ignore as posições relativas da arte-base quando divergirem do preset.
+- Não reorganize, espelhe, troque de lado nem centralize os elementos por iniciativa própria. Não use regras genéricas de composição para substituir as regiões do preset.
+- Mantenha a identidade visual do título original: aparência da fonte, peso, cor, textura, efeitos, caixa alta/baixa e orientação. Reposicione-o na região indicada pelo preset sem transformá-lo em itálico, inclinado ou em outro estilo. Ajuste escala e quebras de linha somente o necessário para caber.
+- Ajustes de legibilidade são permitidos dentro da mesma região e sem mudar as relações esquerda/direita e acima/abaixo.
+`:`REGRA DE COMPOSIÇÃO ADAPTATIVA:
 - A referência é uma linguagem visual, NÃO um molde rígido.
 - Conte quantas pessoas existem nas fotos realmente fornecidas. Use SOMENTE essas pessoas.
 - Se a referência tiver mais pessoas do que foram fornecidas, NÃO crie silhuetas, sombras, manequins, espaços vazios ou pessoas inventadas para preencher posições.
@@ -701,6 +715,7 @@ REGRA DE COMPOSIÇÃO ADAPTATIVA:
 - Preserve a sensação, hierarquia, energia, paleta, tipografia, recortes e texturas da referência, mas adapte geometria, escala e espaços.
 - Nunca interprete ausência de uma foto como pedido para reservar um espaço para ela.
 - Se houver apenas um pregador, faça a arte parecer desenhada originalmente para UM pregador.
+`}
 
 
 
@@ -741,28 +756,29 @@ TIPOGRAFIA FINAL:
 - Toda a tipografia é desenhada pela IA visual dentro da arte.
 - Não existe camada de texto posterior.
 - Cada informação obrigatória deve aparecer uma única vez.
-- Preserve tipografia, tratamentos, escala e função visual da referência sempre que possível.
+${data.layoutPresetInstruction?`- MODO PRÉ-PROGRAMADO: a identidade visual do título da arte-base é obrigatória, não opcional. Preserve aparência da fonte, peso, cor, textura, efeitos, caixa alta/baixa e orientação; não incline, itálique, deforme ou substitua por outra tipografia.
+- O preset pode mudar a região e exigir ajuste de escala. Mantenha o bloco de título visualmente fiel; preserve as quebras de linha se couberem e altere-as só para acomodar a região definida, sem mudar o estilo.`:`- Preserve tipografia, tratamentos, escala e função visual da referência sempre que possível.`}
 
 
 PREGADOR:
 - O sistema aceita NO MÁXIMO 3 pregadores.
-${data.layoutPresetInstruction?'- QUANDO HOUVER PRESET: regras genéricas de centralização, dominância lateral, simetria e revezamento NÃO definem posição. O MAPA ESTRUTURAL DO PRESET define a região da pessoa.':''}
+${data.layoutPresetInstruction?'- QUANDO HOUVER PRESET: posição, escala, lado e orientação espacial dos pregadores seguem somente o mapa do preset. Ignore instruções genéricas de centralização, dominância lateral, simetria, revezamento e abertura para fora. Preserve a identidade e a pose da foto; mova a pessoa apenas para a região indicada.': ''}
 ${data.addPastorOverride?'- OVERRIDE ATIVO: existe uma foto de pregador explicitamente selecionada para ADIÇÃO nesta derivada. A presença desse pregador é OBRIGATÓRIA, mesmo que a arte-base não tenha pessoa.':''}
 - A ordem dos assets é semântica e obrigatória: PESSOA 1 = PRINCIPAL; PESSOA 2 = AUXILIAR 1; PESSOA 3 = AUXILIAR 2.
 - TODA PESSOA HUMANA NA ARTE DE REFERÊNCIA É PLACEHOLDER DE COMPOSIÇÃO E DEVE SER REMOVIDA quando houver pregadores enviados, salvo comando explícito para preservar uma pessoa da referência.
 - JAMAIS mantenha o pregador/modelo/pessoa original da referência no lugar do PRINCIPAL enviado pelo usuário.
 - Se a referência possui uma pessoa central, substitua semanticamente essa pessoa pelo PRINCIPAL enviado: preserve a FUNÇÃO/REGIÃO composicional, mas use a IDENTIDADE e, quando possível, a POSE do principal enviado.
 - Não misture rosto, cabelo, barba, roupa, corpo ou identidade entre referência e fotos enviadas.
-- O PRINCIPAL deve ter maior prioridade visual: posição mais central, escala igual ou maior e leitura imediata antes dos auxiliares.
+${data.layoutPresetInstruction?'':`- O PRINCIPAL deve ter maior prioridade visual: posição mais central, escala igual ou maior e leitura imediata antes dos auxiliares.
 - Com 2 pessoas: mantenha o PRINCIPAL mais central/dominante e o AUXILIAR 1 em posição lateral secundária.
 - Com 3 pessoas: mantenha o PRINCIPAL no eixo ou região central dominante e distribua AUXILIAR 1 e AUXILIAR 2 nas laterais de forma equilibrada.
-- DIREÇÃO DOS AUXILIARES: a equipe deve visualmente ABRIR PARA FORA do centro. Auxiliar à esquerda olha/orienta-se preferencialmente para a esquerda externa; auxiliar à direita, para a direita externa.
+- DIREÇÃO DOS AUXILIARES: a equipe deve visualmente ABRIR PARA FORA do centro. Auxiliar à esquerda olha/orienta-se preferencialmente para a esquerda externa; auxiliar à direita, para a direita externa.`}
 - Primeiro escolha o lado pela orientação natural da foto. Se dois auxiliares olharem para o mesmo lado, é permitido FLIP HORIZONTAL integral de um deles, sem redesenhar rosto, mãos, roupa, microfone ou instrumento. Nunca espelhe logos/textos.
 - Preserve pose, gesto, braço levantado/abaixado, mãos, microfone, inclinação da cabeça e direção do olhar de cada foto enviada. Não neutralize poses expressivas.
 - Preserve fortemente a fisionomia. Não embeleze, rejuvenesça, envelheça ou invente traços.
 - Nunca troque rostos, nomes, funções ou hierarquia entre as pessoas.
 - Auxiliares podem ficar parcialmente atrás do principal quando a composição pedir profundidade, mas nunca devem cobrir o rosto do principal.
-- Com referência, replique primeiro o ENQUADRAMENTO e a função espacial, não a identidade humana.
+${data.layoutPresetInstruction?'- Em preset, preserve a identidade e a pose da foto real; posicione-a na região definida pelo mapa, independentemente do lugar que ocupava na arte-base.':'- Com referência, replique primeiro o ENQUADRAMENTO e a função espacial, não a identidade humana.'}
 - Se a referência mostrar busto, peito ou cintura, não transforme em corpo inteiro.
 - Sem referência/instrução, priorize peito para cima ou cintura para cima.
 - Corpo inteiro apenas se referência/instrução justificar.
