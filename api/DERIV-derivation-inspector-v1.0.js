@@ -1,8 +1,8 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
 // ARQUIVO DE DESTINO: api/DERIV-derivation-inspector-v1.0.js
 // TÍTULO: Fiscal independente do Derivador
-// VERSÃO DO CONTEÚDO: 1.2
-// FINALIDADE: Conferir presets por semelhança espacial geral, sem coordenadas rígidas.
+// VERSÃO DO CONTEÚDO: 1.3
+// FINALIDADE: Fiscalizar rigorosamente a ordem espacial dos presets, aceitando apenas ajustes finos de posição.
 // INFRAESTRUTURA COMPARTILHADA: autenticação Supabase e membership da igreja ativa.
 module.exports.config={maxDuration:120};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
@@ -39,9 +39,21 @@ function imageValue(v){
   if(typeof v==="string"&&(/^(https?:\/\/|data:image\/)/i).test(v))return v;
   return"";
 }
+function presetSpatialRelations(blueprint={}){
+  const subjects=(Array.isArray(blueprint.elements)?blueprint.elements:[]).filter(e=>!['decor','logo','church_logo','event_logo'].includes(String(e.type||'').toLowerCase()));
+  const out=[];
+  const label=e=>({preacher:'PREGADOR',title:'TÍTULO',preacher_name:'NOME DO PREGADOR',subtitle:'SUBTÍTULO',date:'DATA',time:'HORÁRIO',address:'ENDEREÇO',info:'INFORMAÇÃO'}[String(e.type||'').toLowerCase()]||String(e.type||'ELEMENTO').toUpperCase());
+  for(let a=0;a<subjects.length;a++)for(let b=a+1;b<subjects.length;b++){
+    const x=subjects[a],y=subjects[b],cx=(Number(x.x)||0)+(Number(x.w)||0)/2,cy=(Number(x.y)||0)+(Number(x.h)||0)/2,dx=(Number(y.x)||0)+(Number(y.w)||0)/2,dy=(Number(y.y)||0)+(Number(y.h)||0)/2;
+    if(Math.abs(cx-dx)>=4)out.push(label(x)+' fica '+(cx<dx?'À ESQUERDA':'À DIREITA')+' de '+label(y)+'; essa relação não pode ser invertida.');
+    if(Math.abs(cy-dy)>=5)out.push(label(x)+' fica '+(cy<dy?'ACIMA':'ABAIXO')+' de '+label(y)+'; essa ordem não pode ser invertida.');
+  }
+  return out.slice(0,24).join(' ');
+}
 function buildInput(data){
   const mode=String(data.derivationMode||"");
   const isPreset=mode==="preset";
+  const relationMap=presetSpatialRelations(data.layoutPresetBlueprint||{});
   const images=[{type:"input_image",image_url:imageValue(data.generatedImage)}];
   for(const ref of (Array.isArray(data.references)?data.references:[]).slice(0,3)){
     const url=imageValue(ref?.image||ref?.url);
@@ -52,12 +64,12 @@ function buildInput(data){
     "MODO: "+(isPreset?"PRÉ-PRONTO":"MANUAL")+".",
     "IMAGEM 1: resultado que será entregue. Imagens seguintes, quando existirem: arte-base e referências.",
     "No modo Manual, confira se mudanças atuais foram obedecidas e se elementos não solicitados foram preservados sem recuperar conteúdo antigo.",
-    isPreset?"No modo Pré-pronto, compare com a miniatura e o blueprint como referência aproximada: mantenha regiões principais, lados e hierarquia/tamanho relativo. Aceite deslocamentos moderados de 10–15% do canvas para adaptação e legibilidade; não exija caixas/coordenadas exatas e não reprove só por proximidade da borda se o conteúdo está visível e dentro do canvas. Reprove somente inversão clara, mudança de região que torne o layout irreconhecível, conteúdo obrigatório ausente, ilegível, cortado ou fora do canvas. Mapa: "+JSON.stringify(data.layoutPresetBlueprint||{}).slice(0,3500)+". Instruções: "+String(data.finalInstruction||data.userInstruction||"").slice(0,4500):"",
+    isPreset?"No modo Pré-pronto, compare com a miniatura e o blueprint como referência aproximada: mantenha regiões principais, lados e hierarquia/tamanho relativo. As relações de lado e ordem acima/abaixo são obrigatórias: reprove se forem invertidas, mesmo que a arte continue bonita. Aceite apenas ajustes finos dentro da mesma região, em torno de 5–8% do canvas; não exija coordenadas exatas nem reprove só por proximidade da borda se o conteúdo estiver visível e dentro do canvas. Reprove também conteúdo obrigatório ausente, ilegível, cortado ou fora do canvas. Relações calculadas: "+relationMap+". Mapa: "+JSON.stringify(data.layoutPresetBlueprint||{}).slice(0,3500)+". Instruções: "+String(data.finalInstruction||data.userInstruction||"").slice(0,4500):"",
     "Conteúdo obrigatório atual: "+JSON.stringify(data.requiredContent||{}).slice(0,3000),
     "Textos permitidos: "+JSON.stringify(data.allowedTexts||[]).slice(0,2500),
     "Instrução atual: "+String(data.userInstruction||"").slice(0,3000),
     "Omissões solicitadas: "+JSON.stringify(data.omit||[]),
-    "Avalie: texto inventado ou ilegível; pessoa/pregador ausente, duplicado ou com identidade evidentemente incompatível com assets; informação obrigatória omitida; logo indevida; composição fora do formato; corte de rosto/texto; no modo Pré-pronto, inversão clara dos elementos principais ou perda das regiões gerais mostradas na miniatura.",
+    "Avalie: texto inventado ou ilegível; pessoa/pregador ausente, duplicado ou com identidade evidentemente incompatível com assets; informação obrigatória omitida; logo indevida; composição fora do formato; corte de rosto/texto; no modo Pré-pronto, inversão da ordem espacial (esquerda/direita ou acima/abaixo) definida pelo preset, ainda que a arte pareça esteticamente aceitável.",
     "Se não houver erro objetivo que impeça a entrega, aprove. Não exija perfeição estética subjetiva. Não peça mudança apenas por preferência de estilo.",
     "Devolva correction_prompt breve e acionável somente se houver erro objetivo. Não solicite alterações em áreas corretas."
   ].filter(Boolean).join("\n\n");
