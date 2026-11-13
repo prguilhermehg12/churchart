@@ -1,11 +1,11 @@
-<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v1.0 | BASE: Index Geral v1.35 | FINALIDADE: interface e regras de derivação isoladas; geração original do Index Geral não é modificada. -->
+<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v1.1 | BASE LOCAL: Index Geral v1.35 (o index.html atual no GitHub é v1.34) | FINALIDADE: interface dedicada à derivação, iniciada pela Galeria; o Index Geral não é modificado. -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ChurchDesign — Design inteligente para igrejas</title>
-  <meta name="description" content="Crie artes profissionais para cultos a partir de referências visuais, camadas e direção criativa." />
+  <title>ChurchDesign — Derivador</title>
+  <meta name="description" content="Crie artes derivadas a partir das artes-base salvas no ChurchDesign." />
   <style>
 :root{--bg:#0b0c0f;--panel:#111318;--panel2:#171a20;--line:#272b34;--text:#f4f6fb;--muted:#969dac;--accent:#ff4f72;--accent2:#7d6cff;--good:#59d69a;--warn:#ffbd59;--shadow:0 20px 60px rgba(0,0,0,.28)}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.app-shell{min-height:100vh;display:grid;grid-template-columns:270px 1fr}.sidebar{position:sticky;top:0;height:100vh;border-right:1px solid var(--line);background:#0e1014;padding:24px 18px;display:flex;flex-direction:column}.brand{display:flex;gap:12px;align-items:center;padding:0 8px 24px}.brand-mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-weight:900}.brand strong,.brand span{display:block}.brand span{font-size:11px;color:var(--muted);margin-top:2px}.project-mini{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:13px;margin-bottom:18px}.project-mini span{display:block;color:var(--muted);font-size:10px;letter-spacing:.12em}.project-mini strong{font-size:13px;margin-top:5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}nav{display:grid;gap:5px}.nav-step{display:flex;align-items:center;gap:10px;padding:10px;border-radius:11px;color:var(--muted);font-size:13px}.nav-step b{width:24px;height:24px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;font-size:11px}.nav-step.active{background:var(--panel2);color:white}.nav-step.active b{background:var(--accent);border-color:var(--accent)}.nav-step.done{color:#cdd2dc}.nav-step.done b{background:#1d3529;border-color:#28513c;color:var(--good)}.sidebar-foot{margin-top:auto;color:var(--muted);padding:10px 8px}.sidebar-foot span,.sidebar-foot small{display:block}.sidebar-foot span{font-size:11px;font-weight:700}.sidebar-foot small{font-size:10px;line-height:1.45;margin-top:4px}.main{min-width:0;display:grid;grid-template-rows:auto 1fr auto;min-height:100vh}.topbar{padding:26px 34px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:24px;align-items:end}.eyebrow{margin:0 0 6px;color:var(--accent);font-size:11px;letter-spacing:.16em;font-weight:800}.topbar h1{margin:0;font-size:26px}.progress{width:180px;color:var(--muted);font-size:11px;text-align:right}.progress>div{height:5px;background:#20242b;border-radius:99px;margin-top:7px;overflow:hidden}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:14%}.content{padding:32px 34px 120px;max-width:1260px;width:100%;margin:0 auto}.footer{position:fixed;bottom:0;right:0;left:270px;background:rgba(11,12,15,.9);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:16px 34px;display:flex;justify-content:space-between;z-index:30}.btn{border:0;border-radius:11px;padding:12px 18px;font-weight:800;cursor:pointer}.btn.primary{background:var(--text);color:#111}.btn.ghost{background:#171a20;color:var(--text);border:1px solid var(--line)}.btn:disabled{opacity:.35;cursor:not-allowed}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow)}.card h3{margin:0 0 7px;font-size:16px}.card p{color:var(--muted);font-size:13px;line-height:1.5;margin:0}.field{display:grid;gap:7px;margin-bottom:16px}.field label{font-size:12px;font-weight:700;color:#cfd4df}.field input,.field textarea,.field select{width:100%;background:#0d0f13;color:white;border:1px solid var(--line);border-radius:11px;padding:12px 13px;outline:none}.field textarea{min-height:104px;resize:vertical}.upload{border:1px dashed #3b414e;border-radius:14px;padding:22px;text-align:center;background:#0d0f13;cursor:pointer}.upload input{display:none}.upload strong,.upload span{display:block}.upload span{font-size:12px;color:var(--muted);margin-top:5px}.preview-logo{width:76px;height:76px;object-fit:contain;border-radius:14px;background:white;padding:8px;margin:0 auto 10px;display:none}.format-card,.choice-card{border:1px solid var(--line);border-radius:15px;padding:18px;background:var(--panel);cursor:pointer;transition:.18s}.format-card:hover,.choice-card:hover{transform:translateY(-2px);border-color:#4a5263}.format-card.selected,.choice-card.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}.format-icon{aspect-ratio:4/5;width:58px;border:1px solid #4a5263;border-radius:7px;margin-bottom:12px;background:linear-gradient(150deg,#1f2430,#101218)}.format-icon.story{aspect-ratio:9/16}.format-icon.wide{aspect-ratio:16/9;width:90px}.format-card strong,.format-card span{display:block}.format-card span{font-size:11px;color:var(--muted);margin-top:4px}.reference-area{display:grid;grid-template-columns:minmax(320px,1.15fr) minmax(280px,.85fr);gap:22px}.canvas-wrap{background:#090a0c;border:1px solid var(--line);border-radius:18px;padding:14px}.canvas-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:var(--muted);font-size:11px}.art-canvas{position:relative;min-height:520px;border-radius:12px;overflow:hidden;background:radial-gradient(circle at 30% 30%,#252a36,#101216 60%);user-select:none}.art-canvas img{width:100%;height:100%;position:absolute;inset:0;object-fit:contain}.empty-ref{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:50px;color:var(--muted)}.annotation{position:absolute;border:2px solid var(--boxColor);background:color-mix(in srgb,var(--boxColor) 10%,transparent);pointer-events:none}.annotation span{position:absolute;left:-2px;top:-24px;background:var(--boxColor);color:#111;padding:3px 7px;font-size:10px;border-radius:5px 5px 5px 0;font-weight:900;white-space:nowrap}.layers{display:grid;gap:9px}.layer{border:1px solid var(--line);border-radius:12px;padding:11px;background:#0d0f13;display:flex;gap:10px;align-items:center}.layer-dot{width:11px;height:11px;border-radius:99px;background:var(--dot)}.layer-info{min-width:0;flex:1}.layer-info strong,.layer-info small{display:block}.layer-info strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.layer-info small{color:var(--muted);font-size:10px;margin-top:2px}.tag{display:inline-flex;border:1px solid var(--line);background:#101319;color:#bec5d3;border-radius:99px;font-size:10px;padding:5px 8px}.help{border-left:3px solid var(--accent2);padding:12px 14px;background:#131520;border-radius:0 10px 10px 0;color:#c7cddd;font-size:12px;line-height:1.55;margin-bottom:16px}.replacement{display:grid;grid-template-columns:58px 1fr auto;gap:13px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:10px;background:#0d0f13}.thumb{width:58px;height:58px;border-radius:10px;background:#1b1f27;display:grid;place-items:center;color:var(--muted);font-size:20px;overflow:hidden}.thumb img{width:100%;height:100%;object-fit:cover}.replacement strong,.replacement small{display:block}.replacement small{font-size:10px;color:var(--muted);margin-top:4px}.mini-btn{border:1px solid var(--line);background:#171a20;color:white;border-radius:9px;padding:8px 10px;font-size:10px;cursor:pointer}.result-card{overflow:hidden;padding:0}.result-art{aspect-ratio:4/5;position:relative;background:linear-gradient(145deg,#242a38,#101216);display:flex;align-items:end;padding:24px}.result-art:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 70% 25%,rgba(255,79,114,.35),transparent 38%),linear-gradient(180deg,transparent 35%,rgba(0,0,0,.68))}.result-art.variant2:before{background:radial-gradient(circle at 30% 38%,rgba(125,108,255,.35),transparent 40%),linear-gradient(180deg,transparent 25%,rgba(0,0,0,.72))}.result-art.variant3:before{background:linear-gradient(135deg,rgba(255,189,89,.2),transparent 45%),linear-gradient(180deg,transparent 30%,rgba(0,0,0,.75))}.mock-pastor{position:absolute;right:5%;bottom:0;width:48%;height:78%;border-radius:48% 48% 5% 5%;background:linear-gradient(160deg,#576074,#1b1f27);filter:grayscale(1);opacity:.85}.variant2 .mock-pastor{right:auto;left:4%;width:42%}.variant3 .mock-pastor{right:22%;width:54%;opacity:.55}.result-copy{position:relative;z-index:2;max-width:80%}.result-copy small{letter-spacing:.12em;color:#d7dbe4}.result-copy h2{font-size:34px;line-height:.94;margin:8px 0 12px;text-transform:uppercase}.result-copy p{font-size:12px;color:#d1d5de;margin:0}.result-meta{padding:14px 16px;display:flex;justify-content:space-between;align-items:center}.result-meta strong{font-size:12px}.empty-state{text-align:center;padding:46px 24px;border:1px dashed var(--line);border-radius:16px;color:var(--muted)}@media(max-width:900px){.app-shell{grid-template-columns:1fr}.sidebar{display:none}.footer{left:0}.topbar,.content,.footer{padding-left:18px;padding-right:18px}.grid2,.grid3,.reference-area{grid-template-columns:1fr}.progress{display:none}.art-canvas{min-height:420px}}
 
@@ -4053,13 +4053,29 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
 .credit-limit-dialog .app-dialog-head i{background:color-mix(in srgb,var(--brand-orange) 16%,transparent);color:var(--brand-orange)}
 @media(max-width:760px){.my-account-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.my-account-panel{width:96vw!important}.cost-history-scroll{max-height:48vh}}
 </style>
+  <style id="derivator-standalone-styles">
+    .derivator-standalone #appShell{display:none!important}
+    .derivator-standalone .derivator-shell{position:sticky;top:0;z-index:1000;min-height:76px;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--panel,#111318);border-bottom:1px solid var(--line,#272b34)}
+    .derivator-standalone .derivator-shell[hidden]{display:none!important}
+    .derivator-standalone .derivator-shell-brand,.derivator-standalone .derivator-shell-actions{display:flex;align-items:center;gap:12px}
+    .derivator-standalone .derivator-shell-brand .brand-logo{display:inline-block;width:116px;height:36px;flex:none}
+    .derivator-standalone .derivator-shell-brand strong,.derivator-standalone .derivator-shell-brand small{display:block}
+    .derivator-standalone .derivator-shell-brand strong{font-size:16px}
+    .derivator-standalone .derivator-shell-brand small{margin-top:3px;color:var(--muted);font-size:11px}
+    .derivator-standalone #derivatorAccountEmail{max-width:240px;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-size:11px}
+    .derivator-standalone .gallery-modal-panel{width:min(1500px,98vw)!important;max-height:calc(100dvh - 96px)!important}
+    .derivator-standalone .gallery-deriv-entry{border-color:var(--brand-orange)!important;color:var(--text)!important;background:color-mix(in srgb,var(--brand-orange) 12%,var(--field-bg))!important;font-weight:850!important}
+    .derivator-standalone .gallery-empty{padding:28px;text-align:center;line-height:1.6}
+    .derivator-standalone .gallery-empty a{display:inline-flex;margin-top:12px;color:var(--brand-orange);font-weight:800}
+    @media(max-width:700px){.derivator-standalone .derivator-shell{padding:10px 12px;min-height:65px}.derivator-standalone .derivator-shell-brand{gap:8px}.derivator-standalone .derivator-shell-brand .brand-logo{width:80px;height:30px}.derivator-standalone .derivator-shell-brand small{max-width:190px;font-size:9px}.derivator-standalone #derivatorAccountEmail{display:none}.derivator-standalone .gallery-modal-panel{max-height:calc(100dvh - 76px)!important}}
+  </style>
 </head>
-<body>
+<body class="derivator-standalone">
 
   <div id="authGate" class="auth-gate">
     <div class="auth-card">
       <span class="brand-logo" role="img" aria-label="ChurchDesign" style="width:260px;max-width:100%;margin-bottom:12px"></span>
-      <p id="authSubtitle">Entre para acessar seu espaço de criação.</p>
+      <p id="authSubtitle">Entre para acessar o Derivador do ChurchDesign.</p>
       <div id="authMessage" class="auth-message"></div>
       <form id="authForm">
         <div class="auth-field"><label>E-mail</label><input id="authEmail" type="email" autocomplete="email" required></div>
@@ -4121,6 +4137,10 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
       <section id="content" class="content"></section>
       <footer class="footer"><button id="backBtn" class="btn ghost">← Voltar</button><button id="nextBtn" class="btn primary">Continuar →</button></footer>
     </main>
+  </div>
+  <div id="derivatorShell" class="derivator-shell" hidden>
+    <div class="derivator-shell-brand"><span class="brand-logo" role="img" aria-label="ChurchDesign"></span><div><strong>Derivador</strong><small>Escolha uma arte da Galeria para criar uma variação.</small></div></div>
+    <div class="derivator-shell-actions"><span id="derivatorAccountEmail"></span><button class="mini-btn" type="button" onclick="openGallery()">Abrir Galeria</button><button class="mini-btn" type="button" onclick="signOutChurchDesign()">Sair</button></div>
   </div>
   <div id="appToastRoot" class="app-toast-stack" aria-live="polite" aria-atomic="true"></div><div id="appDialogRoot"></div><div id="modalRoot"></div>
   
@@ -5329,11 +5349,12 @@ async function fetchAuthUser(session){
 }
 function applyAuthenticatedUser(user,session){
   state.authSession=session;state.user={id:user.id,email:user.email||'',plan:null,credits:null,isAdmin:false};
-  document.querySelector('#authGate')?.classList.add('hidden');const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='visible';const ae=document.querySelector('#accountEmail');if(ae)ae.textContent=state.user.email||'Conta autenticada';const sab=document.querySelector('#subscriptionAdminBtn');if(sab)sab.style.display='none';
+  document.querySelector('#authGate')?.classList.add('hidden');const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='visible';const ae=document.querySelector('#accountEmail');if(ae)ae.textContent=state.user.email||'Conta autenticada';const derivEmail=document.querySelector('#derivatorAccountEmail');if(derivEmail)derivEmail.textContent=state.user.email||'Conta autenticada';document.querySelector('#derivatorShell')?.removeAttribute('hidden');const sab=document.querySelector('#subscriptionAdminBtn');if(sab)sab.style.display='none';
 }
 function showAuthGate(){
   document.querySelector('#authGate')?.classList.remove('hidden');
   const shell=document.querySelector('#appShell');if(shell)shell.style.visibility='hidden';
+  document.querySelector('#derivatorShell')?.setAttribute('hidden','');
 }
 async function completeAuth(session){
   let active=normalizedAuthSession(session);
@@ -6435,6 +6456,10 @@ async function shareImageToDeviceGallery(sourceUrl,filename='churchdesign.png'){
 }
 
 function galleryActionsHTML(x,compact=false){
+  if(document.body.classList.contains('derivator-standalone')){
+    const id=esc(String(x.galleryId||''));
+    return `<div class="${compact?'gallery-derivative-actions':'gallery-actions'} gallery-actions-clean"><button class="gallery-main-action gallery-deriv-entry" type="button" data-gallery-deriv="${id}">✦ Criar derivada</button><button class="gallery-main-action" type="button" data-gallery-fullscreen="${id}">⛶ Ver arte</button><button class="gallery-main-action download-btn" type="button" data-gallery-download-direct="${id}">↓ Baixar</button></div>`;
+  }
   const id=esc(String(x.galleryId||''));
   const published=!!(x?.recipe?.feedPublishedAt||x?.feedPublishedAt);
   const publishButton=compact?'':published
@@ -6478,6 +6503,15 @@ function galleryActionsHTML(x,compact=false){
   </div>`;
 }
 function galleryChildActionsHTML(x,compact=false){const id=esc(String(x.galleryId||''));return `<div class="gallery-child-actions" style="${compact?'margin-top:6px':''}"><strong style="font-size:${compact?'7':'8'}px;grid-column:1/-1">Gerar artes derivadas</strong><button class="mini-btn" data-gallery-child="${id}|youtube">YouTube</button><button class="mini-btn" data-gallery-child="${id}|screen">Telão</button><button class="mini-btn" data-gallery-child="${id}|story">Stories</button><button class="mini-btn" data-gallery-child="${id}|background">Fundo</button><span class="background-derivative-note">Mantém fundo, elementos visuais e foto da igreja (caso haja).</span><button class="mini-btn" data-gallery-child="${id}|free">Modo Livre</button></div>`}
+
+const churchDesignGalleryChildActionsHTML=galleryChildActionsHTML;
+galleryChildActionsHTML=function(x,compact=false){
+  if(document.body.classList.contains('derivator-standalone')){
+    const id=esc(String(x.galleryId||''));
+    return `<div class="gallery-child-actions" style="${compact?'margin-top:6px':''}"><button class="mini-btn gallery-deriv-entry" type="button" data-gallery-deriv="${id}">✦ Criar derivada desta arte</button></div>`;
+  }
+  return churchDesignGalleryChildActionsHTML(x,compact);
+};
 
 function galleryThemeTitle(item){
   const projectName=item?.recipe?.projectName||item?.projectName||'';
@@ -7068,6 +7102,7 @@ window.openGallery=function(query='',viewMode=null,focusGalleryId=null){
     ?`<div class="persistent-gallery-list">${families.map(galleryFamilyListHTML).join('')}</div>`
     :`<div class="persistent-gallery-grid">${families.map(galleryFamilyHTML).join('')}</div>`;
   root.innerHTML=`<div class="modal-backdrop"><div class="modal-panel gallery-modal-panel"><div class="modal-head"><div><h2>Galeria</h2><div class="db-status ${state.library.dbReady?'ok':'bad'}"><i></i>${state.library.dbReady?'Artes e receitas salvas':'Banco não conectado'}</div></div><button class="close-modal" onclick="closeModal()">×</button></div><div class="modal-body">${galleryMergeWithSourceId?`<div class="gallery-merge-with-notice"><span>selecione o outro projeto que será fundido com o atual</span><button type="button" id="galleryCancelMergeWith">Cancelar</button></div>`:''}<div class="gallery-toolbar"><div class="gallery-toolbar-summary"><strong>${items.length} arte(s)</strong><small style="display:block;color:var(--muted);margin-top:3px">Busque pelo tema/título da arte. Use as opções do projeto para “Fundir com”, ou arraste um projeto sobre outro.</small></div><div class="gallery-project-selection-actions"><button class="mini-btn ${galleryProjectSelectMode?'active':''}" id="gallerySelectProjectsBtn" type="button">${galleryProjectSelectMode?'Cancelar seleção':'Selecionar projetos'}</button><button class="mini-btn gallery-merge-selected-btn" id="galleryMergeSelectedBtn" type="button" style="${galleryProjectSelectMode&&galleryProjectSelection.size>=2?'':'display:none'}">⇄ Mesclar (${galleryProjectSelection.size})</button></div><div class="gallery-search-wrap"><input id="gallerySearch" type="search" placeholder="Buscar pelo tema da arte..." value="${esc(query||'')}"></div><div class="gallery-view-toggle"><button type="button" data-gallery-view="grid" class="${view==='grid'?'active':''}">▦ Grade</button><button type="button" data-gallery-view="list" class="${view==='list'?'active':''}">☷ Lista</button></div></div>${families.length?galleryHTML:`<div class="gallery-empty">Nenhuma arte encontrada para “${esc(query||'')}”.</div>`}</div></div></div>`;
+  if(document.body.classList.contains('derivator-standalone')&&!families.length){const empty=root.querySelector('.gallery-empty');if(empty)empty.innerHTML='As artes-base salvas no ChurchDesign aparecem aqui. Crie ou salve uma arte no app principal e depois volte para derivá-la.<br><a href="/">Abrir o ChurchDesign principal</a>';}
   const search=root.querySelector('#gallerySearch');
   if(search){
     search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();openGallery(search.value,view)}};
@@ -7144,6 +7179,7 @@ window.openGallery=function(query='',viewMode=null,focusGalleryId=null){
     e.stopPropagation();closeGalleryActionPopovers();openShareDownloadAssistant(b.dataset.galleryShare);
   });
   root.querySelectorAll('[data-gallery-fullscreen]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryFullscreen);if(x)openArtworkFullscreen(x.url,x.label||'Arte')});
+  root.querySelectorAll('[data-gallery-deriv]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();reopenGalleryProject(b.dataset.galleryDeriv)});
   if(focusGalleryId){requestAnimationFrame(()=>{const selector=`[data-gallery-fullscreen="${CSS.escape(String(focusGalleryId))}"]`,target=root.querySelector(selector);if(!target)return;const card=target.closest('.gallery-derivative-card,.gallery-family-card,.gallery-list-child,.gallery-project-wrap,.gallery-list-row')||target;card.classList.add('gallery-new-art-focus');target.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});setTimeout(()=>card.classList.remove('gallery-new-art-focus'),3200);});}
   root.querySelectorAll('[data-gallery-diagnostic]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=findGalleryItem(b.dataset.galleryDiagnostic);if(!x)return;const a=galleryItemToQuickResult(x);openLogoDiagnostic(a)});
   root.querySelectorAll('[data-gallery-logo-assistant]').forEach(b=>b.onclick=e=>{e.stopPropagation();openGalleryLogoAssistant(b.dataset.galleryLogoAssistant)});
@@ -9296,7 +9332,7 @@ function openDerivativeStudio({parentIndex=0,sourceKey=null,sourceItem=null}={})
   ov.__derivativeState={parentIndex,sourceKey:`main:${parentIndex}`,source:sourceNode,candidates,tab:'manual',format:sourceNode.target?.id||sourceNode.format||state.quick?.format||'feed',pastorMode:'keep',pastorIds:defaultPastorIds,pastorTreatment:state.quick?.pastorPhotoTreatment||'original',churchMode:'keep',churchId:defaultChurchId,graphicMode:'keep',graphicIds:defaultGraphicIds,instruction:'',observation:'',presetGroup:'feed',presetId:'',result:null,mobileStep:0,configScrollTop:0,sourceStripScrollLeft:0};
   ov.innerHTML=`<div class="derivative-studio-head"><div><h2>Criação por derivação</h2><small>Imagem selecionada + instruções atuais têm prioridade. Histórico antigo serve apenas como consulta.</small></div><div class="derivative-studio-head-actions"><div class="derivative-balance"><span>Saldo</span><b>${Math.max(0,Number(state.user?.credits)||0)}</b> créditos</div><button class="mini-btn derivative-cancel-generation" type="button" data-derivative-cancel hidden>Cancelar geração</button><button class="close-modal" type="button" data-derivative-close>×</button></div></div><div class="derivative-tabs"><button class="derivative-tab active" type="button" data-derivative-tab="manual">Variação manual</button><button class="derivative-tab" type="button" data-derivative-tab="preset">Variação pré-programada</button></div><div class="derivative-studio-grid" data-derivative-grid></div><div class="derivative-mobile-nav"><button class="btn ghost" type="button" data-derivative-prev>Voltar</button><button class="btn primary" type="button" data-derivative-next>Próximo</button></div>`;
   document.body.appendChild(ov);
-  ov.querySelector('[data-derivative-close]').onclick=()=>{if(generationJobBusy())return appAlert('Cancele a geração antes de fechar esta tela.',{type:'info'});ov.remove()};
+  ov.querySelector('[data-derivative-close]').onclick=()=>{if(generationJobBusy())return appAlert('Cancele a geração antes de fechar esta tela.',{type:'info'});ov.remove();if(document.body.classList.contains('derivator-standalone'))window.openGallery()};
   ov.querySelector('[data-derivative-cancel]').onclick=()=>{ov.__derivativeState.status='cancelled';cancelActiveProcess();setDerivativeStudioProgress(-1,'Processamento cancelado. Créditos debitados serão devolvidos.');appToast('Processamento cancelado. Se houve débito, os créditos serão devolvidos.',{type:'info',title:'Geração cancelada'});};
   ov.querySelectorAll('[data-derivative-tab]').forEach(b=>b.onclick=()=>{derivativeCollectUI(ov);const ds=ov.__derivativeState;ds.tab=b.dataset.derivativeTab;ds.mobileStep=0;ds.configScrollTop=0;if(ds.tab==='preset'&&!ds.presetId){const p=DERIVATIVE_PRESETS.find(x=>x.group===ds.presetGroup);if(p){ds.presetId=p.id;ds.format=p.format;ds.pastorMode=derivativePresetDefaultPastorMode(p);ds.pastorIds=[];}}ov.querySelectorAll('[data-derivative-tab]').forEach(x=>x.classList.toggle('active',x.dataset.derivativeTab===ds.tab));derivativeStudioRenderBody(ov)});
   ov.querySelector('[data-derivative-prev]').onclick=()=>derivativeStudioSetMobileStep(ov,(ov.__derivativeState.mobileStep||0)-1);
@@ -10112,11 +10148,7 @@ async function startAuthenticatedApp(){
     await bootstrapLibrary();
     updateSidebarAccount();
     renderChurchSwitcher();
-    await openFeed();
-    loadNotificationCount().catch(()=>{});
-    const tutorialRoot=document.getElementById('cdRoot');
-    if(tutorialRoot)tutorialRoot.setAttribute('data-theme',document.documentElement.dataset.theme==='light'?'light':'dark');
-    window.bootTutorialAfterLogin?.({firstLogin:!!state.user.firstLogin,userId:state.user.id});
+    window.openGallery();
     consumePendingSubscriptionIntent();
   }catch(e){
     churchDesignAppStarted=false;
