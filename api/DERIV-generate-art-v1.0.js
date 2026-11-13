@@ -1,8 +1,8 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
 // ARQUIVO DE DESTINO: api/DERIV-generate-art-v1.0.js
 // TÍTULO: Gerador independente do Derivador
-// VERSÃO DO CONTEÚDO: 1.2
-// FINALIDADE: Gerar derivações com aproximação flexível dos presets, sem alterar o gerador principal.
+// VERSÃO DO CONTEÚDO: 1.3
+// FINALIDADE: Gerar derivações preservando relações espaciais dos presets, com pequenos ajustes de posição e sem alterar o gerador principal.
 // BASE TÉCNICA: Generate Art v0.30.2; arquivo original inalterado.
 // INFRAESTRUTURA COMPARTILHADA: autenticação, acesso à igreja, Storage e registro de uso.
 // CHURCHDESIGN — generate-art v0.30.2
@@ -227,6 +227,14 @@ function layoutPresetStructuralBlock(data={}){
   const omitted=Array.isArray(data.layoutPresetOmittedElements)?data.layoutPresetOmittedElements.map(String):[];
   const pastorMode=String(data.pastorMode||'keep');
   const effectiveOmitted=omitted.filter(t=>!(t==='preacher'&&pastorMode!=='remove'));
+  const subjects=els.filter(e=>!['decor','logo','church_logo','event_logo'].includes(String(e.type||'').toLowerCase()));
+  const relations=[];
+  for(let a=0;a<subjects.length;a++)for(let b=a+1;b<subjects.length;b++){
+    const left=subjects[a],right=subjects[b],ax=(Number(left.x)||0)+(Number(left.w)||0)/2,ay=(Number(left.y)||0)+(Number(left.h)||0)/2,bx=(Number(right.x)||0)+(Number(right.w)||0)/2,by=(Number(right.y)||0)+(Number(right.h)||0)/2;
+    const label=e=>({preacher:'PREGADOR',title:'TÍTULO',preacher_name:'NOME DO PREGADOR',subtitle:'SUBTÍTULO',date:'DATA',time:'HORÁRIO',address:'ENDEREÇO',info:'INFORMAÇÃO'}[String(e.type||'').toLowerCase()]||String(e.type||'ELEMENTO').toUpperCase());
+    if(Math.abs(ax-bx)>=4)relations.push('- '+label(left)+' fica '+(ax<bx?'À ESQUERDA':'À DIREITA')+' de '+label(right)+'. Não cruze nem troque essas posições relativas.');
+    if(Math.abs(ay-by)>=5)relations.push('- '+label(left)+' fica '+(ay<by?'ACIMA':'ABAIXO')+' de '+label(right)+'. Não inverta essa ordem vertical.');
+  }
   const row=e=>{
     const x=Number(e.x)||0,y=Number(e.y)||0,w=Number(e.w)||0,h=Number(e.h)||0;
     const title=e.type==='title';
@@ -234,9 +242,9 @@ function layoutPresetStructuralBlock(data={}){
   };
   return 'PRESET PRÉ-PROGRAMADO — REFERÊNCIA DE COMPOSIÇÃO:\n'+
     '- A miniatura escolhida é o modelo visual prioritário. Ao bater o olho, a arte final deve lembrar o arranjo apresentado.\n'+
-    '- Preserve relações principais: esquerda/direita/centro, acima/abaixo, hierarquia e tamanho relativo.\n'+
-    '- As posições e dimensões são aproximações, não coordenadas obrigatórias. Ajustes moderados de cerca de 10–15% do canvas são aceitáveis para legibilidade e adaptação.\n'+
-    '- Evite inversões claras de lado ou hierarquia; não force caixas exatas nem reproduza pixels da miniatura.\n'+
+    '- Preserve rigorosamente a ordem espacial da miniatura: o que está à direita continua à direita; o que está abaixo continua abaixo. Nunca cruze, troque ou espelhe essas posições, mesmo que a arte-base esteja invertida.\n'+
+    '- Coordenadas não são milimétricas. Permita apenas ajustes finos de cerca de 5–8% do canvas dentro da mesma região, sem alterar lado, ordem vertical ou hierarquia.\n'+
+    '- RELAÇÕES ESPACIAIS OBRIGATÓRIAS:\n'+(relations.slice(0,24).join('\n')||'Mantenha os elementos nas regiões gerais mostradas pela miniatura.')+'\n'+
     '- Remova categorias ausentes e não invente textos, pessoas, logos ou placeholders. Preserve elementos gráficos não textuais da arte de origem.\n'+
     '- LOGOS reais serão adicionadas depois pelo Assistente de Logos.\n'+
     '- Categorias ausentes obrigatórias: '+(effectiveOmitted.length?effectiveOmitted.join(', '):'nenhuma')+'.\n'+
@@ -698,12 +706,12 @@ REGRA DE COMPOSIÇÃO ADAPTATIVA:
 
 ${data.layoutPresetInstruction?`LAYOUT PRÉ-PROGRAMADO — AUTORIDADE ESTRUTURAL:
 - O Diretor de Design pode refinar alinhamento, espaçamento fino, crop e acabamento.
-- Para o TÍTULO PRINCIPAL, preserve a região geral e o destaque relativo mostrados na miniatura, com ajustes moderados para legibilidade.
-- Evite trocar claramente os lados principais ou transformar bloco pequeno em dominante. Ajustes moderados de posição e tamanho são permitidos.
+- Para o TÍTULO PRINCIPAL, preserve sua região e suas relações espaciais com os demais elementos. Aceite pequenos ajustes de posição/tamanho sem cruzar para o lado oposto.
+- Não troque os lados nem a ordem vertical dos elementos principais. Ajuste apenas dentro da região atribuída e preserve a hierarquia de tamanhos.
 - A composição da arte de origem NÃO pode engolir o preset.
 - O que NÃO existe no preset deve desaparecer da composição final por padrão. Não preserve automaticamente pessoas, datas, horários, endereços, subtítulos ou informações secundárias vindas da origem quando a categoria estiver ausente no mapa.
 - Nenhuma regra genérica de YouTube, Telão ou revezamento de pessoas pode sobrescrever o mapa estrutural acima.
-- Toda informação obrigatória deve continuar legível; resolva conflitos reorganizando a composição com bom senso, sem perder a semelhança geral com a miniatura.
+- Toda informação obrigatória deve continuar legível; resolva conflitos com ajustes finos sem inverter relações espaciais do preset.
 `:`TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
 - Trate os 12% externos de CADA LADO como zona proibida para conteúdo essencial.
 - Todo texto, título, subtítulo, data, hora, endereço, logo, nome de pregador, rosto e cabeça deve ficar integralmente dentro do retângulo central de 76% da largura por 76% da altura.
@@ -849,7 +857,7 @@ Entregue a arte final, não um mockup.`;
 
 function derivationPromptRules(data={}){
   if(data.derivationMode==='manual')return 'DERIVADOR — MODO MANUAL:\n- A imagem exata selecionada é a verdade visual atual.\n- A instrução desta ação define o que mudar; preserve o restante visível.\n- Não aplique preset, grade ou silhueta pré-programada.\n- Não recupere elementos de versões anteriores nem invente textos, datas, nomes, pessoas ou marcas.\n- Logos oficiais serão adicionadas depois pelo Assistente de Logos.';
-  if(data.derivationMode==='preset')return 'DERIVADOR — MODO PRÉ-PRONTO:\n- O preset define a estrutura visual geral e a hierarquia. Preserve as regiões e relações espaciais principais mostradas na miniatura.\n- Posições e tamanhos são aproximados; aceite ajustes moderados para legibilidade e formato. Não exija coordenadas exatas nem permita inversões evidentes do layout.\n- A imagem selecionada define identidade e conteúdo atual; o preset define a organização geral.\n- Observações atuais podem alterar conteúdo, sem apagar silenciosamente a identidade do preset.\n- Não invente conteúdo ausente. Logos oficiais serão aplicadas depois.';
+  if(data.derivationMode==='preset')return 'DERIVADOR — MODO PRÉ-PRONTO:\n- O preset define a estrutura visual geral e a hierarquia. Preserve as regiões e relações espaciais principais mostradas na miniatura.\n- Posições numéricas não são milimétricas; aceite apenas ajustes finos dentro da mesma região. Preserve rigorosamente as relações esquerda/direita e acima/abaixo; inversão é proibida.\n- A imagem selecionada define identidade e conteúdo atual; o preset define a organização geral.\n- Observações atuais podem alterar conteúdo, sem apagar silenciosamente a identidade do preset.\n- Não invente conteúdo ausente. Logos oficiais serão aplicadas depois.';
   throw new Error('Modo de derivação inválido. Informe manual ou preset.');
 }
 function prompt(data){
