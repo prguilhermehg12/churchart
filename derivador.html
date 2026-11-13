@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v1.7 | TÍTULO: Derivador independente | VERSÃO: 1.7 | FINALIDADE: derivação com diagnóstico visível de falhas e aviso sonoro discreto ao concluir. -->
+<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v1.9 | TÍTULO: Derivador independente | VERSÃO: 1.9 | FINALIDADE: retry contínuo do Fiscal até aprovação e entrega, com diagnóstico de falhas. -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -7990,17 +7990,23 @@ function friendlyGenerationFailurePopup(refund,errorClass='processing'){
   appAlert(body,{type:'warning',title,duration:8500});
 }
 async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null){
+  const qualityRetryCallback=payload?.onQualityRetry;
   payload=clientPipelineGuard(payload);let lastReview=null,lastImage=null;
-  const retryInstructions=['','Corrija apenas os erros objetivos apontados pelo fiscal. Preserve o restante da composição. Se houver risco de degradar rosto, logo ou tipografia, simplifique.'];
-  for(let attempt=0;attempt<=maxCorrections;attempt++){
+  const strictDerivation=payload?.derivationMode==='manual'||payload?.derivationMode==='preset';
+  if(qualityRetryCallback)Object.defineProperty(payload,'onQualityRetry',{enumerable:false,value:qualityRetryCallback});
+  const youtube4Retry=String(payload?.layoutPresetInstruction||'').includes('YOUTUBE 4 — MAPA ESPACIAL INVIOLÁVEL')
+    ?' YOUTUBE 4: recomponha obrigatoriamente pregador à esquerda, título à direita e nome embaixo à esquerda, dentro das coordenadas exatas. Ignore a disposição oposta da origem. As caixas de borda do próprio preset são exceção válida à margem genérica de 10%.'
+    :'';
+  const strictRetry='A saída anterior foi reprovada pelo Fiscal. Faça uma NOVA COMPOSIÇÃO corrigindo todos os erros apontados; não preserve nem repita a posição, escala ou conteúdo reprovado. Em presets, leia novamente o mapa de caixas e respeite lado, coordenadas e proporções. Preserve a identidade da origem, mas nunca o erro de layout.'+youtube4Retry;
+  const retryInstructions=['',strictDerivation?strictRetry:'Corrija apenas os erros objetivos apontados pelo Fiscal. Preserve o restante da composição. Se houver risco de degradar rosto, logo ou tipografia, simplifique.'];
+  for(let attempt=0;strictDerivation||attempt<=maxCorrections;attempt++){
     const qualityCorrection=[retryInstructions[Math.min(attempt,retryInstructions.length-1)],lastReview?.correction_prompt||''].filter(Boolean).join(' ');
-    const request={...payload,qualityCorrection,revisionAttempt:attempt,safeMode:attempt>=maxCorrections&&attempt>0};
+    const request={...payload,qualityCorrection,revisionAttempt:attempt,safeMode:strictDerivation?false:(attempt>=maxCorrections&&attempt>0)};
     const r=await authFetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal});
     const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,180)||`Resposta inválida (${r.status})`);}
     if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);assertGeneratorResponse(data);recordOpenAIRequest(attempt===0?'Gerador de imagem':`Retry de imagem ${attempt}`,data.image.meta||{});lastImage=data.image;
     const review=await callQualityInspector({derivationMode:payload.derivationMode||null,generatedImage:lastImage.url,references:payload.references||[],assets:payload.assets||{},requiredContent:payload.requiredContent||{},semanticMap:payload.semanticMap||[],userInstruction:payload.instruction||'',finalInstruction:payload.finalInstruction||'',layoutPresetBlueprint:payload.layoutPresetBlueprint||null,layoutPresetOmittedElements:payload.layoutPresetOmittedElements||[],omit:payload.omit||[],artDirection:payload.artDirection||null,audience:payload.audience||null,designStyle:payload.designStyle||null,logoPosition:payload.logoPosition||null,eventLogoPosition:payload.eventLogoPosition||null,eventLogoSize:payload.eventLogoSize||null,omitChurchLogo:payload.omitChurchLogo||false,omitChurchName:payload.omitChurchName||false,allowedTexts:payload.allowedTexts||[],nativeCanvasRequired:true,churchImageMustBeBackground:true,typographyBlueprint:payload.artDirection?.typographyBlueprint||null},signal);
     lastReview=review;
-    const strictDerivation=payload?.derivationMode==='manual'||payload?.derivationMode==='preset';
     if(review?.technicalFailure||review?._meta?.technicalFailure){
       if(strictDerivation)throw new Error('A revisão automática do Derivador não pôde ser concluída. A imagem não foi aprovada nem entregue; tente novamente.');
       return {...lastImage,review:{...review,approved:true,deliveredDespiteInspectorFailure:true}};
@@ -8008,8 +8014,8 @@ async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null)
     if(review.approved&&!review.critical_error)return {...lastImage,review};
     const hardFailure=!!review.critical_error||(review.gross_errors||[]).some(x=>/rosto|logo|pessoa|pregador|t[ií]tulo|texto|ausente|omiss|layout|posi[cç][aã]o|data|hor[aá]rio|endere[cç]o|duplic|borda|canvas|crop|corpo inteiro|sobrepos/i.test(String(x)));
     if(strictDerivation){
-      if(attempt<maxCorrections)continue;
-      throw new Error(`O fiscal reprovou esta derivação${review.gross_errors?.length?`: ${review.gross_errors.join('; ')}`:''}. A imagem não foi entregue.`);
+      try{payload.onQualityRetry?.({attempt:attempt+1,review})}catch(e){}
+      continue;
     }
     if(attempt<maxCorrections&&hardFailure)continue;
     return {...lastImage,review:{...review,deliveredWithoutRetry:true}};
@@ -9113,7 +9119,7 @@ function derivativePresetHardInstruction(preset){
     geometry
   ];
   if(preset?.id==='preset_1789090826582_bzagx')rules.push('YOUTUBE 2: somente foto real do pregador e título. Remova os demais textos informativos. Se a imagem selecionada não tiver pregador real, mostre somente o título e não invente pessoa.');
-  if(preset?.id==='preset_youtube_title_preacher_name_v1')rules.push('YOUTUBE 4: com pregador real visível, preserve foto, título e nome confirmado nas caixas. Sem pregador real, não invente foto nem nome; mostre somente o título centralizado, caixa x=12.300%, y=30.600%, largura=75.400%, altura=38.800%.');
+  if(preset?.id==='preset_youtube_title_preacher_name_v1')rules.push('YOUTUBE 4 — MAPA ESPACIAL INVIOLÁVEL: quando a origem tiver pregador real, recompose a arte para pôr a mesma pessoa à ESQUERDA (x=2.138%, y=6.230%, w=44.472%, h=91.825%), o título À DIREITA (x=43.033%, y=12.366%, w=51.766%, h=64.605%) e o nome confirmado embaixo à ESQUERDA (x=4%, y=85%, w=37.5%, h=8.5%). Não preserve a disposição da arte original se ela for oposta e não espelhe o preset: pregador à direita e título à esquerda é reprovação. O centro do pregador deve ficar perto de x=24.4%; o centro do título perto de x=68.9%; o centro do nome perto de x=22.75%. Nenhuma caixa pode ultrapassar suas coordenadas. As caixas originais do preset que avançam para a faixa externa de 10% são intencionais e não devem ser reprovadas por essa razão, desde que o conteúdo permaneça dentro da caixa específica do modelo. Se não houver pregador real, não invente pessoa nem nome e centralize somente o título na caixa x=12.3%, y=30.6%, w=75.4%, h=38.8%.');
   return rules.filter(Boolean).join('\n');
 }
 async function derivativePresetGuideDataUrl(preset){
@@ -10114,6 +10120,7 @@ REGRA GLOBAL DE ÍCONES: não acrescente ícones junto a dia/data, hora ou local
 
 Adapte o layout NATIVAMENTE para ${target.ratio||target.label}; não estique e não apenas recorte. A referência selecionada serve como base visual atual.
 ${layoutPresetInstruction?(photoAndTitleYoutubePreset?'PRÉ-PROGRAMADO YOUTUBE 2: preserve as caixas originais da foto do pregador e do título. Remova somente os textos informativos não previstos e mantenha a identidade gráfica não textual da origem.':titleAndPreacherNameYoutubePreset?'PRÉ-PROGRAMADO YOUTUBE 4: se houver pregador real na origem, preserve a foto, o título e o nome confirmado. Se não houver, não invente pessoa nem nome e centralize somente o título (centro X=50%, Y=50%; caixa x=12.3%, y=30.6%, w=75.4%, h=38.8%). Preserve a identidade gráfica não textual da origem.':'PRÉ-PROGRAMADO: margens externas podem ser flexíveis, porém as CAIXAS/REGIÕES e TAMANHOS MÁXIMOS definidos pelo preset são obrigatórios. Não aumente título, pessoa ou bloco informacional para fora da proporção prevista. REGRA INVIOLÁVEL: toda informação obrigatória deve continuar visível e legível.'):`SAFE FRAME RÍGIDO: 12% de margem livre em cada lado para TODO conteúdo essencial.`}
+${titleAndPreacherNameYoutubePreset?'YOUTUBE 4 — TRAVA ESPACIAL FINAL: a origem pode trazer título à esquerda e pessoa à direita; IGNORE essas posições de origem. Na derivada final, coloque a foto real do pregador à esquerda dentro de x=2.138–46.610%, y=6.230–98.055%; coloque o título à direita dentro de x=43.033–94.799%, y=12.366–76.971%; coloque o nome confirmado embaixo à esquerda dentro de x=4–41.5%, y=85–93.5%. Nunca inverta esses lados nem use a composição da origem como grade. O avanço intencional das caixas originais para a faixa externa de 10% não é erro quando o conteúdo permanece dentro das caixas exatas do preset. Reduza/quebre o texto para caber nelas. Sem pregador real: somente título centralizado na caixa x=12.3%, y=30.6%, w=75.4%, h=38.8%; nenhuma pessoa ou nome inventado.':''}
 Omitir explicitamente: ${omit.join(', ')||'nada'}.
 ${pastorRemoval}
 ${studioDerivativeMode&&pastorMode==='keep'?`PREGADOR — MANTER:
@@ -10174,7 +10181,7 @@ ${childCorrection?`INSTRUÇÃO ATUAL DESTA DERIVADA — PRIORIDADE SOBRE TODO CO
 TEXTO DE FUNDO / TIPOGRAFIA DECORATIVA — REGRA DE SEGURANÇA: não invente palavras, letras, sílabas ou letreiros decorativos no fundo que possam se sobrepor e formar palavras aleatórias, duplicadas ou sem sentido. Se usar tipografia como textura de fundo, use apenas conteúdo real fornecido pelo usuário ou formas abstratas que NÃO pareçam texto legível. Nunca sobreponha fragmentos como "EN", "DE", letras repetidas ou partes do título de modo que criem novas palavras acidentais.
 COMPOSIÇÃO LIMPA: não crie quadro/cartaz ou caixa/card/cápsula desnecessário. Preserve molduras, placas, painéis e efeitos já integrados à identidade da arte-fonte; retire um recipiente somente quando existir exclusivamente para a informação textual removida. Se a logo estiver mantida, use a original uma única vez, sem criar caixa/placa/selo novo e nunca repita ou extraia partes dela.
 ${photoAndTitleYoutubePreset?'YOUTUBE 2 — ORDEM FINAL: mantenha a foto do pregador e o título como conteúdos principais. Remova os textos informativos não previstos no preset e as logos que seguem o fluxo separado, mas preserve os vetores, linhas, formas, luzes, efeitos, texturas, gradientes, sombras e grafismos não textuais da arte-fonte.':''}
-${titleAndPreacherNameYoutubePreset?'YOUTUBE 4 — ORDEM FINAL: se a imagem-base contiver pregador real, mantenha sua foto na área esquerda, o título na área direita e o nome somente se confirmado. Se não contiver pregador, não invente foto/pessoa/nome e mostre somente o título centralizado (centro X=50%, Y=50%; caixa x=12.3%, y=30.6%, w=75.4%, h=38.8%); esta exceção vence qualquer posição anterior do título ou placeholder da guia. Preserve sempre os elementos gráficos não textuais da arte-fonte e remova somente os textos informativos extras.':''}`;
+${titleAndPreacherNameYoutubePreset?'YOUTUBE 4 — ORDEM FINAL: se a imagem-base contiver pregador real, mova a mesma foto para a caixa esquerda x=2.138–46.610%, mantenha o título na caixa direita x=43.033–94.799% e o nome confirmado na caixa inferior esquerda x=4–41.5%. Ignore a posição do conteúdo na arte-base quando ela for contrária ao preset. Nunca inverta pessoa e título. Se não contiver pregador, não invente foto/pessoa/nome e mostre somente o título centralizado (centro X=50%, Y=50%; caixa x=12.3%, y=30.6%, w=75.4%, h=38.8%); esta exceção vence qualquer posição anterior do título ou placeholder da guia. Preserve sempre os elementos gráficos não textuais da arte-fonte e remova somente os textos informativos extras.':''}`;
 
     const sourceDirection=studioDerivativeMode?null:(source.artDirection||parent.artDirection||null);
     const pastorSafeDirection=addPastorOverride&&sourceDirection?{
@@ -10204,6 +10211,10 @@ ${titleAndPreacherNameYoutubePreset?'YOUTUBE 4 — ORDEM FINAL: se a imagem-base
 
     setQuickProgress(48,'Recompondo para o novo formato...');
     // V0.26: arte derivada = 1 geração + 1 fiscal; sem retry automático.
+    if(payload.derivationMode)Object.defineProperty(payload,'onQualityRetry',{enumerable:false,value:({attempt,review})=>{
+      const issues=(review?.gross_errors||[]).slice(0,2).map(String).join('; ');
+      setDerivativeStudioProgress(50,'O Fiscal pediu ajustes. Nova tentativa '+attempt+'. '+issues);
+    }});
     const image=await generateWithInvisibleReview(payload,payload.derivationMode?1:0,signal);
     setQuickProgress(88,'Finalizando...');
     const normalized=await normalizeArtworkToTarget(image,payload,target,signal);
