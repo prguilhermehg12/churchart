@@ -1,8 +1,8 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
 // ARQUIVO DE DESTINO: api/DERIV-generate-art-v1.0.js
 // TÍTULO: Gerador independente do Derivador
-// VERSÃO DO CONTEÚDO: 1.6
-// FINALIDADE: Enviar instruções de preset sem conflitos e, sob demanda e para conta autorizada, devolver trilha detalhada da solicitação e resposta do gerador.
+// VERSÃO DO CONTEÚDO: 1.7
+// FINALIDADE: analisar visualmente textos e estrutura do título, preservar orientação e proporções, reforçar área segura e registrar a análise para diagnóstico.
 // BASE TÉCNICA: Generate Art v0.30.2; arquivo original inalterado.
 // INFRAESTRUTURA COMPARTILHADA: autenticação, acesso à igreja, Storage e registro de uso.
 // CHURCHDESIGN — generate-art v0.30.2
@@ -129,7 +129,19 @@ async function saveBase64ToStorage(base64,churchId,label="art"){
 }
 
 
-function allowedTexts(data={}){const c=data.requiredContent||{};return[c.title,c.subtitle,c.secondaryInfo,c.date,c.time,c.address,c.churchName,...(c.pastorNames||[])].map(x=>String(x||"").trim()).filter(Boolean);}
+function sourceTextAllowed(data,category){
+  const map={title_kicker:'title',title:'title',subtitle:'subtitle',date:'date',time:'time',location:'address',preacher_name:'preacher_name',church_name:'church_name',other:'other'};
+  const key=map[String(category||'').toLowerCase()];if(!key)return false;
+  if(data.derivationMode==='preset')return new Set((data.layoutPresetBlueprint?.elements||[]).map(e=>String(e?.type||''))).has(key==='preacher_name'?'preacher_name':key==='church_name'?'church_logo':key);
+  const omissions=new Set([...(data.omit||[]),...(data.manualOmit||[])]);
+  return !omissions.has(key)&&!(key==='preacher_name'&&omissions.has('pastors'))&&!(key==='church_name'&&omissions.has('churchName'));
+}
+function allowedTexts(data={}){
+  const c=data.requiredContent||{},base=[c.title,c.subtitle,c.secondaryInfo,c.date,c.time,c.address,c.churchName,...(c.pastorNames||[])];
+  const visual=(data.sourceAnalysis?.visible_text||[]).filter(x=>sourceTextAllowed(data,x?.category)&&Number(x?.confidence||0)>=0.72).map(x=>x.text);
+  const titleParts=(data.sourceAnalysis?.title_components||[]).filter(x=>sourceTextAllowed(data,x?.role==='title_kicker'?'title_kicker':'title')&&Number(x?.confidence||0)>=0.72).map(x=>x.text);
+  return [...new Set([...base,...visual,...titleParts].map(x=>String(x||'').trim()).filter(Boolean))];
+}
 function isLogoLikeGraphic(a){
   if(!a)return false;
   const type=String(a.type||'').toLowerCase();
@@ -432,6 +444,7 @@ REGRA DE LOGOS PÓS-ARTE:
 
 REGRA DE SAFE AREA / ÁREA SEGURA:
 - Nenhum texto, logo, rosto, data, horário, endereço ou informação essencial pode encostar, ultrapassar ou ficar parcialmente fora do canvas.
+- O grupo inteiro do título deve ficar a pelo menos 6% de distância das quatro bordas. Se o preset permitir coordenadas mais próximas, preserve a região, mas reduza/recue o grupo para manter essa folga.
 - Reserve no mínimo 8% de margem interna em TODOS os lados para conteúdo essencial.
 - Em formatos verticais, não coloque títulos ou endereços colados no topo ou na base.
 - Em formatos horizontais, proteja especialmente as laterais.
@@ -447,10 +460,15 @@ TIPOGRAFIA FINAL:
 - Toda a tipografia é desenhada pela IA visual dentro da arte.
 - Não existe camada de texto posterior.
 - Cada informação obrigatória deve aparecer uma única vez.
+- Preserve as quebras e a largura relativa das linhas do título da origem. Não estique, alargue, comprima ou aumente isoladamente uma palavra como “VOCÊ!” para ocupar espaço; escale o bloco de título como unidade, mantendo as proporções entre linhas.
+- Preserve todos os componentes detectados do título, incluindo chamada/faixa acima do título principal; mantenha suas relações e estilos separados.
 ${data.layoutPresetInstruction?`- MODO PRÉ-PROGRAMADO: a identidade visual do título da arte-base é obrigatória, não opcional. Preserve aparência da fonte, peso, cor, textura, efeitos, caixa alta/baixa e orientação; não incline, itálique, deforme ou substitua por outra tipografia.
 - O preset pode mudar a região e exigir ajuste de escala. Mantenha o bloco de título visualmente fiel; preserve as quebras de linha se couberem e altere-as só para acomodar a região definida, sem mudar o estilo.`:`- Preserve tipografia, tratamentos, escala e função visual da referência sempre que possível.`}
 
 
+ANÁLISE VISUAL DA ARTE-BASE — ESTRUTURA DO TÍTULO E TEXTO LEGÍVEL:
+${JSON.stringify(data.sourceAnalysis||{})}
+Use essa análise como leitura auxiliar da imagem, sem inventar texto. Se houver um componente role="title_kicker" (por exemplo, uma chamada em faixa logo acima), ele pertence ao grupo do título e deve aparecer quando title estiver incluído; mantenha-o como peça distinta acima/na posição relativa registrada, com seu tratamento próprio. Preserve a ordem, quebras de linha, largura relativa das linhas e hierarquia tipográfica registrada. Reposicione o grupo inteiro segundo o preset, sem esticar linhas/palavras individualmente.
 DADOS ESTRUTURADOS DA ARTE-BASE (VERDADE TEXTUAL AUXILIAR):
 ${JSON.stringify(data.sourceContentData||{})}
 Use estes dados junto com a imagem para identificar exatamente título, partes do título, dia, horário, local e demais campos. A imagem continua sendo a referência visual. A lista “CONTEÚDO EXATO A PRESERVAR”/requiredContent e os textos permitidos definem o que pode aparecer nesta variação: não escreva campos que o preset ou o pedido atual excluam. Se o campo TÍTULO estiver presente, preserve todas as partes em titleParts, na ordem, sem omitir nenhuma.
@@ -771,10 +789,15 @@ TIPOGRAFIA FINAL:
 - Toda a tipografia é desenhada pela IA visual dentro da arte.
 - Não existe camada de texto posterior.
 - Cada informação obrigatória deve aparecer uma única vez.
+- Preserve as quebras e a largura relativa das linhas do título da origem. Não estique, alargue, comprima ou aumente isoladamente uma palavra como “VOCÊ!” para ocupar espaço; escale o bloco de título como unidade, mantendo as proporções entre linhas.
+- Preserve todos os componentes detectados do título, incluindo chamada/faixa acima do título principal; mantenha suas relações e estilos separados.
 ${data.layoutPresetInstruction?`- MODO PRÉ-PROGRAMADO: a identidade visual do título da arte-base é obrigatória, não opcional. Preserve aparência da fonte, peso, cor, textura, efeitos, caixa alta/baixa e orientação; não incline, itálique, deforme ou substitua por outra tipografia.
 - O preset pode mudar a região e exigir ajuste de escala. Mantenha o bloco de título visualmente fiel; preserve as quebras de linha se couberem e altere-as só para acomodar a região definida, sem mudar o estilo.`:`- Preserve tipografia, tratamentos, escala e função visual da referência sempre que possível.`}
 
 
+ANÁLISE VISUAL DA ARTE-BASE — ESTRUTURA DO TÍTULO E TEXTO LEGÍVEL:
+${JSON.stringify(data.sourceAnalysis||{})}
+Use essa análise como leitura auxiliar da imagem, sem inventar texto. Se houver um componente role="title_kicker" (por exemplo, uma chamada em faixa logo acima), ele pertence ao grupo do título e deve aparecer quando title estiver incluído; mantenha-o como peça distinta acima/na posição relativa registrada, com seu tratamento próprio. Preserve a ordem, quebras de linha, largura relativa das linhas e hierarquia tipográfica registrada. Reposicione o grupo inteiro segundo o preset, sem esticar linhas/palavras individualmente.
 DADOS ESTRUTURADOS DA ARTE-BASE (VERDADE TEXTUAL AUXILIAR):
 ${JSON.stringify(data.sourceContentData||{})}
 Use estes dados junto com a imagem para identificar exatamente título, partes do título, dia, horário, local e demais campos. A imagem continua sendo a referência visual. A lista “CONTEÚDO EXATO A PRESERVAR”/requiredContent e os textos permitidos definem o que pode aparecer nesta variação: não escreva campos que o preset ou o pedido atual excluam. Se o campo TÍTULO estiver presente, preserve todas as partes em titleParts, na ordem, sem omitir nenhuma.
@@ -892,8 +915,8 @@ Entregue a arte final, não um mockup.`;
 
 
 function derivationPromptRules(data={}){
-  if(data.derivationMode==='manual')return 'DERIVADOR — MODO MANUAL:\n- A imagem exata selecionada é a verdade visual atual.\n- A instrução desta ação define o que mudar; preserve o restante visível.\n- Não aplique preset, grade ou silhueta pré-programada.\n- Não recupere elementos de versões anteriores nem invente textos, datas, nomes, pessoas ou marcas.\n- Logos oficiais serão adicionadas depois pelo Assistente de Logos.';
-  if(data.derivationMode==='preset')return 'DERIVADOR — MODO PRÉ-PRONTO:\n- O preset define a estrutura visual geral e a hierarquia. Preserve as regiões e relações espaciais principais mostradas na miniatura.\n- Posições numéricas não são milimétricas; aceite apenas ajustes finos dentro da mesma região. Preserve rigorosamente as relações esquerda/direita e acima/abaixo; inversão é proibida.\n- A imagem selecionada define identidade e conteúdo atual; o preset define a organização geral.\n- Observações atuais podem alterar conteúdo, sem apagar silenciosamente a identidade do preset.\n- Não invente conteúdo ausente. Logos oficiais serão aplicadas depois.';
+  if(data.derivationMode==='manual')return 'DERIVADOR — MODO MANUAL:\n- A imagem exata selecionada é a verdade visual atual.\n- PROIBIDO espelhar horizontal ou verticalmente qualquer foto, pregador, rosto, corpo, microfone, púlpito, roupa, mão ou pose; reposicione/recorte sem inverter.\n- A instrução desta ação define o que mudar; preserve o restante visível.\n- Não aplique preset, grade ou silhueta pré-programada.\n- Não recupere elementos de versões anteriores nem invente textos, datas, nomes, pessoas ou marcas.\n- Logos oficiais serão adicionadas depois pelo Assistente de Logos.';
+  if(data.derivationMode==='preset')return 'DERIVADOR — MODO PRÉ-PRONTO:\n- O preset define a estrutura geral e as regiões relativas. Preserve rigorosamente os lados e a ordem acima/abaixo.\n- PROIBIDO espelhar horizontal ou verticalmente qualquer foto, pregador, rosto, corpo, microfone, púlpito, roupa, mão ou pose; reposicione/recorte sem inverter.\n- Preserve todos os componentes do título lidos na análise visual. Mantenha chamada/faixa (como um kicker) e título principal como partes relacionadas, sem omitir nenhuma.\n- Mantenha o bloco do título inteiro a pelo menos 6% de cada borda; preserve quebras, largura relativa e estilo de cada linha, sem esticar palavras isoladas.\n- A arte selecionada fornece identidade e texto; dados preenchidos prevalecem onde existirem, e a análise visual completa partes legíveis omitidas dos campos. Categorias ausentes do preset continuam proibidas. Logos oficiais serão aplicadas depois.';
   throw new Error('Modo de derivação inválido. Informe manual ou preset.');
 }
 function prompt(data){
@@ -972,9 +995,12 @@ ${data.addPastorOverride?'A única exceção humana é a PESSOA 1 fornecida, que
 CONTEÚDO OBRIGATÓRIO:
 ${texts||"Sem textos obrigatórios."}
 
-TEXTOS LEGÍVEIS PERMITIDOS:
-${JSON.stringify(allow)}
-Não invente nenhuma outra palavra, número, slogan, nome de igreja ou placeholder.
+TEXTO DA ORIGEM E COMPONENTES DO TÍTULO:
+${JSON.stringify(data.sourceAnalysis||{}).slice(0,4200)}
+${compactPromptText(data.layoutPresetInstruction||"",5200)}
+BLUEPRINT DO PRESET: ${JSON.stringify(data.layoutPresetBlueprint||{}).slice(0,2600)}
+TEXTOS LEGÍVEIS PERMITIDOS: ${JSON.stringify(allow)}
+Preserve todos os componentes legíveis do título e a hierarquia/estilo por linha. Mantenha o bloco do título a pelo menos 6% das bordas. Nunca estique uma palavra isolada. Não invente outra palavra, número, slogan, nome de igreja ou placeholder.
 
 RÓTULOS INTERNOS DE PESSOAS:
 Nunca renderize “PREGADOR PRINCIPAL”, “PREGADOR AUXILIAR”, “PRINCIPAL”, “AUXILIAR”, “PESSOA 1”, “PESSOA 2”, “PESSOA 3” ou equivalentes. São somente metadados internos. Se houver nome, renderize somente o nome fornecido. Esta proibição não impede rótulos editoriais legítimos como “DATA”, “HORÁRIO”, “LOCAL” ou “ENDEREÇO” quando autorizados.
@@ -1080,6 +1106,32 @@ async function auditPromptForTrace(data){
   }catch(error){return{error:error.message||"Falha na auditoria de instruções.",outboundPrompt};}
 }
 
+function responseText(payload){
+  if(typeof payload?.output_text==='string')return payload.output_text;
+  for(const item of payload?.output||[])if(item.type==='message')for(const part of item.content||[])if(part.type==='output_text'&&part.text)return part.text;
+  return '';
+}
+const SOURCE_ANALYSIS_SCHEMA={
+  type:'object',additionalProperties:false,required:['title_components','title_block','visible_text'],properties:{
+    title_components:{type:'array',items:{type:'object',additionalProperties:false,required:['text','role','line_breaks','relative_position','style','relative_width','confidence'],properties:{text:{type:'string'},role:{type:'string',enum:['title_kicker','title','other_title']},line_breaks:{type:'array',items:{type:'string'}},relative_position:{type:'string'},style:{type:'string'},relative_width:{type:'number',minimum:0,maximum:1},confidence:{type:'number',minimum:0,maximum:1}}}},
+    title_block:{type:'object',additionalProperties:false,required:['alignment','main_lines','relative_line_widths','style_summary'],properties:{alignment:{type:'string',enum:['left','center','right','mixed','unknown']},main_lines:{type:'array',items:{type:'string'}},relative_line_widths:{type:'array',items:{type:'number',minimum:0,maximum:1}},style_summary:{type:'string'}}},
+    visible_text:{type:'array',items:{type:'object',additionalProperties:false,required:['text','category','position','confidence'],properties:{text:{type:'string'},category:{type:'string',enum:['title_kicker','title','subtitle','date','time','location','preacher_name','church_name','other']},position:{type:'string'},confidence:{type:'number',minimum:0,maximum:1}}}}
+  }
+};
+async function analyzeSourceComposition(data){
+  const source=(data.references||[]).map(x=>x?.image||x?.url).find(isDataImage);
+  if(!source)return{analysis:null,meta:null,trace:{status:'sem imagem-base compatível para análise'}};
+  const prompt='Analise a imagem-base fornecida para uma tarefa de adaptação gráfica. Leia somente texto claramente visível, preservando grafia, acentos, pontuação e caixa. Identifique o grupo do título como composição: chamadas curtas em faixa/etiqueta visualmente ligadas ao título (por exemplo, “ABRA MÃO”) são title_kicker, não texto descartável. Registre cada componente, sua posição relativa, estilo, quebras de linha e largura aproximada relativa (0 a 1, sendo 1 a linha mais larga). Registre as linhas do título principal e suas larguras relativas na ordem visual. Em visible_text, classifique data, hora, local, nome e demais textos pela função visual. Não adivinhe texto ilegível nem transforme texto extra em título sem evidência visual. Os dados estruturados fornecidos são contexto, mas esta tarefa é leitura da imagem. Retorne somente o JSON do schema.';
+  try{
+    const response=await fetch(TRACE_AUDIT_URL,{method:'POST',headers:{Authorization:'Bearer '+process.env.OPENAI_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({model:'gpt-5.6-terra',reasoning:{effort:'low'},store:false,input:[{role:'user',content:[{type:'input_text',text:prompt+'\\n\\nDADOS ESTRUTURADOS PARA CONFERÊNCIA: '+JSON.stringify(data.sourceContentData||{}).slice(0,3000)},{type:'input_image',image_url:source}]}],text:{format:{type:'json_schema',name:'derivation_source_composition',strict:true,schema:SOURCE_ANALYSIS_SCHEMA},verbosity:'low'}})});
+    const requestId=response.headers.get('x-request-id')||null,payload=await response.json();
+    if(!response.ok)throw Object.assign(new Error(payload?.error?.message||'Falha na leitura visual da arte-base.'),{usage:payload?.usage||null,requestId});
+    const analysis=JSON.parse(responseText(payload));
+    if(!Array.isArray(analysis.title_components)||!analysis.title_block||!Array.isArray(analysis.visible_text))throw new Error('Formato inválido da análise visual da arte-base.');
+    return{analysis,meta:{model:'gpt-5.6-terra',usage:payload.usage||null,requestId,endpoint:'responses'},trace:{agent:'Leitor visual da arte-base',received:{sourceImageProvided:true,sourceContentData:data.sourceContentData||{}},sent:{model:'gpt-5.6-terra',prompt,sourceImageAttached:true},decision:analysis,response:{usage:payload.usage||null,requestId}}};
+  }catch(error){return{analysis:null,meta:{model:'gpt-5.6-terra',usage:error.usage||null,requestId:error.requestId||null,error:error.message},trace:{agent:'Leitor visual da arte-base',status:'falha',error:error.message||'falha técnica'}};}
+}
+
 async function generate(data){
   const images=collectInputImages(data),size=modelSize(data.target),basePrompt=promptForApi(data),auditReinforcement=String(data.traceAuditDirective||"").trim(),auditPrefix=auditReinforcement?`INSTRUÇÃO DE PRECEDÊNCIA VALIDADA ANTES DA GERAÇÃO — aplique esta síntese ao resolver qualquer conflito no restante do prompt:\n${auditReinforcement}\n\n`:"",auditReinforcementApplied=!!auditPrefix&&basePrompt.length+auditPrefix.length<=IMAGE_PROMPT_SAFE_LIMIT,rawPrompt=auditReinforcementApplied?auditPrefix+basePrompt:basePrompt,text=hardPromptBound(rawPrompt);
   if(text.length>IMAGE_PROMPT_SAFE_LIMIT)throw new Error(`Preflight prompt: ${text.length} caracteres excedem o limite interno de ${IMAGE_PROMPT_SAFE_LIMIT}.`);
@@ -1112,7 +1164,7 @@ async function generate(data){
   const item=d?.data?.[0];
   const base64=item?.b64_json||item?.base64||null;
   if(!base64)throw new Error("GPT Image 2 não retornou imagem.");
-  return {base64,usage:d.usage||null,requestId,endpoint:images.length?"images/edits":"images/generations",size,trace:data.traceMode?{prompt:text,auditReinforcementApplied,attachments:images.map(im=>({name:im.name,provided:true})),request:{model:"gpt-image-2",quality:"medium",size,output_format:"png",endpoint:images.length?"images/edits":"images/generations"},response:{requestId,usage:d.usage||null,outputType:item?.mime_type||"image/png",hasImage:!!base64}}:null};
+  return {base64,usage:d.usage||null,requestId,endpoint:images.length?"images/edits":"images/generations",size,trace:data.traceMode?{prompt:text,sourceAnalysis:data.sourceAnalysisTrace||null,auditReinforcementApplied,attachments:images.map(im=>({name:im.name,provided:true})),request:{model:"gpt-image-2",quality:"medium",size,output_format:"png",endpoint:images.length?"images/edits":"images/generations"},response:{requestId,usage:d.usage||null,outputType:item?.mime_type||"image/png",hasImage:!!base64}}:null};
 }
 module.exports=async function handler(req,res){
   if(req.method!=="POST")return res.status(405).json({error:"Método não permitido."});
@@ -1120,7 +1172,7 @@ module.exports=async function handler(req,res){
   try{
     const authUser=await requireChurchDesignUser(req);
     const churchId=await requireChurchAccess(req,authUser);
-    const raw=req.body||{};if(raw.mode!=='adaptation'||!['manual','preset'].includes(String(raw.derivationMode||'')))return res.status(400).json({error:'Este endpoint aceita somente derivações nos modos manual ou preset.'});const traceAuthorized=raw.traceMode===true&&String(authUser.email||'').trim().toLowerCase()===TRACE_OWNER_EMAIL;const data=pipelineGuard(raw);data.traceMode=traceAuthorized;
+    const raw=req.body||{};if(raw.mode!=='adaptation'||!['manual','preset'].includes(String(raw.derivationMode||'')))return res.status(400).json({error:'Este endpoint aceita somente derivações nos modos manual ou preset.'});const traceAuthorized=raw.traceMode===true&&String(authUser.email||'').trim().toLowerCase()===TRACE_OWNER_EMAIL;const data=pipelineGuard(raw);data.traceMode=traceAuthorized;let sourceAnalysisTrace=null,sourceAnalysisMeta=raw.sourceAnalysisMeta||null,sourceAnalysisCreated=false;if(data.derivationMode==='preset'){if(raw.sourceAnalysis&&Array.isArray(raw.sourceAnalysis.title_components)){data.sourceAnalysis=raw.sourceAnalysis;}else if(Number(raw.revisionAttempt||0)===0){const analysisRun=await analyzeSourceComposition(data);data.sourceAnalysis=analysisRun.analysis;sourceAnalysisMeta=analysisRun.meta;sourceAnalysisTrace=analysisRun.trace;sourceAnalysisCreated=!!analysisRun.meta?.usage;}if(data.sourceAnalysis){data.allowedTexts=[...new Set([...allowedTexts(data),...data.explicitDerivativeTexts])];}}
     if(!data.inspirationStyle&&!data.artDirection&&data.revisionMode!=="delta-only"&&data.mode!=="adaptation")return res.status(400).json({error:"Direção visual ausente."});
     let traceAudit=null;
     if(traceAuthorized){
@@ -1130,12 +1182,12 @@ module.exports=async function handler(req,res){
         if(traceAudit?.usage)await logUsage({churchId,userId:authUser.id,operationType:"derivation_prompt_audit",model:"gpt-5.6-terra",endpoint:"responses",usage:traceAudit.usage,imageCount:traceAudit.imageInputs?.length||0,metadata:{...costContextFromData(data),requestId:traceAudit.requestId||null,presetId:data.layoutPresetId||null,traceMode:true}});
       }else data.traceAuditDirective=String(raw.traceAuditDirective||"").slice(0,500);
     }
-    const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
+    if(sourceAnalysisCreated&&sourceAnalysisMeta?.usage)await logUsage({churchId,userId:authUser.id,operationType:'derivation_source_analysis',model:'gpt-5.6-terra',endpoint:'responses',usage:sourceAnalysisMeta.usage,imageCount:1,metadata:{...costContextFromData(data),requestId:sourceAnalysisMeta.requestId||null,presetId:data.layoutPresetId||null,traceMode:traceAuthorized}});data.sourceAnalysisTrace=traceAuthorized?sourceAnalysisTrace:null;const generated=await generate(data),label=data.variantLabel||data.target?.label||"arte";
     const url=await saveBase64ToStorage(generated.base64,churchId,label);
     const image={label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.usage||null,requestId:generated.requestId||null,endpoint:generated.endpoint,size:generated.size}};
     await logUsage({churchId,userId:authUser.id,operationType:"generation",model:"gpt-image-2",endpoint:generated.endpoint,usage:generated.usage,imageCount:1,metadata:{...costContextFromData(data),requestId:generated.requestId||null,size:generated.size,label}});
-    const trace=traceAuthorized?{agent:'Gerador de imagem — GPT Image 2',audit:traceAudit,received:{mode:data.derivationMode,format:data.format||null,target:data.target||null,presetId:data.layoutPresetId||null,presetName:data.layoutPresetName||null,presetInstructions:data.layoutPresetInstruction||'',presetBlueprint:data.layoutPresetBlueprint||null,finalInstruction:data.finalInstruction||'',artDirection:data.artDirection||{},userInstruction:data.instruction||'',qualityCorrection:data.qualityCorrection||'',traceAuditDirective:data.traceAuditDirective||'',revisionAttempt:Number(data.revisionAttempt)||0,requiredContent:data.requiredContent||{},sourceContentData:data.sourceContentData||{},preferDarkBackground:!!data.preferDarkBackground,omissions:data.omit||[],pastorMode:data.pastorMode||null,assets:{pastors:(data.assets?.pastors||[]).map((p,i)=>({role:p.role||`PESSOA ${i+1}`,name:p.name||'',imageProvided:!!p.image})),churchImageProvided:!!data.assets?.churchImage?.image,graphicAssets:(data.assets?.graphics||[]).map(g=>({name:g.name||'',imageProvided:!!(g.image||g.url)})),sourceImageProvided:(data.references||[]).some(x=>!!x?.image),layoutGuideProvided:!!data.layoutGuideImage}},sent:generated.trace,decision:{status:'imagem gerada',model:'gpt-image-2',requestId:generated.requestId||null},output:{imageUrl:url,label,format:data.format||null}}:undefined;
-    return res.status(200).json({success:true,endpointType:'derivation-generate',image,...(trace?{trace}:{})});
+    const trace=traceAuthorized?{agent:'Gerador de imagem — GPT Image 2',audit:traceAudit,received:{mode:data.derivationMode,format:data.format||null,target:data.target||null,presetId:data.layoutPresetId||null,presetName:data.layoutPresetName||null,presetInstructions:data.layoutPresetInstruction||'',presetBlueprint:data.layoutPresetBlueprint||null,finalInstruction:data.finalInstruction||'',artDirection:data.artDirection||{},userInstruction:data.instruction||'',qualityCorrection:data.qualityCorrection||'',traceAuditDirective:data.traceAuditDirective||'',revisionAttempt:Number(data.revisionAttempt)||0,requiredContent:data.requiredContent||{},sourceContentData:data.sourceContentData||{},sourceAnalysis:data.sourceAnalysis||null,preferDarkBackground:!!data.preferDarkBackground,omissions:data.omit||[],pastorMode:data.pastorMode||null,assets:{pastors:(data.assets?.pastors||[]).map((p,i)=>({role:p.role||`PESSOA ${i+1}`,name:p.name||'',imageProvided:!!p.image})),churchImageProvided:!!data.assets?.churchImage?.image,graphicAssets:(data.assets?.graphics||[]).map(g=>({name:g.name||'',imageProvided:!!(g.image||g.url)})),sourceImageProvided:(data.references||[]).some(x=>!!x?.image),layoutGuideProvided:!!data.layoutGuideImage}},sent:generated.trace,decision:{status:'imagem gerada',model:'gpt-image-2',requestId:generated.requestId||null},output:{imageUrl:url,label,format:data.format||null}}:undefined;
+    if(sourceAnalysisMeta)image.meta.sourceAnalysisMeta=sourceAnalysisMeta;return res.status(200).json({success:true,endpointType:'derivation-generate',image,...(data.sourceAnalysis?{sourceAnalysis:data.sourceAnalysis}:{}),...(sourceAnalysisMeta?{sourceAnalysisMeta}:{}),...(trace?{trace}:{})});
   }catch(e){console.error("ChurchDesign generate",e);return res.status(e.statusCode||500).json({error:e.message||"Erro ao gerar."});}
 };
 
