@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — INDEX GERAL v1.35.1 | BASE: GitHub Index v1.34 | FINALIDADE: manter integralmente o visual e os botões existentes, encaminhando somente os pontos que abriam o Estúdio de Derivação à página DERIVADOR v1.2. -->
+<!-- CHURCHDESIGN — INDEX GERAL v1.36 | BASE: Index geral v1.35 com roteamento ao Derivador | TÍTULO: ChurchDesign | VERSÃO: 1.36 | FINALIDADE: preservar todos os campos textuais reais, inclusive partes do título, na receita da Galeria para envio ao Derivador independente, mantendo a geração principal e a conexão atuais. -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -4082,6 +4082,7 @@ html[data-theme="light"] .mobile-sidebar-backdrop{background:rgba(28,33,39,.35)}
       <div class="sidebar-primary-actions">
         <button class="sidebar-unified-btn create-nav-btn" id="createNavBtn" type="button" onclick="openCreateHome()"><span class="sidebar-nav-icon">＋</span><span class="sidebar-nav-label">Criar</span></button>
         <button class="sidebar-unified-btn feed-nav-btn" id="feedNavBtn" type="button" onclick="openFeed()"><span class="sidebar-nav-icon">◫</span><span class="sidebar-nav-label">Feed</span></button>
+        <button class="sidebar-unified-btn derivator-nav-btn" id="derivatorNavBtn" type="button" onclick="window.location.assign('/derivador.html')"><span class="sidebar-nav-icon">✦</span><span class="sidebar-nav-label">Derivador</span></button>
       </div>
       <div class="sidebar-library-actions">
         <button class="sidebar-unified-btn my-church-btn" type="button" onclick="openMyChurch()"><span class="sidebar-nav-icon">⌂</span><span class="sidebar-nav-label">Minha igreja</span></button>
@@ -4887,7 +4888,7 @@ function screenResults(){
     };
   }
   async function callGenerate(payload,signal){const r=await authFetch('/api/generate-art',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});const text=await r.text();let data;try{data=JSON.parse(text)}catch{throw new Error(text.slice(0,220)||`Resposta inválida (${r.status})`);}if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);return data;}
-  async function persistOne(im){try{const galleryCopy=await prepareImageForAI(im.dataUrl,1400,.82);const d=await apiJSON('upload-generation',{method:'POST',body:{label:im.label,format:state.format,dataUrl:galleryCopy}});return {galleryId:im.id||crypto.randomUUID(),label:im.label,url:d.url,kind:'principal',format:state.format,target:primaryTargetSpec(),recipe:{recipeVersion:2,pipelineVersion:'0.30.7',kind:'principal',format:state.format,target:primaryTargetSpec(),church:JSON.parse(JSON.stringify(state.church||{})),artDirection:state.artDirection||null,instruction:state.instruction||'',requiredContent:exactContentFromLayers(),assets:compactGalleryAssets(await selectedAssetPayload())}};}catch(e){console.warn(e);return null;}}
+  async function persistOne(im){try{const galleryCopy=await prepareImageForAI(im.dataUrl,1400,.82);const d=await apiJSON('upload-generation',{method:'POST',body:{label:im.label,format:state.format,dataUrl:galleryCopy}});return {galleryId:im.id||crypto.randomUUID(),label:im.label,url:d.url,kind:'principal',format:state.format,target:primaryTargetSpec(),recipe:{recipeVersion:2,pipelineVersion:'0.30.7',kind:'principal',format:state.format,target:primaryTargetSpec(),church:JSON.parse(JSON.stringify(state.church||{})),artDirection:state.artDirection||null,instruction:state.instruction||'',requiredContent:storedContentSnapshotFromLayers(),assets:compactGalleryAssets(await selectedAssetPayload())}};}catch(e){console.warn(e);return null;}}
   function renderArtDirection(ad){
     if(!ad)return;artDirectorPanel?.classList.add('show');
     if(artDirectorStatus)artDirectorStatus.textContent='Blueprint visual concluído e aplicado às propostas.';
@@ -6174,7 +6175,7 @@ function buildCreationReportSnapshot(payload=null,extra={}){
   const referenceAsset=q.referenceAssetId?(state.library.assets||[]).find(x=>String(x.id)===String(q.referenceAssetId)):null;
   const churchAsset=q.churchImageAssetId?(state.library.assets||[]).find(x=>String(x.id)===String(q.churchImageAssetId)):null;
   return{reportVersion:1,createdAt:new Date().toISOString(),label:extra.label||p.variantLabel||'Arte',kind:extra.kind||'principal',target:p.target||quickTargetSpec(q.format||state.format||'feed'),
-    content:{title:req.title??q.title??'',subtitle:req.subtitle??q.subtitle??'',secondaryInfo:req.secondaryInfo??q.secondaryInfo??'',date:req.date??q.date??'',time:req.time??q.time??'',address:req.address??q.address??'',churchName:req.churchName??''},
+    content:{title:req.title??q.title??'',titleParts:Array.isArray(req.titleParts)?req.titleParts:[],subtitle:req.subtitle??q.subtitle??'',secondaryInfo:req.secondaryInfo??q.secondaryInfo??'',date:req.date??q.date??'',time:req.time??q.time??'',address:req.address??q.address??'',churchName:req.churchName??'',pastorNames:Array.isArray(req.pastorNames)?req.pastorNames:[]},
     choices:{format:q.format||p.target?.id||state.format||'feed',audience:q.audience||'',designStyle:q.designStyle||'',inspirationStyle:q.inspirationStyle||'',effect:q.effect||'none',dominantColor:q.dominantColor||'',dominantColorMode:q.dominantColorMode||'reference',illustrateTitle:!!q.illustrateTitle,pastorPhotoTreatment:q.pastorPhotoTreatment||''},
     assets:{referenceUsed:!!(q.reference||p.reference||(p.references||[]).length),referenceMode:q.referenceMode||'',referenceName:referenceAsset?.name||'',pastors:selectedPastors.length?selectedPastors:reportAssetNames(assets.pastors||[]),churchImageUsed:!!(q.churchImageAssetId||assets.churchImage),churchImageName:churchAsset?.name||assets.churchImage?.name||'',churchLogoSelected:!!q.logoAssetId,eventLogoSelected:!!q.eventLogoAssetId},
     instructions:{correction:String(extra.correction??q.correction??'').trim(),userInstruction:String(p.instruction||'').trim(),variantInstruction:String(p.variantInstruction||'').trim(),freeInstruction:String(extra.freeInstruction||p.freeInstruction||'').trim()},
@@ -6185,7 +6186,7 @@ function reportFromArtwork(artwork={}){
   if(artwork.creationReport)return artwork.creationReport;if(artwork.recipe?.creationReport)return artwork.recipe.creationReport;
   const r=artwork.recipe||{},q=r.quick||{},assets=r.assets||{},req=r.requiredContent||artwork.requiredContent||{};
   return{reportVersion:1,createdAt:r.createdAt||artwork.createdAt||null,label:artwork.label||'Arte',kind:r.kind||artwork.kind||'arte',target:r.target||artwork.target||null,
-    content:{title:req.title??q.title??'',subtitle:req.subtitle??q.subtitle??'',secondaryInfo:req.secondaryInfo??q.secondaryInfo??'',date:req.date??q.date??'',time:req.time??q.time??'',address:req.address??q.address??'',churchName:req.churchName??''},
+    content:{title:req.title??q.title??'',titleParts:Array.isArray(req.titleParts)?req.titleParts:[],subtitle:req.subtitle??q.subtitle??'',secondaryInfo:req.secondaryInfo??q.secondaryInfo??'',date:req.date??q.date??'',time:req.time??q.time??'',address:req.address??q.address??'',churchName:req.churchName??'',pastorNames:Array.isArray(req.pastorNames)?req.pastorNames:[]},
     choices:{format:q.format||r.format||artwork.format||'',audience:q.audience||'',designStyle:q.designStyle||'',inspirationStyle:q.inspirationStyle||'',effect:q.effect||'none',dominantColor:q.dominantColor||'',dominantColorMode:q.dominantColorMode||'reference',illustrateTitle:!!q.illustrateTitle,pastorPhotoTreatment:q.pastorPhotoTreatment||''},
     assets:{referenceUsed:!!(q.reference||q.referenceMode==='gallery'||q.referenceAssetId),referenceMode:q.referenceMode||'',referenceName:'',pastors:reportAssetNames(assets.pastors||[]).length?reportAssetNames(assets.pastors||[]):Object.values(q.pastorNames||{}).filter(Boolean),churchImageUsed:!!(q.churchImageAssetId||assets.churchImage),churchImageName:assets.churchImage?.name||'',churchLogoSelected:!!q.logoAssetId,eventLogoSelected:!!q.eventLogoAssetId},
     instructions:{correction:q.correction||'',userInstruction:r.instruction||artwork.instruction||'',variantInstruction:'',freeInstruction:''},
@@ -6440,7 +6441,7 @@ function galleryActionsHTML(x,compact=false){
   const publishButton=compact?'':published
     ?`<button class="gallery-main-action gallery-publish-btn published" type="button" disabled>✓ Postado</button>`
     :`<button class="gallery-main-action gallery-publish-btn" type="button" data-gallery-publish="${id}">↑ Publicar</button>`;
-  const reopenLabel=x.recipe?'Reabrir':'Reusar';
+  const reopenLabel='Criar derivada';
   return `<div class="${compact?'gallery-derivative-actions':'gallery-actions'} gallery-actions-clean">
     ${publishButton}
     ${compact?`<button class="gallery-main-action gallery-direct-share-btn" type="button" data-gallery-share="${id}">↗ Gerar link</button>`:''}
@@ -6654,7 +6655,13 @@ function useGalleryAsReference(id){
   const item=findGalleryItem(id);if(!item)return appAlert('Arte não encontrada na Galeria.');const recipe=item.recipe||null;if(recipe)restoreRecipeToQuick(recipe,{asReference:true});
   state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:recipe?.artDirection||null,recipe};state.quick.reference=item.baseUrl||item.url;state.quick.referenceMode='gallery';state.quickResults=[];closeModal();screenQuickMode();
 }
+function openIndependentDerivator(galleryId,format=''){
+  const id=String(galleryId||'').trim();if(!id)return false;
+  const url=new URL('/derivador.html',location.origin);url.searchParams.set('source',id);if(format)url.searchParams.set('format',String(format));
+  location.assign(url.href);return true;
+}
 function reopenGalleryProject(id){
+  if(openIndependentDerivator(id))return;
   const item=findGalleryItem(id);if(!item)return appAlert('Arte não encontrada na Galeria.');
   if(item.recipe){try{restoreRecipeToQuick(item.recipe,{asReference:false})}catch(e){console.warn('Receita não restaurada para derivação.',e)}}
   state.mode='quick';state.gallerySeed={sourceArtworkId:item.galleryId,sourceUrl:item.baseUrl||item.url,artDirection:item.recipe?.artDirection||null,recipe:item.recipe||null};
@@ -6683,6 +6690,7 @@ function correctGalleryArtwork(id){
 }
 
 function startGalleryChild(id,format){
+  if(openIndependentDerivator(id,format))return;
   try{
     const item=findGalleryItem(id);if(!item)throw new Error('Arte não encontrada na Galeria.');
     if(item.recipe){
@@ -6693,8 +6701,7 @@ function startGalleryChild(id,format){
     const source=galleryItemToQuickResult(item);source.finalized=true;source.manualLogoFlow=true;source.galleryId=item.galleryId;state.quickResults=[source];
     closeModal();screenQuickMode();
     requestAnimationFrame(()=>{
-      const studio=openDerivativeStudio({parentIndex:0,sourceKey:'main:0',sourceItem:item,format});
-      if(!studio)return;
+      const studio=openDerivativeStudio({parentIndex:0,sourceKey:'main:0',sourceItem:item});
       const ov=document.querySelector('.derivative-studio-overlay');
       if(ov&&format){
         const st=ov.__derivativeState;
@@ -7751,61 +7758,16 @@ function exactContentFromLayers(){
   if(!out.address)out.address=state.church.address||'';
   return out;
 }
-async function callQualityInspector(payload,signal=null){
-  try{
-    const r=await authFetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});
-    const text=await r.text();
-    let data;
-    try{data=JSON.parse(text)}
-    catch{
-      return {
-        approved:true,
-        critical_error:false,
-        score:0,
-        technicalFailure:true,
-        gross_errors:['Fiscal retornou resposta inválida.'],
-        correction_prompt:'',
-        _meta:{technicalFailure:true,reason:'invalid_json'}
-      };
-    }
-    if(!r.ok){
-      return {
-        approved:true,
-        critical_error:false,
-        score:0,
-        technicalFailure:true,
-        gross_errors:[data?.error||`Fiscal indisponível (${r.status}).`],
-        correction_prompt:'',
-        _meta:{technicalFailure:true,reason:'http_error'}
-      };
-    }
-    assertInspectorResponse(data);
-    recordOpenAIRequest('Fiscal visual',data.meta||{});
-    const review=data.review;
-    if(typeof review.approved!=='boolean'){
-      return {
-        approved:true,
-        critical_error:false,
-        score:0,
-        technicalFailure:true,
-        gross_errors:['Fiscal não devolveu uma decisão válida.'],
-        correction_prompt:'',
-        _meta:{technicalFailure:true,reason:'invalid_shape'}
-      };
-    }
-    return review;
-  }catch(e){
-    if(e?.name==='AbortError')throw e;
-    return {
-      approved:true,
-      critical_error:false,
-      score:0,
-      technicalFailure:true,
-      gross_errors:[`Fiscal indisponível: ${e.message||'falha técnica'}`],
-      correction_prompt:'',
-      _meta:{technicalFailure:true,reason:'exception'}
-    };
-  }
+function storedContentSnapshotFromLayers(){
+  const q=state.quick||{},church=state.church||{},layers=state.layers||[];
+  const titleLayers=layers.filter(l=>['title','titlepart'].includes(l.type)&&String(l.replacement||'').trim()).sort((a,b)=>(Number(a.y)||0)-(Number(b.y)||0)||(Number(a.x)||0)-(Number(b.x)||0));
+  const titleParts=titleLayers.map(l=>String(l.replacement||'').trim());
+  const title=titleParts.length?titleParts.join('\n'):String(q.title||'').trim();
+  const pastorNames=Array.isArray(q.pastorNames)?q.pastorNames.map(x=>String(x||'').trim()).filter(Boolean):(q.pastorAssetIds||[]).map(id=>{const a=(state.library?.assets||[]).find(x=>String(x.id)===String(id));return String(a?.meta?.displayName||a?.name||'').trim()}).filter(Boolean);
+  const out={title,titleParts:titleParts.length?titleParts:(title?[title]:[]),subtitle:String(q.subtitle||''),secondaryInfo:String(q.secondaryInfo||''),date:String(q.date||''),time:String(q.time||''),address:String(q.address||church.address||''),churchName:String(church.name||q.churchName||''),pastorNames};
+  for(const l of layers){const role=l.type;if(['subtitle','date','time','address'].includes(role)&&String(l.replacement||'').trim())out[role]=String(l.replacement).trim();}
+  if(!out.address)out.address=String(church.address||'');
+  return out;
 }
 
 function generationArtTypeFromContext({replaceIndex=null,format=null,backgroundMode=false,freeMode=false,screenThemeMode=false}={}){
@@ -9272,32 +9234,11 @@ async function runDerivativeStudioGeneration(ov){
     }
   }finally{const b=ov.querySelector('[data-derivative-generate]'),c=ov.querySelector('[data-derivative-cancel]');if(b){b.disabled=false;b.textContent=st.tab==='manual'?'✦ Gerar nova derivada':'✦ Gerar variação programada'}if(c)c.hidden=true;}
 }
-function derivativeHandoffSnapshot(source){
-  if(!source||typeof source!=='object')return null;
-  const keys=['id','galleryId','label','dataUrl','baseDataUrl','sourceUrl','url','target','format','artDirection','requiredContent','assets','instruction','logoPosition','eventLogoPosition','eventLogoSize','occupancy','logoPlan','logoReceipt','logoDegradations','manualLogoFlow','finalized','manualLogoPlacements','layoutPresetBlueprint','parentArtworkId','sourceArtworkId','recipe'];
-  const snapshot={};for(const key of keys)if(source[key]!==undefined)snapshot[key]=source[key];
-  return snapshot.dataUrl||snapshot.baseDataUrl||snapshot.sourceUrl||snapshot.url? snapshot:null;
-}
-function routeToIndependentDerivator(source,format=''){
-  if(!source)return false;
-  const url=new URL('/derivador.html',location.origin);
-  if(source.galleryId)url.searchParams.set('source',String(source.galleryId));
-  else{
-    const snapshot=derivativeHandoffSnapshot(source);
-    if(!snapshot){appAlert('Esta arte ainda não está disponível para derivação. Salve-a na Galeria e tente novamente.',{type:'info',title:'Salve a arte na Galeria'});return true;}
-    try{sessionStorage.setItem('churchdesign.derivator.handoff.v1',JSON.stringify({source:snapshot,format:String(format||'')}));url.searchParams.set('handoff','1');}
-    catch(e){appAlert('Não foi possível transferir esta arte para o Derivador. Salve-a na Galeria e tente novamente.',{type:'warning',title:'Salve a arte na Galeria'});return true;}
-  }
-  if(format)url.searchParams.set('format',String(format));
-  location.assign(url.href);return true;
-}
-function openDerivativeStudio(options={}){
-  const {parentIndex=0,sourceKey=null,sourceItem=null,format=''}=options;
+function openDerivativeStudio({parentIndex=0,sourceKey=null,sourceItem=null}={}){
   document.querySelector('.derivative-studio-overlay')?.remove();
   let source=sourceItem||resolveQuickReferenceCandidate(sourceKey||preferredQuickReferenceKey(parentIndex),parentIndex)||state.quickResults?.[parentIndex];
   if(sourceItem?.galleryId&&!sourceItem.dataUrl)source=galleryItemToQuickResult(sourceItem);
   if(!source)return appAlert('Não foi possível localizar a arte de origem.',{type:'error'});
-  if(!document.body.classList.contains('derivator-standalone')&&routeToIndependentDerivator(source,format))return null;
   const candidates=derivativeFamilyCandidates(source);
   let matched=candidates.find(x=>String(x.galleryId||x.key||'')===String(source.galleryId||sourceKey||''))||source;
   const sourceNode=derivativeSourceFromCandidate(matched)||source;
@@ -9316,7 +9257,6 @@ function openDerivativeStudio(options={}){
   ov.querySelector('[data-derivative-prev]').onclick=()=>derivativeStudioSetMobileStep(ov,(ov.__derivativeState.mobileStep||0)-1);
   ov.querySelector('[data-derivative-next]').onclick=()=>{const st=ov.__derivativeState,sections=[...ov.querySelectorAll('[data-mobile-step]')],max=Math.max(0,sections.length-1);if(st.mobileStep>=max)runDerivativeStudioGeneration(ov);else derivativeStudioSetMobileStep(ov,st.mobileStep+1)};
   derivativeStudioRenderBody(ov);
-  return ov;
 }
 
 function openQuickAdaptConfig(i,f,explicitSourceKey=null){
@@ -9399,7 +9339,9 @@ function bindQuickResultEvents(){
   document.querySelectorAll('[data-qadapt-proceed]').forEach(b=>b.onclick=()=>openLogoAssistant(`adaptation:${b.dataset.qadaptParent}:${b.dataset.qadaptId}`));
   document.querySelectorAll('[data-open-derivative]').forEach(btn=>btn.onclick=()=>{
     const [i,key]=btn.dataset.openDerivative.split('|');
-    openDerivativeStudio({parentIndex:Number(i),sourceKey:key});
+    const parentIndex=Number(i),source=resolveQuickReferenceCandidate(key,parentIndex)||state.quickResults?.[parentIndex];
+    if(source?.galleryId&&openIndependentDerivator(source.galleryId))return;
+    appAlert('Para abrir esta arte no Derivador independente, salve-a primeiro na Galeria. Depois selecione-a por “Criar derivada”.',{type:'info',title:'Salve a arte na Galeria'});
   });
   document.querySelectorAll('[data-qdownload-correction]').forEach(btn=>btn.onclick=async()=>{const [i,j]=btn.dataset.qdownloadCorrection.split('-').map(Number);const a=state.quickResults?.[i]?.corrections?.[j];if(a&&await downloadDataUrl(a.dataUrl,`${slug(a.label||'churchdesign-correction')}.png`)){markGalleryDownloaded(a)}});
   document.querySelectorAll('[data-qfullscreen-correction]').forEach(btn=>btn.onclick=()=>{const [i,j]=btn.dataset.qfullscreenCorrection.split('-').map(Number);const a=state.quickResults?.[i]?.corrections?.[j];if(a)openArtworkFullscreen(a.dataUrl,a.label||`Correção ${j+1}`);});
@@ -9722,7 +9664,8 @@ async function runQuickGeneration(label,variationIndex,correction='',replaceInde
     setQuickProgress(30,'Organizando a criação...');payload.variantId=`quick-${variationIndex}`;payload.variantLabel=label;if(!payload.variantInstruction)payload.variantInstruction=variationIndex===0?'Crie a proposta principal.':`Crie uma variação de layout ${variationIndex}, mantendo identidade, dados e linguagem visual. Se houver ANOTAÇÃO / INSTRUÇÃO EXPLÍCITA DO USUÁRIO no prompt, ela é obrigatória e deve aparecer de forma visualmente verificável nesta variação; não a trate como sugestão opcional. Todo texto explicitamente solicitado deve aparecer como texto real e legível. Nunca substitua palavras por barras, retângulos, linhas, pseudo-tipografia ou placeholders.`;
     setQuickProgress(48,'Criando sua arte...');const autoCorrections=(replaceIndex===null&&variationIndex===0)?1:0;const image=await generateWithInvisibleReview(payload,autoCorrections,signal);
     setQuickProgress(88,'Finalizando...');const normalized=await normalizeArtworkToTarget(image,payload,payload.target,signal),finalImage=normalized.image,dataUrl=normalized.dataUrl;
-    const result={id:crypto.randomUUID(),label,dataUrl,baseDataUrl:normalized.baseDataUrl,aiBaseDataUrl:normalized.aiBaseDataUrl||normalized.baseDataUrl,sourceUrl:(finalImage||image).url,target:payload.target,artDirection:payload.artDirection,requiredContent:payload.requiredContent,assets:payload.assets,instruction:payload.instruction,creationReport:buildCreationReportSnapshot(payload,{label,kind:variationIndex>0?'variação':'principal',correction}),logoPosition:null,eventLogoPosition:null,eventLogoSize:null,occupancy:null,logoPlan:null,logoReceipt:[],logoDegradations:[],adaptations:[],correction:'',manualLogoFlow:true,finalized:false,manualLogoPlacements:[]};
+    const storedContentSnapshot={...(payload.requiredContent||{}),titleParts:Array.isArray(payload.requiredContent?.titleParts)?payload.requiredContent.titleParts:String(payload.requiredContent?.title||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean)};
+    const result={id:crypto.randomUUID(),label,dataUrl,baseDataUrl:normalized.baseDataUrl,aiBaseDataUrl:normalized.aiBaseDataUrl||normalized.baseDataUrl,sourceUrl:(finalImage||image).url,target:payload.target,artDirection:payload.artDirection,requiredContent:storedContentSnapshot,assets:payload.assets,instruction:payload.instruction,creationReport:buildCreationReportSnapshot({...payload,requiredContent:storedContentSnapshot},{label,kind:variationIndex>0?'variação':'principal',correction}),logoPosition:null,eventLogoPosition:null,eventLogoSize:null,occupancy:null,logoPlan:null,logoReceipt:[],logoDegradations:[],adaptations:[],correction:'',manualLogoFlow:true,finalized:false,manualLogoPlacements:[]};
     let galleryCandidate=result,galleryKind=variationIndex>0?'variação':'principal',galleryParent=state.gallerySeed?.sourceArtworkId||null,gallerySource=state.gallerySeed?.sourceArtworkId||null;
     if(replaceIndex===null)state.quickResults.push(result);else{const original=state.quickResults[replaceIndex];original.corrections=original.corrections||[];galleryCandidate={...result,id:crypto.randomUUID(),label:`${original.label} • corrigida`};original.corrections.push(galleryCandidate);galleryKind='correção';galleryParent=original.galleryId||original.id||null;gallerySource=original.galleryId||original.id||gallerySource}
     let savedGallery=null;
