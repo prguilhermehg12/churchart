@@ -1,8 +1,8 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
 // ARQUIVO DE DESTINO: api/DERIV-derivation-inspector-v1.0.js
 // TÍTULO: Fiscal independente do Derivador
-// VERSÃO DO CONTEÚDO: 1.4
-// FINALIDADE: Fiscalizar a derivação e, no modo rastreado autorizado, registrar o prompt recebido, referências e decisão estruturada.
+// VERSÃO DO CONTEÚDO: 1.5
+// FINALIDADE: Fiscalizar a derivação, detectar foto espelhada e pregador indevido em presets; registrar conteúdo estruturado e reparar a checagem de escopo do modo rastreado.
 // INFRAESTRUTURA COMPARTILHADA: autenticação Supabase e membership da igreja ativa.
 module.exports.config={maxDuration:120};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
@@ -67,11 +67,14 @@ function buildInput(data,traceAuthorized=false){
     traceAuthorized&&isPreset&&imageValue(data.layoutGuideImage)?"No modo rastreado, a última imagem anexada é o guia visual do preset. Compare diretamente a posição do pregador, do título e do nome com esse modelo.":"",
     "No modo Manual, confira se mudanças atuais foram obedecidas e se elementos não solicitados foram preservados sem recuperar conteúdo antigo.",
     isPreset?"No modo Pré-pronto, compare com a miniatura e o blueprint como referência aproximada: mantenha regiões principais, lados e hierarquia/tamanho relativo. As relações de lado e ordem acima/abaixo são obrigatórias: reprove se forem invertidas, mesmo que a arte continue bonita. Aceite apenas ajustes finos dentro da mesma região, em torno de 5–8% do canvas; não exija coordenadas exatas nem reprove só por proximidade da borda se o conteúdo estiver visível e dentro do canvas. Reprove também conteúdo obrigatório ausente, ilegível, cortado ou fora do canvas. Relações calculadas: "+relationMap+". Mapa: "+JSON.stringify(data.layoutPresetBlueprint||{}).slice(0,3500)+". Instruções: "+String(data.finalInstruction||data.userInstruction||"").slice(0,4500):"",
+    "Campos estruturados reais da arte de origem: "+JSON.stringify(data.sourceContentData||{}).slice(0,3000),
     "Conteúdo obrigatório atual: "+JSON.stringify(data.requiredContent||{}).slice(0,3000),
+    "Campos escritos da arte-base: "+JSON.stringify(data.sourceContentData||{}).slice(0,3000)+". Compare com a imagem-base; quando o título está incluído, frases claramente legíveis que pertencem ao bloco do título devem ser preservadas, mesmo se um campo estruturado estiver incompleto. Categorias excluídas pelo preset não podem reaparecer.",
+    data.preferDarkBackground?"Priorizar fundo escuro está ATIVO: confira se o fundo geral ficou predominantemente escuro sem destruir identidade, textura e elementos visuais.":"",
     "Textos permitidos: "+JSON.stringify(data.allowedTexts||[]).slice(0,2500),
     "Instrução atual: "+String(data.userInstruction||"").slice(0,3000),
     "Omissões solicitadas: "+JSON.stringify(data.omit||[]),
-    "Avalie: texto inventado ou ilegível; pessoa/pregador ausente, duplicado ou com identidade evidentemente incompatível com assets; informação obrigatória omitida; logo indevida; composição fora do formato; corte de rosto/texto; no modo Pré-pronto, inversão da ordem espacial (esquerda/direita ou acima/abaixo) definida pelo preset, ainda que a arte pareça esteticamente aceitável.",
+    "Avalie: texto inventado ou ilegível; pessoa/pregador ausente, duplicado ou com identidade evidentemente incompatível com assets; informação obrigatória omitida; logo indevida; composição fora do formato; corte de rosto/texto; no modo Pré-pronto, inversão da ordem espacial definida pelo preset. Compare a orientação da pessoa real com a arte-base: se rosto/pose/corpo foram espelhados horizontal ou verticalmente, reprove; reposicionar e recortar sem inverter é permitido. Se o preset não prevê pregador e não há pedido explícito para adicioná-lo, reprove se a pessoa focal/pregador da arte-base continuar visível. O modo Priorizar fundo escuro deve escurecer o fundo, mantendo intactos os elementos de identidade visual.", 
     "Se não houver erro objetivo que impeça a entrega, aprove. Não exija perfeição estética subjetiva. Não peça mudança apenas por preferência de estilo.",
     "Devolva correction_prompt breve e acionável somente se houver erro objetivo. Não solicite alterações em áreas corretas."
   ].filter(Boolean).join("\n\n");
@@ -93,6 +96,7 @@ module.exports=async function handler(req,res){
   try{
     const user=await requireChurchDesignUser(req),data=req.body||{};
     const traceAuthorized=data.traceMode===true&&String(user.email||'').trim().toLowerCase()==='pr.guilhermehg12@gmail.com';
+    const isPreset=String(data.derivationMode||'')==='preset';
     await verifyChurchAccess(req,user);
     if(!["manual","preset"].includes(String(data.derivationMode||"")))return res.status(400).json({error:"Modo de derivação inválido."});
     if(!imageValue(data.generatedImage))return res.status(400).json({error:"Imagem gerada ausente ou inválida."});
@@ -106,7 +110,7 @@ module.exports=async function handler(req,res){
     const raw=outputText(payload);if(!raw)throw new Error("Fiscal Visual não retornou uma avaliação.");
     const review=JSON.parse(raw);
     if(typeof review.approved!=="boolean"||!Array.isArray(review.gross_errors))throw new Error("Contrato de resposta do Fiscal Visual inválido.");
-    const trace=traceAuthorized?{agent:'Fiscal visual do Derivador',received:{mode:data.derivationMode||null,presetBlueprint:data.layoutPresetBlueprint||null,requiredContent:data.requiredContent||{},userInstruction:data.userInstruction||'',finalInstruction:data.finalInstruction||'',omissions:data.omit||[]},sent:{model:'gpt-5.6-terra',prompt:inputContent.find(x=>x.type==='input_text')?.text||'',images:[{index:1,role:'resultado gerado'},...(Array.isArray(data.references)?data.references.slice(0,3).map((r,i)=>({index:i+2,role:r?.note||'arte-base/referência'})):[]),...(traceAuthorized&&isPreset&&imageValue(data.layoutGuideImage)?[{index:2+(Array.isArray(data.references)?Math.min(data.references.length,3):0),role:'guia visual do preset'}]:[])]},decision:{approved:review.approved,critical_error:review.critical_error,score:review.score,gross_errors:review.gross_errors,correction_prompt:review.correction_prompt},response:{model:'gpt-5.6-terra',usage:payload.usage||null,requestId}}:undefined;
+    const trace=traceAuthorized?{agent:'Fiscal visual do Derivador',received:{mode:data.derivationMode||null,presetBlueprint:data.layoutPresetBlueprint||null,requiredContent:data.requiredContent||{},sourceContentData:data.sourceContentData||{},preferDarkBackground:!!data.preferDarkBackground,userInstruction:data.userInstruction||'',finalInstruction:data.finalInstruction||'',omissions:data.omit||[]},sent:{model:'gpt-5.6-terra',prompt:inputContent.find(x=>x.type==='input_text')?.text||'',images:[{index:1,role:'resultado gerado'},...(Array.isArray(data.references)?data.references.slice(0,3).map((r,i)=>({index:i+2,role:r?.note||'arte-base/referência'})):[]),...(traceAuthorized&&isPreset&&imageValue(data.layoutGuideImage)?[{index:2+(Array.isArray(data.references)?Math.min(data.references.length,3):0),role:'guia visual do preset'}]:[])]},decision:{approved:review.approved,critical_error:review.critical_error,score:review.score,gross_errors:review.gross_errors,correction_prompt:review.correction_prompt},response:{model:'gpt-5.6-terra',usage:payload.usage||null,requestId}}:undefined;
     return res.status(200).json({success:true,endpointType:"derivation-inspector",review,meta:{model:"gpt-5.6-terra",usage:payload.usage||null,requestId,endpoint:"responses"},...(trace?{trace}:{})});
   }catch(e){console.error("ChurchDesign Derivation Inspector",e);return res.status(e.statusCode||500).json({error:e.message||"Erro no Fiscal Visual."});}
 };
