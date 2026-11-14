@@ -1,8 +1,8 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
 // ARQUIVO DE DESTINO: api/DERIV-derivation-inspector-v1.0.js
 // TÍTULO: Fiscal independente do Derivador
-// VERSÃO DO CONTEÚDO: 1.6
-// FINALIDADE: conferir foto sem espelhamento, todos os componentes do título, largura/proporção das linhas e folga mínima das bordas; registrar análise visual e decisão.
+// VERSÃO DO CONTEÚDO: 1.8
+// FINALIDADE: verificar título completo, margens e relações espaciais em todos os presets, além da centralização do Telão 1, redução do Telão 4 e fundo escuro solicitado.
 // INFRAESTRUTURA COMPARTILHADA: autenticação Supabase e membership da igreja ativa.
 module.exports.config={maxDuration:120};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
@@ -53,6 +53,8 @@ function presetSpatialRelations(blueprint={}){
 function buildInput(data,traceAuthorized=false){
   const mode=String(data.derivationMode||"");
   const isPreset=mode==="preset";
+  const isScreen=String(data.format||data.layoutPresetBlueprint?.format||'').toLowerCase()==='screen';
+  const presetName=String(data.layoutPresetBlueprint?.name||'');
   const relationMap=presetSpatialRelations(data.layoutPresetBlueprint||{});
   const images=[{type:"input_image",image_url:imageValue(data.generatedImage)}];
   for(const ref of (Array.isArray(data.references)?data.references:[]).slice(0,3)){
@@ -66,9 +68,10 @@ function buildInput(data,traceAuthorized=false){
     "IMAGEM 1: resultado que será entregue. Imagens seguintes, quando existirem: arte-base e referências.",
     traceAuthorized&&isPreset&&imageValue(data.layoutGuideImage)?"No modo rastreado, a última imagem anexada é o guia visual do preset. Compare diretamente a posição do pregador, do título e do nome com esse modelo.":"",
     "No modo Manual, confira se mudanças atuais foram obedecidas e se elementos não solicitados foram preservados sem recuperar conteúdo antigo.",
-    isPreset?"No modo Pré-pronto, compare com a miniatura e o blueprint como referência aproximada: mantenha regiões principais, lados e hierarquia/tamanho relativo. As relações de lado e ordem acima/abaixo são obrigatórias: reprove se forem invertidas, mesmo que a arte continue bonita. Aceite apenas ajustes finos dentro da mesma região, em torno de 5–8% do canvas; não exija coordenadas exatas nem reprove só por proximidade da borda se o conteúdo estiver visível e dentro do canvas. Reprove também conteúdo obrigatório ausente, ilegível, cortado ou fora do canvas. Relações calculadas: "+relationMap+". Mapa: "+JSON.stringify(data.layoutPresetBlueprint||{}).slice(0,3500)+". Instruções: "+String(data.finalInstruction||data.userInstruction||"").slice(0,4500):"",
+    isPreset?"No modo Pré-pronto, compare a imagem com a miniatura e o blueprint: preserve lado, região, ordem acima/abaixo, hierarquia e escala relativa. Essas relações são obrigatórias; reprove se forem invertidas. Aceite pequenos ajustes somente dentro da mesma região, sem exigir coordenadas pixel a pixel. Todo texto essencial deve manter pelo menos 6% de margem; reprove corte, encosto, omissão ou ilegibilidade. Relações calculadas: "+relationMap+". Mapa: "+JSON.stringify(data.layoutPresetBlueprint||{}).slice(0,3500)+". Instruções: "+String(data.finalInstruction||data.userInstruction||"").slice(0,4500):"",
     "Campos estruturados reais da arte de origem: "+JSON.stringify(data.sourceContentData||{}).slice(0,3000),
     "Conteúdo obrigatório atual: "+JSON.stringify(data.requiredContent||{}).slice(0,3000),
+    isPreset?"PRESET — VERIFICAÇÃO ESTRUTURAL: todo título completo (incluindo kicker/faixa) deve preservar todas as palavras, linhas, largura relativa e estilo da origem; exija pelo menos 6% de margem e reprove omissão, palavra deformada ou conteúdo cortado. Compare lado, região, ordem vertical e escala relativa de todos os itens com o blueprint; aceite apenas ajustes finos dentro da mesma região. Nunca permita espelhamento. Para Telão 1, o bloco título+kicker tem centro X=50%,Y=50% (tolerância 1%); Telão 4 deve permanecer menor na região inferior direita. Avalie fundo escuro se ativo.":"",
     "Campos escritos da arte-base: "+JSON.stringify(data.sourceContentData||{}).slice(0,3000),
     "Leitura visual estruturada do título: "+JSON.stringify(data.sourceAnalysis||{}).slice(0,5000)+". Se title estiver incluído, confirme cada componente e cada linha, especialmente title_kicker como ABRA MÃO; verifique ordem, quebra e largura relativa. A análise é auxiliar à comparação visual, não invente texto.",
     data.preferDarkBackground?"Priorizar fundo escuro está ATIVO: confira se o fundo geral ficou predominantemente escuro sem destruir identidade, textura e elementos visuais.":"",
