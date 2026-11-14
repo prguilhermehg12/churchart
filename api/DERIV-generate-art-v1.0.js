@@ -1,7 +1,7 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
 // ARQUIVO DE DESTINO: api/DERIV-generate-art-v1.0.js
 // TÍTULO: Gerador independente do Derivador
-// VERSÃO DO CONTEÚDO: 1.5
+// VERSÃO DO CONTEÚDO: 1.6
 // FINALIDADE: Enviar instruções de preset sem conflitos e, sob demanda e para conta autorizada, devolver trilha detalhada da solicitação e resposta do gerador.
 // BASE TÉCNICA: Generate Art v0.30.2; arquivo original inalterado.
 // INFRAESTRUTURA COMPARTILHADA: autenticação, acesso à igreja, Storage e registro de uso.
@@ -363,7 +363,7 @@ ${data.referenceSemanticPolicy==='current-art-truth'?`DERIVAÇÃO — ARTE ATUAL
 - É erro crítico criar pessoa, data, horário, endereço, título ou logo não autorizada pela ação atual.
 - Hierarquia: INSTRUÇÃO ATUAL > ARTE SELECIONADA > qualquer contexto antigo.
 `:`TEXT ALLOWLIST — HARD CONSTRAINT:
-Os ÚNICOS textos legíveis permitidos são: ${JSON.stringify(data.allowedTexts||[])}.
+Campos escritos da arte-base: ${JSON.stringify(data.sourceContentData||{})}. Use-os como referência semântica junto com a imagem; valores estruturados preenchidos têm prioridade e não podem ser reescritos. A imagem-base também é fonte textual: para cada categoria que o modo/preset mantém, copie todos os textos claramente legíveis dessa categoria, inclusive linhas do título que não tenham sido transcritas nos campos. Quando o título for mantido, não omita palavras/frases que visualmente pertencem ao bloco do título. Se uma categoria estiver ausente do preset ou tiver sido omitida pelo usuário, remova-a por completo mesmo que apareça na origem. Nunca invente palavras, números ou informações. Textos estruturados autorizados: ${JSON.stringify(data.allowedTexts||[])}.
 Não invente slogans, chamadas, nomes de culto, nomes de igreja, palavras de fundo, datas, números ou frases.
 Não copie qualquer texto da referência original, porque ela é STYLE-ONLY.
 Se quiser reproduzir uma massa tipográfica da referência, use somente um texto autorizado ou geometria abstrata NÃO legível.
@@ -439,12 +439,21 @@ REGRA DE SAFE AREA / ÁREA SEGURA:
 - Antes de finalizar, revise mentalmente as quatro bordas e confirme que nada importante está cortado.
 
  
+
+
+${data.preferDarkBackground?`PRIORIDADE DE FUNDO ESCURO — ATIVA: adapte minimamente a identidade visual para que o FUNDO geral fique predominantemente escuro (preto, grafite ou tons profundos coerentes com a paleta). Preserve pessoas, orientação, elementos gráficos, textura, vetores, luzes e personalidade da arte. Ajuste luminosidade/tons do FUNDO e contraste apenas no necessário para legibilidade; não transforme a arte em um gradiente genérico e não mude a composição nem o tratamento do título.`:`PRIORIDADE DE FUNDO ESCURO: desativada; preserve a luminância/paleta de fundo da referência.`}
+
 TIPOGRAFIA FINAL:
 - Toda a tipografia é desenhada pela IA visual dentro da arte.
 - Não existe camada de texto posterior.
 - Cada informação obrigatória deve aparecer uma única vez.
 ${data.layoutPresetInstruction?`- MODO PRÉ-PROGRAMADO: a identidade visual do título da arte-base é obrigatória, não opcional. Preserve aparência da fonte, peso, cor, textura, efeitos, caixa alta/baixa e orientação; não incline, itálique, deforme ou substitua por outra tipografia.
 - O preset pode mudar a região e exigir ajuste de escala. Mantenha o bloco de título visualmente fiel; preserve as quebras de linha se couberem e altere-as só para acomodar a região definida, sem mudar o estilo.`:`- Preserve tipografia, tratamentos, escala e função visual da referência sempre que possível.`}
+
+
+DADOS ESTRUTURADOS DA ARTE-BASE (VERDADE TEXTUAL AUXILIAR):
+${JSON.stringify(data.sourceContentData||{})}
+Use estes dados junto com a imagem para identificar exatamente título, partes do título, dia, horário, local e demais campos. A imagem continua sendo a referência visual. A lista “CONTEÚDO EXATO A PRESERVAR”/requiredContent e os textos permitidos definem o que pode aparecer nesta variação: não escreva campos que o preset ou o pedido atual excluam. Se o campo TÍTULO estiver presente, preserve todas as partes em titleParts, na ordem, sem omitir nenhuma.
 
 
 PREGADOR:
@@ -459,7 +468,7 @@ ${data.addPastorOverride?'- OVERRIDE ATIVO: existe uma foto de pregador explicit
 - Com 2 pessoas: mantenha o PRINCIPAL mais central/dominante e o AUXILIAR 1 em posição lateral secundária.
 - Com 3 pessoas: mantenha o PRINCIPAL no eixo ou região central dominante e distribua AUXILIAR 1 e AUXILIAR 2 nas laterais de forma equilibrada.
 - DIREÇÃO DOS AUXILIARES: a equipe deve visualmente ABRIR PARA FORA do centro. Auxiliar à esquerda olha/orienta-se preferencialmente para a esquerda externa; auxiliar à direita, para a direita externa.
-- Primeiro escolha o lado pela orientação natural da foto. Se dois auxiliares olharem para o mesmo lado, é permitido FLIP HORIZONTAL integral de um deles, sem redesenhar rosto, mãos, roupa, microfone ou instrumento. Nunca espelhe logos/textos.
+- PROIBIÇÃO ABSOLUTA DE ESPELHAMENTO: nunca aplique flip horizontal/vertical, mirror, reverse ou inversão à foto de qualquer pregador/pessoa, rosto, corpo, mãos, roupa, microfone, instrumento ou pose — nem mesmo para orientar auxiliares. Preserve a orientação original de cada arquivo. Para acomodar o layout, mova, redimensione uniformemente e recorte sem inverter. Se o preset parecer exigir o lado oposto, mantenha a foto sem espelhar e ajuste somente sua posição.
 - Preserve pose, gesto, braço levantado/abaixado, mãos, microfone, inclinação da cabeça e direção do olhar de cada foto enviada. Não neutralize poses expressivas.
 - Preserve fortemente a fisionomia. Não embeleze, rejuvenesça, envelheça ou invente traços.
 - Nunca troque rostos, nomes, funções ou hierarquia entre as pessoas.
@@ -666,7 +675,7 @@ ${data.referenceSemanticPolicy==='current-art-truth'?`DERIVAÇÃO — ARTE ATUAL
 - É erro crítico criar pessoa, data, horário, endereço, título ou logo não autorizada pela ação atual.
 - Hierarquia: INSTRUÇÃO ATUAL > ARTE SELECIONADA > qualquer contexto antigo.
 `:`TEXT ALLOWLIST — HARD CONSTRAINT:
-Os ÚNICOS textos legíveis permitidos são: ${JSON.stringify(data.allowedTexts||[])}.
+Campos escritos da arte-base: ${JSON.stringify(data.sourceContentData||{})}. Use-os como referência semântica junto com a imagem; valores estruturados preenchidos têm prioridade e não podem ser reescritos. A imagem-base também é fonte textual: para cada categoria que o modo/preset mantém, copie todos os textos claramente legíveis dessa categoria, inclusive linhas do título que não tenham sido transcritas nos campos. Quando o título for mantido, não omita palavras/frases que visualmente pertencem ao bloco do título. Se uma categoria estiver ausente do preset ou tiver sido omitida pelo usuário, remova-a por completo mesmo que apareça na origem. Nunca invente palavras, números ou informações. Textos estruturados autorizados: ${JSON.stringify(data.allowedTexts||[])}.
 Não invente slogans, chamadas, nomes de culto, nomes de igreja, palavras de fundo, datas, números ou frases.
 Não copie qualquer texto da referência original, porque ela é STYLE-ONLY.
 Se quiser reproduzir uma massa tipográfica da referência, use somente um texto autorizado ou geometria abstrata NÃO legível.
@@ -754,12 +763,21 @@ ${data.layoutPresetInstruction?`- No modo pré-programado, as margens são flex�
 - Antes de finalizar, revise mentalmente as quatro bordas e confirme que nada importante está cortado.`}
 
  
+
+
+${data.preferDarkBackground?`PRIORIDADE DE FUNDO ESCURO — ATIVA: adapte minimamente a identidade visual para que o FUNDO geral fique predominantemente escuro (preto, grafite ou tons profundos coerentes com a paleta). Preserve pessoas, orientação, elementos gráficos, textura, vetores, luzes e personalidade da arte. Ajuste luminosidade/tons do FUNDO e contraste apenas no necessário para legibilidade; não transforme a arte em um gradiente genérico e não mude a composição nem o tratamento do título.`:`PRIORIDADE DE FUNDO ESCURO: desativada; preserve a luminância/paleta de fundo da referência.`}
+
 TIPOGRAFIA FINAL:
 - Toda a tipografia é desenhada pela IA visual dentro da arte.
 - Não existe camada de texto posterior.
 - Cada informação obrigatória deve aparecer uma única vez.
 ${data.layoutPresetInstruction?`- MODO PRÉ-PROGRAMADO: a identidade visual do título da arte-base é obrigatória, não opcional. Preserve aparência da fonte, peso, cor, textura, efeitos, caixa alta/baixa e orientação; não incline, itálique, deforme ou substitua por outra tipografia.
 - O preset pode mudar a região e exigir ajuste de escala. Mantenha o bloco de título visualmente fiel; preserve as quebras de linha se couberem e altere-as só para acomodar a região definida, sem mudar o estilo.`:`- Preserve tipografia, tratamentos, escala e função visual da referência sempre que possível.`}
+
+
+DADOS ESTRUTURADOS DA ARTE-BASE (VERDADE TEXTUAL AUXILIAR):
+${JSON.stringify(data.sourceContentData||{})}
+Use estes dados junto com a imagem para identificar exatamente título, partes do título, dia, horário, local e demais campos. A imagem continua sendo a referência visual. A lista “CONTEÚDO EXATO A PRESERVAR”/requiredContent e os textos permitidos definem o que pode aparecer nesta variação: não escreva campos que o preset ou o pedido atual excluam. Se o campo TÍTULO estiver presente, preserve todas as partes em titleParts, na ordem, sem omitir nenhuma.
 
 
 PREGADOR:
@@ -775,7 +793,7 @@ ${data.layoutPresetInstruction?'':`- O PRINCIPAL deve ter maior prioridade visua
 - Com 2 pessoas: mantenha o PRINCIPAL mais central/dominante e o AUXILIAR 1 em posição lateral secundária.
 - Com 3 pessoas: mantenha o PRINCIPAL no eixo ou região central dominante e distribua AUXILIAR 1 e AUXILIAR 2 nas laterais de forma equilibrada.
 - DIREÇÃO DOS AUXILIARES: a equipe deve visualmente ABRIR PARA FORA do centro. Auxiliar à esquerda olha/orienta-se preferencialmente para a esquerda externa; auxiliar à direita, para a direita externa.`}
-- Primeiro escolha o lado pela orientação natural da foto. Se dois auxiliares olharem para o mesmo lado, é permitido FLIP HORIZONTAL integral de um deles, sem redesenhar rosto, mãos, roupa, microfone ou instrumento. Nunca espelhe logos/textos.
+- PROIBIÇÃO ABSOLUTA DE ESPELHAMENTO: nunca aplique flip horizontal/vertical, mirror, reverse ou inversão à foto de qualquer pregador/pessoa, rosto, corpo, mãos, roupa, microfone, instrumento ou pose — nem mesmo para orientar auxiliares. Preserve a orientação original de cada arquivo. Para acomodar o layout, mova, redimensione uniformemente e recorte sem inverter. Se o preset parecer exigir o lado oposto, mantenha a foto sem espelhar e ajuste somente sua posição.
 - Preserve pose, gesto, braço levantado/abaixado, mãos, microfone, inclinação da cabeça e direção do olhar de cada foto enviada. Não neutralize poses expressivas.
 - Preserve fortemente a fisionomia. Não embeleze, rejuvenesça, envelheça ou invente traços.
 - Nunca troque rostos, nomes, funções ou hierarquia entre as pessoas.
@@ -1116,7 +1134,7 @@ module.exports=async function handler(req,res){
     const url=await saveBase64ToStorage(generated.base64,churchId,label);
     const image={label,url,modelUsed:"gpt-image-2",meta:{model:"gpt-image-2",usage:generated.usage||null,requestId:generated.requestId||null,endpoint:generated.endpoint,size:generated.size}};
     await logUsage({churchId,userId:authUser.id,operationType:"generation",model:"gpt-image-2",endpoint:generated.endpoint,usage:generated.usage,imageCount:1,metadata:{...costContextFromData(data),requestId:generated.requestId||null,size:generated.size,label}});
-    const trace=traceAuthorized?{agent:'Gerador de imagem — GPT Image 2',audit:traceAudit,received:{mode:data.derivationMode,format:data.format||null,target:data.target||null,presetId:data.layoutPresetId||null,presetName:data.layoutPresetName||null,presetInstructions:data.layoutPresetInstruction||'',presetBlueprint:data.layoutPresetBlueprint||null,finalInstruction:data.finalInstruction||'',artDirection:data.artDirection||{},userInstruction:data.instruction||'',qualityCorrection:data.qualityCorrection||'',traceAuditDirective:data.traceAuditDirective||'',revisionAttempt:Number(data.revisionAttempt)||0,requiredContent:data.requiredContent||{},omissions:data.omit||[],pastorMode:data.pastorMode||null,assets:{pastors:(data.assets?.pastors||[]).map((p,i)=>({role:p.role||`PESSOA ${i+1}`,name:p.name||'',imageProvided:!!p.image})),churchImageProvided:!!data.assets?.churchImage?.image,graphicAssets:(data.assets?.graphics||[]).map(g=>({name:g.name||'',imageProvided:!!(g.image||g.url)})),sourceImageProvided:(data.references||[]).some(x=>!!x?.image),layoutGuideProvided:!!data.layoutGuideImage}},sent:generated.trace,decision:{status:'imagem gerada',model:'gpt-image-2',requestId:generated.requestId||null},output:{imageUrl:url,label,format:data.format||null}}:undefined;
+    const trace=traceAuthorized?{agent:'Gerador de imagem — GPT Image 2',audit:traceAudit,received:{mode:data.derivationMode,format:data.format||null,target:data.target||null,presetId:data.layoutPresetId||null,presetName:data.layoutPresetName||null,presetInstructions:data.layoutPresetInstruction||'',presetBlueprint:data.layoutPresetBlueprint||null,finalInstruction:data.finalInstruction||'',artDirection:data.artDirection||{},userInstruction:data.instruction||'',qualityCorrection:data.qualityCorrection||'',traceAuditDirective:data.traceAuditDirective||'',revisionAttempt:Number(data.revisionAttempt)||0,requiredContent:data.requiredContent||{},sourceContentData:data.sourceContentData||{},preferDarkBackground:!!data.preferDarkBackground,omissions:data.omit||[],pastorMode:data.pastorMode||null,assets:{pastors:(data.assets?.pastors||[]).map((p,i)=>({role:p.role||`PESSOA ${i+1}`,name:p.name||'',imageProvided:!!p.image})),churchImageProvided:!!data.assets?.churchImage?.image,graphicAssets:(data.assets?.graphics||[]).map(g=>({name:g.name||'',imageProvided:!!(g.image||g.url)})),sourceImageProvided:(data.references||[]).some(x=>!!x?.image),layoutGuideProvided:!!data.layoutGuideImage}},sent:generated.trace,decision:{status:'imagem gerada',model:'gpt-image-2',requestId:generated.requestId||null},output:{imageUrl:url,label,format:data.format||null}}:undefined;
     return res.status(200).json({success:true,endpointType:'derivation-generate',image,...(trace?{trace}:{})});
   }catch(e){console.error("ChurchDesign generate",e);return res.status(e.statusCode||500).json({error:e.message||"Erro ao gerar."});}
 };
