@@ -1,4 +1,4 @@
-<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v2.7 | TÍTULO: Derivador independente | VERSÃO: 2.7 | FINALIDADE: transportar conteúdo estruturado da arte original, analisar visualmente a composição do título, preservar margem e largura das linhas, impedir espelhamento e corrigir erros em até cinco tentativas. Mantém a prioridade opcional de fundo escuro. -->
+<!-- CHURCHDESIGN — DERIVADOR INDEPENDENTE v2.9 | TÍTULO: Derivador independente | VERSÃO: 2.9 | FINALIDADE: preservar título completo e proporções, manter margens seguras e relações espaciais em todos os 30 presets, centralizar e reduzir os blocos do Telão, garantir fundo escuro ativo nos fallbacks e ordenar o histórico do mais recente para o mais antigo. -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -7997,9 +7997,12 @@ async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null)
     const repeated=attempt>=2&&lastIssueSignature?' A crítica já se repetiu. Mude a estratégia de execução, não repita a composição anterior.':'';
     const correction=String(lastReview?.correction_prompt||'os problemas apontados pelo Fiscal').slice(0,1200);
     const issueText=(lastReview?.gross_errors||[]).join(' ').toLowerCase();
-    const targeted=[/espelh|invert/.test(issueText)?'ORIENTAÇÃO: preserve a foto sem flip; não inverta rosto, mão, microfone ou púlpito.':'',/abra m[aã]o|componente.*t[ií]tulo|t[ií]tulo.*falt|texto.*falt/.test(issueText)?'TÍTULO: inclua cada componente title_kicker e cada linha principal registrada na análise visual, na ordem e com o tratamento correspondente.':'',/borda|margem|cortad|extremidade/.test(issueText)?'MARGEM: mova o bloco inteiro para dentro, mantendo no mínimo 6% de folga das bordas.':'',/largura|estic|propor[cç]|tipograf|linha do t[ií]tulo/.test(issueText)?'TIPOGRAFIA: recupere as quebras e larguras relativas analisadas; nunca estique ou aumente uma palavra isoladamente.':''].filter(Boolean).join(' ');
+    const targeted=[/espelh|invert/.test(issueText)?'ORIENTAÇÃO: preserve a foto sem flip; não inverta rosto, mão, microfone ou púlpito.':'',/abra m[aã]o|componente.*t[ií]tulo|t[ií]tulo.*falt|texto.*falt/.test(issueText)?'TÍTULO: inclua cada componente title_kicker e cada linha principal registrada na análise visual, na ordem e com o tratamento correspondente.':'',/borda|margem|cortad|extremidade/.test(issueText)?'MARGEM: mova o bloco inteiro para dentro, mantendo no mínimo 6% de folga das bordas.':'',/largura|estic|propor[cç]|tipograf|linha do t[ií]tulo/.test(issueText)?'TIPOGRAFIA: recupere as quebras e larguras relativas analisadas; nunca estique ou aumente uma palavra isoladamente.':'',/fundo.*claro|predominantemente claro|escuro|escure/.test(issueText)?'FUNDO ESCURO: escureça de fato a maior parte do fundo, convertendo superfícies claras extensas em tons grafite/preto; mantenha título e elementos de primeiro plano nítidos.':''].filter(Boolean).join(' ');
     if(payload?.derivationMode==='manual')return `A tentativa anterior foi reprovada. Corrija apenas o problema objetivo indicado: ${correction}. Preserve todos os demais elementos e a identidade visual da imagem selecionada. Não aplique regras de preset.`;
-    return `A tentativa anterior foi reprovada. Corrija especificamente: ${correction}. ${targeted} O preset fixa os lados e a ordem acima/abaixo. Mantenha o bloco do título com pelo menos 6% de folga das bordas e preserve as larguras relativas das linhas. Para YouTube 4: pregador à esquerda do título; nome confirmado embaixo à esquerda. Altere a estratégia apontada sem deslocar os elementos que já estão corretos.${repeated}`;
+    const screenPreset=String(payload?.format||payload?.layoutPresetBlueprint?.format||'').toLowerCase()==='screen';
+    const screenTarget=String(payload?.layoutPresetBlueprint?.name||'');
+    const screenRule=screenPreset?(screenTarget==='Telão 1'?' TELÃO 1: reduza o grupo inteiro do título/kicker para caber e recoloque seu centro geométrico exatamente em X=50%, Y=50% (tolerância 1%); subtítulo fica abaixo.':screenTarget==='Telão 4'?' TELÃO 4: diminua o bloco completo para 72% da caixa original, mantenha-o no quadrante inferior direito e deixe 6% de folga das bordas direita/inferior.':' TELÃO: use a caixa reduzida do blueprint, preserve o eixo/posição do preset e mantenha 6% de folga em todas as bordas.'):' Para YouTube 4: pregador à esquerda do título; nome confirmado embaixo à esquerda.';
+    return `A tentativa anterior foi reprovada. Corrija especificamente: ${correction}. ${targeted} O preset selecionado fixa as regiões e relações acima/abaixo; não use instruções de outro preset. Mantenha pelo menos 6% de folga das bordas e preserve as larguras relativas das linhas. ${screenRule} Altere a estratégia apontada sem deslocar os elementos que já estão corretos.${repeated}`;
   };
   for(let attempt=0;attempt<maxAttempts;attempt++){
     const qualityCorrection=retryGuidance(attempt);
@@ -9067,16 +9070,29 @@ function derivativePresetMockHTML(p){
   return `<div class="layout-sketch configured-preset" data-format="${esc(p.format)}">${els.map(derivativePresetElementHTML).join('')}</div>`;
 }
 function derivativePresetBlueprint(preset){
-  const elements=(preset?.elements||[]).filter(e=>e&&e.type!=='logo').map(e=>({
-    type:String(e.type||''),x:Number(e.x)||0,y:Number(e.y)||0,w:Number(e.w)||0,h:Number(e.h)||0,
-    z:e.type==='decor'?0:(Number(e.z)===1?1:(Number(e.z)||2)),
-    alignmentLocked:!!e.alignmentLocked,
-    cropScale:e.type==='preacher'?Number(e.cropScale||1):undefined,
-    cropX:e.type==='preacher'?Number(e.cropX||0):undefined,
-    cropY:e.type==='preacher'?Number(e.cropY||0):undefined,
-    overflowCrop:e.type==='preacher'?!!e.overflowCrop:undefined,
-    framing:e.type==='preacher'?String(e.hiddenFramingProfile?.framing||''):undefined
-  }));
+  const isScreen=String(preset?.format||'').toLowerCase()==='screen';
+  const titleScale=preset?.name==='Telão 1' ? 0.80 : preset?.name==='Telão 4' ? 0.72 : isScreen ? 0.85 : 1;
+  const elements=(preset?.elements||[]).filter(e=>e&&e.type!=='logo').map(e=>{
+    let x=Number(e.x)||0,y=Number(e.y)||0,w=Number(e.w)||0,h=Number(e.h)||0;
+    const textElement=['title','subtitle','date','time','info','address','preacher_name'].includes(String(e.type||''));
+    if(textElement&&w>0&&h>0){
+      const originalX=x+w/2,originalY=y+h/2;
+      const centerX=e.type==='title'&&preset?.name==='Telão 1'?50:e.type==='title'&&preset?.name==='Telão 4'?88.5:Math.min(94,Math.max(6,originalX));
+      const centerY=e.type==='title'&&preset?.name==='Telão 1'?50:e.type==='title'&&preset?.name==='Telão 4'?87.5:Math.min(94,Math.max(6,originalY));
+      const preferred=e.type==='title'&&isScreen?titleScale:1;
+      const fit=Math.min(1,(centerX-6)/(w/2),(94-centerX)/(w/2),(centerY-6)/(h/2),(94-centerY)/(h/2));
+      const scale=Math.min(preferred,fit);
+      w*=scale;h*=scale;x=centerX-w/2;y=centerY-h/2;
+    }
+    return {type:String(e.type||''),x,y,w,h,
+      z:e.type==='decor'?0:(Number(e.z)===1?1:(Number(e.z)||2)),
+      alignmentLocked:!!e.alignmentLocked,
+      cropScale:e.type==='preacher'?Number(e.cropScale||1):undefined,
+      cropX:e.type==='preacher'?Number(e.cropX||0):undefined,
+      cropY:e.type==='preacher'?Number(e.cropY||0):undefined,
+      overflowCrop:e.type==='preacher'?!!e.overflowCrop:undefined,
+      framing:e.type==='preacher'?String(e.hiddenFramingProfile?.framing||''):undefined};
+  });
   return {id:preset?.id||'',name:preset?.name||'',format:preset?.format||'',elements};
 }
 function derivativePresetOmittedElements(preset){
@@ -9091,14 +9107,16 @@ function derivativePresetLogoSlot(preset){
   return {x:Number(e.x)||0,y:Number(e.y)||0,w:Number(e.w)||0,h:Number(e.h)||0};
 }
 function derivativePresetSpecificGuidance(preset){
-  return String(preset?.prompt||'')
+  let text=String(preset?.prompt||'')
     .replace(/POLÍTICA DO LAYOUT PRÉ-PROGRAMADO — GUIA FLEXÍVEL:\n(?:[ \t]*- [^\n]*\n)+/g,'')
     .replace(/^Use os vazios definidos como referência[^\n]*$/gm,'')
+    .replace(/^.*(reajuste.*livremente|reorganizar proporções|reinterpretar espaços|alinhamento textual.*livre|coordenadas.*referências, não|posições.*referências visuais, não).*$\n?/gim,'')
     .replace(/^REGRA DE CAMADAS SEMÂNTICAS:[^\n]*$/gm,'')
     .replace(/^ALINHAMENTO TEXTUAL: livre[^\n]*$/gm,'')
     .replace(/^TELÃO: use esta composição[^\n]*$/gm,'')
-    .replace(/\n{3,}/g,'\n\n')
-    .trim();
+    .replace(/\n{3,}/g,'\n\n');
+  if(String(preset?.format||'').toLowerCase()==='screen')text=text.replace(/^TÍTULO:.*$/gm,'');
+  return text.trim();
 }
 function derivativePresetHardInstruction(preset){
   const bp=derivativePresetBlueprint(preset);
@@ -9126,20 +9144,28 @@ function derivativePresetHardInstruction(preset){
     'PRESET PRÉ-PROGRAMADO "'+(preset?.name||'')+'" — REFERÊNCIA ESTRUTURAL PRIORITÁRIA:',
     'A miniatura define a ordem espacial. Preserve rigorosamente as relações de lado e altura entre os elementos: o que está à direita continua à direita; o que está abaixo continua abaixo. Não troque, cruze ou espelhe essas posições, mesmo se a arte-base estiver organizada de outro modo. Coordenadas exatas não são exigidas; pequenos ajustes de cerca de 5–8% do canvas dentro da mesma região são permitidos para legibilidade.',
     'RELAÇÕES ESPACIAIS OBRIGATÓRIAS:\n'+(spatialRelations.slice(0,24).join('\n')||'Mantenha os elementos nas regiões gerais mostradas pela miniatura.'),
-    'As coordenadas abaixo são referências, não endereços milimétricos. Preserve o lado, a região e a ordem relativa de cada elemento. Faça apenas ajustes finos dentro da região atribuída; não permita que o elemento atravesse para o lado oposto nem mude sua posição acima/abaixo. Preserve os cortes marcados como intencionais.',
-    'MARGENS: para este preset, não reprove algo só por entrar na faixa externa de 10% se continuar visível e dentro do canvas. Julgue pela semelhança geral com as regiões mostradas, pela legibilidade e pela ausência de cortes involuntários.',
+    'As caixas do mapa definem regiões obrigatórias, não endereços milimétricos. Preserve lado, região, ordem relativa e camadas. Permita somente ajustes finos dentro da mesma região; não atravesse para o lado oposto nem altere acima/abaixo. Não espelhe pessoas nem corte conteúdo essencial.',
+    'MARGEM SEGURA PARA TODOS OS PRESETS: título completo, kicker, subtítulo e demais textos essenciais devem ficar a pelo menos 6% das quatro bordas, sem cortes nem encostos. Reduza o grupo tipográfico uniformemente e recue-o somente o necessário, mantendo a mesma região e as relações do layout. Apenas grafismos de fundo podem sangrar.',
     'Elementos textuais previstos neste cartão: '+(included.join(', ')||'nenhum')+'. Use exatamente o texto legível na imagem selecionada ou nos dados dessa mesma arte. Nunca use exemplos/placeholders do preset. Se não houver conteúdo exato no original/dados, deixe o campo vazio; não invente.',
     'Categorias ausentes neste cartão: '+(omitted.join(', ')||'nenhuma')+'. Remova-as da arte selecionada. Uma exceção requer pedido atual, direto e específico para incluir/substituir aquela categoria com o texto ou asset exato.',
     'PESSOA: '+(omitted.includes('preacher')?'PREGADOR AUSENTE NESTE PRESET: remova da arte-base a pessoa focal/pregador, sem reposicioná-la, sem trocar por outra pessoa e sem inventar rosto, corpo ou silhueta. Preserve apenas figuras de fundo que sejam parte inequívoca da fotografia/cena original.':'PREGADOR PRESENTE NESTE PRESET: use somente a pessoa real da arte-base ou asset explicitamente selecionado; preserve sua identidade, pose e orientação original, sem espelhamento horizontal.'),
     'DESIGN ORIGINAL: preserve vetores, linhas, formas, ilustrações, molduras, luzes, efeitos, texturas, gradientes, sombras e grafismos não textuais, com a mesma identidade, cor, camada e função. Remover texto não remove design. Uma região decorativa do preset usa a linguagem visual da origem, não uma decoração genérica.',
     'Não importe elementos de outro preset. Não desenhe logos, placeholders ou placas vazias; as logos oficiais são tratadas depois.',
     'ÍCONES: não adicione ícones ao lado de dia/data, hora ou local. Preserve somente ícones que já existam na arte selecionada e cujo conteúdo continue presente, ou inclua se o usuário pedir expressamente. Quando pedidos, use tamanho discreto, altura máxima de 65% do texto e sem novo círculo/cartão/fundo.',
+    'TÍTULO COMPLETO — PRIORIDADE: preserve todas as palavras e partes que compõem a mensagem principal, inclusive chamadas/kickers como “ABRA MÃO”, quando legíveis na arte-base ou presentes nos dados estruturados. Mantenha ordem, quebras e proporções relativas de cada linha; não omita, reescreva, estique nem redimensione uma palavra isoladamente. Se precisar caber, reduza o bloco tipográfico inteiro uniformemente.',
     'O alinhamento e a hierarquia devem seguir a miniatura escolhida. Não acrescente texto ou decoração para preencher espaços vazios.',
     'DIRETRIZES ESPECÍFICAS DESTE PRESET (flexibilidade genérica removida):',
     specific,
     'REGIÕES-ALVO APROXIMADAS — UMA REFERÊNCIA POR ELEMENTO:',
     geometry
   ];
+  if(String(preset?.format||'').toLowerCase()==='screen'){
+    const titleBox=bp.elements.find(e=>e.type==='title');
+    rules.push('TELÃO — ESCALA E MARGENS RÍGIDAS: trate o título principal, o kicker/faixa que pertence ao título e as linhas como um único bloco tipográfico. Preserve proporções entre as linhas e reduza o bloco inteiro proporcionalmente se ele não couber na caixa-alvo com 6% de margem em todos os lados. Nunca corte texto, amplie uma linha isoladamente nem estenda a arte até a borda. O desenho de fundo pode preencher o canvas; o conteúdo de primeiro plano não pode sangrar.');
+    if(preset?.name==='Telão 1')rules.push('TELÃO 1 — CENTRALIZAÇÃO EXATA: o bloco tipográfico completo do título (incluindo “ABRA MÃO”, quando fizer parte da arte) deve ter centro geométrico X=50% e Y=50% do canvas, tolerância máxima de 1%. Use a caixa-alvo redimensionada do blueprint, com escala uniforme; não alinhe por uma linha isolada nem pelo subtítulo. “DOMINGO” continua abaixo do bloco do título, na região própria do preset.');
+    if(preset?.name==='Telão 4')rules.push('TELÃO 4 — BLOCO MENOR: use o bloco tipográfico reduzido indicado no blueprint (72% da caixa original), preso à região inferior direita, mas respeitando 6% de margem direita e inferior. Reduza kicker e título juntos, mantenha suas proporções e não aumente o bloco para preencher a tela.');
+    if(preset?.name==='Telão 3')rules.push('TELÃO 3 — BLOCO MENOR E CENTRAL: use a caixa reduzida do blueprint e mantenha o centro do título no eixo central do preset; preserve a margem inferior e não amplie para preencher o vazio.');
+  }
   if(preset?.id==='preset_1789090826582_bzagx')rules.push('YOUTUBE 2: somente foto real do pregador e título. Remova os demais textos informativos. Se a imagem selecionada não tiver pregador real, mostre somente o título e não invente pessoa.');
   if(preset?.id==='preset_youtube_title_preacher_name_v1')rules.push('YOUTUBE 4 — ORDEM ESPACIAL OBRIGATÓRIA: quando houver pregador real, a foto deve permanecer À ESQUERDA do título, e o nome confirmado deve ficar ABAIXO, na região inferior esquerda. É proibido colocar a foto à direita do título, ainda que a arte-base tenha essa ordem. Permita só ajustes finos dentro dessas regiões, sem cruzar a divisão nem inverter esquerda/direita ou acima/abaixo. Se não houver pregador real, não invente pessoa nem nome; deixe somente o título centralizado.');
   return rules.filter(Boolean).join('\n');
@@ -9388,7 +9414,7 @@ const DERIVATIVE_TRACE_STORAGE_PREFIX='churchdesign.derivator.trace.v1.';
 function derivativeTraceOwner(){return String(state.user?.email||'').trim().toLowerCase()===DERIVATIVE_TRACE_OWNER_EMAIL;}
 function derivativeTraceStorageKey(){return DERIVATIVE_TRACE_STORAGE_PREFIX+String(state.user?.id||'owner');}
 function derivativeTraceEnabled(){if(!derivativeTraceOwner())return false;try{return localStorage.getItem(derivativeTraceStorageKey())==='1'}catch{return false}}
-function derivativeTraceLoad(){if(!derivativeTraceOwner())return[];try{const v=JSON.parse(localStorage.getItem(derivativeTraceStorageKey()+'.history')||'[]');return Array.isArray(v)?v.slice(0,12):[]}catch{return[]}}
+function derivativeTraceLoad(){if(!derivativeTraceOwner())return[];try{const v=JSON.parse(localStorage.getItem(derivativeTraceStorageKey()+'.history')||'[]');if(!Array.isArray(v))return[];return v.slice().sort((a,b)=>{const at=x=>Date.parse(x?.finishedAt||x?.startedAt||'')||0;return at(b)-at(a)}).slice(0,12)}catch{return[]}}
 function derivativeTraceSafe(value,key='',depth=0){
   if(depth>8)return '[limite de profundidade]';
   if(/^(image|image_url|dataurl|base64|generatedimage|layoutguideimage|url)$/i.test(key))return value?'[imagem/URL omitida do histórico local]':null;
@@ -10171,7 +10197,7 @@ REGRA GLOBAL DE ÍCONES: não acrescente ícones junto a dia/data, hora ou local
 Adapte o layout NATIVAMENTE para ${target.ratio||target.label}; não estique e não apenas recorte. A referência selecionada serve como base visual atual.
 ${layoutPresetInstruction?(photoAndTitleYoutubePreset?'PRÉ-PROGRAMADO YOUTUBE 2: mantenha a foto do pregador e o título nas regiões gerais mostradas na miniatura, preservando a hierarquia e o tamanho relativo; permita apenas ajustes finos dentro das mesmas regiões para legibilidade. Remova somente os textos informativos não previstos e mantenha a identidade gráfica não textual da origem.':titleAndPreacherNameYoutubePreset?'PRÉ-PROGRAMADO YOUTUBE 4: se houver pregador real na origem, preserve a foto, o título e o nome confirmado. Se não houver, não invente pessoa nem nome e centralize somente o título (centro X=50%, Y=50%; caixa x=12.3%, y=30.6%, w=75.4%, h=38.8%). Preserve a identidade gráfica não textual da origem.':'PRÉ-PROGRAMADO: use a miniatura como referência aproximada. Mantenha a composição nas mesmas regiões e a hierarquia de tamanhos, permitindo apenas ajustes finos dentro das mesmas regiões para legibilidade. Toda informação obrigatória deve continuar visível e legível.'):`SAFE FRAME RÍGIDO: 12% de margem livre em cada lado para TODO conteúdo essencial.`}
 ${titleAndPreacherNameYoutubePreset?'YOUTUBE 4 — ORDEM ESPACIAL OBRIGATÓRIA: se houver pregador real, mantenha a foto à esquerda do título e o nome confirmado abaixo, na região inferior esquerda. Ajustes finos dentro dessas regiões são permitidos; inverter os lados ou a ordem vertical é erro crítico. Sem pregador real: não invente pessoa nem nome; mostre somente o título centralizado de forma aproximada.':''}
-${layoutPresetInstruction?'MARGENS DO PRESET: a borda do canvas e a legibilidade importam; a margem genérica de 10% não é motivo isolado para reprovação quando o layout escolhido posiciona conteúdo perto da borda. Use as regiões da miniatura como referência aproximada.':''}
+${layoutPresetInstruction?'MARGENS DO PRESET: todo conteúdo essencial fica pelo menos 6% dentro das bordas. Se necessário, reduza e recue uniformemente sem sair da região nem inverter relações do mapa. Apenas grafismos de fundo podem sangrar.':''}
 Omitir explicitamente: ${omit.join(', ')||'nada'}.
 ${pastorRemoval}
 ${studioDerivativeMode&&pastorMode==='keep'?`PREGADOR — MANTER:
