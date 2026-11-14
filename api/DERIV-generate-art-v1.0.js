@@ -1,8 +1,8 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
 // ARQUIVO DE DESTINO: api/DERIV-generate-art-v1.0.js
 // TÍTULO: Gerador independente do Derivador
-// VERSÃO DO CONTEÚDO: 1.7
-// FINALIDADE: analisar visualmente textos e estrutura do título, preservar orientação e proporções, reforçar área segura e registrar a análise para diagnóstico.
+// VERSÃO DO CONTEÚDO: 1.9
+// FINALIDADE: preservar integralmente o título e suas linhas, seguir os mapas espaciais dos presets, impor margens seguras e manter a prioridade de fundo escuro inclusive nos fallbacks.
 // BASE TÉCNICA: Generate Art v0.30.2; arquivo original inalterado.
 // INFRAESTRUTURA COMPARTILHADA: autenticação, acesso à igreja, Storage e registro de uso.
 // CHURCHDESIGN — generate-art v0.30.2
@@ -417,6 +417,7 @@ ${data.layoutPresetInstruction?`PRESET ATIVO — COMPOSIÇÃO CONTROLADA PELO MA
 - Não reorganize, espelhe, troque de lado nem centralize os elementos por iniciativa própria. Não use regras genéricas de composição para substituir as regiões do preset.
 - Mantenha a identidade visual do título original: família/aparência tipográfica, peso, cor, textura, acabamento e orientação. Reposicione-o na região indicada pelo preset sem transformá-lo em itálico, inclinado ou em outro estilo. Ajuste escala e quebras de linha somente o necessário para caber.
 - Ajustes de legibilidade são permitidos dentro da mesma região e sem mudar as relações esquerda/direita e acima/abaixo.
+${String(data.format||data.layoutPresetBlueprint?.format||'').toLowerCase()==='screen'?`- TELÃO: título, kicker, subtítulo e logos devem caber inteiros no canvas com pelo menos 6% de margem. Diminua o bloco inteiro se necessário; não corte nem deixe conteúdo encostado nas bordas.`:''}
 `:`REGRA DE COMPOSIÇÃO ADAPTATIVA:
 - A referência é uma linguagem visual, NÃO um molde rígido.
 - Conte quantas pessoas existem nas fotos realmente fornecidas. Use SOMENTE essas pessoas.
@@ -428,13 +429,12 @@ ${data.layoutPresetInstruction?`PRESET ATIVO — COMPOSIÇÃO CONTROLADA PELO MA
 - Se houver apenas um pregador, faça a arte parecer desenhada originalmente para UM pregador.
 `}
 
-TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
-- Trate os 12% externos de CADA LADO como zona proibida para conteúdo essencial.
-- Todo texto, título, subtítulo, data, hora, endereço, logo, nome de pregador, rosto e cabeça deve ficar integralmente dentro do retângulo central de 76% da largura por 76% da altura.
-- Nada essencial pode tocar a borda. Nada essencial pode ser parcialmente cortado.
-- Faça o layout MENOR e mais central se houver qualquer dúvida. Espaço vazio nas bordas é aceitável; conteúdo cortado não é.
-- Elementos abstratos/texturas podem sangrar; informação e pessoas nunca.
-- Faça uma revisão final das quatro bordas antes de concluir.
+SAFE FRAME DA DERIVAÇÃO:
+- Em preset, mantenha cada elemento essencial na região do blueprint; não recentralize nem mova para outra região.
+- Título completo, kicker, subtítulo, nome e informações devem ficar pelo menos 6% dentro das bordas. Se necessário, reduza o grupo proporcionalmente e ajuste-o apenas dentro da mesma região.
+- Preserve todas as palavras, linhas, quebras e proporções do título; nunca corte, omita, reescreva ou amplie palavra isolada.
+- Em variação manual, faça somente ajustes finos preservando a disposição relativa dos elementos.
+- Grafismos de fundo podem sangrar; textos, pessoas e demais conteúdos essenciais não.
 
 REGRA DE LOGOS PÓS-ARTE:
 - Nenhuma logo será desenhada nesta etapa.
@@ -444,8 +444,8 @@ REGRA DE LOGOS PÓS-ARTE:
 
 REGRA DE SAFE AREA / ÁREA SEGURA:
 - Nenhum texto, logo, rosto, data, horário, endereço ou informação essencial pode encostar, ultrapassar ou ficar parcialmente fora do canvas.
-- O grupo inteiro do título deve ficar a pelo menos 6% de distância das quatro bordas. Se o preset permitir coordenadas mais próximas, preserve a região, mas reduza/recue o grupo para manter essa folga.
-- Reserve no mínimo 8% de margem interna em TODOS os lados para conteúdo essencial.
+- Mantenha todo o conteúdo essencial pelo menos 6% dentro das quatro bordas, sem cortes ou encostos.
+- Em preset, se necessário, reduza/recue o grupo tipográfico dentro da mesma região, sem alterar relações espaciais. Na variação manual, preserve a disposição relativa e ajuste somente o necessário.
 - Em formatos verticais, não coloque títulos ou endereços colados no topo ou na base.
 - Em formatos horizontais, proteja especialmente as laterais.
 - Elementos decorativos podem sangrar para fora; conteúdo essencial, jamais.
@@ -454,7 +454,7 @@ REGRA DE SAFE AREA / ÁREA SEGURA:
  
 
 
-${data.preferDarkBackground?`PRIORIDADE DE FUNDO ESCURO — ATIVA: adapte minimamente a identidade visual para que o FUNDO geral fique predominantemente escuro (preto, grafite ou tons profundos coerentes com a paleta). Preserve pessoas, orientação, elementos gráficos, textura, vetores, luzes e personalidade da arte. Ajuste luminosidade/tons do FUNDO e contraste apenas no necessário para legibilidade; não transforme a arte em um gradiente genérico e não mude a composição nem o tratamento do título.`:`PRIORIDADE DE FUNDO ESCURO: desativada; preserve a luminância/paleta de fundo da referência.`}
+${data.preferDarkBackground?`PRIORIDADE DE FUNDO ESCURO — HARD CONSTRAINT ATIVO: o fundo deve ficar predominantemente escuro em toda a área visível, usando preto, grafite ou tons profundos coerentes com a identidade. Se a origem tiver fundo claro, converta as grandes superfícies claras do FUNDO para tons escuros; não deixe painéis extensos bege, brancos ou cinza-claro. Preserve textura, vetores, círculos, luzes e grafismos, adaptando suas cores para contraste. Mantenha título, kicker, logos oficiais posteriores e demais elementos de primeiro plano com cores, nitidez e contraste próprios; não escureça o texto. Não substitua o fundo por um gradiente genérico.`:`PRIORIDADE DE FUNDO ESCURO: desativada; preserve a luminância/paleta de fundo da referência.`}
 
 TIPOGRAFIA FINAL:
 - Toda a tipografia é desenhada pela IA visual dentro da arte.
@@ -735,6 +735,7 @@ ${data.layoutPresetInstruction?`PRESET ATIVO — COMPOSIÇÃO CONTROLADA PELO MA
 - Não reorganize, espelhe, troque de lado nem centralize os elementos por iniciativa própria. Não use regras genéricas de composição para substituir as regiões do preset.
 - Mantenha a identidade visual do título original: aparência da fonte, peso, cor, textura, efeitos, caixa alta/baixa e orientação. Reposicione-o na região indicada pelo preset sem transformá-lo em itálico, inclinado ou em outro estilo. Ajuste escala e quebras de linha somente o necessário para caber.
 - Ajustes de legibilidade são permitidos dentro da mesma região e sem mudar as relações esquerda/direita e acima/abaixo.
+${String(data.format||data.layoutPresetBlueprint?.format||'').toLowerCase()==='screen'?`- TELÃO: título, kicker, subtítulo e logos devem caber inteiros no canvas com pelo menos 6% de margem. Diminua o bloco inteiro se necessário; não corte nem deixe conteúdo encostado nas bordas.`:''}
 `:`REGRA DE COMPOSIÇÃO ADAPTATIVA:
 - A referência é uma linguagem visual, NÃO um molde rígido.
 - Conte quantas pessoas existem nas fotos realmente fornecidas. Use SOMENTE essas pessoas.
@@ -756,13 +757,12 @@ ${data.layoutPresetInstruction?`LAYOUT PRÉ-PROGRAMADO — AUTORIDADE ESTRUTURAL
 - O que NÃO existe no preset deve desaparecer da composição final por padrão. Não preserve automaticamente pessoas, datas, horários, endereços, subtítulos ou informações secundárias vindas da origem quando a categoria estiver ausente no mapa.
 - Nenhuma regra genérica de YouTube, Telão ou revezamento de pessoas pode sobrescrever o mapa estrutural acima.
 - Toda informação obrigatória deve continuar legível; resolva conflitos com ajustes finos sem inverter relações espaciais do preset.
-`:`TRAVA GEOMÉTRICA DE SAFE FRAME — REGRA CRÍTICA:
-- Trate os 12% externos de CADA LADO como zona proibida para conteúdo essencial.
-- Todo texto, título, subtítulo, data, hora, endereço, logo, nome de pregador, rosto e cabeça deve ficar integralmente dentro do retângulo central de 76% da largura por 76% da altura.
-- Nada essencial pode tocar a borda. Nada essencial pode ser parcialmente cortado.
-- Faça o layout MENOR e mais central se houver qualquer dúvida. Espaço vazio nas bordas é aceitável; conteúdo cortado não é.
-- Elementos abstratos/texturas podem sangrar; informação e pessoas nunca.
-- Faça uma revisão final das quatro bordas antes de concluir.`}
+`:`SAFE FRAME DA DERIVAÇÃO:
+- Em preset, mantenha cada elemento essencial na região do blueprint; não recentralize nem mova para outra região.
+- Título completo, kicker, subtítulo, nome e informações devem ficar pelo menos 6% dentro das bordas. Se necessário, reduza o grupo proporcionalmente e ajuste-o apenas dentro da mesma região.
+- Preserve todas as palavras, linhas, quebras e proporções do título; nunca corte, omita, reescreva ou amplie palavra isolada.
+- Em variação manual, faça somente ajustes finos preservando a disposição relativa dos elementos.
+- Grafismos de fundo podem sangrar; textos, pessoas e demais conteúdos essenciais não.`}
 
 REGRA DE LOGOS PÓS-ARTE:
 - Nenhuma logo será desenhada nesta etapa.
@@ -771,19 +771,16 @@ REGRA DE LOGOS PÓS-ARTE:
 - Se a referência tiver logo, remova-a e reconstrua o fundo naturalmente, sem deixar vestígio nem espaço artificial.
 
 REGRA DE SAFE AREA / ÁREA SEGURA:
-${data.layoutPresetInstruction?`- No modo pré-programado, as margens são flexíveis e podem ser reduzidas ou violadas pelo Diretor de Design.
-- O que NÃO pode ser violado é a VISIBILIDADE da informação: nenhum texto, data, hora ou endereço obrigatório pode ficar cortado, escondido ou ilegível.
-- Pregador e elementos decorativos podem sangrar/cortar quando isso fizer parte da composição, desde que não ocultem informação obrigatória.`:`- Nenhum texto, logo, rosto, data, horário, endereço ou informação essencial pode encostar, ultrapassar ou ficar parcialmente fora do canvas.
-- Reserve no mínimo 8% de margem interna em TODOS os lados para conteúdo essencial.
-- Em formatos verticais, não coloque títulos ou endereços colados no topo ou na base.
-- Em formatos horizontais, proteja especialmente as laterais.
+${data.layoutPresetInstruction?`- Em todos os presets, título completo, kicker, subtítulo e demais conteúdos essenciais devem ficar pelo menos 6% afastados das quatro bordas. Se excederem, reduza o bloco proporcionalmente e ajuste dentro da mesma região do mapa; não centralize nem troque a posição relativa. Só grafismos de fundo podem sangrar.`:`- Em variação manual, nenhum texto, logo, rosto, data, horário, endereço ou informação essencial pode encostar, ultrapassar ou ficar parcialmente fora do canvas.
+- Mantenha pelo menos 6% de margem para o título e não recentralize automaticamente; preserve as relações espaciais.
+- Em formatos verticais, proteja topo e base; em horizontais, proteja especialmente as laterais.
 - Elementos decorativos podem sangrar para fora; conteúdo essencial, jamais.
-- Antes de finalizar, revise mentalmente as quatro bordas e confirme que nada importante está cortado.`}
+- Antes de finalizar, revise mentalmente as quatro bordas.`}
 
  
 
 
-${data.preferDarkBackground?`PRIORIDADE DE FUNDO ESCURO — ATIVA: adapte minimamente a identidade visual para que o FUNDO geral fique predominantemente escuro (preto, grafite ou tons profundos coerentes com a paleta). Preserve pessoas, orientação, elementos gráficos, textura, vetores, luzes e personalidade da arte. Ajuste luminosidade/tons do FUNDO e contraste apenas no necessário para legibilidade; não transforme a arte em um gradiente genérico e não mude a composição nem o tratamento do título.`:`PRIORIDADE DE FUNDO ESCURO: desativada; preserve a luminância/paleta de fundo da referência.`}
+${data.preferDarkBackground?`PRIORIDADE DE FUNDO ESCURO — HARD CONSTRAINT ATIVO: o fundo deve ficar predominantemente escuro em toda a área visível, usando preto, grafite ou tons profundos coerentes com a identidade. Se a origem tiver fundo claro, converta as grandes superfícies claras do FUNDO para tons escuros; não deixe painéis extensos bege, brancos ou cinza-claro. Preserve textura, vetores, círculos, luzes e grafismos, adaptando suas cores para contraste. Mantenha título, kicker, logos oficiais posteriores e demais elementos de primeiro plano com cores, nitidez e contraste próprios; não escureça o texto. Não substitua o fundo por um gradiente genérico.`:`PRIORIDADE DE FUNDO ESCURO: desativada; preserve a luminância/paleta de fundo da referência.`}
 
 TIPOGRAFIA FINAL:
 - Toda a tipografia é desenhada pela IA visual dentro da arte.
@@ -1015,6 +1012,8 @@ Não invente pessoas nem funda identidades.
 
 NOME DA IGREJA:
 ${c.churchName?`Pode aparecer SOMENTE como "${compactPromptText(c.churchName,900)}".`:`Não escreva o nome da igreja. A identificação será feita posteriormente por logo original.`}
+
+${data.preferDarkBackground?`PRIORIDADE DE FUNDO ESCURO — HARD CONSTRAINT ATIVO: torne predominantemente escuro o fundo inteiro, inclusive grandes áreas claras/bege da origem, convertendo-as para preto/grafite. Preserve texturas, linhas, círculos e grafismos, adaptando apenas sua cor para contraste. Não aplique filtro escuro sobre título, logo ou outro elemento de primeiro plano.`:''}
 
 COMPOSIÇÃO:
 Mantenha todo texto, rosto, cabeça e informação essencial dentro de área segura, com folga das quatro bordas.
