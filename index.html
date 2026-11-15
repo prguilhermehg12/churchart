@@ -1,4 +1,5 @@
-<!-- CHURCHDESIGN — INDEX GERAL v1.36 | BASE: Index geral v1.35 com roteamento ao Derivador | TÍTULO: ChurchDesign | VERSÃO: 1.36 | FINALIDADE: preservar todos os campos textuais reais, inclusive partes do título, na receita da Galeria para envio ao Derivador independente, mantendo a geração principal e a conexão atuais. -->
+<!-- CHURCHDESIGN — INDEX GERAL v1.37 | BASE: Index geral v1.36 | TÍTULO: ChurchDesign | VERSÃO: 1.37 | FINALIDADE: restaurar a chamada ao Fiscal Visual no fluxo principal sem alterar o endpoint nem as regras de geração; preservar a conexão independente do Derivador. -->
+<!-- DATA DA ALTERAÇÃO: domingo, 15 de novembro de 2026 | 14:07:18 (horário de Fortaleza) -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -7923,6 +7924,30 @@ function friendlyGenerationFailurePopup(refund,errorClass='processing'){
     ?`O serviço de inteligência artificial encontrou uma instabilidade temporária e esta geração não foi concluída.${refunded>0?`\n\n${refunded} créditos foram devolvidos automaticamente.`:''}${balance!==undefined&&balance!==null?`\nSaldo atual: ${balance} créditos.`:''}`
     :`Houve uma interrupção temporária durante o processamento e a arte não foi concluída.${refunded>0?`\n\n${refunded} créditos foram devolvidos automaticamente.`:''}${balance!==undefined&&balance!==null?`\nSaldo atual: ${balance} créditos.`:''}`;
   appAlert(body,{type:'warning',title,duration:8500});
+}
+async function callQualityInspector(payload,signal=null){
+  try{
+    const r=await authFetch('/api/quality-inspector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});
+    const text=await r.text();
+    let data;
+    try{data=JSON.parse(text)}
+    catch{
+      return {approved:true,critical_error:false,score:0,technicalFailure:true,gross_errors:['Fiscal retornou resposta inválida.'],correction_prompt:'',_meta:{technicalFailure:true,reason:'invalid_json'}};
+    }
+    if(!r.ok){
+      return {approved:true,critical_error:false,score:0,technicalFailure:true,gross_errors:[data?.error||`Fiscal indisponível (${r.status}).`],correction_prompt:'',_meta:{technicalFailure:true,reason:'http_error'}};
+    }
+    assertInspectorResponse(data);
+    recordOpenAIRequest('Fiscal visual',data.meta||{});
+    const review=data.review;
+    if(typeof review.approved!=='boolean'){
+      return {approved:true,critical_error:false,score:0,technicalFailure:true,gross_errors:['Fiscal não devolveu uma decisão válida.'],correction_prompt:'',_meta:{technicalFailure:true,reason:'invalid_shape'}};
+    }
+    return review;
+  }catch(e){
+    if(e?.name==='AbortError')throw e;
+    return {approved:true,critical_error:false,score:0,technicalFailure:true,gross_errors:[`Fiscal indisponível: ${e.message||'falha técnica'}`],correction_prompt:'',_meta:{technicalFailure:true,reason:'exception'}};
+  }
 }
 async function generateWithInvisibleReview(payload,maxCorrections=1,signal=null){
   payload=clientPipelineGuard(payload);let lastReview=null,lastImage=null;
