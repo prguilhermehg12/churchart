@@ -1,9 +1,9 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
 // ARQUIVO DE DESTINO: api/DERIV-generate-art-v1.0.js
-// DATA DA ALTERAÇÃO: sábado, 14 de novembro de 2026 | 23:40:04 (horário de Fortaleza)
+// DATA DA ALTERAÇÃO: domingo, 15 de novembro de 2026 | 00:52:06 (horário de Fortaleza)
 // TÍTULO: Gerador independente do Derivador
-// VERSÃO DO CONTEÚDO: 2.0
-// FINALIDADE: preservar os mapas espaciais; permitir crop visual somente do título do YouTube 3 e sobreposição do pregador atrás dele; impedir que o auditor injete instruções conflitantes nesse preset.
+// VERSÃO DO CONTEÚDO: 2.1
+// FINALIDADE: manter a composição do YouTube 3 explícita no prompt final mesmo após compactação e preservar regras específicas dos demais presets.
 // BASE TÉCNICA: Generate Art v0.30.2; arquivo original inalterado.
 // INFRAESTRUTURA COMPARTILHADA: autenticação, acesso à igreja, Storage e registro de uso.
 // CHURCHDESIGN — generate-art v0.30.2
@@ -590,6 +590,9 @@ Entregue a arte final, não um mockup.`;
 
 function promptPresetOnly(data){
   const c=data.requiredContent||{},target=data.target||{};
+  const compositionRule=isYoutube3Preset(data)
+    ?'YOUTUBE 3 — COMPOSIÇÃO FIXA EM TODA TENTATIVA: recoloque a FOTO REAL do pregador no alto e no centro, em camada atrás do título; mantenha rosto e cabeça inteiros e visíveis acima das letras. Coloque o BLOCO COMPLETO DO TÍTULO na faixa central/inferior, cruzando o tronco; somente o título pode crescer até a borda ou sofrer crop visual. Preserve todas as palavras e sua ordem, mas não exija que cada letra fique totalmente dentro do canvas. Subtítulo permanece abaixo do título; DATA no inferior esquerdo; HORÁRIO no inferior direito; INFORMAÇÃO prevista no alto direito. Use estes mesmos lugares em cada nova tentativa. Corrija somente o item citado pelo Fiscal, sem deslocar os demais nem inverter a composição. Ignore qualquer correção que contradiga estas posições ou o blueprint.'
+    :'COMPOSIÇÃO: mantenha textos, rosto, cabeça e informações essenciais dentro da área segura, com folga das bordas. Elementos decorativos podem sangrar; conteúdo essencial não. Não corte texto nem rosto.';
   const explicitDerivativeTexts=(data.explicitDerivativeTexts||[]).map(t=>`TEXTO EXATO PEDIDO AGORA: ${t}`);
   const texts=[
     c.title?`TÍTULO EXATO: ${c.title}`:"",
@@ -918,7 +921,7 @@ Entregue a arte final, não um mockup.`;
 
 function derivationPromptRules(data={}){
   if(data.derivationMode==='manual')return 'DERIVADOR — MODO MANUAL:\n- A imagem exata selecionada é a verdade visual atual.\n- PROIBIDO espelhar horizontal ou verticalmente qualquer foto, pregador, rosto, corpo, microfone, púlpito, roupa, mão ou pose; reposicione/recorte sem inverter.\n- A instrução desta ação define o que mudar; preserve o restante visível.\n- Não aplique preset, grade ou silhueta pré-programada.\n- Não recupere elementos de versões anteriores nem invente textos, datas, nomes, pessoas ou marcas.\n- Logos oficiais serão adicionadas depois pelo Assistente de Logos.';
-  if(data.derivationMode==='preset')return 'DERIVADOR — MODO PRÉ-PRONTO:\n- O preset define a estrutura geral e as regiões relativas. Preserve rigorosamente os lados e a ordem acima/abaixo.\n- PROIBIDO espelhar horizontal ou verticalmente qualquer foto, pregador, rosto, corpo, microfone, púlpito, roupa, mão ou pose; reposicione/recorte sem inverter.\n- Preserve todos os componentes do título lidos na análise visual. Mantenha chamada/faixa (como um kicker) e título principal como partes relacionadas, sem omitir nenhuma.\n- '+(isYoutube3Preset(data)?'No YouTube 3, somente o título pode sobrepor o tronco do pregador e receber crop visual intencional; preserve todas as palavras e sua ordem. Rosto/cabeça e todo outro conteúdo ficam íntegros.':'Mantenha o título completo a pelo menos 6% das bordas, sem cortes.')+'\n- A arte selecionada fornece identidade e texto; dados preenchidos prevalecem onde existirem, e a análise visual completa partes legíveis omitidas dos campos. Categorias ausentes do preset continuam proibidas. Logos oficiais serão aplicadas depois.';
+  if(data.derivationMode==='preset')return 'DERIVADOR — MODO PRÉ-PRONTO:\n- O preset define a estrutura geral e as regiões relativas. Preserve rigorosamente os lados e a ordem acima/abaixo.\n- PROIBIDO espelhar horizontal ou verticalmente qualquer foto, pregador, rosto, corpo, microfone, púlpito, roupa, mão ou pose; reposicione/recorte sem inverter.\n- Preserve todos os componentes do título lidos na análise visual. Mantenha chamada/faixa (como um kicker) e título principal como partes relacionadas, sem omitir nenhuma.\n- '+(isYoutube3Preset(data)?'YOUTUBE 3 — COMPOSIÇÃO TRAVADA EM CADA TENTATIVA: pregador central/alto e atrás do título, cabeça inteira acima; título na faixa central/inferior sobre o tronco. Só o título pode ser parcialmente cortado pela borda, mantendo as palavras e a ordem reconhecíveis. Subtítulo abaixo; data inferior esquerda; horário inferior direita; informação superior direita. Mantenha esses lugares em todos os retries e corrija somente o elemento apontado, sem mover os que já estão certos.':'Mantenha o título completo a pelo menos 6% das bordas, sem cortes.')+'\n- A arte selecionada fornece identidade e texto; dados preenchidos prevalecem onde existirem, e a análise visual completa partes legíveis omitidas dos campos. Categorias ausentes do preset continuam proibidas. Logos oficiais serão aplicadas depois.';
   throw new Error('Modo de derivação inválido. Informe manual ou preset.');
 }
 function prompt(data){
@@ -1020,10 +1023,7 @@ ${c.churchName?`Pode aparecer SOMENTE como "${compactPromptText(c.churchName,900
 
 ${data.preferDarkBackground?`PRIORIDADE DE FUNDO ESCURO — HARD CONSTRAINT ATIVO: torne predominantemente escuro o fundo inteiro, inclusive grandes áreas claras/bege da origem, convertendo-as para preto/grafite. Preserve texturas, linhas, círculos e grafismos, adaptando apenas sua cor para contraste. Não aplique filtro escuro sobre título, logo ou outro elemento de primeiro plano.`:''}
 
-COMPOSIÇÃO:
-Mantenha todo texto, rosto, cabeça e informação essencial dentro de área segura, com folga das quatro bordas.
-Elementos decorativos podem sangrar; conteúdo essencial não.
-Não corte texto nem rosto.
+${compositionRule}
 
 ${data.addPastorOverride?`PESSOA 1 É OBRIGATÓRIA e deve permanecer claramente visível.`:''}
 
