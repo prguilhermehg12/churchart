@@ -1,9 +1,9 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
 // ARQUIVO DE DESTINO: api/DERIV-generate-art-v1.0.js
-// DATA DA ALTERAÇÃO: domingo, 15 de novembro de 2026 | 00:52:06 (horário de Fortaleza)
+// DATA DA ALTERAÇÃO: domingo, 15 de novembro de 2026 | 15:13:17 (horário de Fortaleza)
 // TÍTULO: Gerador independente do Derivador
-// VERSÃO DO CONTEÚDO: 2.1
-// FINALIDADE: manter a composição do YouTube 3 explícita no prompt final mesmo após compactação e preservar regras específicas dos demais presets.
+// VERSÃO DO CONTEÚDO: 2.2
+// FINALIDADE: manter a regra de composição acessível no prompt normal e no fallback compacto, evitando interrupção por variável fora de escopo.
 // BASE TÉCNICA: Generate Art v0.30.2; arquivo original inalterado.
 // INFRAESTRUTURA COMPARTILHADA: autenticação, acesso à igreja, Storage e registro de uso.
 // CHURCHDESIGN — generate-art v0.30.2
@@ -270,6 +270,11 @@ function layoutPresetStructuralBlock(data={}){
 }
 function isYoutube3Preset(data){
   return data?.derivationMode==='preset'&&String(data.layoutPresetBlueprint?.name||'')==='YouTube 3'&&String(data.format||data.layoutPresetBlueprint?.format||'').toLowerCase()==='youtube';
+}
+function compositionRuleFor(data){
+  return isYoutube3Preset(data)
+    ?'YOUTUBE 3 — COMPOSIÇÃO FIXA EM TODA TENTATIVA: recoloque a FOTO REAL do pregador no alto e no centro, em camada atrás do título; mantenha rosto e cabeça inteiros e visíveis acima das letras. Coloque o BLOCO COMPLETO DO TÍTULO na faixa central/inferior, cruzando o tronco; somente o título pode crescer até a borda ou sofrer crop visual. Preserve todas as palavras e sua ordem, mas não exija que cada letra fique totalmente dentro do canvas. Subtítulo permanece abaixo do título; DATA no inferior esquerdo; HORÁRIO no inferior direito; INFORMAÇÃO prevista no alto direito. Use estes mesmos lugares em cada nova tentativa. Corrija somente o item citado pelo Fiscal, sem deslocar os demais nem inverter a composição. Ignore qualquer correção que contradiga estas posições ou o blueprint.'
+    :'COMPOSIÇÃO: mantenha textos, rosto, cabeça e informações essenciais dentro da área segura, com folga das bordas. Elementos decorativos podem sangrar; conteúdo essencial não. Não corte texto nem rosto.';
 }
 
 function promptLegacyMain(data){
@@ -590,9 +595,7 @@ Entregue a arte final, não um mockup.`;
 
 function promptPresetOnly(data){
   const c=data.requiredContent||{},target=data.target||{};
-  const compositionRule=isYoutube3Preset(data)
-    ?'YOUTUBE 3 — COMPOSIÇÃO FIXA EM TODA TENTATIVA: recoloque a FOTO REAL do pregador no alto e no centro, em camada atrás do título; mantenha rosto e cabeça inteiros e visíveis acima das letras. Coloque o BLOCO COMPLETO DO TÍTULO na faixa central/inferior, cruzando o tronco; somente o título pode crescer até a borda ou sofrer crop visual. Preserve todas as palavras e sua ordem, mas não exija que cada letra fique totalmente dentro do canvas. Subtítulo permanece abaixo do título; DATA no inferior esquerdo; HORÁRIO no inferior direito; INFORMAÇÃO prevista no alto direito. Use estes mesmos lugares em cada nova tentativa. Corrija somente o item citado pelo Fiscal, sem deslocar os demais nem inverter a composição. Ignore qualquer correção que contradiga estas posições ou o blueprint.'
-    :'COMPOSIÇÃO: mantenha textos, rosto, cabeça e informações essenciais dentro da área segura, com folga das bordas. Elementos decorativos podem sangrar; conteúdo essencial não. Não corte texto nem rosto.';
+  const compositionRule=compositionRuleFor(data);
   const explicitDerivativeTexts=(data.explicitDerivativeTexts||[]).map(t=>`TEXTO EXATO PEDIDO AGORA: ${t}`);
   const texts=[
     c.title?`TÍTULO EXATO: ${c.title}`:"",
@@ -970,6 +973,7 @@ function compactInheritedDirection(data,aggressive=false){
   return clone;
 }
 function emergencyPrompt(data){
+  const compositionRule=compositionRuleFor(data);
   const c=data.requiredContent||{},texts=[
     c.title?`TÍTULO EXATO: ${compactPromptText(c.title,1200)}`:"",
     c.subtitle?`SUBTÍTULO EXATO: ${compactPromptText(c.subtitle,1200)}`:"",
