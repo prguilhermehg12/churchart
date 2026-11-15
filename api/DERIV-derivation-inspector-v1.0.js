@@ -1,9 +1,9 @@
 // CHURCHDESIGN — DERIVADOR INDEPENDENTE
 // ARQUIVO DE DESTINO: api/DERIV-derivation-inspector-v1.0.js
-// DATA DA ALTERAÇÃO: sábado, 14 de novembro de 2026 | 23:40:04 (horário de Fortaleza)
+// DATA DA ALTERAÇÃO: domingo, 15 de novembro de 2026 | 00:52:06 (horário de Fortaleza)
 // TÍTULO: Fiscal independente do Derivador
-// VERSÃO DO CONTEÚDO: 1.9
-// FINALIDADE: fiscalizar a composição YouTube 3 com crop visual permitido somente no título e pregador sobreposto atrás dele; manter os demais critérios e presets.
+// VERSÃO DO CONTEÚDO: 2.0
+// FINALIDADE: reconhecer YouTube 3 pelo formato do blueprint, validar sua composição fixa sem repetir retries conflitantes; manter os demais critérios e presets.
 // INFRAESTRUTURA COMPARTILHADA: autenticação Supabase e membership da igreja ativa.
 module.exports.config={maxDuration:120};
 const RESPONSES_URL="https://api.openai.com/v1/responses";
@@ -56,8 +56,10 @@ function buildInput(data,traceAuthorized=false){
   const isPreset=mode==="preset";
   const isScreen=String(data.format||data.layoutPresetBlueprint?.format||'').toLowerCase()==='screen';
   const presetName=String(data.layoutPresetBlueprint?.name||'');
-  const isYoutube3=isPreset&&presetName==='YouTube 3'&&String(data.format||'').toLowerCase()==='youtube';
-  const relationMap=presetSpatialRelations(data.layoutPresetBlueprint||{});
+  const isYoutube3=isPreset&&presetName==='YouTube 3'&&String(data.format||data.layoutPresetBlueprint?.format||'').toLowerCase()==='youtube';
+  const relationMap=isYoutube3
+    ?'pregador central e superior, atrás do título; rosto/cabeça inteiros acima; título central/inferior sobre o tronco; subtítulo abaixo do título; data inferior esquerda; horário inferior direita; informação superior direita. Somente o título pode receber crop visual.'
+    :presetSpatialRelations(data.layoutPresetBlueprint||{});
   const titleCropRule=isYoutube3?'YouTube 3: aceite crop visual do título e sobreposição sobre o tronco; mantenha palavras reconhecíveis e pregador central/superior atrás do título, com rosto/cabeça visíveis. Só o título pode cortar; demais textos e a pessoa ficam íntegros.':'Reprove corte de título ou qualquer outro conteúdo essencial; mantenha pelo menos 6% de margem.';
   const images=[{type:"input_image",image_url:imageValue(data.generatedImage)}];
   for(const ref of (Array.isArray(data.references)?data.references:[]).slice(0,3)){
